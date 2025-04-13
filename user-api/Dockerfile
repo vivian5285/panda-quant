@@ -7,22 +7,14 @@ USER root
 # 设置工作目录
 WORKDIR /app
 
-# 复制 package.json 和 package-lock.json
-COPY package*.json ./
-
-# 安装依赖和全局 TypeScript
-RUN npm install && \
-    npm install -g typescript && \
-    npm install express-rate-limit && \
-    npm install --save-dev @types/express-rate-limit && \
-    chmod +x /usr/local/bin/tsc && \
-    chmod +x /usr/local/lib/node_modules/typescript/bin/tsc
-
-# 复制项目文件
+# 复制所有文件
 COPY . .
 
+# 安装依赖
+RUN npm install
+
 # 编译 TypeScript
-RUN /usr/local/bin/tsc
+RUN npm run build
 
 # 生产阶段
 FROM node:18-alpine
