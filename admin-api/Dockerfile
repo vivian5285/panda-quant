@@ -10,10 +10,10 @@ WORKDIR /app
 # 复制依赖文件
 COPY package*.json ./
 
-# 安装依赖、全局 TypeScript 和类型定义
+# 安装依赖、全局 TypeScript 和所有必要的类型定义
 RUN npm install && \
     npm install -g typescript && \
-    npm install --save-dev @types/express-rate-limit && \
+    npm install --save-dev @types/express-rate-limit @types/mongoose @types/redis @types/winston && \
     chmod +x /usr/local/bin/tsc && \
     chmod +x /usr/local/lib/node_modules/typescript/bin/tsc
 
