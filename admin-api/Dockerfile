@@ -9,7 +9,8 @@ COPY package*.json ./
 
 # 安装依赖和全局 TypeScript
 RUN npm install && \
-    npm install -g typescript
+    npm install -g typescript && \
+    npm install --save-dev @types/express-rate-limit
 
 # 复制项目文件
 COPY . .
