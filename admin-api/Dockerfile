@@ -7,14 +7,15 @@ WORKDIR /app
 # 复制依赖文件
 COPY package*.json ./
 
-# 安装依赖
-RUN npm install
+# 安装依赖并设置 tsc 执行权限
+RUN npm install && \
+    chmod +x node_modules/.bin/tsc
 
 # 复制项目文件
 COPY . .
 
 # 编译 TypeScript
-RUN npm run build
+RUN npx tsc
 
 # 暴露端口
 EXPOSE 3000
