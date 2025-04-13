@@ -13,6 +13,7 @@ import { scheduleWeeklyFeeDeduction } from './tasks/feeDeduction';
 dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 4000;
 
 // Middleware
 app.use(cors());
@@ -22,12 +23,6 @@ app.use(express.json());
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/panda-quant')
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
-
-// Initialize PostgreSQL database
-const dbService = new DatabaseService();
-dbService.initialize()
-  .then(() => console.log('PostgreSQL connected'))
-  .catch(err => console.error('PostgreSQL connection error:', err));
 
 // Initialize strategy manager
 const strategyManager = new StrategyManager();
@@ -42,14 +37,12 @@ app.use('/api/strategy', strategyRoutes);
 // Schedule weekly fee deduction
 scheduleWeeklyFeeDeduction();
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received. Shutting down gracefully...');
-  await dbService.close();
-  process.exit(0);
+// Routes
+app.get('/', (req, res) => {
+  res.send('Panda Quant User API is running');
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Start server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 }); 

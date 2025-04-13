@@ -1,27 +1,32 @@
-import { StrategyPreset } from './types';
+import dotenv from 'dotenv';
 
-export const STRATEGY_PRESETS: StrategyPreset[] = [
-  {
-    name: 'SuperTrend',
-    params: {
-      period: 10,
-      multiplier: 3,
-      stopLoss: 0.02,
-      takeProfit: 0.05
+dotenv.config();
+
+export const config = {
+  // MongoDB Configuration
+  mongodb: {
+    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/panda-quant',
+    options: {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     }
+  },
+
+  // Redis Configuration
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+  },
+
+  // API Configuration
+  api: {
+    port: parseInt(process.env.PORT || '4000'),
+    jwtSecret: process.env.JWT_SECRET || 'your-secret-key',
+  },
+
+  // Strategy Configuration
+  strategy: {
+    maxConcurrentBacktests: parseInt(process.env.MAX_CONCURRENT_BACKTESTS || '5'),
+    defaultRiskLevel: process.env.DEFAULT_RISK_LEVEL || 'medium',
   }
-];
-
-export const DATABASE_CONFIG = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'panda_quant',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres'
-};
-
-export const ENGINE_CONFIG = {
-  updateInterval: 1000, // 策略执行间隔（毫秒）
-  maxHistoryData: 1000, // 最大历史数据条数
-  minTradeInterval: 60 * 1000 // 最小交易间隔（毫秒）
 }; 

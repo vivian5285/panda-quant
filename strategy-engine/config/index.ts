@@ -2,35 +2,31 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export default {
-  // 交易所配置
-  exchange: {
-    apiKey: process.env.EXCHANGE_API_KEY,
-    apiSecret: process.env.EXCHANGE_API_SECRET,
-    testnet: process.env.EXCHANGE_TESTNET === 'true',
+export const config = {
+  // MongoDB Configuration
+  mongodb: {
+    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/panda-quant',
+    options: {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    }
   },
 
-  // 数据库配置
-  database: {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432'),
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
-    database: process.env.DB_NAME || 'panda_quant',
+  // Redis Configuration
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
   },
 
-  // 策略引擎配置
-  engine: {
-    maxStrategies: parseInt(process.env.MAX_STRATEGIES || '10'),
-    updateInterval: parseInt(process.env.UPDATE_INTERVAL || '60000'), // 1分钟
-    maxDrawdown: parseFloat(process.env.MAX_DRAWDOWN || '0.1'), // 10%
-    stopLoss: parseFloat(process.env.STOP_LOSS || '0.05'), // 5%
-    takeProfit: parseFloat(process.env.TAKE_PROFIT || '0.1'), // 10%
+  // API Configuration
+  api: {
+    port: parseInt(process.env.PORT || '4000'),
+    jwtSecret: process.env.JWT_SECRET || 'your-secret-key',
   },
 
-  // 日志配置
-  logging: {
-    level: process.env.LOG_LEVEL || 'info',
-    file: process.env.LOG_FILE || 'strategy-engine.log',
-  },
+  // Strategy Configuration
+  strategy: {
+    maxConcurrentBacktests: parseInt(process.env.MAX_CONCURRENT_BACKTESTS || '5'),
+    defaultRiskLevel: process.env.DEFAULT_RISK_LEVEL || 'medium',
+  }
 }; 
