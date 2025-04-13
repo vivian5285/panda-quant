@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  # MongoDB 数据库
+  mongodb:
+    image: mongo:4.4
+    container_name: panda-quant-mongodb
+    ports:
+      - "${DB_PORT}:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+    networks:
+      - panda-quant-network
+
+  # Redis 缓存
+  redis:
+    image: redis:6.0
+    container_name: panda-quant-redis
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - panda-quant-network
+
+  # 用户前端
+  user-ui:
+    build:
+      context: ./user-ui
+      dockerfile: Dockerfile
+    container_name: panda-quant-user-ui
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
+      - REACT_APP_ENV=${REACT_APP_ENV}
+    depends_on:
+      - user-api
+    networks:
+      - panda-quant-network
+
+  # 管理前端
+  admin-ui:
+    build:
+      context: ./admin-ui
+      dockerfile: Dockerfile
+    container_name: panda-quant-admin-ui
+    ports:
+      - "3001:3000"
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_ADMIN_API_URL}
+      - REACT_APP_ENV=${REACT_APP_ENV}
+    depends_on:
+      - admin-api
+    networks:
+      - panda-quant-network
+
+  # 用户后端
+  user-api:
+    build:
+      context: ./user-api
+      dockerfile: Dockerfile
+    container_name: panda-quant-user-api
+    ports:
+      - "${USER_API_PORT}:${USER_API_PORT}"
+    environment:
+      - PORT=${USER_API_PORT}
+      - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?authSource=admin
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT}
+      - NODE_ENV=${NODE_ENV}
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - panda-quant-network
+
+  # 管理后端
+  admin-api:
+    build:
+      context: ./admin-api
+      dockerfile: Dockerfile
+    container_name: panda-quant-admin-api
+    ports:
+      - "${ADMIN_API_PORT}:${ADMIN_API_PORT}"
+    environment:
+      - PORT=${ADMIN_API_PORT}
+      - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?authSource=admin
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT}
+      - NODE_ENV=${NODE_ENV}
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - panda-quant-network
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  panda-quant-network:
+    driver: bridge 
