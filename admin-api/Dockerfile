@@ -7,16 +7,14 @@ WORKDIR /app
 # 复制依赖文件
 COPY package*.json ./
 
-# 安装依赖和全局 TypeScript
-RUN npm install && \
-    npm install -g typescript && \
-    npm install --save-dev @types/express-rate-limit
+# 安装依赖
+RUN npm install
 
 # 复制项目文件
 COPY . .
 
 # 编译 TypeScript
-RUN tsc
+RUN npm run build
 
 # 暴露端口
 EXPOSE 3000
