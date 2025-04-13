@@ -9,6 +9,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
+# Add execute permission to react-scripts
+RUN chmod +x node_modules/.bin/react-scripts
+
 # Copy source code
 COPY . .
 
