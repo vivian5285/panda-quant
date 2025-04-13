@@ -7,13 +7,14 @@ USER root
 # 设置工作目录
 WORKDIR /app
 
-# 复制依赖文件
+# 复制 package.json 和 package-lock.json
 COPY package*.json ./
 
-# 安装依赖、全局 TypeScript 和所有必要的类型定义
+# 安装依赖和全局 TypeScript
 RUN npm install && \
     npm install -g typescript && \
-    npm install --save-dev @types/express-rate-limit @types/mongoose @types/redis @types/winston && \
+    npm install express-rate-limit && \
+    npm install --save-dev @types/express-rate-limit && \
     chmod +x /usr/local/bin/tsc && \
     chmod +x /usr/local/lib/node_modules/typescript/bin/tsc
 
