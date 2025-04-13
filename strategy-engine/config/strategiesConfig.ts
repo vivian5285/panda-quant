@@ -1,0 +1,142 @@
+import { StrategyPreset } from '../types';
+
+export const strategyPresets: Record<string, Record<string, StrategyPreset>> = {
+  scalping: {
+    high: {
+      name: 'Scalping High Risk',
+      description: '高频交易策略，追求快速进出市场',
+      timeframe: '1m',
+      takeProfit: 0.5, // 0.5%
+      stopLoss: 0.2, // 0.2%
+      maxTradesPerDay: 200,
+      slippage: 0.05, // 0.05%
+      positionSize: 0.1, // 10% of capital
+      emaPeriod: 20,
+      rsiPeriod: 14,
+      volumeMA: 20,
+      riskLevel: 'high',
+      expectedMonthlyReturn: 200, // 200% monthly return
+      maxDrawdown: 20, // 20% max drawdown
+    },
+    medium: {
+      name: 'Scalping Medium Risk',
+      description: '中频交易策略，平衡风险和收益',
+      timeframe: '5m',
+      takeProfit: 0.3,
+      stopLoss: 0.1,
+      maxTradesPerDay: 100,
+      slippage: 0.05,
+      positionSize: 0.05,
+      emaPeriod: 20,
+      rsiPeriod: 14,
+      volumeMA: 20,
+      riskLevel: 'medium',
+      expectedMonthlyReturn: 100,
+      maxDrawdown: 15,
+    },
+    low: {
+      name: 'Scalping Low Risk',
+      description: '低频交易策略，注重风险控制',
+      timeframe: '15m',
+      takeProfit: 0.2,
+      stopLoss: 0.1,
+      maxTradesPerDay: 50,
+      slippage: 0.05,
+      positionSize: 0.02,
+      emaPeriod: 20,
+      rsiPeriod: 14,
+      volumeMA: 20,
+      riskLevel: 'low',
+      expectedMonthlyReturn: 50,
+      maxDrawdown: 10,
+    }
+  },
+  superTrend: {
+    high: {
+      name: 'SuperTrend High Risk',
+      description: '趋势跟踪策略，高波动市场',
+      timeframe: '15m',
+      takeProfit: 2.0,
+      stopLoss: 1.0,
+      atrPeriod: 10,
+      multiplier: 4,
+      trendStrengthFilter: 0.7,
+      positionSize: 0.2,
+      riskLevel: 'high',
+      expectedMonthlyReturn: 300,
+      maxDrawdown: 25,
+    },
+    medium: {
+      name: 'SuperTrend Medium Risk',
+      description: '趋势跟踪策略，中等波动市场',
+      timeframe: '30m',
+      takeProfit: 1.5,
+      stopLoss: 0.8,
+      atrPeriod: 14,
+      multiplier: 3,
+      trendStrengthFilter: 0.6,
+      positionSize: 0.1,
+      riskLevel: 'medium',
+      expectedMonthlyReturn: 150,
+      maxDrawdown: 20,
+    },
+    low: {
+      name: 'SuperTrend Low Risk',
+      description: '趋势跟踪策略，低波动市场',
+      timeframe: '1h',
+      takeProfit: 1.0,
+      stopLoss: 0.5,
+      atrPeriod: 20,
+      multiplier: 2,
+      trendStrengthFilter: 0.5,
+      positionSize: 0.05,
+      riskLevel: 'low',
+      expectedMonthlyReturn: 80,
+      maxDrawdown: 15,
+    }
+  },
+  grid: {
+    high: {
+      name: 'Grid Trading High Risk',
+      description: '网格交易策略，高波动市场',
+      timeframe: '5m',
+      gridSize: 0.5, // 0.5% per grid
+      gridCount: 20,
+      rangePercent: 8,
+      basePositionSize: 0.02,
+      maxPositionSize: 0.03,
+      positionSize: 0.15,
+      riskLevel: 'high',
+      expectedMonthlyReturn: 250,
+      maxDrawdown: 20,
+    },
+    medium: {
+      name: 'Grid Trading Medium Risk',
+      description: '网格交易策略，中等波动市场',
+      timeframe: '15m',
+      gridSize: 0.3,
+      gridCount: 15,
+      rangePercent: 5,
+      basePositionSize: 0.015,
+      maxPositionSize: 0.02,
+      positionSize: 0.1,
+      riskLevel: 'medium',
+      expectedMonthlyReturn: 120,
+      maxDrawdown: 15,
+    },
+    low: {
+      name: 'Grid Trading Low Risk',
+      description: '网格交易策略，低波动市场',
+      timeframe: '30m',
+      gridSize: 0.2,
+      gridCount: 10,
+      rangePercent: 3,
+      basePositionSize: 0.01,
+      maxPositionSize: 0.015,
+      positionSize: 0.05,
+      riskLevel: 'low',
+      expectedMonthlyReturn: 60,
+      maxDrawdown: 10,
+    }
+  }
+}; 
