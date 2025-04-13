@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build
 
 # 暴露端口
-EXPOSE 3001
+EXPOSE 4000
 
 # 启动服务
 CMD ["node", "dist/index.js"] 

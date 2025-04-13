@@ -3,11 +3,12 @@ services:
   user-api:
     build:
       context: ../user-api
-      dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "4000:4000"
     env_file:
       - .env
+    environment:
+      - NODE_ENV=production
     networks:
       - panda-network
     depends_on:
@@ -17,11 +18,12 @@ services:
   admin-api:
     build:
       context: ../admin-api
-      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     env_file:
       - .env
+    environment:
+      - NODE_ENV=production
     networks:
       - panda-network
     depends_on:
