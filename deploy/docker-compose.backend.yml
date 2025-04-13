@@ -1,12 +1,14 @@
-version: '3'
+version: "3.9"
+
 services:
   user-api:
     build:
       context: ../user-api
+      dockerfile: Dockerfile
     ports:
       - "4000:4000"
     env_file:
-      - .env
+      - ../.env
     environment:
       - NODE_ENV=production
     networks:
@@ -14,14 +16,16 @@ services:
     depends_on:
       - mongodb
       - redis
+    restart: always
 
   admin-api:
     build:
       context: ../admin-api
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     env_file:
-      - .env
+      - ../.env
     environment:
       - NODE_ENV=production
     networks:
@@ -29,6 +33,7 @@ services:
     depends_on:
       - mongodb
       - redis
+    restart: always
 
   mongodb:
     image: mongo:latest
