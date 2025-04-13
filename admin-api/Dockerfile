@@ -10,14 +10,17 @@ WORKDIR /app
 # 复制依赖文件
 COPY package*.json ./
 
-# 安装依赖
-RUN npm install
+# 安装依赖和全局 TypeScript
+RUN npm install && \
+    npm install -g typescript && \
+    chmod +x /usr/local/bin/tsc && \
+    chmod +x /usr/local/lib/node_modules/typescript/bin/tsc
 
 # 复制项目文件
 COPY . .
 
 # 编译 TypeScript
-RUN npm run build
+RUN /usr/local/bin/tsc
 
 # 生产阶段
 FROM node:18-alpine
