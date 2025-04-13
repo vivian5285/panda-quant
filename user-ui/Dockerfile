@@ -6,11 +6,10 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
-
-# Add execute permission to react-scripts
-RUN chmod +x node_modules/.bin/react-scripts
+# Install dependencies with legacy peer deps and set permissions
+RUN npm install --legacy-peer-deps && \
+    chmod -R +x node_modules/.bin && \
+    chmod -R +x node_modules/react-scripts/scripts
 
 # Copy source code
 COPY . .
