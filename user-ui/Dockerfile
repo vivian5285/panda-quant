@@ -6,10 +6,11 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies and react-scripts globally
+# Install dependencies and set permissions
 RUN npm install --legacy-peer-deps && \
     npm install -g react-scripts && \
-    ln -s /usr/local/bin/react-scripts /app/node_modules/.bin/react-scripts
+    chmod -R +x /usr/local/bin/react-scripts && \
+    chmod -R +x /app/node_modules/.bin
 
 # Copy source code
 COPY . .

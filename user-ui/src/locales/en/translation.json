@@ -1,36 +1,23 @@
 {
+  "welcome": "Welcome to Panda Quant",
+  "description": "Your AI-powered trading platform",
+  "getStarted": "Get Started",
   "common": {
-    "welcome": "Welcome to Panda Quant",
     "login": "Login",
     "register": "Register",
     "logout": "Logout",
     "dashboard": "Dashboard",
-    "settings": "Settings",
     "profile": "Profile",
-    "language": "Language",
-    "theme": "Theme",
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit",
-    "create": "Create",
-    "search": "Search",
-    "loading": "Loading...",
-    "error": "Error",
-    "success": "Success",
-    "warning": "Warning",
-    "info": "Info"
+    "settings": "Settings",
+    "notifications": "Notifications"
   },
   "auth": {
     "email": "Email",
     "password": "Password",
     "confirmPassword": "Confirm Password",
     "forgotPassword": "Forgot Password?",
-    "rememberMe": "Remember Me",
     "noAccount": "Don't have an account?",
-    "haveAccount": "Already have an account?",
-    "resetPassword": "Reset Password",
-    "sendResetLink": "Send Reset Link"
+    "haveAccount": "Already have an account?"
   },
   "dashboard": {
     "totalBalance": "Total Balance",

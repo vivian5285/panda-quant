@@ -1,45 +1,57 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  Box,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
+import {
+  Brightness4 as DarkModeIcon,
+  Brightness7 as LightModeIcon,
+  AccountCircle as AccountIcon,
+} from '@mui/icons-material';
+import { useTheme as useAppTheme } from './ThemeProvider';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 
-const Header: React.FC = () => {
+export const Header: React.FC = () => {
+  const theme = useTheme();
+  const { mode, toggleTheme } = useAppTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
 
   return (
-    <AppBar position="static" sx={{ bgcolor: '#4CAF50' }}>
+    <AppBar position="fixed" elevation={0}>
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          熊猫量化
+        <Typography
+          variant="h6"
+          component="div"
+          sx={{ flexGrow: 1, cursor: 'pointer' }}
+          onClick={() => navigate('/')}
+        >
+          Panda Quant
         </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button color="inherit" onClick={() => navigate('/')}>
-            首页
-          </Button>
-          {isAuthenticated ? (
-            <>
-              <Button color="inherit" onClick={() => navigate('/asset-center')}>
-                资产中心
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/profile')}>
-                个人中心
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button color="inherit" onClick={() => navigate('/login')}>
-                登录
-              </Button>
-              <Button color="inherit" onClick={() => navigate('/register')}>
-                注册
-              </Button>
-            </>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton
+            color="inherit"
+            onClick={toggleTheme}
+            aria-label="toggle theme"
+          >
+            {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
+          {!isMobile && (
+            <IconButton
+              color="inherit"
+              onClick={() => navigate('/profile')}
+              aria-label="user profile"
+            >
+              <AccountIcon />
+            </IconButton>
           )}
         </Box>
       </Toolbar>
     </AppBar>
   );
-};
-
-export default Header; 
+}; 
