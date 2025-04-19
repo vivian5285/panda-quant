@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y \
 COPY package*.json ./
 
 # 安装依赖
-RUN npm install
+RUN npm install -g typescript && \
+    npm install
 
 # 复制源代码
 COPY . .
