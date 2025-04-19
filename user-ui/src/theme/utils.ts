@@ -44,7 +44,7 @@ export const themeUtils: ThemeUtils = {
   animationConfig: {
     duration: {
       fast: 0.2,
-      normal: 0.5,
+      medium: 0.5,
       slow: 0.8,
     },
     delay: {

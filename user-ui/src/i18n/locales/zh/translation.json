@@ -375,6 +375,10 @@
     "selectWallet": "选择钱包",
     "haveAccount": "已有账户？",
     "signIn": "登录",
+    "verificationCode": "验证码",
+    "sendCode": "发送验证码",
+    "resendCode": "重新发送",
+    "verificationCodeSent": "验证码已发送",
     "error": {
       "emailRequired": "请输入邮箱",
       "emailInvalid": "请输入有效的邮箱地址",
@@ -386,7 +390,10 @@
       "confirmPasswordRequired": "请确认密码",
       "passwordsNotMatch": "两次输入的密码不一致",
       "walletRequired": "请选择钱包",
-      "registrationFailed": "注册失败，请稍后重试"
+      "registrationFailed": "注册失败，请稍后重试",
+      "sendCodeFailed": "发送验证码失败",
+      "verificationCodeInvalid": "验证码无效",
+      "usernameMinLength": "用户名至少需要3个字符"
     }
   },
   "auth": {

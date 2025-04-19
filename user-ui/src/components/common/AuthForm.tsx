@@ -478,7 +478,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
           helperText={error}
           type={showPasswordField ? (showPasswordState ? 'text' : 'password') : field.type}
           icon={field.icon}
-          endAdornment={
+          endIcon={
             showPasswordField ? (
               <IconButton
                 onClick={() => setShowPasswordState(!showPasswordState)}
@@ -539,7 +539,32 @@ const AuthForm: React.FC<AuthFormProps> = ({
         renderWalletForm()
       ) : (
         <Box>
-          {getFields().map(renderField)}
+          {getFields().map((field) => (
+            <Box key={field.name} sx={{ mb: 2 }}>
+              <PandaInput
+                fullWidth
+                placeholder={field.label}
+                value={formData[field.name] || ''}
+                onChange={handleChange(field.name)}
+                required={field.required}
+                error={!!validationErrors[field.name]}
+                helperText={validationErrors[field.name]}
+                type={field.name === 'password' || field.name === 'confirmPassword' ? (showPassword ? 'text' : 'password') : field.type}
+                icon={field.icon}
+                endIcon={
+                  (field.name === 'password' || field.name === 'confirmPassword') ? (
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                      sx={{ color: 'text.secondary' }}
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  ) : field.action
+                }
+              />
+            </Box>
+          ))}
           <Box sx={{ mt: 3 }}>
             <motion.div
               whileHover={{ scale: 1.02 }}

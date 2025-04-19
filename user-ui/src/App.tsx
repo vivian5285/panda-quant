@@ -1,10 +1,9 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
+import { BrowserRouter as Router, Routes, Route, Navigate, UNSAFE_NavigationContext as NavigationContext } from 'react-router-dom';
 import { CssBaseline } from '@mui/material';
-import { createCustomTheme } from './theme';
 import { Web3Provider } from './contexts/Web3Context';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import Layout from './components/Layout';
@@ -16,16 +15,22 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
-const App: React.FC = () => {
-  const theme = createCustomTheme('light');
+// 启用 React Router v7 的未来标志
+const router = {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true,
+  },
+};
 
+const App: React.FC = () => {
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider>
       <CssBaseline />
       <Web3Provider>
         <AuthProvider>
           <I18nextProvider i18n={i18n}>
-            <Router>
+            <Router {...router}>
               <Routes>
                 {/* 需要布局的页面 */}
                 <Route path="/" element={<Layout />}>

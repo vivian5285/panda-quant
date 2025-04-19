@@ -1,102 +1,63 @@
-import { Theme } from '@mui/material/styles';
+import { Theme, createTheme, ThemeOptions } from '@mui/material/styles';
+import { PaletteColor } from '@mui/material/styles/createPalette';
+import { themeUtils } from './theme/index';
 
-export const themeUtils = {
-  createGradient: (color1: string, color2: string) => {
-    return `linear-gradient(135deg, ${color1}, ${color2})`;
-  },
+export { themeUtils };
 
-  createTextGradient: (color1: string, color2: string) => {
-    return {
-      background: `linear-gradient(135deg, ${color1}, ${color2})`,
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-    };
-  },
-
-  getThemeColor: (theme: Theme, color: string) => {
-    return theme.palette[color as keyof typeof theme.palette]?.main || color;
-  },
-
-  textStyles: {
-    h1: {
-      fontSize: '2.5rem',
-      fontWeight: 700,
-      lineHeight: 1.2,
-    },
-    h2: {
-      fontSize: '2rem',
-      fontWeight: 600,
-      lineHeight: 1.3,
-    },
-    h3: {
-      fontSize: '1.75rem',
-      fontWeight: 600,
-      lineHeight: 1.4,
-    },
-    h4: {
-      fontSize: '1.5rem',
-      fontWeight: 500,
-      lineHeight: 1.4,
-    },
-    h5: {
-      fontSize: '1.25rem',
-      fontWeight: 500,
-      lineHeight: 1.4,
-    },
-    h6: {
-      fontSize: '1rem',
-      fontWeight: 500,
-      lineHeight: 1.4,
-    },
-    body1: {
-      fontSize: '1rem',
-      lineHeight: 1.5,
-    },
-    body2: {
-      fontSize: '0.875rem',
-      lineHeight: 1.5,
-    },
-  },
-
-  cardStyle: {
-    borderRadius: 2,
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      transform: 'translateY(-4px)',
-      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
-    },
-  },
-
-  buttonStyles: {
-    contained: {
-      borderRadius: 2,
-      textTransform: 'none',
-      fontWeight: 600,
-      boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.1)',
-      transition: 'all 0.3s ease',
-      '&:hover': {
-        transform: 'translateY(-2px)',
-        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
+export const createCustomTheme = (mode: 'light' | 'dark' = 'light') => {
+  return createTheme({
+    palette: {
+      mode,
+      primary: {
+        main: '#00FFB8',
+        light: '#33FFC6',
+        dark: '#00B282',
+        contrastText: '#000000',
+      },
+      secondary: {
+        main: '#FF00B8',
+        light: '#FF33C6',
+        dark: '#B20082',
+        contrastText: '#FFFFFF',
+      },
+      background: {
+        default: mode === 'light' ? '#F5F5F5' : '#121212',
+        paper: mode === 'light' ? '#FFFFFF' : '#1E1E1E',
       },
     },
-    outlined: {
-      borderRadius: 2,
-      textTransform: 'none',
-      fontWeight: 600,
-      transition: 'all 0.3s ease',
-      '&:hover': {
-        transform: 'translateY(-2px)',
+    typography: {
+      fontFamily: 'Roboto, sans-serif',
+      h1: themeUtils.textStyles.h1,
+      h2: themeUtils.textStyles.h2,
+      h3: themeUtils.textStyles.h3,
+      h4: themeUtils.textStyles.h4,
+      h5: themeUtils.textStyles.h5,
+      h6: themeUtils.textStyles.h6,
+      body1: themeUtils.textStyles.body1,
+      body2: themeUtils.textStyles.body2,
+    },
+    components: {
+      MuiCard: {
+        styleOverrides: {
+          root: themeUtils.cardStyle,
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          contained: {
+            ...themeUtils.buttonStyles.contained,
+            variants: [],
+          },
+          outlined: {
+            ...themeUtils.buttonStyles.outlined,
+            variants: [],
+          },
+          text: {
+            ...themeUtils.buttonStyles.text,
+            variants: [],
+          },
+        },
       },
     },
-    text: {
-      borderRadius: 2,
-      textTransform: 'none',
-      fontWeight: 600,
-      transition: 'all 0.3s ease',
-      '&:hover': {
-        transform: 'translateY(-2px)',
-      },
-    },
-  },
+  });
 }; 

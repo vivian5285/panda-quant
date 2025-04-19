@@ -190,29 +190,108 @@ export const themeUtils = {
     border: '1px solid rgba(255, 255, 255, 0.1)',
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
   }),
-  spacing: {
-    section: 12,
-    container: 4,
-    grid: 4,
-    card: 4,
+  spacing: (multiplier: number) => `${multiplier * 8}px`,
+  textStyles: {
+    h1: {
+      fontSize: '2.5rem',
+      fontWeight: 700,
+      lineHeight: 1.2,
+    },
+    h2: {
+      fontSize: '2rem',
+      fontWeight: 600,
+      lineHeight: 1.3,
+    },
+    h3: {
+      fontSize: '1.75rem',
+      fontWeight: 600,
+      lineHeight: 1.4,
+    },
+    h4: {
+      fontSize: '1.5rem',
+      fontWeight: 500,
+      lineHeight: 1.4,
+    },
+    h5: {
+      fontSize: '1.25rem',
+      fontWeight: 500,
+      lineHeight: 1.4,
+    },
+    h6: {
+      fontSize: '1rem',
+      fontWeight: 500,
+      lineHeight: 1.4,
+    },
+    body1: {
+      fontSize: '1rem',
+      lineHeight: 1.5,
+    },
+    body2: {
+      fontSize: '0.875rem',
+      lineHeight: 1.5,
+    },
+  },
+  cardStyle: {
+    borderRadius: 2,
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      transform: 'translateY(-4px)',
+      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
+    },
+  },
+  buttonStyles: {
+    contained: {
+      borderRadius: 2,
+      textTransform: 'none',
+      fontWeight: 600,
+      boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.1)',
+      transition: 'all 0.3s ease',
+      '&:hover': {
+        transform: 'translateY(-2px)',
+        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
+      },
+    },
+    outlined: {
+      borderRadius: 2,
+      textTransform: 'none',
+      fontWeight: 600,
+      transition: 'all 0.3s ease',
+      '&:hover': {
+        transform: 'translateY(-2px)',
+      },
+    },
+    text: {
+      borderRadius: 2,
+      textTransform: 'none',
+      fontWeight: 600,
+      transition: 'all 0.3s ease',
+    },
+  },
+  animationConfig: {
+    duration: {
+      fast: 0.2,
+      medium: 0.5,
+      slow: 0.8,
+    },
+    delay: {
+      small: 0.1,
+      medium: 0.2,
+      large: 0.3,
+    },
+    easing: {
+      easeInOut: [0.4, 0, 0.2, 1],
+      easeOut: [0, 0, 0.2, 1],
+      easeIn: [0.4, 0, 1, 1],
+    },
   },
   backgroundStyles: {
-    section: (theme: any) => ({
-      background: theme.palette.mode === 'light' 
-        ? '#FFFFFF'
-        : '#000000',
-      position: 'relative',
-      '&::before': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.05) 0%, rgba(0, 255, 184, 0.02) 100%)',
-        zIndex: 1,
-      },
-    }),
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: -1,
     card: (theme: any) => ({
       background: theme.palette.mode === 'light' 
         ? '#FFFFFF'
@@ -226,33 +305,6 @@ export const themeUtils = {
         borderColor: 'rgba(0, 255, 184, 0.3)',
         bgcolor: 'rgba(0, 255, 184, 0.05)',
       },
-    }),
-  },
-  animationConfig: {
-    duration: {
-      fast: 0.3,
-      medium: 0.6,
-      slow: 0.9,
-    },
-    delay: {
-      small: 0.15,
-      medium: 0.3,
-      large: 0.45,
-    },
-  },
-  textStyles: {
-    title: (theme: any) => ({
-      color: theme.palette.primary.main,
-      textShadow: '0 0 10px rgba(0, 255, 184, 0.3)',
-      fontWeight: 700,
-    }),
-    subtitle: (theme: any) => ({
-      color: theme.palette.text.primary,
-      fontWeight: 400,
-    }),
-    body: (theme: any) => ({
-      color: theme.palette.text.secondary,
-      lineHeight: 1.8,
     }),
   },
 };
@@ -275,17 +327,16 @@ export const createCustomTheme = (mode: 'light' | 'dark') => {
             transition: 'all 0.3s ease',
           },
           contained: {
-            boxShadow: 'none',
-            '&:hover': {
-              boxShadow: '0 10px 20px rgba(0, 255, 184, 0.2)',
-              transform: 'translateY(-2px)',
-            },
+            ...themeUtils.buttonStyles.contained,
+            variants: [],
           },
           outlined: {
-            '&:hover': {
-              boxShadow: '0 10px 20px rgba(0, 255, 184, 0.1)',
-              transform: 'translateY(-2px)',
-            },
+            ...themeUtils.buttonStyles.outlined,
+            variants: [],
+          },
+          text: {
+            ...themeUtils.buttonStyles.text,
+            variants: [],
           },
         },
       },

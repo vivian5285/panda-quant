@@ -1,12 +1,12 @@
 import React, { ChangeEvent } from 'react';
-import { TextField, TextFieldProps } from '@mui/material';
+import { TextField, TextFieldProps, InputAdornment } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useTheme } from '@mui/material/styles';
 
-export interface PandaInputProps extends Omit<TextFieldProps, 'variant'> {
+export interface PandaInputProps extends Omit<TextFieldProps, 'variant' | 'onChange'> {
   label?: string;
   value: string | number;
-  onChange: (value: string | number) => void;
+  onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   error?: boolean;
   helperText?: string;
   fullWidth?: boolean;
@@ -43,15 +43,11 @@ const PandaInput: React.FC<PandaInputProps> = ({
 }) => {
   const theme = useTheme();
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    onChange(e.target.value);
-  };
-
   const input = (
     <TextField
       label={label}
       value={value}
-      onChange={handleChange}
+      onChange={onChange}
       error={error}
       helperText={helperText}
       fullWidth={fullWidth}
@@ -61,8 +57,12 @@ const PandaInput: React.FC<PandaInputProps> = ({
       placeholder={placeholder}
       InputProps={{
         readOnly,
-        startAdornment: startIcon || icon,
-        endAdornment: endIcon,
+        startAdornment: startIcon || icon ? (
+          <InputAdornment position="start">{startIcon || icon}</InputAdornment>
+        ) : undefined,
+        endAdornment: endIcon ? (
+          <InputAdornment position="end">{endIcon}</InputAdornment>
+        ) : undefined,
         sx: {
           height: 48,
           borderRadius: theme.shape.borderRadius,

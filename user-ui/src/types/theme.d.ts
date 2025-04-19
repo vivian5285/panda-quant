@@ -141,7 +141,7 @@ export interface ThemeUtils {
   animationConfig: {
     duration: {
       fast: number;
-      normal: number;
+      medium: number;
       slow: number;
     };
     delay: {
