@@ -13,9 +13,10 @@ RUN apt-get update && apt-get install -y \
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies in one step
-RUN npm install && \
-    npm install \
+# Clean up and install dependencies
+RUN rm -rf node_modules package-lock.json && \
+    npm install --legacy-peer-deps && \
+    npm install --legacy-peer-deps \
     chart.js \
     react-chartjs-2 \
     @types/chart.js \
