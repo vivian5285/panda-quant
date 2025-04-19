@@ -44,29 +44,6 @@ services:
       - panda-network
     restart: unless-stopped
 
-  # 用户后端
-  user-api:
-    build:
-      context: ../user-api
-      dockerfile: Dockerfile
-    container_name: panda-quant-user-api
-    ports:
-      - "3001:3001"
-    environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - MONGODB_URI=mongodb://mongodb:27017/panda-quant
-      - JWT_SECRET=your_jwt_secret
-      - JWT_EXPIRES_IN=24h
-    networks:
-      - panda-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
 networks:
   panda-network:
     external: true
