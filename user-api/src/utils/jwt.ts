@@ -5,12 +5,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 interface TokenPayload {
   id: string;
+  userId: string;
   email: string;
 }
 
 export function generateToken(user: IUser, expiresIn: string = '24h'): string {
   const payload: TokenPayload = {
     id: user._id.toString(),
+    userId: user._id.toString(),
     email: user.email
   };
 

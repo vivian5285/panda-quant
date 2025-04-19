@@ -33,7 +33,7 @@ export class VerificationService {
     }
   }
 
-  async verifyCode(type: 'register' | 'login' | 'reset', email: string, code: string): Promise<boolean> {
+  async verifyCode(email: string, code: string, type: 'register' | 'reset-password'): Promise<boolean> {
     const key = `${type}:${email}`;
     const stored = this.codeCache.get(key);
     
@@ -65,19 +65,18 @@ export class VerificationService {
     }
   }
 
-  async sendVerificationEmail(user: IUser): Promise<void> {
-    const token = generateToken(user, this.EMAIL_VERIFICATION_EXPIRY);
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-
+  async sendVerificationEmail(email: string, type: 'register' | 'reset-password'): Promise<void> {
+    const code = await this.generateCode(type === 'register' ? 'register' : 'reset', email);
+    
     if (process.env.NODE_ENV !== 'test') {
       await sendEmail({
-        to: user.email,
-        subject: 'Verify your email',
-        text: `Please click the following link to verify your email: ${verificationUrl}`,
+        to: email,
+        subject: type === 'register' ? 'Verify your email' : 'Reset your password',
+        text: `Your verification code is: ${code}`,
         html: `
-          <h1>Email Verification</h1>
-          <p>Please click the following link to verify your email:</p>
-          <a href="${verificationUrl}">${verificationUrl}</a>
+          <h1>${type === 'register' ? 'Email Verification' : 'Password Reset'}</h1>
+          <p>Your verification code is: <strong>${code}</strong></p>
+          <p>This code will expire in 5 minutes.</p>
         `
       });
     }
@@ -105,18 +104,18 @@ export class VerificationService {
   async verifyEmailToken(token: string): Promise<string> {
     try {
       const decoded = verifyToken(token);
-      return decoded.id;
+      return decoded.userId;
     } catch (error) {
-      throw new ValidationError('Invalid or expired verification token');
+      throw new ValidationError('Invalid or expired token');
     }
   }
 
   async verifyPasswordResetToken(token: string): Promise<string> {
     try {
       const decoded = verifyToken(token);
-      return decoded.id;
+      return decoded.userId;
     } catch (error) {
-      throw new ValidationError('Invalid or expired password reset token');
+      throw new ValidationError('Invalid or expired token');
     }
   }
 } 

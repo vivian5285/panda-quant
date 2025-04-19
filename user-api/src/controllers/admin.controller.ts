@@ -86,7 +86,7 @@ export class AdminController {
       }
 
       const user = await this.userModel.updateUserRole(
-        parseInt(id),
+        id.toString(),
         role,
         isAdmin || false,
         adminType
@@ -125,7 +125,7 @@ export class AdminController {
         throw new ValidationError('Permissions are required');
       }
 
-      const user = await this.userModel.updateUserPermissions(parseInt(id), permissions);
+      const user = await this.userModel.updateUserPermissions(id.toString(), permissions);
 
       res.json({
         status: 'success',
@@ -154,7 +154,7 @@ export class AdminController {
   deleteUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      await this.userModel.deleteUser(parseInt(id));
+      await this.userModel.deleteUser(id.toString());
 
       res.json({
         status: 'success',

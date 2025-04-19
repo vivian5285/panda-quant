@@ -21,7 +21,7 @@ export class VerificationController {
         throw new ValidationError('Invalid verification type');
       }
 
-      await this.verificationService.sendVerificationCode(email, type);
+      await this.verificationService.sendVerificationEmail(email, type);
 
       res.json({
         success: true,
