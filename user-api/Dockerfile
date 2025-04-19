@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:20
 
 WORKDIR /app
 
@@ -9,25 +9,17 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# 设置工作目录权限
-RUN chown -R node:node /app
-
-# 切换到非root用户
-USER node
-
 # 复制 package 文件
-COPY --chown=node:node package*.json ./
+COPY package*.json ./
 
 # 安装依赖
-RUN npm install && \
-    npm install -g typescript@latest && \
-    npm install -g ts-node
+RUN npm install
 
 # 复制源代码
-COPY --chown=node:node . .
+COPY . .
 
 # 构建应用
-RUN ./node_modules/.bin/tsc
+RUN npm run build
 
 # 暴露端口
 EXPOSE 3001
