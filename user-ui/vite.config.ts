@@ -43,6 +43,7 @@ export default defineConfig({
     }),
     svgr(),
   ],
+  base: '/',
   optimizeDeps: {
     include: [
       'react',
@@ -69,7 +70,7 @@ export default defineConfig({
   },
   server: {
     port: 3003,
-    host: 'localhost',
+    host: true,
     open: true,
     cors: true,
     proxy: {
@@ -84,8 +85,16 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'build',
-    sourcemap: true,
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: (id: string) => {
