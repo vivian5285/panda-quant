@@ -3,110 +3,81 @@ import { Button, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 import { themeUtils } from '../../theme';
 
-interface PandaButtonProps {
-  variant?: 'contained' | 'outlined' | 'text';
+export interface PandaButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  variant?: 'text' | 'contained' | 'outlined';
+  color?: 'primary' | 'secondary' | 'error' | 'success' | 'warning' | 'info';
   size?: 'small' | 'medium' | 'large';
-  color?: 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info';
-  startIcon?: React.ReactNode;
-  endIcon?: React.ReactNode;
   disabled?: boolean;
   fullWidth?: boolean;
-  onClick?: () => void;
-  children: React.ReactNode;
-  animate?: boolean;
-  glow?: boolean;
+  startIcon?: React.ReactNode;
+  endIcon?: React.ReactNode;
   sx?: any;
-  loading?: boolean;
-  type?: string;
+  type?: 'button' | 'submit' | 'reset';
+  href?: string;
+  target?: string;
+  animate?: boolean;
 }
 
 const PandaButton: React.FC<PandaButtonProps> = ({
+  children,
+  onClick,
   variant = 'contained',
-  size = 'medium',
   color = 'primary',
-  startIcon,
-  endIcon,
+  size = 'medium',
   disabled = false,
   fullWidth = false,
-  onClick,
-  children,
-  animate = false,
-  glow = false,
+  startIcon,
+  endIcon,
   sx,
-  loading = false,
-  type,
+  type = 'button',
+  href,
+  target,
+  animate = true,
 }) => {
   const theme = useTheme();
 
-  const getButtonStyle = () => {
-    const baseStyle = {
-      borderRadius: theme.shape.borderRadius,
-      textTransform: 'none',
-      fontWeight: 600,
-      transition: 'all 0.3s ease',
-      position: 'relative',
-      overflow: 'hidden',
-      '&::before': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: themeUtils.createGradient(
-          theme.palette[color].main,
-          theme.palette[color].dark
-        ),
-        opacity: 0,
-        transition: 'opacity 0.3s ease',
-      },
-      '&:hover::before': {
-        opacity: 0.1,
-      },
-    };
-
-    if (glow) {
-      return {
-        ...baseStyle,
-        boxShadow: `0 0 20px ${theme.palette[color].main}40`,
+  const button = (
+    <Button
+      variant={variant}
+      color={color}
+      size={size}
+      disabled={disabled}
+      fullWidth={fullWidth}
+      startIcon={startIcon}
+      endIcon={endIcon}
+      onClick={onClick}
+      type={type}
+      href={href}
+      target={target}
+      sx={{
+        borderRadius: theme.shape.borderRadius,
+        textTransform: 'none',
+        fontWeight: 600,
+        transition: 'all 0.3s ease',
         '&:hover': {
-          boxShadow: `0 0 30px ${theme.palette[color].main}60`,
+          transform: 'translateY(-2px)',
+          boxShadow: theme.shadows[4],
         },
-      };
-    }
+        ...sx,
+      }}
+    >
+      {children}
+    </Button>
+  );
 
-    return baseStyle;
-  };
-
-  const getAnimation = () => {
-    if (!animate) return {};
-    return {
-      whileHover: {
-        scale: 1.05,
-        transition: { duration: 0.2 },
-      },
-      whileTap: {
-        scale: 0.95,
-        transition: { duration: 0.1 },
-      },
-    };
-  };
+  if (!animate) {
+    return button;
+  }
 
   return (
-    <motion.div {...getAnimation()}>
-      <Button
-        variant={variant}
-        size={size}
-        color={color}
-        startIcon={startIcon}
-        endIcon={endIcon}
-        disabled={disabled}
-        fullWidth={fullWidth}
-        onClick={onClick}
-        sx={getButtonStyle()}
-      >
-        {children}
-      </Button>
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      {button}
     </motion.div>
   );
 };

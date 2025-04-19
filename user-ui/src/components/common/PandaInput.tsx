@@ -3,7 +3,7 @@ import { TextField, InputAdornment, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 
 export interface PandaInputProps {
-  label: string;
+  label?: string;
   value: string;
   onChange: (value: string) => void;
   type?: string;
@@ -21,6 +21,7 @@ export interface PandaInputProps {
   animate?: boolean;
   sx?: any;
   readOnly?: boolean;
+  icon?: React.ReactNode;
 }
 
 const PandaInput: React.FC<PandaInputProps> = ({
@@ -42,6 +43,7 @@ const PandaInput: React.FC<PandaInputProps> = ({
   animate = true,
   sx,
   readOnly = false,
+  icon,
 }) => {
   const theme = useTheme();
 
@@ -64,10 +66,11 @@ const PandaInput: React.FC<PandaInputProps> = ({
       rows={rows}
       placeholder={placeholder}
       autoFocus={autoFocus}
+      readOnly={readOnly}
       InputProps={{
-        startAdornment: startIcon && (
+        startAdornment: (startIcon || icon) && (
           <InputAdornment position="start">
-            {startIcon}
+            {startIcon || icon}
           </InputAdornment>
         ),
         endAdornment: endIcon && (
@@ -77,45 +80,38 @@ const PandaInput: React.FC<PandaInputProps> = ({
         ),
       }}
       sx={{
-        mb: 2,
         '& .MuiOutlinedInput-root': {
-          '& fieldset': {
-            borderColor: error ? theme.palette.error.main : 'rgba(0, 255, 184, 0.3)',
-            transition: 'border-color 0.3s ease',
-          },
+          height: '48px',
+          borderRadius: theme.shape.borderRadius,
+          backgroundColor: theme.palette.background.paper,
+          transition: 'all 0.3s ease',
           '&:hover fieldset': {
-            borderColor: error ? theme.palette.error.main : 'rgba(0, 255, 184, 0.5)',
+            borderColor: error ? theme.palette.error.main : theme.palette.primary.main,
           },
           '&.Mui-focused fieldset': {
-            borderColor: error ? theme.palette.error.main : '#00FFB8',
-            borderWidth: 2,
+            borderColor: error ? theme.palette.error.main : theme.palette.primary.main,
           },
         },
-        '& .MuiInputLabel-root': {
-          color: error ? theme.palette.error.main : 'inherit',
-          '&.Mui-focused': {
-            color: error ? theme.palette.error.main : '#00FFB8',
-          },
-        },
-        '& .MuiInputAdornment-root': {
+        '& .MuiInputBase-input': {
           color: error ? theme.palette.error.main : '#00FFB8',
         },
         ...sx,
       }}
-      readOnly={readOnly}
     />
   );
 
-  return animate ? (
+  if (!animate) {
+    return input;
+  }
+
+  return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
       {input}
     </motion.div>
-  ) : (
-    input
   );
 };
 
