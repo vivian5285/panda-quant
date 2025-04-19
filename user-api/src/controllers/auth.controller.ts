@@ -37,7 +37,7 @@ export class AuthController {
         isVerified: true  // 验证码验证通过后直接设置为已验证
       });
 
-      const token = generateToken(user._id.toString());
+      const token = generateToken(user);
 
       res.status(201).json({
         token,
