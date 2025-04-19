@@ -1,14 +1,27 @@
-import { Strategy } from '../models/strategy';
-import { OHLCV } from '../types';
+import { Strategy } from './types';
+import { OHLCV } from './types';
 
-export class SuperTrendStrategy extends Strategy {
+export class SuperTrendStrategy implements Strategy {
   private atr: number[] = [];
   private upperBand: number[] = [];
   private lowerBand: number[] = [];
   private trend: ('up' | 'down')[] = [];
+  public id: string;
+  public name: string;
+  public description: string;
+  public riskLevel: 'high' | 'medium' | 'low';
+  public expectedReturn: number;
+  public active: boolean;
+  public parameters: { [key: string]: any };
 
   constructor(parameters: Record<string, number>) {
-    super(parameters);
+    this.id = Math.random().toString(36).substring(2, 15);
+    this.name = 'SuperTrend';
+    this.description = 'SuperTrend trading strategy';
+    this.riskLevel = 'medium';
+    this.expectedReturn = 10;
+    this.active = true;
+    this.parameters = parameters;
   }
 
   analyzeMarket(data: OHLCV[]): 'buy' | 'sell' | 'hold' {
@@ -27,6 +40,22 @@ export class SuperTrendStrategy extends Strategy {
     }
 
     return 'hold';
+  }
+
+  updateParams(params: { [key: string]: any }): void {
+    this.parameters = { ...this.parameters, ...params };
+  }
+
+  getStats(): any {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      riskLevel: this.riskLevel,
+      expectedReturn: this.expectedReturn,
+      active: this.active,
+      parameters: this.parameters
+    };
   }
 
   private calculateATR(data: OHLCV[]): void {
@@ -55,16 +84,11 @@ export class SuperTrendStrategy extends Strategy {
     this.lowerBand = new Array(data.length).fill(0);
 
     for (let i = 1; i < data.length; i++) {
-      const basicUpper = (data[i].high + data[i].low) / 2 + multiplier * this.atr[i];
-      const basicLower = (data[i].high + data[i].low) / 2 - multiplier * this.atr[i];
+      const basicUpperBand = (data[i].high + data[i].low) / 2 + multiplier * this.atr[i];
+      const basicLowerBand = (data[i].high + data[i].low) / 2 - multiplier * this.atr[i];
 
-      this.upperBand[i] = basicUpper < this.upperBand[i - 1] || data[i - 1].close > this.upperBand[i - 1]
-        ? basicUpper
-        : this.upperBand[i - 1];
-
-      this.lowerBand[i] = basicLower > this.lowerBand[i - 1] || data[i - 1].close < this.lowerBand[i - 1]
-        ? basicLower
-        : this.lowerBand[i - 1];
+      this.upperBand[i] = basicUpperBand;
+      this.lowerBand[i] = basicLowerBand;
     }
   }
 
@@ -72,11 +96,9 @@ export class SuperTrendStrategy extends Strategy {
     this.trend = new Array(this.upperBand.length).fill('up');
 
     for (let i = 1; i < this.upperBand.length; i++) {
-      this.trend[i] = this.trend[i - 1] === 'up' && this.lowerBand[i] < this.lowerBand[i - 1]
-        ? 'up'
-        : this.trend[i - 1] === 'down' && this.upperBand[i] > this.upperBand[i - 1]
-          ? 'down'
-          : this.trend[i - 1];
+      if (this.upperBand[i] < this.upperBand[i - 1]) {
+        this.trend[i] = 'down';
+      }
     }
   }
 } 

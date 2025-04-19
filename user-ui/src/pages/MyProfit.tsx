@@ -1,27 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Paper,
-  Grid,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tabs,
-  Tab,
-  CircularProgress,
-  Alert,
-  Card,
-  CardContent,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from '@mui/material';
+import { Box, Typography, Grid } from '@mui/material';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
+import { themeUtils } from '../theme';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -31,9 +13,16 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartOptions,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { useAuth } from '../hooks/useAuth';
+import PandaCard from '../components/common/PandaCard';
+import PandaButton from '../components/common/PandaButton';
+import PandaSelect from '../components/common/PandaSelect';
+import PandaAlert from '../components/common/PandaAlert';
+import PandaProgress from '../components/common/PandaProgress';
+import PandaTable from '../components/common/PandaTable';
+import Layout from '../components/Layout';
 
 ChartJS.register(
   CategoryScale,
@@ -95,7 +84,14 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
+};
+
 const MyProfit: React.FC = () => {
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -113,13 +109,13 @@ const MyProfit: React.FC = () => {
         });
 
         if (!response.ok) {
-          throw new Error('获取收益数据失败');
+          throw new Error(t('profit.errors.fetchFailed'));
         }
 
         const data = await response.json();
         setProfitData(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : '获取收益数据失败');
+        setError(err instanceof Error ? err.message : t('profit.errors.fetchFailed'));
       } finally {
         setLoading(false);
       }
@@ -128,37 +124,48 @@ const MyProfit: React.FC = () => {
     if (isAuthenticated) {
       fetchProfitData();
     }
-  }, [isAuthenticated, timeRange]);
+  }, [isAuthenticated, timeRange, t]);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
-  const handleTimeRangeChange = (event: any) => {
+  const handleTimeRangeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setTimeRange(event.target.value);
   };
 
   if (!isAuthenticated) {
     return (
-      <Container maxWidth="lg">
-        <Alert severity="warning">请先登录以查看收益信息</Alert>
-      </Container>
+      <Layout>
+        <Box sx={{ p: 3 }}>
+          <PandaAlert severity="warning">{t('profit.authRequired')}</PandaAlert>
+        </Box>
+      </Layout>
     );
   }
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
+      <Layout>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '400px' 
+        }}>
+          <PandaProgress />
+        </Box>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="lg">
-        <Alert severity="error">{error}</Alert>
-      </Container>
+      <Layout>
+        <Box sx={{ p: 3 }}>
+          <PandaAlert severity="error">{error}</PandaAlert>
+        </Box>
+      </Layout>
     );
   }
 
@@ -166,7 +173,7 @@ const MyProfit: React.FC = () => {
     return null;
   }
 
-  const chartOptions = {
+  const chartOptions: ChartOptions<'line'> = {
     responsive: true,
     plugins: {
       legend: {
@@ -174,111 +181,202 @@ const MyProfit: React.FC = () => {
       },
       title: {
         display: true,
-        text: '收益趋势对比',
+        text: t('profit.chart.title'),
       },
     },
     scales: {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: (value: any) => `${value}%`,
+          callback: (value: string | number) => {
+            if (typeof value === 'number') {
+              return `${value.toFixed(2)}%`;
+            }
+            return value;
+          }
         },
       },
     },
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          收益中心
-        </Typography>
+    <Layout>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          pt: 8,
+          pb: 4,
+          background: themeUtils.createGradient('background.default', 'background.paper'),
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'url("/background-pattern.png")',
+            opacity: 0.1,
+            zIndex: 0,
+          },
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: 'lg',
+            mx: 'auto',
+            px: 3,
+          }}
+        >
+          <motion.div {...fadeInUp}>
+            <Typography
+              variant="h2"
+              sx={{
+                mb: 6,
+                fontWeight: 700,
+                background: themeUtils.createGradient('primary'),
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textAlign: 'center',
+                fontSize: { xs: '2.5rem', md: '3rem' },
+              }}
+            >
+              {t('profit.title')}
+            </Typography>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  月化收益
-                </Typography>
-                <Typography variant="h4" color="primary">
-                  {profitData.monthlyReturn.toFixed(2)}%
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Paper>
-              <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Tabs
-                  value={tabValue}
-                  onChange={handleTabChange}
-                  aria-label="profit tabs"
+            <Grid container spacing={4}>
+              <Grid item xs={12}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  <Tab label="收益趋势" />
-                  <Tab label="回测详情" />
-                  <Tab label="收益对比" />
-                </Tabs>
-                <FormControl sx={{ minWidth: 120 }}>
-                  <InputLabel>时间范围</InputLabel>
-                  <Select
-                    value={timeRange}
-                    label="时间范围"
-                    onChange={handleTimeRangeChange}
+                  <PandaCard
+                    sx={{
+                      height: '100%',
+                      p: 4,
+                    }}
                   >
-                    <MenuItem value="1w">最近一周</MenuItem>
-                    <MenuItem value="1m">最近一月</MenuItem>
-                    <MenuItem value="3m">最近三月</MenuItem>
-                    <MenuItem value="6m">最近六月</MenuItem>
-                    <MenuItem value="1y">最近一年</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                      <Typography
+                        variant="h5"
+                        sx={{
+                          fontWeight: 600,
+                          color: 'primary.main',
+                        }}
+                      >
+                        {t('profit.monthly.title')}
+                      </Typography>
+                      <PandaSelect
+                        value={timeRange}
+                        onChange={handleTimeRangeChange}
+                        sx={{ minWidth: 120 }}
+                      >
+                        <option value="1m">{t('profit.timeRange.1m')}</option>
+                        <option value="3m">{t('profit.timeRange.3m')}</option>
+                        <option value="6m">{t('profit.timeRange.6m')}</option>
+                        <option value="1y">{t('profit.timeRange.1y')}</option>
+                      </PandaSelect>
+                    </Box>
 
-              <TabPanel value={tabValue} index={0}>
-                <Box sx={{ height: 400 }}>
-                  <Line options={chartOptions} data={profitData.comparisonData} />
-                </Box>
-              </TabPanel>
+                    <Line options={chartOptions} data={profitData.comparisonData} />
+                  </PandaCard>
+                </motion.div>
+              </Grid>
 
-              <TabPanel value={tabValue} index={1}>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>策略</TableCell>
-                        <TableCell>周期</TableCell>
-                        <TableCell>收益率</TableCell>
-                        <TableCell>夏普比率</TableCell>
-                        <TableCell>最大回撤</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {profitData.backtestResults.map((result, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{result.strategy}</TableCell>
-                          <TableCell>{result.period}</TableCell>
-                          <TableCell>{result.return.toFixed(2)}%</TableCell>
-                          <TableCell>{result.sharpeRatio.toFixed(2)}</TableCell>
-                          <TableCell>{result.maxDrawdown.toFixed(2)}%</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </TabPanel>
+              <Grid item xs={12} md={6}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <PandaCard
+                    sx={{
+                      height: '100%',
+                      p: 4,
+                    }}
+                  >
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        mb: 2,
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}
+                    >
+                      {t('profit.backtest.title')}
+                    </Typography>
 
-              <TabPanel value={tabValue} index={2}>
-                <Box sx={{ height: 400 }}>
-                  <Line options={chartOptions} data={profitData.comparisonData} />
-                </Box>
-              </TabPanel>
-            </Paper>
-          </Grid>
-        </Grid>
+                    <PandaTable>
+                      <thead>
+                        <tr>
+                          <th>{t('profit.backtest.strategy')}</th>
+                          <th>{t('profit.backtest.period')}</th>
+                          <th>{t('profit.backtest.return')}</th>
+                          <th>{t('profit.backtest.sharpe')}</th>
+                          <th>{t('profit.backtest.drawdown')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {profitData.backtestResults.map((result, index) => (
+                          <tr key={index}>
+                            <td>{result.strategy}</td>
+                            <td>{result.period}</td>
+                            <td>{result.return.toFixed(2)}%</td>
+                            <td>{result.sharpeRatio.toFixed(2)}</td>
+                            <td>{result.maxDrawdown.toFixed(2)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </PandaTable>
+                  </PandaCard>
+                </motion.div>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <PandaCard
+                    sx={{
+                      height: '100%',
+                      p: 4,
+                    }}
+                  >
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        mb: 2,
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}
+                    >
+                      {t('profit.history.title')}
+                    </Typography>
+
+                    <PandaTable>
+                      <thead>
+                        <tr>
+                          <th>{t('profit.history.date')}</th>
+                          <th>{t('profit.history.return')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {profitData.historicalReturns.map((record, index) => (
+                          <tr key={index}>
+                            <td>{new Date(record.date).toLocaleDateString()}</td>
+                            <td>{record.return.toFixed(2)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </PandaTable>
+                  </PandaCard>
+                </motion.div>
+              </Grid>
+            </Grid>
+          </motion.div>
+        </Box>
       </Box>
-    </Container>
+    </Layout>
   );
 };
 

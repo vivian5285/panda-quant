@@ -10,33 +10,35 @@ declare global {
     interface Request {
       user?: {
         id: string;
+        email: string;
         role: string;
       };
     }
   }
 }
 
-export const authenticateToken = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
+
+export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: '未提供认证令牌' });
+  }
+
   try {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-      return res.status(401).json({ message: '未提供认证令牌' });
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; role: string };
-    
-    // 验证用户是否存在
-    const user = await User.findById(decoded.id);
-    if (!user) {
-      return res.status(401).json({ message: '用户不存在' });
-    }
-
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      id: string;
+      email: string;
+      role: string;
+    };
     req.user = decoded;
     next();
   } catch (error) {
@@ -45,7 +47,7 @@ export const authenticateToken = async (
 };
 
 // 生成 JWT token
-export const generateToken = (userId: string, role: string): string => {
+export const generateToken = (userId: string, role: string) => {
   return jwt.sign(
     { id: userId, role },
     JWT_SECRET,

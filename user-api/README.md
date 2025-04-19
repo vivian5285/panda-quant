@@ -1,47 +1,84 @@
 # User API
 
-The backend API for the Panda Quant platform, built with Node.js and Express.
+用户端 API 服务
 
 ## 📋 Features
 
-- **User Management**: Registration and authentication
-- **Asset Management**: Deposit and withdrawal processing
-- **Strategy Management**: Strategy creation and execution
-- **Transaction Processing**: Multi-chain support
-- **Real-time Updates**: WebSocket integration
-- **Security**: JWT authentication and rate limiting
+- **User Authentication**: 
+  - User registration with email verification
+  - User login with JWT authentication
+  - Password management (change, reset, forgot)
+  - Email verification and resend verification
+  - User profile management
 
 ## 🛠 Tech Stack
 
 - **Runtime**: Node.js
 - **Framework**: Express
-- **Database**: PostgreSQL
-- **ORM**: Prisma
-- **Authentication**: JWT
-- **Real-time**: WebSocket
-- **Testing**: Jest
-- **Documentation**: Swagger
+- **Database**: MongoDB
+- **ORM**: Mongoose
+- **Authentication**: JWT (jsonwebtoken)
+- **Email**: Nodemailer
+- **Password Hashing**: bcrypt
+- **Testing**: Jest with ts-jest
+- **Language**: TypeScript
 
 ## 📁 Project Structure
 
 ```
 src/
-├── routes/         # API routes
 ├── controllers/    # Route handlers
+│   └── auth.controller.ts  # Authentication controller
 ├── services/       # Business logic
+│   └── verification.service.ts  # Email verification service
 ├── models/         # Database models
+│   └── User.ts     # User model
 ├── middleware/     # Express middleware
+│   └── authenticate.ts  # JWT authentication middleware
 ├── utils/          # Utility functions
-└── types/          # TypeScript types
+│   ├── jwt.ts      # JWT token handling
+│   ├── password.ts # Password hashing with bcrypt
+│   ├── email.ts    # Email sending with nodemailer
+│   └── errors.ts   # Custom error classes
+└── __tests__/     # Test files
+    └── auth.test.ts  # Authentication tests
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js >= 16.x
-- PostgreSQL >= 14.x
-- npm >= 7.x
+- Node.js 18+
+- npm 8+
+- MongoDB 4.4+
+- SMTP server for email verification
+
+### Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```env
+# Server
+PORT=3000
+NODE_ENV=development
+
+# Database
+MONGODB_URI=mongodb://localhost:27017/user-api
+
+# JWT
+JWT_SECRET=your-secret-key
+
+# Email
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@example.com
+SMTP_PASS=your-password
+SMTP_FROM=noreply@example.com
+
+# Frontend
+FRONTEND_URL=http://localhost:3000
+```
 
 ### Installation
 
@@ -49,120 +86,273 @@ src/
 # Install dependencies
 npm install
 
-# Set up environment variables
-cp .env.example .env
-
-# Run database migrations
-npm run migrate
-
-# Start development server
+# Development
 npm run dev
+
+# Production
+npm start
+
+# Run tests
+npm test
 ```
-
-## 📦 Available Scripts
-
-- `npm start`: Start production server
-- `npm run dev`: Start development server
-- `npm test`: Run tests
-- `npm run lint`: Run linter
-- `npm run migrate`: Run database migrations
-- `npm run seed`: Seed database with test data
 
 ## 🔧 API Endpoints
 
 ### Authentication
 
-- `POST /api/auth/register`: User registration
-- `POST /api/auth/login`: User login
-- `POST /api/auth/logout`: User logout
+#### Register
+- `POST /api/auth/register`
+```json
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "User Name"
+}
+```
+Response:
+```json
+{
+  "message": "User registered successfully. Please check your email for verification."
+}
+```
 
-### Asset Management
+#### Login
+- `POST /api/auth/login`
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+Response:
+```json
+{
+  "token": "jwt-token",
+  "user": {
+    "id": "user-id",
+    "email": "user@example.com",
+    "name": "User Name"
+  }
+}
+```
 
-- `GET /api/asset/balance`: Get user balance
-- `POST /api/asset/deposit`: Submit deposit
-- `POST /api/asset/withdraw`: Request withdrawal
-- `GET /api/asset/transactions`: Get transaction history
+#### Verify Email
+- `POST /api/auth/verify-email`
+```json
+{
+  "token": "verification-token"
+}
+```
+Response:
+```json
+{
+  "message": "Email verified successfully"
+}
+```
 
-### Strategy Management
+#### Resend Verification Email
+- `POST /api/auth/resend-verification`
+```json
+{
+  "email": "user@example.com"
+}
+```
+Response:
+```json
+{
+  "message": "Verification email sent"
+}
+```
 
-- `POST /api/strategy/create`: Create new strategy
-- `GET /api/strategy/list`: Get user strategies
-- `PUT /api/strategy/:id/params`: Update strategy parameters
-- `DELETE /api/strategy/:id`: Delete strategy
+#### Get Profile
+- `GET /api/auth/profile`
+- Requires authentication header: `Authorization: Bearer <token>`
+Response:
+```json
+{
+  "user": {
+    "id": "user-id",
+    "email": "user@example.com",
+    "name": "User Name"
+  }
+}
+```
+
+#### Update Profile
+- `PUT /api/auth/profile`
+- Requires authentication header: `Authorization: Bearer <token>`
+```json
+{
+  "name": "New Name"
+}
+```
+Response:
+```json
+{
+  "user": {
+    "id": "user-id",
+    "email": "user@example.com",
+    "name": "New Name"
+  }
+}
+```
+
+#### Change Password
+- `POST /api/auth/change-password`
+- Requires authentication header: `Authorization: Bearer <token>`
+```json
+{
+  "currentPassword": "old-password",
+  "newPassword": "new-password"
+}
+```
+Response:
+```json
+{
+  "message": "Password updated successfully"
+}
+```
+
+#### Forgot Password
+- `POST /api/auth/forgot-password`
+```json
+{
+  "email": "user@example.com"
+}
+```
+Response:
+```json
+{
+  "message": "Password reset email sent"
+}
+```
+
+#### Reset Password
+- `POST /api/auth/reset-password`
+```json
+{
+  "token": "reset-token",
+  "newPassword": "new-password"
+}
+```
+Response:
+```json
+{
+  "message": "Password reset successfully"
+}
+```
 
 ## 🔒 Security
 
-### Authentication
+### Authentication Flow
+
+1. User registers with email and password
+2. System sends verification email with 24-hour expiry token
+3. User verifies email
+4. User can login with credentials
+5. System returns JWT token with 24-hour expiry
+6. User includes token in subsequent requests
+
+### Password Security
+
+- Passwords are hashed using bcrypt with 10 salt rounds
+- Password reset tokens expire in 1 hour
+- Email verification tokens expire in 24 hours
+- JWT tokens expire in 24 hours
+
+### Error Handling
+
+The API uses custom error classes for different scenarios:
+
+- `ValidationError`: Input validation errors (400)
+- `AuthenticationError`: Authentication failures (401)
+- `AuthorizationError`: Authorization failures (403)
+- `DatabaseError`: Database operation errors (409)
+- `ServiceError`: Service-level errors (500)
+
+## 📊 Database Schema
+
+### User Model
 
 ```typescript
-// JWT middleware
-const auth = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) throw new Error('No token provided');
-    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: 'Unauthorized' });
-  }
+interface IUser {
+  email: string;
+  password: string;
+  name: string;
+  isVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+## 🧪 Testing
+
+The project uses Jest with ts-jest for testing and MongoDB memory server for database operations.
+
+### Test Configuration
+
+```javascript
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  roots: ['<rootDir>/src'],
+  testMatch: ['**/__tests__/**/*.test.ts'],
+  transform: {
+    '^.+\\.tsx?$': 'ts-jest'
+  },
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  setupFiles: ['dotenv/config']
 };
 ```
 
-### Rate Limiting
+### Test Database Setup
 
-```typescript
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-```
+The project includes scripts for test database initialization and test execution:
 
-## 📊 Database
+1. **Initialize Test Database** (`scripts/init-test-db.js`):
+   - Connects to the test database
+   - Clears existing data
+   - Creates test users:
+     - Verified user: test@example.com
+     - Unverified user: unverified@example.com
+   - Both users have password: test123
 
-### Models
+2. **Run Tests** (`scripts/run-tests.js`):
+   - Loads test environment variables
+   - Executes test suite
+   - Provides detailed test output
+   - Handles test failures appropriately
 
-```prisma
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  balance   Decimal
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Transaction {
-  id        String   @id @default(uuid())
-  userId    String
-  type      String
-  amount    Decimal
-  status    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-```
-
-### Migrations
+### Running Tests
 
 ```bash
-# Create new migration
-npm run migrate:create
+# Initialize test database
+node scripts/init-test-db.js
 
-# Run migrations
-npm run migrate:up
+# Run tests
+node scripts/run-tests.js
 
-# Rollback migration
-npm run migrate:down
+# Or use npm scripts
+npm test
 ```
 
-## 📚 Documentation
+### Test Coverage
 
-- [API Documentation](docs/api.md)
-- [Database Schema](docs/database.md)
-- [Security Guide](docs/security.md)
-- [Testing Guide](docs/testing.md)
+Tests cover:
+- User registration
+- User login
+- Email verification
+- Password management
+- Profile management
+- Error handling
+
+### Test Environment
+
+The test environment uses:
+- Separate test database
+- Test-specific environment variables
+- Mocked email service
+- Clean database state for each test run
 
 ## 🤝 Contributing
 

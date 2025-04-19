@@ -3,9 +3,13 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IStrategy extends Document {
   name: string;
   description: string;
+  type: string;  // 策略类型
   riskLevel: '低' | '中等' | '较高';
   expectedReturn: number;  // 预计月化收益（百分比）
   active: boolean;  // 是否启用该策略
+  status: string;  // 策略状态
+  startTime: Date;  // 策略开始时间
+  parameters: Record<string, any>;  // 策略参数
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +29,11 @@ const strategySchema = new Schema<IStrategy>({
     minlength: [10, '策略描述至少需要10个字符'],
     maxlength: [500, '策略描述不能超过500个字符']
   },
+  type: {
+    type: String,
+    required: [true, '策略类型不能为空'],
+    trim: true
+  },
   riskLevel: { 
     type: String, 
     required: [true, '风险等级不能为空'],
@@ -42,6 +51,19 @@ const strategySchema = new Schema<IStrategy>({
   active: { 
     type: Boolean, 
     default: true 
+  },
+  status: {
+    type: String,
+    required: [true, '策略状态不能为空'],
+    default: 'inactive'
+  },
+  startTime: {
+    type: Date,
+    required: [true, '策略开始时间不能为空']
+  },
+  parameters: {
+    type: Schema.Types.Mixed,
+    default: {}
   }
 }, {
   timestamps: true  // 自动添加 createdAt 和 updatedAt 字段
@@ -57,8 +79,8 @@ strategySchema.statics.findActiveStrategies = function() {
   return this.find({ active: true });
 };
 
-strategySchema.statics.findByRiskLevel = function(riskLevel: string) {
-  return this.find({ riskLevel, active: true });
+strategySchema.statics.findByRiskLevel = function(level: string) {
+  return this.find({ riskLevel: level, active: true });
 };
 
 export const Strategy = mongoose.model<IStrategy>('Strategy', strategySchema); 

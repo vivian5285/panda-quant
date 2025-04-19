@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { Asset, Payment, ChainAddress } from '../models/asset.model';
-import { IUser } from '../models/user.model';
+import { User } from '../models/user.model';
 
 // 获取资产概览
 export const getAssetSummary = async (req: Request, res: Response) => {
@@ -9,8 +9,8 @@ export const getAssetSummary = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const userId = req.user._id;
-    const user = await IUser.findById(userId);
+    const userId = req.user.id;
+    const user = await User.findById(userId);
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -78,7 +78,7 @@ export const createDeposit = async (req: Request, res: Response) => {
     }
 
     const { chain, amount } = req.body;
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     // 验证链类型
     if (!['BSC', 'TRC20', 'ARB', 'OP', 'SOL'].includes(chain)) {
@@ -128,7 +128,7 @@ export const confirmDeposit = async (req: Request, res: Response) => {
 
     const { paymentId } = req.params;
     const { txHash } = req.body;
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     // 查找充值记录
     const payment = await Payment.findOne({

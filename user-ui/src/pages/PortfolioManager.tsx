@@ -2,32 +2,19 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Grid,
+  Button,
+  CircularProgress,
+  Alert,
   Card,
   CardContent,
-  Button,
+  Grid,
+  TextField,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Slider,
-  Alert,
-  Tabs,
-  Tab,
-  CircularProgress
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useAuth } from '../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 interface Portfolio {
   id: number;
@@ -65,14 +52,12 @@ interface PortfolioPerformance {
 }
 
 const PortfolioManager: React.FC = () => {
-  const { user } = useAuth();
+  const { t } = useTranslation();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
   const [newPortfolio, setNewPortfolio] = useState({ name: '', description: '' });
-  const [tabValue, setTabValue] = useState(0);
 
   useEffect(() => {
     fetchPortfolios();
@@ -107,32 +92,6 @@ const PortfolioManager: React.FC = () => {
     }
   };
 
-  const handleUpdateStrategyWeight = async (portfolioId: number, strategyId: number, weight: number) => {
-    try {
-      const response = await fetch(`/api/portfolios/${portfolioId}/strategies/${strategyId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ weight })
-      });
-      if (!response.ok) throw new Error('Failed to update strategy weight');
-      await fetchPortfolios();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    }
-  };
-
-  const handleDeletePortfolio = async (portfolioId: number) => {
-    try {
-      const response = await fetch(`/api/portfolios/${portfolioId}`, {
-        method: 'DELETE'
-      });
-      if (!response.ok) throw new Error('Failed to delete portfolio');
-      await fetchPortfolios();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    }
-  };
-
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
@@ -150,130 +109,30 @@ const PortfolioManager: React.FC = () => {
   }
 
   return (
-    <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">策略组合管理</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenDialog(true)}
-        >
-          创建新组合
+    <Box sx={{ p: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Typography variant="h5">
+          {t('portfolioManager.title')}
+        </Typography>
+        <Button variant="contained" onClick={() => setOpenDialog(true)}>
+          {t('portfolioManager.create')}
         </Button>
       </Box>
 
       <Grid container spacing={3}>
         {portfolios.map((portfolio) => (
-          <Grid item xs={12} key={portfolio.id}>
+          <Grid item xs={12} sm={6} md={4} key={portfolio.id}>
             <Card>
               <CardContent>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                  <Typography variant="h6">{portfolio.name}</Typography>
-                  <Box>
-                    <IconButton onClick={() => setSelectedPortfolio(portfolio)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton onClick={() => handleDeletePortfolio(portfolio.id)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </Box>
-                <Typography color="textSecondary" gutterBottom>
+                <Typography variant="h6" gutterBottom>
+                  {portfolio.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
                   {portfolio.description}
                 </Typography>
-
-                <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)}>
-                  <Tab label="策略配置" />
-                  <Tab label="绩效分析" />
-                  <Tab label="风险指标" />
-                </Tabs>
-
-                {tabValue === 0 && (
-                  <TableContainer component={Paper}>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>策略名称</TableCell>
-                          <TableCell>权重</TableCell>
-                          <TableCell>总收益</TableCell>
-                          <TableCell>最大回撤</TableCell>
-                          <TableCell>胜率</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {portfolio.strategies.map((strategy) => (
-                          <TableRow key={strategy.id}>
-                            <TableCell>{strategy.name}</TableCell>
-                            <TableCell>
-                              <Slider
-                                value={strategy.weight}
-                                onChange={(_, value) => handleUpdateStrategyWeight(portfolio.id, strategy.id, value as number)}
-                                step={0.01}
-                                min={0}
-                                max={1}
-                                valueLabelDisplay="auto"
-                              />
-                            </TableCell>
-                            <TableCell>{strategy.performance.totalProfit.toFixed(2)}%</TableCell>
-                            <TableCell>{strategy.performance.maxDrawdown.toFixed(2)}%</TableCell>
-                            <TableCell>{strategy.performance.winRate.toFixed(2)}%</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-
-                {tabValue === 1 && (
-                  <Box height={400}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={portfolio.performance.dailyReturns}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="return" stroke="#8884d8" name="日收益率" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </Box>
-                )}
-
-                {tabValue === 2 && (
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                      <Card>
-                        <CardContent>
-                          <Typography variant="h6" gutterBottom>风险指标</Typography>
-                          <Typography>夏普比率: {portfolio.performance.sharpeRatio.toFixed(2)}</Typography>
-                          <Typography>索提诺比率: {portfolio.performance.sortinoRatio.toFixed(2)}</Typography>
-                          <Typography>波动率: {portfolio.performance.volatility.toFixed(2)}%</Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <Card>
-                        <CardContent>
-                          <Typography variant="h6" gutterBottom>相关性矩阵</Typography>
-                          <TableContainer>
-                            <Table size="small">
-                              <TableBody>
-                                {portfolio.performance.correlation.map((row, i) => (
-                                  <TableRow key={i}>
-                                    {row.map((value, j) => (
-                                      <TableCell key={j}>{value.toFixed(2)}</TableCell>
-                                    ))}
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </TableContainer>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  </Grid>
-                )}
+                <Typography variant="body2" color="text.secondary">
+                  Strategies: {portfolio.strategies.length}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>

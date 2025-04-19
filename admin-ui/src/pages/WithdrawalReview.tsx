@@ -4,12 +4,6 @@ import {
   Container,
   Typography,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Button,
   Dialog,
   DialogTitle,
@@ -19,23 +13,31 @@ import {
   Pagination,
   Alert,
   CircularProgress,
+  Card,
+  CardContent,
+  IconButton,
+  InputAdornment,
 } from '@mui/material';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
+import {
+  Search as SearchIcon,
+  Close as CloseIcon,
+} from '@mui/icons-material';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { useTranslation } from 'react-i18next';
 
 interface Order {
   _id: string;
-  userId: {
-    email: string;
-  };
+  userId: string;
   amount: number;
-  chain: string;
-  address: string;
   status: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 const WithdrawalReview: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +45,8 @@ const WithdrawalReview: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [remark, setRemark] = useState('');
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -55,14 +58,14 @@ const WithdrawalReview: React.FC = () => {
         });
 
         if (!response.ok) {
-          throw new Error('获取订单列表失败');
+          throw new Error(t('withdrawal.fetchError'));
         }
 
         const data = await response.json();
         setOrders(data.orders);
         setTotalPages(data.totalPages);
       } catch (err) {
-        setError(err instanceof Error ? err.message : '获取订单列表失败');
+        setError(err instanceof Error ? err.message : t('withdrawal.fetchError'));
       } finally {
         setLoading(false);
       }
@@ -71,7 +74,7 @@ const WithdrawalReview: React.FC = () => {
     if (isAuthenticated) {
       fetchOrders();
     }
-  }, [isAuthenticated, page]);
+  }, [isAuthenticated, page, t]);
 
   const handleApprove = async (status: string) => {
     if (!selectedOrder) return;
@@ -87,7 +90,7 @@ const WithdrawalReview: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('审核失败');
+        throw new Error(t('withdrawal.approveError'));
       }
 
       setOrders(orders.map(order =>
@@ -95,25 +98,61 @@ const WithdrawalReview: React.FC = () => {
           ? { ...order, status }
           : order
       ));
-      setDialogOpen(false);
+      setOpenDialog(false);
       setSelectedOrder(null);
       setRemark('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '审核失败');
+      setError(err instanceof Error ? err.message : t('withdrawal.approveError'));
     }
   };
+
+  const filteredOrders = orders.filter(order =>
+    order.userId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.status.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const columns: GridColDef[] = [
+    { field: 'userId', headerName: t('withdrawal.userId'), width: 200 },
+    { field: 'amount', headerName: t('withdrawal.amount'), width: 150 },
+    { field: 'status', headerName: t('withdrawal.status'), width: 150 },
+    { field: 'createdAt', headerName: t('withdrawal.createdAt'), width: 200 },
+    {
+      field: 'actions',
+      headerName: t('withdrawal.actions'),
+      width: 150,
+      renderCell: (params) => (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            setSelectedOrder(params.row);
+            setOpenDialog(true);
+          }}
+        >
+          {t('withdrawal.review')}
+        </Button>
+      ),
+    },
+  ];
 
   if (!isAuthenticated) {
     return (
       <Container maxWidth="lg">
-        <Alert severity="warning">请先登录</Alert>
+        <Alert severity="warning" sx={{ mt: 2 }}>
+          {t('withdrawal.loginRequired')}
+        </Alert>
       </Container>
     );
   }
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+      >
         <CircularProgress />
       </Box>
     );
@@ -122,90 +161,98 @@ const WithdrawalReview: React.FC = () => {
   return (
     <Container maxWidth="lg">
       <Box sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          提现审核
+        <Typography variant="h4" gutterBottom>
+          {t('withdrawal.title')}
         </Typography>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography color="error">{error}</Typography>
+            </CardContent>
+          </Card>
         )}
 
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>用户邮箱</TableCell>
-                <TableCell>提现金额</TableCell>
-                <TableCell>链</TableCell>
-                <TableCell>地址</TableCell>
-                <TableCell>状态</TableCell>
-                <TableCell>创建时间</TableCell>
-                <TableCell>操作</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order._id}>
-                  <TableCell>{order.userId.email}</TableCell>
-                  <TableCell>{order.amount}</TableCell>
-                  <TableCell>{order.chain}</TableCell>
-                  <TableCell>{order.address}</TableCell>
-                  <TableCell>{order.status}</TableCell>
-                  <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => {
-                        setSelectedOrder(order);
-                        setDialogOpen(true);
-                      }}
-                    >
-                      审核
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Paper sx={{ p: 2, mb: 3 }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder={t('withdrawal.searchPlaceholder')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+              endAdornment: searchQuery && (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setSearchQuery('')}
+                    size="small"
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Paper>
 
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+        <Paper sx={{ height: 400, width: '100%' }}>
+          <DataGrid
+            rows={filteredOrders}
+            columns={columns}
+            initialState={{
+              pagination: {
+                paginationModel: { pageSize: 10, page: 0 },
+              },
+            }}
+            pageSizeOptions={[10]}
+            disableRowSelectionOnClick
+          />
+        </Paper>
+
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <Pagination
             count={totalPages}
             page={page}
             onChange={(_, value) => setPage(value)}
+            color="primary"
           />
         </Box>
 
-        <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-          <DialogTitle>审核提现请求</DialogTitle>
+        <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+          <DialogTitle>{t('withdrawal.reviewTitle')}</DialogTitle>
           <DialogContent>
             <TextField
               fullWidth
               multiline
               rows={4}
-              label="备注"
               value={remark}
               onChange={(e) => setRemark(e.target.value)}
+              placeholder={t('withdrawal.remarkPlaceholder')}
               sx={{ mt: 2 }}
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDialogOpen(false)}>取消</Button>
-            <Button
-              onClick={() => handleApprove('rejected')}
-              color="error"
-            >
-              拒绝
+            <Button onClick={() => setOpenDialog(false)}>
+              {t('withdrawal.cancel')}
             </Button>
             <Button
               onClick={() => handleApprove('approved')}
               color="primary"
+              variant="contained"
             >
-              通过
+              {t('withdrawal.approve')}
+            </Button>
+            <Button
+              onClick={() => handleApprove('rejected')}
+              color="error"
+              variant="contained"
+            >
+              {t('withdrawal.reject')}
             </Button>
           </DialogActions>
         </Dialog>

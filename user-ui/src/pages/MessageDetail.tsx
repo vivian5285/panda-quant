@@ -28,7 +28,7 @@ interface Notification {
     createdAt: string;
 }
 
-const notificationTypes = {
+const notificationTypes: Record<string, string> = {
     balance_low: '余额不足',
     hosting_fee_low: '托管费不足',
     system: '系统通知',
@@ -122,7 +122,7 @@ const MessageDetail: React.FC = () => {
                             {getRelativeTime(notification.createdAt)}
                         </Typography>
                         <Chip
-                            label={notificationTypes[notification.type]}
+                            label={notificationTypes[notification.type] || '未知类型'}
                             color={notification.status === 'unread' ? 'primary' : 'default'}
                             size="small"
                         />

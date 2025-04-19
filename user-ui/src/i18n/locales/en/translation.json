@@ -1,0 +1,494 @@
+{
+  "nav": {
+    "products": "Products",
+    "performance": "Performance",
+    "strategies": "Strategies",
+    "security": "Security",
+    "referral": "Referral"
+  },
+  "login": {
+    "title": "Sign In",
+    "subtitle": "Sign in to access your account and start trading",
+    "emailLogin": "Email Login",
+    "walletLogin": "Wallet Login",
+    "email": "Email",
+    "username": "Username",
+    "wallet": "Wallet",
+    "password": "Password",
+    "loggingIn": "Logging in...",
+    "loginButton": "Login",
+    "selectWallet": "Select Wallet",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "register": "Register"
+  },
+  "hero": {
+    "title": "Let Panda Trade for You",
+    "subtitle": "Monthly returns 50%-300%, professional quantitative trading at your fingertips",
+    "advantages": {
+      "ai": {
+        "title": "AI Smart Trading",
+        "description": "Deep learning-based intelligent trading system, 24/7 automatic operation, monthly returns up to 50%-300%"
+      },
+      "quant": {
+        "title": "Quantitative Strategies",
+        "description": "Multiple strategy combinations including scalping, super trend, and grid arbitrage, continuously optimized by professional team, risk diversification, stable returns"
+      },
+      "security": {
+        "title": "Security Protection",
+        "description": "Bank-level security protection, read-only API authorization, fund isolation, multiple risk controls, ensuring asset safety"
+      }
+    },
+    "cta": {
+      "primary": "Try Now",
+      "secondary": "Watch Demo"
+    }
+  },
+  "panda": {
+    "title": "Panda Quant",
+    "subtitle": "Your intelligent quantitative trading assistant, making investment easier",
+    "expressions": [
+      "I'm Panda Assistant, let me help you achieve financial freedom!",
+      "Monthly returns 50%-300%, professional quantitative strategies guarantee!",
+      "Multiple risk control mechanisms, read-only API authorization, worry-free fund security!",
+      "Invite friends to earn USDT, 20% for first generation, 10% for second generation!",
+      "Scalping, Super Trend, Grid Arbitrage, there's always one that suits you!"
+    ],
+    "description": "Panda Quant is an AI-powered quantitative trading platform that helps users achieve automated trading and smart investment.",
+    "cta": "Click to change panda expression"
+  },
+  "advantages": {
+    "title": "Core Advantages",
+    "0": {
+      "title": "Smart Strategy",
+      "description": "Scalping / Super Trend / Grid Arbitrage"
+    },
+    "1": {
+      "title": "Flexible Custody",
+      "description": "Support API Custody / USDT Deposit Custody"
+    },
+    "2": {
+      "title": "Return Guarantee",
+      "description": "Support low, medium and high risk strategies with dynamic adjustment"
+    }
+  },
+  "profit": {
+    "title": "Profit Display",
+    "subtitle": "Professional quantitative trading for stable returns",
+    "calculator": {
+      "title": "Profit Calculator",
+      "investment": "Investment Amount",
+      "duration": {
+        "label": "Investment Period (months)",
+        "month": "{{count}} Month",
+        "month_plural": "{{count}} Months"
+      },
+      "strategy": {
+        "low": "Conservative Strategy",
+        "medium": "Balanced Strategy",
+        "high": "Aggressive Strategy"
+      },
+      "risk": {
+        "low": "Low Risk",
+        "medium": "Medium Risk",
+        "high": "High Risk"
+      },
+      "description": {
+        "low": "Suitable for conservative investors",
+        "medium": "Suitable for balanced investors",
+        "high": "Suitable for aggressive investors"
+      },
+      "rate": "Monthly Return Rate",
+      "risk": "Risk Level",
+      "summary": "Profit Summary",
+      "totalInvestment": "Total Investment",
+      "estimatedProfit": "Estimated Profit",
+      "totalAmount": "Total Amount",
+      "profit": "Expected Return",
+      "cta": "Invest Now"
+    },
+    "chart": {
+      "title": "Profit Growth Trend",
+      "label": "Expected Return"
+    }
+  },
+  "howitworks": {
+    "title": "How It Works",
+    "0": {
+      "title": "Register Account",
+      "description": "Quick registration, complete identity verification, start your quantitative trading journey"
+    },
+    "1": {
+      "title": "Connect Exchange",
+      "description": "Securely bind exchange API, set trading parameters, worry-free fund security"
+    },
+    "2": {
+      "title": "Choose Strategy",
+      "description": "Select appropriate strategies based on risk preference, continuously optimized by professional team"
+    },
+    "3": {
+      "title": "Start Trading",
+      "description": "One-click start, 24/7 automatic execution of trading strategies, easy profit realization"
+    },
+    "4": {
+      "title": "Monitor Returns",
+      "description": "Real-time view of returns, adjust strategies anytime, maximize profits"
+    },
+    "cta": "Get Started"
+  },
+  "header": {
+    "login": "Login",
+    "register": "Register",
+    "language": "Language"
+  },
+  "strategies": {
+    "0": {
+      "title": "Scalping Strategy",
+      "description": "Profit from small market fluctuations, suitable for short-term trading",
+      "expectedReturn": "30-50%",
+      "riskLevel": "Medium",
+      "target": "Short-term traders"
+    },
+    "1": {
+      "title": "Super Trend",
+      "description": "Intelligent trading system based on trend tracking, capturing major trends",
+      "expectedReturn": "50-100%",
+      "riskLevel": "Medium-High",
+      "target": "Trend followers"
+    },
+    "2": {
+      "title": "Grid Arbitrage",
+      "description": "Automatically capture price range fluctuations for stable returns",
+      "expectedReturn": "20-40%",
+      "riskLevel": "Low",
+      "target": "Conservative investors"
+    }
+  },
+  "footer": {
+    "title": "Panda Quant",
+    "description": "Your intelligent quantitative trading assistant",
+    "about": {
+      "title": "About Us",
+      "company": "Company",
+      "team": "Our Team",
+      "careers": "Careers",
+      "press": "Press"
+    },
+    "services": {
+      "title": "Services",
+      "trading": "Trading",
+      "strategies": "Strategies",
+      "analytics": "Analytics",
+      "api": "API"
+    },
+    "support": {
+      "title": "Support",
+      "help": "Help Center",
+      "contact": "Contact Us",
+      "faq": "FAQ",
+      "status": "System Status"
+    },
+    "legal": {
+      "title": "Legal",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "security": "Security Policy",
+      "compliance": "Compliance"
+    },
+    "subscribe": {
+      "placeholder": "Enter your email",
+      "button": "Subscribe"
+    },
+    "address": "123 Trading Street, Financial District",
+    "copyright": "© 2024 Panda Quant. All rights reserved.",
+    "language": "Language",
+    "version": "Version 1.0.0"
+  },
+  "support": {
+    "title": "Support Center",
+    "subtitle": "We're here to help you with any questions",
+    "channels": {
+      "title": "Support Channels",
+      "chat": {
+        "title": "Live Chat",
+        "description": "Get instant help from our support team"
+      },
+      "email": {
+        "title": "Email Support",
+        "description": "Send us an email and we'll get back to you within 24 hours"
+      },
+      "ticket": {
+        "title": "Support Ticket",
+        "description": "Create a support ticket for detailed assistance"
+      },
+      "online": {
+        "title": "Online Support",
+        "description": "24/7 online support available"
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "search": "Search FAQs",
+      "categories": {
+        "general": "General",
+        "account": "Account",
+        "trading": "Trading",
+        "security": "Security",
+        "payment": "Payment"
+      }
+    },
+    "tickets": {
+      "title": "My Support Tickets",
+      "status": {
+        "open": "Open",
+        "in-progress": "In Progress",
+        "resolved": "Resolved",
+        "pending": "Pending"
+      },
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "ticket1": {
+        "title": "Account Login Issue"
+      },
+      "ticket2": {
+        "title": "Trading Strategy Consultation"
+      }
+    },
+    "contact": {
+      "placeholder": "Please enter your message...",
+      "submit": "Send Message"
+    },
+    "faq1": {
+      "question": "How to start using quantitative trading?",
+      "answer": "After registering an account, you can choose a trading strategy that suits you, set parameters, and start automated trading."
+    },
+    "faq2": {
+      "question": "How to choose trading strategies?",
+      "answer": "We offer various strategies including arbitrage, hedging, and high-frequency trading. You can choose the strategy that best fits your risk preference and investment goals."
+    },
+    "faq3": {
+      "question": "How to view trading records?",
+      "answer": "You can view detailed trading records in your personal center, including transaction time, amount, and returns."
+    },
+    "searchPlaceholder": "Search FAQs...",
+    "faq4": {
+      "question": "How to contact customer support?",
+      "answer": "You can contact us through online chat, email, or phone. Our support team is available 24/7 to assist you."
+    },
+    "categories": {
+      "basic": "Basic Questions",
+      "strategy": "Strategy Related",
+      "account": "Account Management",
+      "contact": "Contact Support"
+    },
+    "0": {
+      "title": "Online Support",
+      "description": "24/7 online support available"
+    },
+    "1": {
+      "title": "Email Support",
+      "description": "Send email to support@panda-quant.com"
+    },
+    "2": {
+      "title": "Community",
+      "description": "Join our community to exchange experiences with other users"
+    }
+  },
+  "security": {
+    "title": "Security Features",
+    "subtitle": "Your assets are protected with bank-level security",
+    "features": {
+      "api": {
+        "title": "Read-only API",
+        "description": "Your exchange API keys are read-only, ensuring fund safety"
+      },
+      "encryption": {
+        "title": "End-to-end Encryption",
+        "description": "All data is encrypted using industry-standard protocols"
+      },
+      "isolation": {
+        "title": "Fund Isolation",
+        "description": "Your funds are isolated and never mixed with platform funds"
+      },
+      "verification": {
+        "title": "Two-factor Authentication",
+        "description": "Add an extra layer of security to your account"
+      }
+    },
+    "0": {
+      "title": "Fund Security",
+      "description": "Using multi-signature technology to ensure fund safety"
+    },
+    "1": {
+      "title": "Risk Control System",
+      "description": "Real-time monitoring, automatic stop loss, controllable risk"
+    },
+    "3": {
+      "title": "Transparency",
+      "description": "Real-time data display, transparent operations"
+    }
+  },
+  "invite": {
+    "title": "Invite and Earn",
+    "subtitle": "Invite friends, share profits",
+    "code": {
+      "title": "My Invite Code"
+    },
+    "levels": {
+      "1": {
+        "level": "First Level",
+        "description": "Direct referral trading fees"
+      },
+      "2": {
+        "level": "Second Level",
+        "description": "Indirect referral trading fees"
+      }
+    },
+    "features": {
+      "0": "Real-time commission, automatic settlement",
+      "1": "Multi-level commission, multiplied earnings",
+      "2": "Transparent data, view anytime"
+    },
+    "benefits": {
+      "0": {
+        "level": "First Level",
+        "rate": "20%",
+        "description": "Get 20% of your direct invitees' profits"
+      },
+      "1": {
+        "level": "Second Level",
+        "rate": "10%",
+        "description": "Get 10% of your indirect invitees' profits"
+      }
+    },
+    "records": {
+      "title": "Real-time Commission Records",
+      "0": {
+        "user": "User A",
+        "amount": "50 USDT",
+        "time": "2024-03-15"
+      },
+      "1": {
+        "user": "User B",
+        "amount": "30 USDT",
+        "time": "2024-03-14"
+      },
+      "2": {
+        "user": "User C",
+        "amount": "25 USDT",
+        "time": "2024-03-13"
+      }
+    },
+    "share": {
+      "title": "Join PandaQuant Trading Platform",
+      "text": "Use my invite code {code} to join PandaQuant trading platform and enjoy professional quantitative trading services"
+    }
+  },
+  "common": {
+    "copy": "Copy",
+    "share": "Share",
+    "copied": "Copied!"
+  },
+  "reviews": {
+    "title": "User Reviews",
+    "subtitle": "Hear what our users say",
+    "user1": {
+      "name": "Mr. Zhang",
+      "level": "Advanced User"
+    },
+    "user2": {
+      "name": "Ms. Li",
+      "level": "Intermediate User"
+    },
+    "user3": {
+      "name": "Mr. Wang",
+      "level": "Beginner User"
+    },
+    "review1": "This platform is really easy to use, with stable returns, simple operation, and professional customer service.",
+    "review2": "Great user experience, stable returns, and good risk control.",
+    "review3": "User-friendly interface, simple operation, suitable for beginners.",
+    "strategy1": "Arbitrage Strategy",
+    "strategy2": "Hedging Strategy",
+    "strategy3": "High-Frequency Trading",
+    "period": {
+      "month": "month"
+    },
+    "performance": {
+      "winRate": "Win Rate",
+      "maxDrawdown": "Max Drawdown",
+      "sharpeRatio": "Sharpe Ratio"
+    },
+    "profit": "Profit",
+    "strategy": "Strategy",
+    "0": {
+      "name": "Mr. Zhang",
+      "role": "Senior Investor",
+      "content": "After using Panda Quant, my investment returns have significantly improved, the system runs stably, and customer service responds promptly."
+    },
+    "1": {
+      "name": "Ms. Li",
+      "role": "Quantitative Trading Enthusiast",
+      "content": "Strategy performance exceeded expectations, risk control is well done, it's the best quantitative trading platform I've used."
+    },
+    "2": {
+      "name": "Mr. Wang",
+      "role": "Professional Trader",
+      "content": "The platform is powerful with rich strategies and stable returns. Highly recommended for all investors."
+    }
+  },
+  "performance": {
+    "title": "Performance Metrics",
+    "daily": {
+      "title": "Daily Performance",
+      "profit": "Daily Profit",
+      "loss": "Daily Loss",
+      "winRate": "Win Rate",
+      "trades": "Number of Trades"
+    },
+    "weekly": {
+      "title": "Weekly Performance",
+      "profit": "Weekly Profit",
+      "loss": "Weekly Loss",
+      "winRate": "Win Rate",
+      "trades": "Number of Trades"
+    },
+    "monthly": {
+      "title": "Monthly Performance",
+      "profit": "Monthly Profit",
+      "loss": "Monthly Loss",
+      "winRate": "Win Rate",
+      "trades": "Number of Trades"
+    },
+    "total": {
+      "title": "Total Performance",
+      "profit": "Total Profit",
+      "loss": "Total Loss",
+      "winRate": "Overall Win Rate",
+      "trades": "Total Trades"
+    }
+  },
+  "chart": {
+    "loading": "Loading chart data...",
+    "error": "Error loading chart data",
+    "noData": "No data available"
+  },
+  "user": {
+    "reviews": {
+      "title": "User Reviews",
+      "noReviews": "No reviews available",
+      "loading": "Loading reviews...",
+      "error": "Error loading reviews"
+    }
+  },
+  "register": {
+    "title": "Create Account",
+    "email": "Email",
+    "username": "Username",
+    "wallet": "Wallet",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign In"
+  }
+} 

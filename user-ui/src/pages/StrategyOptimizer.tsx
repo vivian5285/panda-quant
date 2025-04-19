@@ -1,280 +1,184 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Button,
-  TextField,
-  Slider,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Alert,
-  CircularProgress,
-  Tabs,
-  Tab
-} from '@mui/material';
-import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useAuth } from '../hooks/useAuth';
+import React, { useState } from 'react';
+import { Box, Typography, Grid } from '@mui/material';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { themeUtils } from '../theme';
+import PandaCard from '../components/common/PandaCard';
+import PandaButton from '../components/common/PandaButton';
+import PandaSlider from '../components/common/PandaSlider';
+import PandaProgress from '../components/common/PandaProgress';
+import { 
+  ArrowBack as ArrowBackIcon,
+  AutoGraph as AutoGraphIcon,
+  Speed as SpeedIcon,
+  TrendingUp as TrendingUpIcon,
+  Timeline as TimelineIcon
+} from '@mui/icons-material';
 
-interface Strategy {
-  id: number;
-  name: string;
-  description: string;
-  parameters: Parameter[];
-  optimizationResults: OptimizationResult[];
-}
-
-interface Parameter {
+interface OptimizationParameter {
   name: string;
   min: number;
   max: number;
   step: number;
   value: number;
+  icon: React.ReactNode;
 }
 
-interface OptimizationResult {
-  id: number;
-  params: Record<string, number>;
-  totalProfit: number;
-  maxDrawdown: number;
-  winRate: number;
-  sharpeRatio: number;
-  sortinoRatio: number;
-  volatility: number;
-}
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
+};
 
 const StrategyOptimizer: React.FC = () => {
-  const { user } = useAuth();
-  const [strategies, setStrategies] = useState<Strategy[]>([]);
-  const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [optimizing, setOptimizing] = useState(false);
-  const [tabValue, setTabValue] = useState(0);
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [parameters, setParameters] = useState<OptimizationParameter[]>([
+    { 
+      name: 'rsiPeriod', 
+      min: 2, 
+      max: 30, 
+      step: 1, 
+      value: 14,
+      icon: <SpeedIcon />
+    },
+    { 
+      name: 'macdFast', 
+      min: 2, 
+      max: 26, 
+      step: 1, 
+      value: 12,
+      icon: <TrendingUpIcon />
+    },
+    { 
+      name: 'macdSlow', 
+      min: 10, 
+      max: 50, 
+      step: 1, 
+      value: 26,
+      icon: <TimelineIcon />
+    },
+    { 
+      name: 'macdSignal', 
+      min: 2, 
+      max: 20, 
+      step: 1, 
+      value: 9,
+      icon: <AutoGraphIcon />
+    },
+  ]);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchStrategies();
-  }, []);
+  const handleParameterChange = (index: number, value: number) => {
+    setParameters(prev => prev.map((param, i) => 
+      i === index ? { ...param, value } : param
+    ));
+  };
 
-  const fetchStrategies = async () => {
+  const handleOptimize = async () => {
+    setLoading(true);
     try {
-      const response = await fetch('/api/strategies');
-      if (!response.ok) throw new Error('Failed to fetch strategies');
-      const data = await response.json();
-      setStrategies(data);
-      if (data.length > 0) {
-        setSelectedStrategy(data[0]);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      // 实现优化逻辑
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 模拟API调用
+      navigate('/strategies/backtest/results', { 
+        state: { 
+          result: {
+            equityCurve: Array.from({ length: 30 }, (_, i) => ({
+              date: new Date(Date.now() - (30 - i) * 24 * 60 * 60 * 1000).toISOString(),
+              equity: 10000 * (1 + i * 0.01)
+            })),
+            totalReturn: 0.3,
+            maxDrawdown: 0.1,
+            sharpeRatio: 2.5
+          }
+        } 
+      });
+    } catch (error) {
+      console.error('Optimization failed:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleParameterChange = (paramName: string, value: number) => {
-    if (!selectedStrategy) return;
-    const updatedStrategy = {
-      ...selectedStrategy,
-      parameters: selectedStrategy.parameters.map(param =>
-        param.name === paramName ? { ...param, value } : param
-      )
-    };
-    setSelectedStrategy(updatedStrategy);
-  };
-
-  const handleOptimize = async () => {
-    if (!selectedStrategy) return;
-    setOptimizing(true);
-    try {
-      const response = await fetch('/api/strategies/optimize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          strategyId: selectedStrategy.id,
-          parameters: selectedStrategy.parameters.reduce((acc, param) => ({
-            ...acc,
-            [param.name]: param.value
-          }), {})
-        })
-      });
-      if (!response.ok) throw new Error('Failed to optimize strategy');
-      const result = await response.json();
-      const updatedStrategy = {
-        ...selectedStrategy,
-        optimizationResults: [...selectedStrategy.optimizationResults, result]
-      };
-      setSelectedStrategy(updatedStrategy);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setOptimizing(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box p={3}>
-        <Alert severity="error">{error}</Alert>
-      </Box>
-    );
-  }
-
-  if (!selectedStrategy) {
-    return (
-      <Box p={3}>
-        <Alert severity="info">请选择一个策略进行优化</Alert>
-      </Box>
-    );
-  }
-
   return (
-    <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">策略参数优化</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleOptimize}
-          disabled={optimizing}
-        >
-          {optimizing ? '优化中...' : '开始优化'}
-        </Button>
-      </Box>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+        p: 3,
+      }}
+    >
+      <motion.div {...fadeInUp}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+          <PandaButton
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate(-1)}
+            sx={{ mr: 2 }}
+            animate
+          >
+            {t('common.back')}
+          </PandaButton>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 600,
+              background: themeUtils.createGradient('primary'),
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}
+          >
+            {t('strategyOptimizer.title')}
+          </Typography>
+        </Box>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                {selectedStrategy.name}
-              </Typography>
-              <Typography color="textSecondary" gutterBottom>
-                {selectedStrategy.description}
-              </Typography>
-              <Box mt={2}>
-                {selectedStrategy.parameters.map((param) => (
-                  <Box key={param.name} mb={2}>
-                    <Typography gutterBottom>
-                      {param.name}: {param.value}
+        <Grid container spacing={3}>
+          {parameters.map((param, index) => (
+            <Grid item xs={12} sm={6} key={param.name}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <PandaCard
+                  sx={{
+                    height: '100%',
+                    p: 3
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    {param.icon}
+                    <Typography variant="h6" sx={{ ml: 2, color: 'text.secondary' }}>
+                      {t(`strategyOptimizer.${param.name}`)}
                     </Typography>
-                    <Slider
-                      value={param.value}
-                      onChange={(_, value) => handleParameterChange(param.name, value as number)}
-                      min={param.min}
-                      max={param.max}
-                      step={param.step}
-                      valueLabelDisplay="auto"
-                    />
                   </Box>
-                ))}
-              </Box>
-            </CardContent>
-          </Card>
+                  <PandaSlider
+                    value={param.value}
+                    min={param.min}
+                    max={param.max}
+                    step={param.step}
+                    onChange={(_, value) => handleParameterChange(index, value as number)}
+                    valueLabelDisplay="auto"
+                  />
+                </PandaCard>
+              </motion.div>
+            </Grid>
+          ))}
         </Grid>
 
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardContent>
-              <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)}>
-                <Tab label="优化结果" />
-                <Tab label="参数分布" />
-                <Tab label="绩效对比" />
-              </Tabs>
-
-              {tabValue === 0 && (
-                <TableContainer component={Paper}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>参数组合</TableCell>
-                        <TableCell>总收益</TableCell>
-                        <TableCell>最大回撤</TableCell>
-                        <TableCell>胜率</TableCell>
-                        <TableCell>夏普比率</TableCell>
-                        <TableCell>索提诺比率</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {selectedStrategy.optimizationResults.map((result) => (
-                        <TableRow key={result.id}>
-                          <TableCell>
-                            {Object.entries(result.params).map(([key, value]) => (
-                              <Typography key={key} variant="body2">
-                                {key}: {value}
-                              </Typography>
-                            ))}
-                          </TableCell>
-                          <TableCell>{result.totalProfit.toFixed(2)}%</TableCell>
-                          <TableCell>{result.maxDrawdown.toFixed(2)}%</TableCell>
-                          <TableCell>{result.winRate.toFixed(2)}%</TableCell>
-                          <TableCell>{result.sharpeRatio.toFixed(2)}</TableCell>
-                          <TableCell>{result.sortinoRatio.toFixed(2)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-
-              {tabValue === 1 && (
-                <Box height={400}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart>
-                      <CartesianGrid />
-                      <XAxis type="number" dataKey="totalProfit" name="总收益" />
-                      <YAxis type="number" dataKey="maxDrawdown" name="最大回撤" />
-                      <ZAxis type="number" dataKey="sharpeRatio" name="夏普比率" />
-                      <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                      <Legend />
-                      <Scatter
-                        name="优化结果"
-                        data={selectedStrategy.optimizationResults}
-                        fill="#8884d8"
-                      />
-                    </ScatterChart>
-                  </ResponsiveContainer>
-                </Box>
-              )}
-
-              {tabValue === 2 && (
-                <Box height={400}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart>
-                      <CartesianGrid />
-                      <XAxis type="number" dataKey="sharpeRatio" name="夏普比率" />
-                      <YAxis type="number" dataKey="sortinoRatio" name="索提诺比率" />
-                      <ZAxis type="number" dataKey="volatility" name="波动率" />
-                      <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                      <Legend />
-                      <Scatter
-                        name="风险收益"
-                        data={selectedStrategy.optimizationResults}
-                        fill="#82ca9d"
-                      />
-                    </ScatterChart>
-                  </ResponsiveContainer>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+          <PandaButton
+            variant="contained"
+            startIcon={<AutoGraphIcon />}
+            onClick={handleOptimize}
+            loading={loading}
+            animate
+            glow
+          >
+            {t('strategyOptimizer.optimize')}
+          </PandaButton>
+        </Box>
+      </motion.div>
     </Box>
   );
 };

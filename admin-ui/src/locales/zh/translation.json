@@ -1,0 +1,194 @@
+{
+  "name": "名称",
+  "type": "类型",
+  "appName": "熊猫量化",
+  "userManagement": "用户管理",
+  "chainAddressManagement": "链地址管理",
+  "userStatusManagement": "用户状态管理",
+  "strategyManagement": "策略管理",
+  "actions": "操作",
+  "edit": "编辑",
+  "delete": "删除",
+  "save": "保存",
+  "cancel": "取消",
+  "close": "关闭",
+  "refresh": "刷新",
+  "addChain": "添加链",
+  "editChain": "编辑链",
+  "logManagement": "日志管理",
+  "log": {
+    "level": "级别",
+    "user": "用户",
+    "startDate": "开始日期",
+    "endDate": "结束日期",
+    "timestamp": "时间戳",
+    "action": "操作",
+    "message": "消息"
+  },
+  "all": "全部",
+  "search": "搜索",
+  "addStrategy": "添加策略",
+  "editStrategy": "编辑策略",
+  "status": "状态",
+  "settings": {
+    "maintenanceMode": "维护模式",
+    "enabled": "启用",
+    "disabled": "禁用",
+    "maxUsers": "最大用户数",
+    "defaultBalance": "默认余额",
+    "hostingFee": "托管费用",
+    "save": "保存设置"
+  },
+  "username": "用户名",
+  "email": "邮箱",
+  "balance": "余额",
+  "hostingFee": "托管费用",
+  "deductionCredit": "扣费额度",
+  "addUser": "添加用户",
+  "editUser": "编辑用户",
+  "editUserStatus": "编辑用户状态",
+  "amount": "金额",
+  "createdAt": "创建时间",
+  "strategyType": {
+    "arbitrage": "套利",
+    "marketMaking": "做市",
+    "trendFollowing": "趋势跟踪"
+  },
+  "strategyStatus": {
+    "active": "活跃",
+    "inactive": "非活跃",
+    "paused": "暂停"
+  },
+  "userStatus": {
+    "active": "活跃",
+    "inactive": "非活跃",
+    "suspended": "已暂停"
+  },
+  "rechargeStatus": {
+    "success": "成功",
+    "failed": "失败",
+    "pending": "待处理"
+  },
+  "dashboard": {
+    "title": "仪表盘",
+    "totalUsers": "总用户数",
+    "activeUsers": "活跃用户数",
+    "totalChains": "总链数",
+    "totalStrategies": "总策略数",
+    "recentActivities": "最近活动",
+    "systemStatus": "系统状态",
+    "performance": "性能指标",
+    "totalBalance": "总余额",
+    "totalProfit": "总收益",
+    "settings": "设置"
+  },
+  "logout": "退出登录",
+  "footer": {
+    "copyright": "版权所有 © {{year}} 熊猫量化。保留所有权利。"
+  },
+  "navigation": {
+    "dashboard": "仪表盘",
+    "settings": "设置",
+    "users": "用户管理",
+    "chains": "链地址管理",
+    "strategies": "策略管理",
+    "logs": "日志管理"
+  },
+  "login": {
+    "title": "管理员登录",
+    "email": "邮箱",
+    "password": "密码",
+    "submit": "登录",
+    "error": "登录失败，请检查您的邮箱和密码"
+  },
+  "withdrawalReview": {
+    "title": "提现审核",
+    "pending": "待审核",
+    "approved": "已批准",
+    "rejected": "已拒绝",
+    "amount": "提现金额",
+    "status": "状态",
+    "review": "审核",
+    "approve": "批准",
+    "reject": "拒绝",
+    "reason": "原因"
+  },
+  "systemSettings": {
+    "title": "系统设置",
+    "general": "常规设置",
+    "security": "安全设置",
+    "notifications": "通知设置",
+    "save": "保存设置",
+    "reset": "重置"
+  },
+  "notFound": {
+    "title": "页面未找到",
+    "message": "抱歉，您访问的页面不存在",
+    "backHome": "返回首页"
+  },
+  "userManagement": {
+    "title": "用户管理",
+    "addUser": "添加用户",
+    "editUser": "编辑用户",
+    "deleteUser": "删除用户",
+    "userList": "用户列表",
+    "search": "搜索用户",
+    "filter": "筛选",
+    "export": "导出",
+    "import": "导入",
+    "confirmDelete": "确定要删除此用户吗？"
+  },
+  "chainAddressManagement": {
+    "title": "链地址管理",
+    "addChain": "添加链",
+    "editChain": "编辑链",
+    "deleteChain": "删除链",
+    "chainList": "链列表",
+    "search": "搜索链",
+    "filter": "筛选",
+    "confirmDelete": "确定要删除此链吗？"
+  },
+  "strategyManagement": {
+    "title": "策略管理",
+    "addStrategy": "添加策略",
+    "editStrategy": "编辑策略",
+    "deleteStrategy": "删除策略",
+    "strategyList": "策略列表",
+    "search": "搜索策略",
+    "filter": "筛选",
+    "confirmDelete": "确定要删除此策略吗？"
+  },
+  "logManagement": {
+    "title": "日志管理",
+    "search": "搜索日志",
+    "filter": "筛选",
+    "export": "导出日志",
+    "clear": "清除日志",
+    "confirmClear": "确定要清除所有日志吗？"
+  },
+  "userStatusManagement": {
+    "title": "用户状态管理",
+    "editStatus": "编辑状态",
+    "statusList": "状态列表",
+    "search": "搜索状态",
+    "filter": "筛选",
+    "confirmChange": "确定要更改此用户状态吗？"
+  },
+  "common": {
+    "loading": "加载中...",
+    "noData": "暂无数据",
+    "error": "发生错误",
+    "success": "操作成功",
+    "warning": "警告",
+    "info": "提示",
+    "confirm": "确认",
+    "cancel": "取消",
+    "submit": "提交",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "finish": "完成",
+    "required": "必填",
+    "optional": "选填"
+  }
+} 

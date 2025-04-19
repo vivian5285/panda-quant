@@ -1,167 +1,234 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Container,
-  Typography,
-  TextField,
-  Button,
-  Paper,
-  Link,
-  CircularProgress,
-} from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { register } from '../services/api';
+import { Box, Typography, Tab, Tabs, Link, Container, useTheme } from '@mui/material';
+import { motion, Variants } from 'framer-motion';
+import { 
+  AccountBalanceWallet as WalletIcon, 
+  Email as EmailIcon,
+  Person as PersonIcon,
+} from '@mui/icons-material';
+import PandaCard from '../components/common/PandaCard';
+import AuthForm from '../components/common/AuthForm';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { themeUtils } from '../theme';
+
+const fadeIn: Variants = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 }
+};
+
+const slideInLeft: Variants = {
+  initial: { x: -100, opacity: 0 },
+  animate: { x: 0, opacity: 1 },
+  exit: { x: -100, opacity: 0 }
+};
+
+const slideInRight: Variants = {
+  initial: { x: 100, opacity: 0 },
+  animate: { x: 0, opacity: 1 },
+  exit: { x: 100, opacity: 0 }
+};
 
 const Register: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    name: '',
-  });
-  const [error, setError] = useState('');
+  const { register, loginWithWallet } = useAuth();
+  const [activeTab, setActiveTab] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const theme = useTheme();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+    setError(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setError('密码不匹配');
-      return;
-    }
-    if (formData.password.length < 6) {
-      setError('密码长度至少为6位');
-      return;
-    }
-    if (!formData.email.includes('@')) {
-      setError('请输入有效的邮箱地址');
-      return;
-    }
-
+  const handleSubmit = async (data: Record<string, string>) => {
     setLoading(true);
-    setError('');
+    setError(null);
 
     try {
-      const { email, password, name } = formData;
-      const response = await register({ email, password, name });
-      
-      if (response.token) {
-        login(response.token);
-        navigate('/');
+      if (activeTab === 0) {
+        await register(
+          data.email,
+          data.password,
+          data.username,
+          data.verificationCode
+        );
+        toast.success(t('register.success'));
       } else {
-        setError('注册失败，请稍后重试');
+        await loginWithWallet(data.walletType || 'metamask');
+        toast.success(t('register.walletSuccess'));
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || '注册失败，请稍后重试');
+      navigate('/dashboard');
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || t('register.error');
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper
-          elevation={3}
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: 'url(/stars-bg.png)',
+          backgroundSize: 'cover',
+          opacity: 0.1,
+          zIndex: 0,
+        }
+      }}
+    >
+      <Container maxWidth="lg">
+        <Box
           sx={{
-            padding: 4,
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: 4,
+            position: 'relative',
+            zIndex: 1,
           }}
         >
-          <Typography component="h1" variant="h5">
-            注册账号
-          </Typography>
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="name"
-              label="姓名"
-              name="name"
-              autoComplete="name"
-              autoFocus
-              value={formData.name}
-              onChange={handleChange}
+          {/* 左侧熊猫卡片 */}
+          <Box
+            component={motion.div}
+            variants={slideInLeft}
+            initial="initial"
+            animate="animate"
+            sx={{
+              flex: 1,
+              display: { xs: 'none', md: 'block' },
+            }}
+          >
+            <PandaCard
+              title="欢迎加入"
+              content="欢迎加入熊猫量化大家庭！在这里，我们将为您提供最专业的量化交易服务，让您的投资之路更加顺畅。让我们一起开启智能交易的新篇章！"
+              image="/panda-happy.png"
+              imagePosition="right"
+              backgroundColor="rgba(255, 255, 255, 0.1)"
+              borderRadius={4}
+              padding={4}
+              boxShadow="0 8px 32px rgba(0, 0, 0, 0.1)"
+              backdropFilter="blur(10px)"
             />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="邮箱地址"
-              name="email"
-              autoComplete="email"
-              value={formData.email}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="密码"
-              type="password"
-              id="password"
-              autoComplete="new-password"
-              value={formData.password}
-              onChange={handleChange}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="confirmPassword"
-              label="确认密码"
-              type="password"
-              id="confirmPassword"
-              autoComplete="new-password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-            />
-            {error && (
-              <Typography color="error" sx={{ mt: 2 }}>
-                {error}
-              </Typography>
-            )}
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : '注册'}
-            </Button>
-            <Box sx={{ textAlign: 'center' }}>
-              <Link href="/login" variant="body2">
-                已有账号？立即登录
-              </Link>
-            </Box>
           </Box>
-        </Paper>
-      </Box>
-    </Container>
+
+          {/* 右侧注册表单 */}
+          <Box
+            component={motion.div}
+            variants={slideInRight}
+            initial="initial"
+            animate="animate"
+            sx={{
+              flex: 1,
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: 4,
+              p: 4,
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+            }}
+          >
+            {/* Logo和标题 */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
+              <Box
+                component="img"
+                src="/panda-logo.png"
+                sx={{
+                  width: 120,
+                  height: 120,
+                  mb: 2,
+                  filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))',
+                }}
+              />
+              <Typography
+                variant="h4"
+                component="h1"
+                sx={{
+                  color: 'white',
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                熊猫量化
+              </Typography>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  textAlign: 'center',
+                  mt: 1,
+                }}
+              >
+                智能交易，简单生活
+              </Typography>
+            </Box>
+
+            <Tabs
+              value={activeTab}
+              onChange={handleTabChange}
+              centered
+              sx={{
+                mb: 4,
+                '& .MuiTabs-indicator': {
+                  backgroundColor: 'white',
+                  height: 3,
+                  borderRadius: 3,
+                },
+                '& .MuiTab-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&.Mui-selected': {
+                    color: 'white',
+                  },
+                },
+              }}
+            >
+              <Tab label="邮箱注册" />
+              <Tab label="钱包注册" />
+            </Tabs>
+
+            <AuthForm
+              type={activeTab === 0 ? 'register' : 'wallet'}
+              method={activeTab === 0 ? 'email' : 'wallet'}
+              onSubmit={handleSubmit}
+              loading={loading}
+              error={error}
+            />
+          </Box>
+        </Box>
+      </Container>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
+    </Box>
   );
 };
 

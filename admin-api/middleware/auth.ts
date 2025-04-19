@@ -1,6 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User from '../models/user.model';
+import { User, IUser } from '../models/user.model';
+
+// 扩展 Express 的 Request 类型
+declare global {
+  namespace Express {
+    interface Request {
+      user?: IUser;
+    }
+  }
+}
 
 interface JwtPayload {
   userId: string;

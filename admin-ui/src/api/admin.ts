@@ -26,6 +26,24 @@ export interface User {
   updatedAt: string;
 }
 
+export interface DashboardStats {
+  totalUsers: number;
+  activeStrategies: number;
+  totalTrades: number;
+  totalVolume: number;
+  performance: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+  };
+}
+
+export interface Settings {
+  darkMode: boolean;
+  notifications: boolean;
+  language: string;
+}
+
 // --- 链管理 API ---
 
 /**
@@ -126,6 +144,21 @@ export const updateUserRole = async (id: string, role: User['role']): Promise<Us
     console.error(`Error updating user role with id ${id}:`, error);
     throw error;
   }
+};
+
+export const getDashboardStats = async (): Promise<DashboardStats> => {
+  const response = await axios.get('/api/admin/dashboard/stats');
+  return response.data;
+};
+
+export const getSettings = async (): Promise<Settings> => {
+  const response = await axios.get('/api/admin/settings');
+  return response.data;
+};
+
+export const updateSettings = async (settings: Settings): Promise<Settings> => {
+  const response = await axios.put('/api/admin/settings', settings);
+  return response.data;
 };
 
 // 您可以在此文件中继续添加其他的 admin API 调用 

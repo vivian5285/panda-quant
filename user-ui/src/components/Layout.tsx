@@ -1,17 +1,18 @@
 import React from 'react';
-import { Box, useMediaQuery, useTheme } from '@mui/material';
-import { MobileMenu } from './MobileMenu';
-import { Header } from './Header';
-import { useTheme as useAppTheme } from './ThemeProvider';
+import { useLocation } from 'react-router-dom';
+import { Box } from '@mui/material';
+import Navbar from './home/Navbar';
+import Footer from './home/Footer';
+import { Outlet } from 'react-router-dom';
 
 interface LayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const theme = useTheme();
-  const { mode } = useAppTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+const Layout: React.FC<LayoutProps> = () => {
+  const location = useLocation();
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const isHomePage = location.pathname === '/';
 
   return (
     <Box
@@ -19,22 +20,26 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: mode === 'dark' ? 'background.default' : 'background.paper',
       }}
     >
-      <Header />
+      {!isAuthPage && <Navbar />}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: isMobile ? 2 : 3,
-          pt: { xs: '64px', sm: '64px' },
-          pb: isMobile ? 8 : 3,
+          display: 'flex',
+          flexDirection: 'column',
+          ...(isAuthPage && {
+            justifyContent: 'center',
+            alignItems: 'center',
+          }),
         }}
       >
-        {children}
+        <Outlet />
       </Box>
-      {isMobile && <MobileMenu />}
+      {!isAuthPage && <Footer />}
     </Box>
   );
-}; 
+};
+
+export default Layout; 

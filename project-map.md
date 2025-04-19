@@ -1,4 +1,182 @@
-# Panda Quant 开发地图
+# Project Map
+
+## ⚠️ 开发规则（必读）
+
+在开始任何开发工作之前，请务必遵循以下规则：
+
+### 1. 开发前检查（必须执行）
+- 先查看 `project-map.md` 是否已有页面、接口、组件
+- 不要重复生成已有的组件、模型、接口
+- 如果不确定是否已有，请先返回确认，不要直接创建
+
+### 2. 目录规范（必须遵守）
+- 前端组件：
+  - 用户端：`/user-ui/src/components/`
+  - 管理端：`/admin-ui/src/components/`
+- 前端页面：
+  - 用户端：`/user-ui/src/pages/`
+  - 管理端：`/admin-ui/src/pages/`
+- 后端接口：
+  - 用户端：`/user-api/routes/`
+  - 管理端：`/admin-api/routes/`
+- 后端控制器：
+  - 用户端：`/user-api/controllers/`
+  - 管理端：`/admin-api/controllers/`
+- 后端模型：
+  - 用户端：`/user-api/models/`
+  - 管理端：`/admin-api/models/`
+- 量化策略：
+  - 根目录：`/strategy-engine/`
+
+### 3. 代码规范（必须遵守）
+- 所有新建代码都应写在指定目录和命名规则下
+- 保持代码结构清晰，遵循现有模式
+- 及时更新文档和注释
+
+### 4. 违规处理
+- 违反上述规则可能导致代码被拒绝合并
+- 重复创建已有组件将导致代码被拒绝
+- 未按目录规范放置的代码将被要求重构
+
+## Overview
+This is a quantitative trading platform with separate user and admin interfaces, backed by a strategy engine.
+
+## Local Development Guidelines
+
+### Development Environment Setup
+1. Run user and admin backend services locally
+2. Follow the directory structure and naming conventions strictly
+
+### Development Rules
+1. **Pre-development Checklist**
+   - Always check `project-map.md` first
+   - Verify if the page, API, or component already exists
+   - Do not duplicate existing components, models, or interfaces
+   - When in doubt, verify before creating new code
+
+2. **Directory Structure Rules**
+   - Frontend Components:
+     - User UI: `/user-ui/src/components/`
+     - Admin UI: `/admin-ui/src/components/`
+   - Frontend Pages:
+     - User UI: `/user-ui/src/pages/`
+     - Admin UI: `/admin-ui/src/pages/`
+   - Backend APIs:
+     - User API: `/user-api/routes/`
+     - Admin API: `/admin-api/routes/`
+   - Backend Controllers:
+     - User API: `/user-api/controllers/`
+     - Admin API: `/admin-api/controllers/`
+   - Backend Models:
+     - User API: `/user-api/models/`
+     - Admin API: `/admin-api/models/`
+   - Trading Strategies:
+     - Root directory: `/strategy-engine/`
+
+3. **Code Organization**
+   - All new code must follow the specified directory structure
+   - Use consistent naming conventions
+   - Maintain clear separation between user and admin components
+   - Keep strategy-related code in the strategy-engine directory
+
+4. **Best Practices**
+   - Document all new components and APIs
+   - Update project-map.md when adding new features
+   - Follow the existing code style and patterns
+   - Maintain clear separation of concerns
+
+## Directory Structure
+
+### Root Directory
+- `.env` - Environment configuration file
+- `docker-compose.yml` - Docker compose configuration for the entire project
+- `DEVELOPMENT.md` - Development guidelines and setup instructions
+- `README.md` - Project overview and documentation
+- `project-map.md` - This file, documenting the project structure
+- `app.ts` - Main application entry point
+
+### Core Components
+
+#### user-api/
+- `package.json` - Node.js dependencies and scripts
+- `Dockerfile` - Docker configuration for user API
+- `index.ts` - API entry point
+- `src/` - Source code directory
+- `scripts/` - Utility scripts
+- `test/` - Test files
+- `migrations/` - Database migration files
+- `services/` - Business logic services
+- `routes/` - API route definitions
+- `controllers/` - Request handlers
+- `managers/` - Business logic managers
+- `factories/` - Object factories
+- `strategies/` - Trading strategies
+- `models/` - Data models
+- `types/` - TypeScript type definitions
+- `middleware/` - Request middleware
+- `prisma/` - Database ORM configuration
+
+#### admin-api/
+- `package.json` - Node.js dependencies and scripts
+- `Dockerfile` - Docker configuration for admin API
+- `index.ts` - API entry point
+- `models/` - Data models
+- `scripts/` - Utility scripts
+- `routes/` - API route definitions
+- `middleware/` - Request middleware
+- `controllers/` - Request handlers
+- `services/` - Business logic services
+
+#### strategy-engine/
+- `config.ts` - Configuration settings
+- `types.ts` - TypeScript type definitions
+- `strategyManager.ts` - Strategy management logic
+- `strategyFactory.ts` - Strategy creation factory
+- `StrategyEngine.ts` - Core strategy engine implementation
+- `backtestEngine.ts` - Backtesting engine implementation
+- `utils/` - Utility functions
+- `monitoring/` - Monitoring and logging
+- `services/` - Business logic services
+- `strategies/` - Trading strategies
+- `sql/` - SQL queries and database operations
+- `engine/` - Core engine components
+- `config/` - Configuration files
+- `tasks/` - Background tasks
+- `backtest/` - Backtesting components
+- `types/` - TypeScript type definitions
+- `mt4/` - MetaTrader 4 integration
+- `exchange/` - Exchange integrations
+- `runner/` - Strategy execution runners
+
+#### user-ui/
+- `package.json` - Frontend dependencies and scripts
+- `Dockerfile` - Docker configuration for user interface
+- `src/` - Source code directory
+- `public/` - Static assets
+- `nginx.conf` - Nginx configuration
+
+#### admin-ui/
+- `package.json` - Frontend dependencies and scripts
+- `src/` - Source code directory
+
+#### deploy/
+- `docker-compose.backend.yml` - Backend services configuration
+- `docker-compose.frontend.yml` - Frontend services configuration
+- `docker-compose.yml` - Main Docker compose configuration
+- `restore.sh` - Database restore script
+- `backup.sh` - Database backup script
+- `.env.example` - Example environment configuration
+- `alert.rules` - Alerting rules
+- `prometheus.yml` - Prometheus configuration
+- `nginx.conf` - Nginx configuration
+- `Dockerfile.api` - API Docker configuration
+- `Dockerfile` - Base Docker configuration
+
+#### docs/
+- Documentation files
+
+#### test/
+- Test files and configurations
 
 ## 已完成功能模块 ✅
 
@@ -87,33 +265,6 @@
 ### 数据库
 - MongoDB
 - Redis (缓存)
-
-## 目录结构
-
-### 前端 (user-ui)
-```
-src/
-├── components/     # 通用组件
-├── pages/         # 页面组件
-├── hooks/         # 自定义Hooks
-├── services/      # API服务
-├── utils/         # 工具函数
-├── styles/        # 样式文件
-├── i18n/          # 国际化
-└── types/         # TypeScript类型定义
-```
-
-### 后端 (user-api)
-```
-src/
-├── controllers/   # 控制器
-├── models/        # 数据模型
-├── routes/        # 路由
-├── services/      # 业务逻辑
-├── utils/         # 工具函数
-├── middleware/    # 中间件
-└── types/         # TypeScript类型定义
-```
 
 ## 开发规范
 

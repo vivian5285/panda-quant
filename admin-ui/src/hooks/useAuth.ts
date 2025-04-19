@@ -44,26 +44,22 @@ export const useAuth = () => {
   }, [navigate]);
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-      if (!response.ok) {
-        throw new Error('登录失败');
-      }
-
-      const data = await response.json();
-      localStorage.setItem('admin_token', data.token);
-      setIsAuthenticated(true);
-      navigate('/');
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      throw new Error('登录失败');
     }
+
+    const data = await response.json();
+    localStorage.setItem('admin_token', data.token);
+    setIsAuthenticated(true);
+    navigate('/');
   };
 
   const logout = () => {

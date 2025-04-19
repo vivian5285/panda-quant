@@ -1,8 +1,8 @@
-import { StrategyPreset, OHLCV, Trade, StrategyStats } from '../types';
+import { StrategyPreset, OHLCV, Trade, StrategyStats, Strategy } from '../types';
 import { calculateATR, calculateSuperTrend } from '../utils/indicators';
-import { DatabaseService } from '../../services/databaseService';
+import { DatabaseService } from '../services/databaseService';
 
-export class SuperTrendStrategy {
+export class SuperTrendStrategy implements Strategy {
   private params: StrategyPreset;
   private position: 'long' | 'short' | null = null;
   private entryPrice: number | null = null;
@@ -18,10 +18,10 @@ export class SuperTrendStrategy {
   async analyzeMarket(data: OHLCV[]): Promise<'buy' | 'sell' | 'hold'> {
     try {
       // Calculate ATR
-      const atr = this.calculateATR(data);
+      const atr = calculateATR(data, this.params.params.atrPeriod || 14);
       
       // Calculate SuperTrend
-      const superTrend = this.calculateSuperTrend(data, atr);
+      const superTrend = calculateSuperTrend(data, atr, this.params.params.multiplier || 3);
       this.superTrendData = superTrend;
       
       // Generate signal
@@ -40,12 +40,12 @@ export class SuperTrendStrategy {
   private async logStrategyExecution(timestamp: number, signal: string) {
     try {
       await this.dbService.query(
-        `INSERT INTO strategy_logs (user_id, strategy_id, profit, executed_at)
+        `INSERT INTO strategy_logs (user_id, strategy_id, signal, executed_at)
          VALUES ($1, $2, $3, $4)`,
         [
           this.params.userId,
           this.params.id,
-          this.calculateCurrentProfit(),
+          signal,
           new Date(timestamp)
         ]
       );
@@ -54,25 +54,27 @@ export class SuperTrendStrategy {
     }
   }
 
-  private calculateCurrentProfit(): number {
-    if (!this.position || !this.entryPrice) return 0;
-    
-    const lastTrade = this.trades[this.trades.length - 1];
-    if (!lastTrade) return 0;
-    
-    return lastTrade.profit || 0;
+  private async logTrade(trade: Trade) {
+    try {
+      await this.dbService.logTrade({
+        ...trade,
+        userId: this.params.userId,
+        strategyId: this.params.id
+      });
+    } catch (error) {
+      console.error('Error logging trade:', error);
+    }
   }
 
-  // 分析市场并生成交易信号
   private generateSignal(candles: OHLCV[], superTrend: { upper: number; lower: number; trend: 'up' | 'down' }[]): 'buy' | 'sell' | 'hold' {
-    if (candles.length < this.params.atrPeriod! + 1) return 'hold';
+    if (candles.length < (this.params.params.atrPeriod || 14) + 1) return 'hold';
 
     const currentTrend = superTrend[superTrend.length - 1];
     const prevTrend = superTrend[superTrend.length - 2];
 
     // 检查趋势强度
     const trendStrength = this.calculateTrendStrength(candles);
-    if (trendStrength < this.params.trendStrengthFilter!) {
+    if (trendStrength < (this.params.params.trendStrengthFilter || 0.5)) {
       return 'hold';
     }
 
@@ -86,7 +88,6 @@ export class SuperTrendStrategy {
     return 'hold';
   }
 
-  // 计算趋势强度
   private calculateTrendStrength(candles: OHLCV[]): number {
     const lookback = 20;
     if (candles.length < lookback) return 0;
@@ -112,44 +113,63 @@ export class SuperTrendStrategy {
     return Math.min(trendStrength, 1);
   }
 
-  // 执行交易
-  executeTrade(signal: 'buy' | 'sell', currentPrice: number): Trade | null {
-    if (this.position !== null) {
-      // 检查是否需要平仓
-      if (
-        (this.position === 'long' && signal === 'sell') ||
-        (this.position === 'short' && signal === 'buy')
-      ) {
-        const profit = this.calculateProfit(currentPrice);
-        const trade: Trade = {
-          id: Date.now().toString(),
-          symbol: 'BTC/USDT',
-          entryPrice: this.entryPrice!,
-          exitPrice: currentPrice,
-          amount: this.params.positionSize!,
-          profit,
-          entryTime: Date.now() - 1000 * 60 * 15, // 假设15分钟前入场
-          exitTime: Date.now(),
-          type: this.position,
-        };
-
+  async executeTrade(signal: 'buy' | 'sell', currentPrice: number): Promise<void> {
+    try {
+      const trade = this.createTrade(signal, currentPrice);
+      if (trade) {
         this.trades.push(trade);
+        await this.logTrade(trade);
+      }
+    } catch (error) {
+      console.error('Error executing trade:', error);
+    }
+  }
+
+  private createTrade(signal: 'buy' | 'sell', currentPrice: number): Trade | null {
+    if (this.position === null) {
+      // 开仓
+      if (signal === 'buy') {
+        this.position = 'long';
+        this.entryPrice = currentPrice;
+        return {
+          id: Date.now().toString(),
+          timestamp: Date.now(),
+          type: 'buy',
+          price: currentPrice,
+          amount: this.params.params.positionSize || 1
+        };
+      } else if (signal === 'sell') {
+        this.position = 'short';
+        this.entryPrice = currentPrice;
+        return {
+          id: Date.now().toString(),
+          timestamp: Date.now(),
+          type: 'sell',
+          price: currentPrice,
+          amount: this.params.params.positionSize || 1
+        };
+      }
+    } else {
+      // 平仓
+      if ((this.position === 'long' && signal === 'sell') || 
+          (this.position === 'short' && signal === 'buy')) {
+        const profit = this.calculateProfit(currentPrice);
+        const trade = {
+          id: Date.now().toString(),
+          timestamp: Date.now(),
+          type: signal,
+          price: currentPrice,
+          amount: this.params.params.positionSize || 1,
+          profit
+        };
         this.position = null;
         this.entryPrice = null;
         return trade;
       }
-    } else {
-      // 开新仓
-      if (signal === 'buy' || signal === 'sell') {
-        this.position = signal === 'buy' ? 'long' : 'short';
-        this.entryPrice = currentPrice;
-      }
     }
-
     return null;
   }
 
-  // 计算利润
   private calculateProfit(currentPrice: number): number {
     if (!this.entryPrice) return 0;
 
@@ -157,10 +177,9 @@ export class SuperTrendStrategy {
       ? currentPrice - this.entryPrice 
       : this.entryPrice - currentPrice;
 
-    return priceDiff * this.params.positionSize!;
+    return priceDiff * (this.params.params.positionSize || 1);
   }
 
-  // 检查止损止盈
   checkStopConditions(currentPrice: number): boolean {
     if (!this.entryPrice || !this.position) return false;
 
@@ -168,12 +187,12 @@ export class SuperTrendStrategy {
     const priceDiffPercent = (priceDiff / this.entryPrice) * 100;
 
     // 检查止盈
-    if (priceDiffPercent >= this.params.takeProfit!) {
+    if (priceDiffPercent >= (this.params.params.takeProfit || 5)) {
       return true;
     }
 
     // 检查止损
-    if (priceDiffPercent >= this.params.stopLoss!) {
+    if (priceDiffPercent >= (this.params.params.stopLoss || 2)) {
       return true;
     }
 
@@ -189,7 +208,7 @@ export class SuperTrendStrategy {
           SUM(profit) as total_profit,
           MIN(profit) as min_profit,
           MAX(profit) as max_profit
-         FROM strategy_logs
+         FROM trades
          WHERE user_id = $1 AND strategy_id = $2`,
         [this.params.userId, this.params.id]
       );

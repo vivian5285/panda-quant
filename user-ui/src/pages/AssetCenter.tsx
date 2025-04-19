@@ -1,319 +1,264 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Container,
-  Typography,
-  Box,
-  Grid,
-  Card,
-  CardContent,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
-} from '@mui/material';
-import { AddCircle as DepositIcon, AccountBalanceWallet as WithdrawIcon } from '@mui/icons-material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useAuth } from '../contexts/AuthContext';
+import { useWeb3 } from '../hooks/useWeb3';
+import { Box, Typography, Grid } from '@mui/material';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { themeUtils } from '../theme';
+import PandaCard from '../components/common/PandaCard';
+import PandaButton from '../components/common/PandaButton';
+import PandaAlert from '../components/common/PandaAlert';
+import PandaProgress from '../components/common/PandaProgress';
+import { 
+  AccountBalance as AccountBalanceIcon,
+  TrendingUp as TrendingUpIcon,
+  ArrowForward as ArrowForwardIcon,
+  AttachMoney as MoneyIcon
+} from '@mui/icons-material';
 
 interface AssetSummary {
-  totalBalance: number;
-  totalProfit: number;
-  hostingFee: number;
-  isNewUser: boolean;
-  deposits: Array<{
-    id: string;
+  totalValue: number;
+  positions: {
+    symbol: string;
     amount: number;
-    chain: string;
-    status: string;
-    createdAt: string;
-  }>;
-  fees: Array<{
-    id: string;
-    amount: number;
-    status: string;
-    createdAt: string;
-  }>;
-  profitHistory: Array<{
-    date: string;
-    profit: number;
-  }>;
+    value: number;
+    change24h: number;
+    icon: string;
+  }[];
 }
 
-const AssetCenter: React.FC = () => {
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
+};
+
+const AssetCenter = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { account } = useWeb3();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [assetSummary, setAssetSummary] = useState<AssetSummary | null>(null);
-  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [withdrawChain, setWithdrawChain] = useState('BSC');
-  const [withdrawAddress, setWithdrawAddress] = useState('');
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
     const fetchAssetSummary = async () => {
       try {
-        const response = await fetch('/api/asset/summary');
-        if (!response.ok) {
-          throw new Error('获取资产信息失败');
-        }
-        const data = await response.json();
-        setAssetSummary(data);
-        setError(null);
+        // TODO: 实现资产汇总数据的获取
+        setAssetSummary({
+          totalValue: 10000,
+          positions: [
+            {
+              symbol: 'ETH',
+              amount: 1.5,
+              value: 3000,
+              change24h: 2.5,
+              icon: '🦄'
+            },
+            {
+              symbol: 'BTC',
+              amount: 0.1,
+              value: 4000,
+              change24h: -1.2,
+              icon: '🦁'
+            },
+            {
+              symbol: 'USDT',
+              amount: 3000,
+              value: 3000,
+              change24h: 0.1,
+              icon: '🦊'
+            },
+          ],
+        });
       } catch (err) {
-        console.error('Error fetching asset summary:', err);
-        setError('获取资产信息失败，请稍后重试');
+        setError(t('assetCenter.error'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchAssetSummary();
-  }, []);
-
-  const handleWithdraw = async () => {
-    try {
-      const response = await fetch('/api/asset/withdraw', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: parseFloat(withdrawAmount),
-          chain: withdrawChain,
-          address: withdrawAddress,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('提现申请失败');
-      }
-
-      setWithdrawDialogOpen(false);
-      // 刷新资产信息
-      const data = await fetch('/api/asset/summary').then(res => res.json());
-      setAssetSummary(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '提现申请失败');
-    }
-  };
+  }, [isAuthenticated, navigate, t]);
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
-        <CircularProgress />
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        bgcolor: 'background.default'
+      }}>
+        <PandaProgress />
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
-        <Alert severity="error" onClose={() => setError(null)}>
-          {error}
-        </Alert>
+      <Box sx={{ p: 3 }}>
+        <PandaAlert severity="error">{error}</PandaAlert>
       </Box>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" component="h1">
-          资产中心
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+        p: 3,
+      }}
+    >
+      <motion.div {...fadeInUp}>
+        <Typography 
+          variant="h4" 
+          sx={{ 
+            color: 'text.primary',
+            fontWeight: 600,
+            mb: 2,
+            background: themeUtils.createGradient('primary'),
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}
+        >
+          {t('assetCenter.title')}
         </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<DepositIcon />}
-            onClick={() => navigate('/deposit/create')}
-          >
-            充值
-          </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            startIcon={<WithdrawIcon />}
-            onClick={() => setWithdrawDialogOpen(true)}
-          >
-            提现
-          </Button>
-        </Box>
-      </Box>
+        
+        <Typography 
+          variant="body1" 
+          sx={{ 
+            color: 'text.secondary',
+            mb: 4
+          }}
+        >
+          {t('assetCenter.connectedAccount')}: {account}
+        </Typography>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                总资产
-              </Typography>
-              <Typography variant="h4">
-                {assetSummary?.totalBalance.toFixed(2)} USDT
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                总收益
-              </Typography>
-              <Typography variant="h4">
-                {assetSummary?.totalProfit.toFixed(2)} USDT
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                托管费
-              </Typography>
-              <Typography variant="h4">
-                {assetSummary?.hostingFee.toFixed(2)} USDT
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                收益趋势
-              </Typography>
-              <Box sx={{ height: 300 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={assetSummary?.profitHistory}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="profit" stroke="#4CAF50" name="收益" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Typography variant="h6" gutterBottom>
-            充值记录
-          </Typography>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>时间</TableCell>
-                  <TableCell>链</TableCell>
-                  <TableCell>金额</TableCell>
-                  <TableCell>状态</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {assetSummary?.deposits.map((deposit) => (
-                  <TableRow key={deposit.id}>
-                    <TableCell>{new Date(deposit.createdAt).toLocaleString()}</TableCell>
-                    <TableCell>{deposit.chain}</TableCell>
-                    <TableCell>{deposit.amount.toFixed(2)} USDT</TableCell>
-                    <TableCell>{deposit.status}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Typography variant="h6" gutterBottom>
-            托管费记录
-          </Typography>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>时间</TableCell>
-                  <TableCell>金额</TableCell>
-                  <TableCell>状态</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {assetSummary?.fees.map((fee) => (
-                  <TableRow key={fee.id}>
-                    <TableCell>{new Date(fee.createdAt).toLocaleString()}</TableCell>
-                    <TableCell>{fee.amount.toFixed(2)} USDT</TableCell>
-                    <TableCell>{fee.status}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Grid>
-      </Grid>
-
-      <Dialog open={withdrawDialogOpen} onClose={() => setWithdrawDialogOpen(false)}>
-        <DialogTitle>提现申请</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <TextField
-              label="提现金额"
-              type="number"
-              value={withdrawAmount}
-              onChange={(e) => setWithdrawAmount(e.target.value)}
-              fullWidth
-            />
-            <FormControl fullWidth>
-              <InputLabel>选择链</InputLabel>
-              <Select
-                value={withdrawChain}
-                label="选择链"
-                onChange={(e) => setWithdrawChain(e.target.value)}
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <PandaCard
+                sx={{
+                  bgcolor: 'background.paper',
+                  borderRadius: 2,
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                  p: 3,
+                }}
               >
-                <MenuItem value="BSC">BSC</MenuItem>
-                <MenuItem value="ARB">Arbitrum</MenuItem>
-                <MenuItem value="TRC">TRON</MenuItem>
-                <MenuItem value="OP">Optimism</MenuItem>
-                <MenuItem value="SOL">Solana</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              label="提现地址"
-              value={withdrawAddress}
-              onChange={(e) => setWithdrawAddress(e.target.value)}
-              fullWidth
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setWithdrawDialogOpen(false)}>取消</Button>
-          <Button onClick={handleWithdraw} variant="contained" color="primary">
-            确认提现
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <AccountBalanceIcon sx={{ fontSize: 40, color: '#00FFB8', mr: 2 }} />
+                  <Box>
+                    <Typography variant="h6" sx={{ color: 'text.secondary' }}>
+                      {t('assetCenter.totalValue')}
+                    </Typography>
+                    <Typography 
+                      variant="h3" 
+                      sx={{ 
+                        fontWeight: 600,
+                        background: themeUtils.createGradient('primary'),
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
+                      }}
+                    >
+                      ${assetSummary?.totalValue.toLocaleString()}
+                    </Typography>
+                  </Box>
+                </Box>
+              </PandaCard>
+            </motion.div>
+          </Grid>
+
+          {assetSummary?.positions.map((position) => (
+            <Grid item xs={12} sm={6} md={4} key={position.symbol}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <PandaCard
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    bgcolor: 'background.paper',
+                    borderRadius: 2,
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                    p: 3,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h3" sx={{ mr: 2 }}>{position.icon}</Typography>
+                    <Box>
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        {position.symbol}
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: position.change24h >= 0 ? 'success.main' : 'error.main',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <TrendingUpIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                        {position.change24h}%
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ mb: 3 }}>
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        color: 'text.secondary',
+                        display: 'flex',
+                        alignItems: 'center',
+                        mb: 1
+                      }}
+                    >
+                      <MoneyIcon sx={{ mr: 1, fontSize: 16 }} />
+                      {t('assetCenter.amount')}: {position.amount}
+                    </Typography>
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        color: 'text.secondary',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <MoneyIcon sx={{ mr: 1, fontSize: 16 }} />
+                      {t('assetCenter.value')}: ${position.value.toLocaleString()}
+                    </Typography>
+                  </Box>
+
+                  <PandaButton
+                    variant="outlined"
+                    fullWidth
+                    endIcon={<ArrowForwardIcon />}
+                    onClick={() => navigate(`/asset/${position.symbol}`)}
+                    animate
+                  >
+                    {t('assetCenter.viewDetails')}
+                  </PandaButton>
+                </PandaCard>
+              </motion.div>
+            </Grid>
+          ))}
+        </Grid>
+      </motion.div>
+    </Box>
   );
 };
 

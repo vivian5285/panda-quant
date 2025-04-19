@@ -12,12 +12,12 @@ import {
   TableHead,
   TableRow,
   Button,
-  Chip,
-  useTheme
+  Chip
 } from '@mui/material';
 import { ContentCopy as CopyIcon } from '@mui/icons-material';
 import axios from 'axios';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface Referral {
   id: string;
@@ -29,7 +29,7 @@ interface Referral {
 }
 
 const ReferralRewards: React.FC = () => {
-  const theme = useTheme();
+  const { t } = useTranslation();
   const [rewards, setRewards] = useState<{
     totalReward: number;
     commissionEarned: number;
@@ -93,7 +93,7 @@ const ReferralRewards: React.FC = () => {
     <Container maxWidth="lg">
       <Box sx={{ my: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Referral Rewards
+          {t('referral.rewards')}
         </Typography>
 
         <Grid container spacing={3}>
@@ -101,7 +101,7 @@ const ReferralRewards: React.FC = () => {
           <Grid item xs={12} md={6}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>
-                Your Referral Code
+                {t('referral.code')}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Typography variant="h5">{referralCode}</Typography>
@@ -110,7 +110,7 @@ const ReferralRewards: React.FC = () => {
                   startIcon={<CopyIcon />}
                   onClick={handleCopyCode}
                 >
-                  Copy
+                  {t('referral.copy')}
                 </Button>
               </Box>
             </Paper>
@@ -120,12 +120,12 @@ const ReferralRewards: React.FC = () => {
           <Grid item xs={12} md={6}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>
-                Rewards Summary
+                {t('referral.summary')}
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="textSecondary">
-                    Total Rewards
+                    {t('referral.totalRewards')}
                   </Typography>
                   <Typography variant="h5" color="primary">
                     ${rewards.totalReward.toFixed(2)}
@@ -133,7 +133,7 @@ const ReferralRewards: React.FC = () => {
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="textSecondary">
-                    Commission Earned
+                    {t('referral.commissionEarned')}
                   </Typography>
                   <Typography variant="h5" color="primary">
                     ${rewards.commissionEarned.toFixed(2)}
@@ -147,16 +147,16 @@ const ReferralRewards: React.FC = () => {
           <Grid item xs={12}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom>
-                Referral History
+                {t('referral.history')}
               </Typography>
               <TableContainer>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Level</TableCell>
-                      <TableCell>Commission</TableCell>
-                      <TableCell>Status</TableCell>
+                      <TableCell>{t('referral.date')}</TableCell>
+                      <TableCell>{t('referral.level')}</TableCell>
+                      <TableCell>{t('referral.commission')}</TableCell>
+                      <TableCell>{t('referral.status')}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>

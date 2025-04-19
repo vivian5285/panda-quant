@@ -1,218 +1,238 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Grid,
-  TextField,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Alert,
-} from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import axios from 'axios';
+import { Box, Typography, Grid } from '@mui/material';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { themeUtils } from '../theme';
+import api from '../services/api';
+import PandaCard from '../components/common/PandaCard';
+import PandaButton from '../components/common/PandaButton';
+import PandaInput from '../components/common/PandaInput';
+import PandaSelect from '../components/common/PandaSelect';
+import PandaAlert from '../components/common/PandaAlert';
+import { 
+  PlayArrow as PlayArrowIcon,
+  ArrowBack as ArrowBackIcon,
+  Timeline as TimelineIcon,
+  Security as SecurityIcon,
+  AttachMoney as AttachMoneyIcon,
+  CalendarToday as CalendarIcon,
+  TrendingUp as TrendingUpIcon
+} from '@mui/icons-material';
+
+interface StrategyConfig {
+  strategyName: string;
+  riskLevel: string;
+  symbol: string;
+  timeframe: string;
+  initialCapital: number;
+  startDate: string;
+  endDate: string;
+}
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
+};
 
 const BacktestConfig: React.FC = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [config, setConfig] = useState({
+  const { t } = useTranslation();
+  const [config, setConfig] = useState<StrategyConfig>({
     strategyName: '',
     riskLevel: '',
-    symbol: 'BTC/USDT',
-    timeframe: '1m',
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-    endDate: new Date(),
+    symbol: '',
+    timeframe: '',
     initialCapital: 10000,
+    startDate: '',
+    endDate: ''
   });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (field: string) => (event: any) => {
-    setConfig({
-      ...config,
-      [field]: event.target.value,
-    });
+  const handleChange = (field: keyof StrategyConfig) => (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { value: string } }
+  ) => {
+    const value = event.target.value;
+    setConfig(prev => ({
+      ...prev,
+      [field]: field === 'initialCapital' ? Number(value) : value
+    }));
   };
 
-  const handleDateChange = (field: string) => (date: Date | null) => {
-    if (date) {
-      setConfig({
-        ...config,
-        [field]: date,
-      });
-    }
-  };
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
     setError(null);
-
     try {
-      const response = await axios.post('/api/strategy/backtest/run', {
-        ...config,
-        startDate: config.startDate.toISOString(),
-        endDate: config.endDate.toISOString(),
-      });
-
-      // 保存回测结果
-      await axios.post('/api/strategy/backtest/save', {
-        userId: 'current-user', // TODO: 从认证系统获取
-        backtestResults: response.data,
-      });
-
-      // 导航到结果页面
-      navigate('/backtest/results');
+      const response = await api.post('/backtest/run', config);
+      navigate('/strategies/backtest/results', { state: { result: response.data } });
     } catch (err) {
-      setError('Failed to run backtest');
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box p={3}>
-      <Typography variant="h4" gutterBottom>
-        Backtest Configuration
-      </Typography>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+        p: 3,
+      }}
+    >
+      <motion.div {...fadeInUp}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+          <PandaButton
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate(-1)}
+            sx={{ mr: 2 }}
+            animate
+          >
+            {t('common.back')}
+          </PandaButton>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 600,
+              background: themeUtils.createGradient('primary'),
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}
+          >
+            {t('backtest.config.title')}
+          </Typography>
+        </Box>
 
-      <Paper sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            {/* 策略选择 */}
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Strategy</InputLabel>
-                <Select
+        <PandaCard
+          sx={{
+            p: 4,
+            maxWidth: 'md',
+            mx: 'auto'
+          }}
+        >
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <PandaSelect
+                  label={t('backtest.config.strategy')}
                   value={config.strategyName}
                   onChange={handleChange('strategyName')}
-                  label="Strategy"
                   required
-                >
-                  <MenuItem value="Scalping">Scalping</MenuItem>
-                  <MenuItem value="SuperTrend">SuperTrend</MenuItem>
-                  <MenuItem value="Grid">Grid Trading</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+                  startIcon={<TrendingUpIcon />}
+                  options={[
+                    { value: 'trend_following', label: t('strategyType.trend_following') },
+                    { value: 'mean_reversion', label: t('strategyType.mean_reversion') },
+                    { value: 'breakout', label: t('strategyType.breakout') }
+                  ]}
+                />
+              </Grid>
 
-            {/* 风险等级 */}
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Risk Level</InputLabel>
-                <Select
+              <Grid item xs={12}>
+                <PandaSelect
+                  label={t('backtest.config.riskLevel')}
                   value={config.riskLevel}
                   onChange={handleChange('riskLevel')}
-                  label="Risk Level"
                   required
-                >
-                  <MenuItem value="high">High</MenuItem>
-                  <MenuItem value="medium">Medium</MenuItem>
-                  <MenuItem value="low">Low</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+                  startIcon={<SecurityIcon />}
+                  options={[
+                    { value: 'low', label: t('riskLevel.low') },
+                    { value: 'medium', label: t('riskLevel.medium') },
+                    { value: 'high', label: t('riskLevel.high') }
+                  ]}
+                />
+              </Grid>
 
-            {/* 交易对 */}
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Symbol</InputLabel>
-                <Select
+              <Grid item xs={12}>
+                <PandaSelect
+                  label={t('backtest.config.symbol')}
                   value={config.symbol}
                   onChange={handleChange('symbol')}
-                  label="Symbol"
                   required
-                >
-                  <MenuItem value="BTC/USDT">BTC/USDT</MenuItem>
-                  <MenuItem value="ETH/USDT">ETH/USDT</MenuItem>
-                  <MenuItem value="BNB/USDT">BNB/USDT</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+                  startIcon={<AttachMoneyIcon />}
+                  options={[
+                    { value: 'BTC/USDT', label: 'BTC/USDT' },
+                    { value: 'ETH/USDT', label: 'ETH/USDT' },
+                    { value: 'BNB/USDT', label: 'BNB/USDT' }
+                  ]}
+                />
+              </Grid>
 
-            {/* 时间周期 */}
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Timeframe</InputLabel>
-                <Select
+              <Grid item xs={12}>
+                <PandaSelect
+                  label={t('backtest.config.timeframe')}
                   value={config.timeframe}
                   onChange={handleChange('timeframe')}
-                  label="Timeframe"
                   required
-                >
-                  <MenuItem value="1m">1 Minute</MenuItem>
-                  <MenuItem value="5m">5 Minutes</MenuItem>
-                  <MenuItem value="15m">15 Minutes</MenuItem>
-                  <MenuItem value="1h">1 Hour</MenuItem>
-                  <MenuItem value="4h">4 Hours</MenuItem>
-                  <MenuItem value="1d">1 Day</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            {/* 日期选择 */}
-            <Grid item xs={12} md={6}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  label="Start Date"
-                  value={config.startDate}
-                  onChange={handleDateChange('startDate')}
-                  renderInput={(params) => <TextField {...params} fullWidth />}
+                  startIcon={<TimelineIcon />}
+                  options={[
+                    { value: '1h', label: t('timeframe.1h') },
+                    { value: '4h', label: t('timeframe.4h') },
+                    { value: '1d', label: t('timeframe.1d') }
+                  ]}
                 />
-              </LocalizationProvider>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  label="End Date"
-                  value={config.endDate}
-                  onChange={handleDateChange('endDate')}
-                  renderInput={(params) => <TextField {...params} fullWidth />}
-                />
-              </LocalizationProvider>
-            </Grid>
-
-            {/* 初始资金 */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Initial Capital"
-                type="number"
-                value={config.initialCapital}
-                onChange={handleChange('initialCapital')}
-                required
-              />
-            </Grid>
-
-            {/* 错误提示 */}
-            {error && (
-              <Grid item xs={12}>
-                <Alert severity="error">{error}</Alert>
               </Grid>
-            )}
 
-            {/* 提交按钮 */}
-            <Grid item xs={12}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                disabled={loading}
-                fullWidth
-              >
-                {loading ? 'Running Backtest...' : 'Run Backtest'}
-              </Button>
+              <Grid item xs={12}>
+                <PandaInput
+                  label={t('backtest.config.initialCapital')}
+                  type="number"
+                  value={config.initialCapital}
+                  onChange={handleChange('initialCapital')}
+                  required
+                  startIcon={<AttachMoneyIcon />}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <PandaInput
+                  label={t('backtest.config.startDate')}
+                  type="date"
+                  value={config.startDate}
+                  onChange={handleChange('startDate')}
+                  required
+                  startIcon={<CalendarIcon />}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <PandaInput
+                  label={t('backtest.config.endDate')}
+                  type="date"
+                  value={config.endDate}
+                  onChange={handleChange('endDate')}
+                  required
+                  startIcon={<CalendarIcon />}
+                />
+              </Grid>
+
+              {error && (
+                <Grid item xs={12}>
+                  <PandaAlert severity="error">{error}</PandaAlert>
+                </Grid>
+              )}
+
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                  <PandaButton
+                    type="submit"
+                    variant="contained"
+                    startIcon={<PlayArrowIcon />}
+                    loading={loading}
+                    animate
+                    glow
+                  >
+                    {t('backtest.config.run')}
+                  </PandaButton>
+                </Box>
+              </Grid>
             </Grid>
-          </Grid>
-        </form>
-      </Paper>
+          </form>
+        </PandaCard>
+      </motion.div>
     </Box>
   );
 };

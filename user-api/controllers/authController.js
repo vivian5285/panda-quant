@@ -82,12 +82,15 @@ const login = async (req, res) => {
     );
 
     res.json({
-      message: '登录成功',
       token,
       user: {
         id: user.id,
         email: user.email,
-        inviteCode: user.inviteCode
+        username: user.username,
+        walletAddress: user.walletAddress || '',
+        role: user.role || 'user',
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
       }
     });
   } catch (error) {

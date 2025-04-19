@@ -1,26 +1,48 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Grid,
-  TextField,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Alert
-} from '@mui/material';
+import { Box, Typography, Grid } from '@mui/material';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { themeUtils } from '../theme';
+import api from '../services/api';
+import PandaCard from '../components/common/PandaCard';
+import PandaButton from '../components/common/PandaButton';
+import PandaInput from '../components/common/PandaInput';
+import PandaSelect from '../components/common/PandaSelect';
+import PandaAlert from '../components/common/PandaAlert';
+import { 
+  ArrowBack as ArrowBackIcon,
+  PlayArrow as PlayArrowIcon,
+  TrendingUp as TrendingUpIcon,
+  Security as SecurityIcon,
+  AttachMoney as AttachMoneyIcon,
+  Timeline as TimelineIcon,
+  CalendarToday as CalendarIcon
+} from '@mui/icons-material';
+
+interface FormData {
+  strategyName: string;
+  riskLevel: string;
+  symbol: string;
+  timeframe: string;
+  startDate: Date;
+  endDate: Date;
+  initialCapital: number;
+}
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
+};
 
 const SelectStrategy: React.FC = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const { t } = useTranslation();
+  const [formData, setFormData] = useState<FormData>({
     strategyName: 'superTrend',
     riskLevel: 'medium',
     symbol: 'BTC/USDT',
@@ -32,10 +54,10 @@ const SelectStrategy: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (field: string) => (event: any) => {
+  const handleChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [field]: event.target.value
+      [field]: event.target.value,
     });
   };
 
@@ -43,9 +65,16 @@ const SelectStrategy: React.FC = () => {
     if (date) {
       setFormData({
         ...formData,
-        [field]: date
+        [field]: date,
       });
     }
+  };
+
+  const handleSelectChange = (field: string) => (event: { target: { value: string } }) => {
+    setFormData({
+      ...formData,
+      [field]: event.target.value,
+    });
   };
 
   const handleSubmit = async () => {
@@ -53,16 +82,15 @@ const SelectStrategy: React.FC = () => {
     setError(null);
 
     try {
-      const response = await axios.post('/api/strategy/backtest/run', {
+      const response = await api.post('/strategy/backtest/run', {
         ...formData,
         startDate: formData.startDate.toISOString(),
         endDate: formData.endDate.toISOString()
       });
 
-      // 导航到回测结果页面
       navigate(`/backtest/results/${response.data.id}`);
     } catch (err) {
-      setError('Failed to start backtest. Please try again.');
+      setError(t('strategy.select.error'));
       console.error('Error starting backtest:', err);
     } finally {
       setLoading(false);
@@ -70,135 +98,178 @@ const SelectStrategy: React.FC = () => {
   };
 
   return (
-    <Box p={3}>
-      <Typography variant="h4" gutterBottom>
-        Select Strategy
-      </Typography>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+        p: 3,
+      }}
+    >
+      <motion.div {...fadeInUp}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+          <PandaButton
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate(-1)}
+            sx={{ mr: 2 }}
+            animate
+          >
+            {t('common.back')}
+          </PandaButton>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 600,
+              background: themeUtils.createGradient('primary'),
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}
+          >
+            {t('strategy.select.title')}
+          </Typography>
+        </Box>
 
-      <Paper sx={{ p: 3 }}>
-        <Grid container spacing={3}>
-          {/* 策略选择 */}
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Strategy</InputLabel>
-              <Select
+        <PandaCard
+          sx={{
+            p: 4,
+            maxWidth: 'md',
+            mx: 'auto'
+          }}
+        >
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <PandaSelect
+                label={t('strategy.select.strategy')}
                 value={formData.strategyName}
-                onChange={handleChange('strategyName')}
-                label="Strategy"
-              >
-                <MenuItem value="superTrend">Super Trend</MenuItem>
-                <MenuItem value="grid">Grid Trading</MenuItem>
-                <MenuItem value="scalping">Scalping</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {/* 风险等级 */}
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Risk Level</InputLabel>
-              <Select
-                value={formData.riskLevel}
-                onChange={handleChange('riskLevel')}
-                label="Risk Level"
-              >
-                <MenuItem value="low">Low</MenuItem>
-                <MenuItem value="medium">Medium</MenuItem>
-                <MenuItem value="high">High</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {/* 交易对 */}
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Symbol</InputLabel>
-              <Select
-                value={formData.symbol}
-                onChange={handleChange('symbol')}
-                label="Symbol"
-              >
-                <MenuItem value="BTC/USDT">BTC/USDT</MenuItem>
-                <MenuItem value="ETH/USDT">ETH/USDT</MenuItem>
-                <MenuItem value="BNB/USDT">BNB/USDT</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {/* 时间周期 */}
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth>
-              <InputLabel>Timeframe</InputLabel>
-              <Select
-                value={formData.timeframe}
-                onChange={handleChange('timeframe')}
-                label="Timeframe"
-              >
-                <MenuItem value="1m">1 Minute</MenuItem>
-                <MenuItem value="5m">5 Minutes</MenuItem>
-                <MenuItem value="15m">15 Minutes</MenuItem>
-                <MenuItem value="1h">1 Hour</MenuItem>
-                <MenuItem value="4h">4 Hours</MenuItem>
-                <MenuItem value="1d">1 Day</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {/* 日期选择 */}
-          <Grid item xs={12} md={6}>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DatePicker
-                label="Start Date"
-                value={formData.startDate}
-                onChange={handleDateChange('startDate')}
-                renderInput={(params) => <TextField {...params} fullWidth />}
+                onChange={handleSelectChange('strategyName')}
+                required
+                startIcon={<TrendingUpIcon />}
+                options={[
+                  { value: 'superTrend', label: t('strategyType.superTrend') },
+                  { value: 'grid', label: t('strategyType.grid') },
+                  { value: 'scalping', label: t('strategyType.scalping') }
+                ]}
               />
-            </LocalizationProvider>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DatePicker
-                label="End Date"
-                value={formData.endDate}
-                onChange={handleDateChange('endDate')}
-                renderInput={(params) => <TextField {...params} fullWidth />}
-              />
-            </LocalizationProvider>
-          </Grid>
-
-          {/* 初始资金 */}
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Initial Capital"
-              type="number"
-              value={formData.initialCapital}
-              onChange={handleChange('initialCapital')}
-            />
-          </Grid>
-
-          {/* 错误提示 */}
-          {error && (
-            <Grid item xs={12}>
-              <Alert severity="error">{error}</Alert>
             </Grid>
-          )}
 
-          {/* 提交按钮 */}
-          <Grid item xs={12}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSubmit}
-              disabled={loading}
-              fullWidth
-            >
-              {loading ? 'Running Backtest...' : 'Run Backtest'}
-            </Button>
+            <Grid item xs={12} md={6}>
+              <PandaSelect
+                label={t('strategy.select.riskLevel')}
+                value={formData.riskLevel}
+                onChange={handleSelectChange('riskLevel')}
+                required
+                startIcon={<SecurityIcon />}
+                options={[
+                  { value: 'low', label: t('riskLevel.low') },
+                  { value: 'medium', label: t('riskLevel.medium') },
+                  { value: 'high', label: t('riskLevel.high') }
+                ]}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <PandaSelect
+                label={t('strategy.select.symbol')}
+                value={formData.symbol}
+                onChange={handleSelectChange('symbol')}
+                required
+                startIcon={<AttachMoneyIcon />}
+                options={[
+                  { value: 'BTC/USDT', label: 'BTC/USDT' },
+                  { value: 'ETH/USDT', label: 'ETH/USDT' },
+                  { value: 'BNB/USDT', label: 'BNB/USDT' }
+                ]}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <PandaSelect
+                label={t('strategy.select.timeframe')}
+                value={formData.timeframe}
+                onChange={handleSelectChange('timeframe')}
+                required
+                startIcon={<TimelineIcon />}
+                options={[
+                  { value: '1m', label: t('timeframe.1m') },
+                  { value: '5m', label: t('timeframe.5m') },
+                  { value: '15m', label: t('timeframe.15m') },
+                  { value: '1h', label: t('timeframe.1h') },
+                  { value: '4h', label: t('timeframe.4h') },
+                  { value: '1d', label: t('timeframe.1d') }
+                ]}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label={t('strategy.select.startDate')}
+                  value={formData.startDate}
+                  onChange={handleDateChange('startDate')}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      InputProps: {
+                        startAdornment: <CalendarIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                      }
+                    }
+                  }}
+                />
+              </LocalizationProvider>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label={t('strategy.select.endDate')}
+                  value={formData.endDate}
+                  onChange={handleDateChange('endDate')}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      InputProps: {
+                        startAdornment: <CalendarIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                      }
+                    }
+                  }}
+                />
+              </LocalizationProvider>
+            </Grid>
+
+            <Grid item xs={12}>
+              <PandaInput
+                label={t('strategy.select.initialCapital')}
+                type="number"
+                value={formData.initialCapital}
+                onChange={handleChange('initialCapital')}
+                required
+                startIcon={<AttachMoneyIcon />}
+              />
+            </Grid>
+
+            {error && (
+              <Grid item xs={12}>
+                <PandaAlert severity="error">{error}</PandaAlert>
+              </Grid>
+            )}
+
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                <PandaButton
+                  variant="contained"
+                  startIcon={<PlayArrowIcon />}
+                  onClick={handleSubmit}
+                  loading={loading}
+                  animate
+                  glow
+                >
+                  {t('strategy.select.start')}
+                </PandaButton>
+              </Box>
+            </Grid>
           </Grid>
-        </Grid>
-      </Paper>
+        </PandaCard>
+      </motion.div>
     </Box>
   );
 };

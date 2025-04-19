@@ -1,6 +1,38 @@
 version: '3.8'
 
 services:
+  # Nginx 反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: panda-quant-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/letsencrypt:/etc/letsencrypt
+      - ./nginx/www:/var/www/certbot
+    networks:
+      - panda-quant-network
+    depends_on:
+      - admin-api
+      - user-api
+      - admin-ui
+      - user-ui
+    restart: unless-stopped
+
+  # Certbot 用于 SSL 证书
+  certbot:
+    image: certbot/certbot
+    container_name: panda-quant-certbot
+    volumes:
+      - ./nginx/letsencrypt:/etc/letsencrypt
+      - ./nginx/www:/var/www/certbot
+    networks:
+      - panda-quant-network
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
   # MongoDB 数据库
   mongodb:
     image: mongo:4.4
@@ -14,6 +46,12 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
     networks:
       - panda-quant-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Redis 缓存
   redis:
@@ -25,6 +63,12 @@ services:
       - redis_data:/data
     networks:
       - panda-quant-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # 用户前端
   user-ui:
@@ -33,14 +77,15 @@ services:
       dockerfile: Dockerfile
     container_name: panda-quant-user-ui
     ports:
-      - "3000:3000"
+      - "3003:80"
     environment:
-      - REACT_APP_API_URL=${REACT_APP_API_URL}
-      - REACT_APP_ENV=${REACT_APP_ENV}
+      - VITE_API_URL=https://api.user.panda-quant.com
     depends_on:
-      - user-api
+      user-api:
+        condition: service_healthy
     networks:
       - panda-quant-network
+    restart: unless-stopped
 
   # 管理前端
   admin-ui:
@@ -49,14 +94,15 @@ services:
       dockerfile: Dockerfile
     container_name: panda-quant-admin-ui
     ports:
-      - "3001:3000"
+      - "3002:80"
     environment:
-      - REACT_APP_API_URL=${REACT_APP_ADMIN_API_URL}
-      - REACT_APP_ENV=${REACT_APP_ENV}
+      - VITE_API_URL=https://api.admin.panda-quant.com
     depends_on:
-      - admin-api
+      admin-api:
+        condition: service_healthy
     networks:
       - panda-quant-network
+    restart: unless-stopped
 
   # 用户后端
   user-api:
@@ -65,18 +111,26 @@ services:
       dockerfile: Dockerfile
     container_name: panda-quant-user-api
     ports:
-      - "${USER_API_PORT}:${USER_API_PORT}"
+      - "3001:3001"
     environment:
-      - PORT=${USER_API_PORT}
-      - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?authSource=admin
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@mongodb:27017/panda-quant
       - JWT_SECRET=${JWT_SECRET}
-      - REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT}
-      - NODE_ENV=${NODE_ENV}
+      - JWT_EXPIRES_IN=24h
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - panda-quant-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # 管理后端
   admin-api:
@@ -85,23 +139,33 @@ services:
       dockerfile: Dockerfile
     container_name: panda-quant-admin-api
     ports:
-      - "${ADMIN_API_PORT}:${ADMIN_API_PORT}"
+      - "3000:3000"
     environment:
-      - PORT=${ADMIN_API_PORT}
-      - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?authSource=admin
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@mongodb:27017/panda-quant
       - JWT_SECRET=${JWT_SECRET}
-      - REDIS_URL=redis://${REDIS_HOST}:${REDIS_PORT}
-      - NODE_ENV=${NODE_ENV}
+      - JWT_EXPIRES_IN=24h
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - panda-quant-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  panda-quant-network:
+    driver: bridge
 
 volumes:
   mongodb_data:
   redis_data:
-
-networks:
-  panda-quant-network:
-    driver: bridge 
+  nginx_letsencrypt:
+  nginx_www: 

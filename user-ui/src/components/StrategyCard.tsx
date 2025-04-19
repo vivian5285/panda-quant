@@ -1,123 +1,64 @@
 import React from 'react';
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Chip,
-  Stack,
-  Divider,
-  LinearProgress,
-  IconButton,
-  Tooltip
-} from '@mui/material';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import WarningIcon from '@mui/icons-material/Warning';
-import PlayCircleIcon from '@mui/icons-material/PlayCircle';
-import StopCircleIcon from '@mui/icons-material/StopCircle';
-import { getExpectedMonthlyReturn } from '../../strategy-engine/runner/strategyRunner';
+import { Card, CardContent, Typography, Button, Box } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 interface StrategyCardProps {
   strategy: {
-    _id: string;
+    id: string;
     name: string;
     description: string;
-    riskLevel: 'high' | 'medium' | 'low';
-    active: boolean;
+    type: 'quantitative' | 'technical' | 'fundamental';
+    status: 'active' | 'inactive' | 'maintenance';
   };
-  onStatusChange: (strategyId: string, active: boolean) => void;
-  onSelect: () => void;
+  onSelect: (id: string) => void;
 }
 
-const StrategyCard: React.FC<StrategyCardProps> = ({ strategy, onStatusChange, onSelect }) => {
-  const expectedReturn = getExpectedMonthlyReturn(strategy.name, strategy.riskLevel);
-  
-  const getRiskLevelColor = (level: string) => {
-    switch (level) {
-      case 'high':
-        return 'error';
-      case 'medium':
-        return 'warning';
-      case 'low':
-        return 'success';
-      default:
-        return 'default';
-    }
-  };
-  
-  const getRiskLevelText = (level: string) => {
-    switch (level) {
-      case 'high':
-        return '高风险';
-      case 'medium':
-        return '中风险';
-      case 'low':
-        return '低风险';
-      default:
-        return level;
-    }
-  };
-
-  const handleStatusChange = () => {
-    onStatusChange(strategy._id, !strategy.active);
-  };
+const StrategyCard: React.FC<StrategyCardProps> = ({ strategy, onSelect }) => {
+  const { t } = useTranslation();
 
   return (
-    <Card
-      sx={{
-        cursor: 'pointer',
-        transition: 'transform 0.2s',
+    <Card 
+      sx={{ 
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
         '&:hover': {
-          transform: 'scale(1.02)',
+          boxShadow: 6,
         },
       }}
-      onClick={onSelect}
     >
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" component="div">
-            {strategy.name}
-          </Typography>
-          <Tooltip title={strategy.active ? '停止策略' : '启动策略'}>
-            <IconButton onClick={handleStatusChange} size="small">
-              {strategy.active ? <StopCircleIcon color="error" /> : <PlayCircleIcon color="success" />}
-            </IconButton>
-          </Tooltip>
-        </Box>
-
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+      <CardContent sx={{ flexGrow: 1 }}>
+        <Typography variant="h6" gutterBottom>
+          {strategy.name}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" paragraph>
           {strategy.description}
         </Typography>
-
-        <Divider sx={{ my: 2 }} />
-
-        <Stack spacing={2}>
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <TrendingUpIcon color="primary" sx={{ mr: 1 }} />
-              <Typography variant="body2">
-                预期收益: {expectedReturn}%
-              </Typography>
-            </Box>
-            <LinearProgress 
-              variant="determinate" 
-              value={Math.min(expectedReturn, 100)} 
-              color={getRiskLevelColor(strategy.riskLevel) as any}
-              sx={{ height: 8, borderRadius: 4 }}
-            />
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <WarningIcon 
-              color={getRiskLevelColor(strategy.riskLevel) as any} 
-              sx={{ mr: 1 }} 
-            />
-            <Typography variant="body2">
-              风险等级: {getRiskLevelText(strategy.riskLevel)}
-            </Typography>
-          </Box>
-        </Stack>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="caption" color="text.secondary">
+            {t(`strategyType.${strategy.type}`)}
+          </Typography>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              color: strategy.status === 'active' ? 'success.main' : 
+                    strategy.status === 'maintenance' ? 'warning.main' : 'error.main'
+            }}
+          >
+            {t(`strategyStatus.${strategy.status}`)}
+          </Typography>
+        </Box>
       </CardContent>
+      <Box sx={{ p: 2 }}>
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={() => onSelect(strategy.id)}
+          disabled={strategy.status !== 'active'}
+        >
+          {t('strategy.select')}
+        </Button>
+      </Box>
     </Card>
   );
 };

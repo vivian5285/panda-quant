@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import User from '../models/user.model';
+import { User } from '../models/user.model';
 import Transaction from '../models/transaction.model';
 
 // 获取所有用户

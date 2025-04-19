@@ -1,54 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Paper,
   Typography,
+  TextField,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  Grid,
-  IconButton,
-  Tooltip,
+  Paper,
 } from '@mui/material';
-import {
-  DataGrid,
-  GridColDef,
-  GridRenderCellParams,
-  GridValueGetterParams,
-} from '@mui/x-data-grid';
-import {
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Add as AddIcon,
-} from '@mui/icons-material';
-import axiosInstance from '../utils/axiosInstance';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
+import { getUsers, createUser, updateUser, deleteUser, User } from '../api/user';
 
-interface User {
+interface ExtendedUser extends User {
   _id: string;
-  email: string;
-  balance: number;
-  status: 'active' | 'insufficient_balance' | 'suspended';
-  deductionCredit: number;
-  createdAt: string;
-  updatedAt: string;
 }
 
 const UserManagement: React.FC = () => {
   const { t } = useTranslation();
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [formData, setFormData] = useState({
+  const [users, setUsers] = useState<ExtendedUser[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [formData, setFormData] = useState<{
+    email: string;
+    password: string;
+    role: 'admin' | 'user';
+    username: string;
+  }>({
     email: '',
-    balance: 0,
-    status: 'active',
-    deductionCredit: 0,
+    password: '',
+    role: 'user',
+    username: '',
   });
 
   useEffect(() => {
@@ -57,177 +41,139 @@ const UserManagement: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axiosInstance.get('/api/admin/users');
-      setUsers(response.data);
-      setLoading(false);
-    } catch (err) {
-      setError(t('error.fetchingUsers'));
+      setLoading(true);
+      const data = await getUsers();
+      setUsers(data.map(user => ({
+        ...user,
+        _id: user.id || '',
+      })));
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenDialog = (user?: User) => {
-    if (user) {
-      setSelectedUser(user);
-      setFormData({
-        email: user.email,
-        balance: user.balance,
-        status: user.status,
-        deductionCredit: user.deductionCredit,
-      });
-    } else {
-      setSelectedUser(null);
-      setFormData({
-        email: '',
-        balance: 0,
-        status: 'active',
-        deductionCredit: 0,
-      });
-    }
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setSelectedUser(null);
-  };
-
-  const handleSubmit = async () => {
+  const handleCreateUser = async () => {
     try {
-      if (selectedUser) {
-        await axiosInstance.put(`/api/admin/users/${selectedUser._id}`, formData);
-      } else {
-        await axiosInstance.post('/api/admin/users', formData);
-      }
+      await createUser({
+        ...formData,
+        username: formData.email.split('@')[0], // 使用邮箱前缀作为用户名
+      });
+      setOpenDialog(false);
+      setFormData({ email: '', password: '', role: 'user', username: '' });
       fetchUsers();
-      handleCloseDialog();
-    } catch (err) {
-      setError(t('error.savingUser'));
+    } catch (error) {
+      console.error('Error creating user:', error);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm(t('confirm.deleteUser'))) {
-      try {
-        await axiosInstance.delete(`/api/admin/users/${id}`);
-        fetchUsers();
-      } catch (err) {
-        setError(t('error.deletingUser'));
-      }
+  const handleUpdateUser = async (id: string, data: Partial<ExtendedUser>) => {
+    try {
+      await updateUser(id, data);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error updating user:', error);
     }
   };
 
-  const columns: GridColDef[] = [
-    { field: 'email', headerName: t('email'), width: 200 },
-    { field: 'balance', headerName: t('balance'), width: 150 },
-    {
-      field: 'status',
-      headerName: t('status'),
-      width: 150,
-      valueGetter: (params: GridValueGetterParams) => t(`status.${params.row.status}`),
-    },
-    { field: 'deductionCredit', headerName: t('deductionCredit'), width: 150 },
-    {
-      field: 'createdAt',
-      headerName: t('createdAt'),
-      width: 200,
-      valueGetter: (params: GridValueGetterParams) =>
-        new Date(params.row.createdAt).toLocaleString(),
-    },
+  const handleDeleteUser = async (id: string) => {
+    try {
+      await deleteUser(id);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
+  };
+
+  const columns: GridColDef<ExtendedUser>[] = [
+    { field: 'email', headerName: t('user.email'), flex: 1 },
+    { field: 'role', headerName: t('user.role'), width: 120 },
     {
       field: 'actions',
-      headerName: t('actions'),
-      width: 150,
-      renderCell: (params: GridRenderCellParams) => (
+      headerName: t('common.actions'),
+      flex: 1,
+      renderCell: (params) => (
         <Box>
-          <Tooltip title={t('edit')}>
-            <IconButton onClick={() => handleOpenDialog(params.row)}>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('delete')}>
-            <IconButton onClick={() => handleDelete(params.row._id)}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
+          <Button
+            size="small"
+            onClick={() => handleUpdateUser(params.row._id, { role: 'admin' })}
+          >
+            {t('user.makeAdmin')}
+          </Button>
+          <Button
+            size="small"
+            color="error"
+            onClick={() => handleDeleteUser(params.row._id)}
+          >
+            {t('common.delete')}
+          </Button>
         </Box>
       ),
     },
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Paper sx={{ p: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h5" component="h1">
-            {t('userManagement')}
+    <Box sx={{ py: 4 }}>
+      <Paper elevation={0} sx={{ p: 4, borderRadius: 2, bgcolor: '#fff' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+          <Typography variant="h5" sx={{ color: '#333333', fontWeight: 'bold' }}>
+            {t('user.title')}
           </Typography>
           <Button
             variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
+            onClick={() => setOpenDialog(true)}
+            sx={{
+              bgcolor: '#00FFB8',
+              '&:hover': {
+                bgcolor: '#00E6A5',
+              },
+            }}
           >
-            {t('addUser')}
+            {t('user.add')}
           </Button>
         </Box>
-
-        {error && (
-          <Typography color="error" sx={{ mb: 2 }}>
-            {error}
-          </Typography>
-        )}
-
-        <div style={{ height: 600, width: '100%' }}>
-          <DataGrid
+        <Box sx={{ height: 400, width: '100%' }}>
+          <DataGrid<ExtendedUser>
             rows={users}
             columns={columns}
-            pageSize={10}
-            rowsPerPageOptions={[10, 25, 50]}
-            loading={loading}
+            initialState={{
+              pagination: {
+                paginationModel: { pageSize: 5, page: 0 },
+              },
+            }}
+            pageSizeOptions={[5]}
             getRowId={(row) => row._id}
+            loading={loading}
           />
-        </div>
+        </Box>
       </Paper>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {selectedUser ? t('editUser') : t('addUser')}
-        </DialogTitle>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{t('user.add')}</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label={t('email')}
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                disabled={!!selectedUser}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label={t('balance')}
-                type="number"
-                value={formData.balance}
-                onChange={(e) => setFormData({ ...formData, balance: Number(e.target.value) })}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label={t('deductionCredit')}
-                type="number"
-                value={formData.deductionCredit}
-                onChange={(e) => setFormData({ ...formData, deductionCredit: Number(e.target.value) })}
-              />
-            </Grid>
-          </Grid>
+          <Box sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              label={t('user.email')}
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              label={t('user.password')}
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              sx={{ mb: 2 }}
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>{t('cancel')}</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {t('save')}
+          <Button onClick={() => setOpenDialog(false)}>{t('common.cancel')}</Button>
+          <Button onClick={handleCreateUser} variant="contained" sx={{ bgcolor: '#00FFB8' }}>
+            {t('common.save')}
           </Button>
         </DialogActions>
       </Dialog>

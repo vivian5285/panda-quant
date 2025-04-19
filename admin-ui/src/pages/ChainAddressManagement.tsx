@@ -1,205 +1,109 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Paper,
   Typography,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
-  Grid,
   IconButton,
-  Tooltip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Container,
+  Paper,
+  Button,
 } from '@mui/material';
 import {
+  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Add as AddIcon,
 } from '@mui/icons-material';
-import axiosInstance from '../utils/axiosInstance';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
-
-interface Chain {
-  _id: string;
-  name: string;
-  address: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { getChainAddresses, ChainAddress } from '../api/chain-address';
 
 const ChainAddressManagement: React.FC = () => {
   const { t } = useTranslation();
-  const [chains, setChains] = useState<Chain[]>([]);
+  const [chainAddresses, setChainAddresses] = useState<ChainAddress[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedChain, setSelectedChain] = useState<Chain | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-  });
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetchChains();
+    fetchChainAddresses();
   }, []);
 
-  const fetchChains = async () => {
+  const fetchChainAddresses = async () => {
     try {
-      const response = await axiosInstance.get('/api/admin/chains');
-      setChains(response.data);
+      setLoading(true);
+      const data = await getChainAddresses();
+      setChainAddresses(data);
+    } catch (error) {
+      console.error('Error fetching chain addresses:', error);
+    } finally {
       setLoading(false);
-    } catch (err) {
-      setError(t('error.fetchingChains'));
-      setLoading(false);
     }
   };
 
-  const handleOpenDialog = (chain?: Chain) => {
-    if (chain) {
-      setSelectedChain(chain);
-      setFormData({
-        name: chain.name,
-        address: chain.address,
-      });
-    } else {
-      setSelectedChain(null);
-      setFormData({
-        name: '',
-        address: '',
-      });
-    }
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setSelectedChain(null);
-  };
-
-  const handleSubmit = async () => {
-    try {
-      if (selectedChain) {
-        await axiosInstance.put(`/api/admin/chains/${selectedChain._id}`, formData);
-      } else {
-        await axiosInstance.post('/api/admin/chains', formData);
-      }
-      fetchChains();
-      handleCloseDialog();
-    } catch (err) {
-      setError(t('error.savingChain'));
-    }
+  const handleEdit = (chain: ChainAddress) => {
+    // TODO: Implement edit functionality
+    console.log('Edit chain:', chain);
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm(t('confirm.deleteChain'))) {
-      try {
-        await axiosInstance.delete(`/api/admin/chains/${id}`);
-        fetchChains();
-      } catch (err) {
-        setError(t('error.deletingChain'));
-      }
-    }
+    // TODO: Implement delete functionality
+    console.log('Delete chain:', id);
   };
 
-  return (
-    <Box sx={{ p: 3 }}>
-      <Paper sx={{ p: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h5" component="h1">
-            {t('chainAddressManagement')}
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-          >
-            {t('addChain')}
-          </Button>
+  const columns: GridColDef[] = [
+    { field: 'chain', headerName: t('chain.name'), flex: 1 },
+    { field: 'address', headerName: t('chain.address'), flex: 1 },
+    {
+      field: 'actions',
+      headerName: t('common.actions'),
+      width: 120,
+      renderCell: (params) => (
+        <Box>
+          <IconButton onClick={() => handleEdit(params.row)}>
+            <EditIcon />
+          </IconButton>
+          <IconButton onClick={() => handleDelete(params.row._id)}>
+            <DeleteIcon />
+          </IconButton>
         </Box>
+      ),
+    },
+  ];
 
-        {error && (
-          <Typography color="error" sx={{ mb: 2 }}>
-            {error}
+  return (
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Paper sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+          <Typography variant="h5" component="h1">
+            {t('chainManagement')}
           </Typography>
-        )}
-
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('chainName')}</TableCell>
-                <TableCell>{t('chainAddress')}</TableCell>
-                <TableCell>{t('createdAt')}</TableCell>
-                <TableCell>{t('actions')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {chains.map((chain) => (
-                <TableRow key={chain._id}>
-                  <TableCell>{chain.name}</TableCell>
-                  <TableCell>{chain.address}</TableCell>
-                  <TableCell>
-                    {new Date(chain.createdAt).toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    <Tooltip title={t('edit')}>
-                      <IconButton onClick={() => handleOpenDialog(chain)}>
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title={t('delete')}>
-                      <IconButton onClick={() => handleDelete(chain._id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              size="small"
+              placeholder={t('search')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => {
+                // TODO: Implement add functionality
+                console.log('Add new chain');
+              }}
+            >
+              {t('chain.add')}
+            </Button>
+          </Box>
+        </Box>
+        <DataGrid
+          rows={chainAddresses}
+          columns={columns}
+          pageSizeOptions={[5]}
+          getRowId={(row) => row._id}
+          loading={loading}
+        />
       </Paper>
-
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {selectedChain ? t('editChain') : t('addChain')}
-        </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label={t('chainName')}
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label={t('chainAddress')}
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>{t('cancel')}</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {t('save')}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+    </Container>
   );
 };
 

@@ -5,7 +5,6 @@ import {
   Typography,
   Paper,
   Grid,
-  Button,
   Table,
   TableBody,
   TableCell,
@@ -15,8 +14,7 @@ import {
   Chip,
   useTheme,
   IconButton,
-  Tooltip,
-  Divider
+  Tooltip
 } from '@mui/material';
 import {
   ContentCopy as CopyIcon,

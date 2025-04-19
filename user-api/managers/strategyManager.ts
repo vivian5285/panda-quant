@@ -1,4 +1,4 @@
-import { Strategy, StrategyPreset } from '../types';
+import { Strategy, StrategyPreset } from '../strategies/types';
 import { SuperTrendStrategy } from '../strategies/superTrendStrategy';
 
 export class StrategyManager {
@@ -18,7 +18,7 @@ export class StrategyManager {
 
     switch (preset.name) {
       case 'SuperTrend':
-        strategy = new SuperTrendStrategy(preset.params);
+        strategy = new SuperTrendStrategy(preset.parameters);
         break;
       default:
         throw new Error(`Unknown strategy preset: ${preset.name}`);
@@ -42,6 +42,10 @@ export class StrategyManager {
       throw new Error(`Strategy not found: ${strategyId}`);
     }
     this.strategies.delete(strategyId);
+  }
+
+  public getAllStrategies(): Map<string, Strategy> {
+    return this.strategies;
   }
 
   private generateStrategyId(): string {

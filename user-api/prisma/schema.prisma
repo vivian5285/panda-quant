@@ -11,11 +11,17 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
-  password  String
-  inviteCode String  @unique
-  referredBy String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  username      String?
+  password      String
+  walletAddress String?
+  role          String   @default("user")
+  status        String   @default("active")
+  isAdmin       Boolean  @default(false)
+  adminType     String?
+  permissions   Json?
+  lastLogin     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 } 

@@ -1,0 +1,16 @@
+{
+  "auth": {
+    "title": "欢迎使用 Panda Quant",
+    "subtitle": "专业的量化交易平台",
+    "login": "登录",
+    "register": "注册",
+    "email": "邮箱",
+    "password": "密码",
+    "username": "用户名",
+    "connectWallet": "连接钱包",
+    "error": "登录失败，请检查您的凭据",
+    "forgotPassword": "忘记密码？",
+    "noAccount": "还没有账号？",
+    "haveAccount": "已有账号？"
+  }
+} 

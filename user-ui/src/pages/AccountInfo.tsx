@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Paper,
-  Grid,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  CircularProgress,
-  Alert,
-  Tabs,
-  Tab,
-} from '@mui/material';
-import { useAuth } from '../hooks/useAuth';
+import { Box, Typography, Grid } from '@mui/material';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
+import { themeUtils } from '../theme';
+import PandaCard from '../components/common/PandaCard';
+import PandaButton from '../components/common/PandaButton';
+import { PandaAlert } from '../components/common/PandaAlert';
+import { PandaProgress } from '../components/common/PandaProgress';
+import { PandaTable } from '../components/common/PandaTable';
+import { PandaChip } from '../components/common/PandaChip';
+import Layout from '../components/Layout';
 
 interface AccountInfo {
   balance: number;
@@ -70,7 +63,14 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
+};
+
 const AccountInfo: React.FC = () => {
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,13 +87,13 @@ const AccountInfo: React.FC = () => {
         });
         
         if (!response.ok) {
-          throw new Error('获取账户信息失败');
+          throw new Error(t('account.errors.fetchFailed'));
         }
 
         const data = await response.json();
         setAccountInfo(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : '获取账户信息失败');
+        setError(err instanceof Error ? err.message : t('account.errors.fetchFailed'));
       } finally {
         setLoading(false);
       }
@@ -102,9 +102,9 @@ const AccountInfo: React.FC = () => {
     if (isAuthenticated) {
       fetchAccountInfo();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, t]);
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
@@ -124,11 +124,11 @@ const AccountInfo: React.FC = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'active':
-        return '正常';
+        return t('account.status.active');
       case 'insufficient_balance':
-        return '余额不足';
+        return t('account.status.insufficient');
       case 'suspended':
-        return '已暂停';
+        return t('account.status.suspended');
       default:
         return status;
     }
@@ -136,25 +136,36 @@ const AccountInfo: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <Container maxWidth="lg">
-        <Alert severity="warning">请先登录以查看账户信息</Alert>
-      </Container>
+      <Layout>
+        <Box sx={{ p: 3 }}>
+          <PandaAlert severity="warning">{t('account.authRequired')}</PandaAlert>
+        </Box>
+      </Layout>
     );
   }
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
+      <Layout>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '400px' 
+        }}>
+          <PandaProgress />
+        </Box>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="lg">
-        <Alert severity="error">{error}</Alert>
-      </Container>
+      <Layout>
+        <Box sx={{ p: 3 }}>
+          <PandaAlert severity="error">{error}</PandaAlert>
+        </Box>
+      </Layout>
     );
   }
 
@@ -163,149 +174,216 @@ const AccountInfo: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          账户中心
-        </Typography>
+    <Layout>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          pt: 8,
+          pb: 4,
+          background: themeUtils.createGradient('primary.main', 'primary.light'),
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'url("/background-pattern.png")',
+            opacity: 0.1,
+            zIndex: 0,
+          },
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: 'lg',
+            mx: 'auto',
+            px: 3,
+          }}
+        >
+          <motion.div {...fadeInUp}>
+            <Typography
+              variant="h2"
+              sx={{
+                mb: 6,
+                fontWeight: 700,
+                background: themeUtils.createGradient('primary'),
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textAlign: 'center',
+                fontSize: { xs: '2.5rem', md: '3rem' },
+              }}
+            >
+              {t('account.title')}
+            </Typography>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                账户余额
-              </Typography>
-              <Typography variant="h4" color="primary">
-                ${accountInfo.balance.toFixed(2)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                托管费用：${accountInfo.hostingFee.toFixed(2)}/周
-              </Typography>
-            </Paper>
-          </Grid>
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={4}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <PandaCard
+                    sx={{
+                      height: '100%',
+                      p: 4,
+                    }}
+                  >
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        mb: 2,
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}
+                    >
+                      {t('account.balance.title')}
+                    </Typography>
+                    <Typography
+                      variant="h3"
+                      sx={{
+                        mb: 2,
+                        fontWeight: 700,
+                        color: 'primary.main',
+                      }}
+                    >
+                      ${accountInfo.balance.toFixed(2)}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {t('account.hostingFee')}: ${accountInfo.hostingFee.toFixed(2)}/周
+                    </Typography>
+                  </PandaCard>
+                </motion.div>
+              </Grid>
 
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                账户状态
-              </Typography>
-              <Chip
-                label={getStatusText(accountInfo.status)}
-                color={getStatusColor(accountInfo.status) as any}
-                sx={{ mt: 1 }}
-              />
-            </Paper>
-          </Grid>
+              <Grid item xs={12} md={4}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <PandaCard
+                    sx={{
+                      height: '100%',
+                      p: 4,
+                    }}
+                  >
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        mb: 2,
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}
+                    >
+                      {t('account.status.title')}
+                    </Typography>
+                    <PandaChip
+                      label={getStatusText(accountInfo.status)}
+                      color={getStatusColor(accountInfo.status)}
+                      sx={{ mt: 1 }}
+                    />
+                  </PandaCard>
+                </motion.div>
+              </Grid>
 
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                推荐奖励
-              </Typography>
-              <Typography variant="h4" color="primary">
-                ${accountInfo.referralRewards.toFixed(2)}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                推荐码：{accountInfo.referralCode}
-              </Typography>
-            </Paper>
-          </Grid>
+              <Grid item xs={12} md={4}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <PandaCard
+                    sx={{
+                      height: '100%',
+                      p: 4,
+                    }}
+                  >
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        mb: 2,
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}
+                    >
+                      {t('account.referral.title')}
+                    </Typography>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        mb: 1,
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {t('account.referral.code')}: {accountInfo.referralCode}
+                    </Typography>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        color: 'success.main',
+                        fontWeight: 700,
+                      }}
+                    >
+                      ${accountInfo.referralRewards.toFixed(2)}
+                    </Typography>
+                  </PandaCard>
+                </motion.div>
+              </Grid>
 
-          <Grid item xs={12}>
-            <Paper>
-              <Tabs
-                value={tabValue}
-                onChange={handleTabChange}
-                aria-label="account tabs"
-              >
-                <Tab label="余额变动" />
-                <Tab label="托管费用" />
-                <Tab label="推荐奖励" />
-              </Tabs>
+              <Grid item xs={12}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <PandaCard
+                    sx={{
+                      p: 4,
+                    }}
+                  >
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        mb: 3,
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}
+                    >
+                      {t('account.history.title')}
+                    </Typography>
 
-              <TabPanel value={tabValue} index={0}>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>日期</TableCell>
-                        <TableCell>类型</TableCell>
-                        <TableCell>金额</TableCell>
-                        <TableCell>说明</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {accountInfo.balanceHistory.map((record, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{new Date(record.date).toLocaleString()}</TableCell>
-                          <TableCell>{record.type}</TableCell>
-                          <TableCell>${record.amount.toFixed(2)}</TableCell>
-                          <TableCell>{record.description}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </TabPanel>
-
-              <TabPanel value={tabValue} index={1}>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>日期</TableCell>
-                        <TableCell>金额</TableCell>
-                        <TableCell>状态</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {accountInfo.hostingFeeHistory.map((record, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{new Date(record.date).toLocaleString()}</TableCell>
-                          <TableCell>${record.amount.toFixed(2)}</TableCell>
-                          <TableCell>
-                            <Chip
-                              label={record.status}
-                              color={record.status === 'paid' ? 'success' : record.status === 'pending' ? 'warning' : 'error'}
-                              size="small"
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </TabPanel>
-
-              <TabPanel value={tabValue} index={2}>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>日期</TableCell>
-                        <TableCell>类型</TableCell>
-                        <TableCell>金额</TableCell>
-                        <TableCell>来源用户</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {accountInfo.commissionHistory.map((record, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{new Date(record.date).toLocaleString()}</TableCell>
-                          <TableCell>{record.type === 'direct' ? '直接推荐' : '间接推荐'}</TableCell>
-                          <TableCell>${record.amount.toFixed(2)}</TableCell>
-                          <TableCell>{record.fromUser}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </TabPanel>
-            </Paper>
-          </Grid>
-        </Grid>
+                    <PandaTable>
+                      <thead>
+                        <tr>
+                          <th>{t('account.history.date')}</th>
+                          <th>{t('account.history.amount')}</th>
+                          <th>{t('account.history.type')}</th>
+                          <th>{t('account.history.description')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {accountInfo.balanceHistory.map((record, index) => (
+                          <tr key={index}>
+                            <td>{new Date(record.date).toLocaleDateString()}</td>
+                            <td>${record.amount.toFixed(2)}</td>
+                            <td>{t(`account.history.types.${record.type}`)}</td>
+                            <td>{record.description}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </PandaTable>
+                  </PandaCard>
+                </motion.div>
+              </Grid>
+            </Grid>
+          </motion.div>
+        </Box>
       </Box>
-    </Container>
+    </Layout>
   );
 };
 

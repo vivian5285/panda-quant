@@ -1,21 +1,32 @@
-import express, { Request, Response } from 'express';
-import { Strategy, IStrategy } from '../models/strategy.model';
-import { authenticateToken, AuthRequest } from '../middleware/auth';
+import express, { Request, Response, NextFunction } from 'express';
+import { authenticateToken } from '../middleware/auth';
 import { getUserProfitData } from '../controllers/profitController';
-import { StrategyPreset } from '../strategy-engine/types';
+import { StrategyPreset, Strategy } from '../strategies/types';
+import { StrategyManager } from '../managers/strategyManager';
+import { User } from '../models/user.model';
+import mongoose from 'mongoose';
+import { Strategy as StrategyModel } from '../models/strategy.model';
+
+interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
 
 const router = express.Router();
 
-// 获取所有激活的策略
-router.get('/strategies', async (req: Request, res: Response) => {
+// 获取所有策略
+router.get('/', async (req: Request, res: Response) => {
   try {
-    const strategies = await Strategy.findActiveStrategies()
-      .select('name description riskLevel expectedReturn active')
-      .sort({ createdAt: -1 });
+    const strategyManager = req.app.get('strategyManager') as StrategyManager;
+    const strategies = strategyManager.getAllStrategies();
+    const strategyList = Array.from(strategies.values()).map((strategy: Strategy) => strategy.getStats());
 
     res.json({
       success: true,
-      data: strategies
+      data: strategyList
     });
   } catch (error) {
     console.error('Error fetching strategies:', error);
@@ -27,15 +38,15 @@ router.get('/strategies', async (req: Request, res: Response) => {
 });
 
 // 获取用户可用的策略
-router.get('/user-strategies', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/user', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const strategies = await Strategy.findActiveStrategies()
-      .select('name description riskLevel expectedReturn active')
-      .sort({ createdAt: -1 });
+    const strategyManager = req.app.get('strategyManager') as StrategyManager;
+    const strategies = strategyManager.getAllStrategies();
+    const strategyList = Array.from(strategies.values()).map((strategy: Strategy) => strategy.getStats());
 
     res.json({
       success: true,
-      data: strategies
+      data: strategyList
     });
   } catch (error) {
     console.error('Error fetching user strategies:', error);
@@ -47,16 +58,18 @@ router.get('/user-strategies', authenticateToken, async (req: AuthRequest, res: 
 });
 
 // 按风险等级获取策略
-router.get('/strategies/risk/:level', async (req: Request, res: Response) => {
+router.get('/risk/:level', async (req: Request, res: Response) => {
   try {
     const { level } = req.params;
-    const strategies = await Strategy.findByRiskLevel(level)
-      .select('name description riskLevel expectedReturn active')
-      .sort({ createdAt: -1 });
+    const strategyManager = req.app.get('strategyManager') as StrategyManager;
+    const strategies = strategyManager.getAllStrategies();
+    const strategyList = Array.from(strategies.values())
+      .filter((strategy: Strategy) => strategy.riskLevel === level)
+      .map((strategy: Strategy) => strategy.getStats());
 
     res.json({
       success: true,
-      data: strategies
+      data: strategyList
     });
   } catch (error) {
     console.error('Error fetching strategies by risk level:', error);
@@ -68,98 +81,147 @@ router.get('/strategies/risk/:level', async (req: Request, res: Response) => {
 });
 
 // 创建新策略
-router.post('/create', async (req, res) => {
+router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, preset } = req.body;
-    const strategyManager = req.app.get('strategyManager');
-    const strategy = strategyManager.createStrategy(userId, preset);
-    res.json({ success: true, strategyId: strategy.id });
+    const { preset } = req.body;
+    if (!preset) {
+      return res.status(400).json({
+        success: false,
+        message: '缺少策略预设参数'
+      });
+    }
+    const strategyManager = req.app.get('strategyManager') as StrategyManager;
+    const strategyId = strategyManager.createStrategy(preset);
+    res.json({ success: true, strategyId });
   } catch (error) {
     console.error('Error creating strategy:', error);
-    res.status(500).json({ success: false, error: 'Failed to create strategy' });
-  }
-});
-
-// 获取策略列表
-router.get('/list/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const strategyManager = req.app.get('strategyManager');
-    const strategies = strategyManager.getAllStrategies();
-    const userStrategies = Array.from(strategies.values())
-      .filter(strategy => strategy.userId === userId);
-    res.json({ success: true, strategies: userStrategies });
-  } catch (error) {
-    console.error('Error getting strategies:', error);
-    res.status(500).json({ success: false, error: 'Failed to get strategies' });
+    res.status(500).json({ 
+      success: false, 
+      message: '创建策略失败',
+      error: error instanceof Error ? error.message : '未知错误'
+    });
   }
 });
 
 // 获取策略详情
-router.get('/:strategyId', async (req, res) => {
+router.get('/:strategyId', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { strategyId } = req.params;
-    const strategyManager = req.app.get('strategyManager');
+    const strategyManager = req.app.get('strategyManager') as StrategyManager;
     const strategy = strategyManager.getStrategy(strategyId);
-    if (!strategy) {
-      return res.status(404).json({ success: false, error: 'Strategy not found' });
-    }
-    res.json({ success: true, strategy });
+    res.json({ success: true, data: strategy.getStats() });
   } catch (error) {
     console.error('Error getting strategy:', error);
-    res.status(500).json({ success: false, error: 'Failed to get strategy' });
+    res.status(500).json({ 
+      success: false, 
+      message: '获取策略详情失败',
+      error: error instanceof Error ? error.message : '未知错误'
+    });
   }
 });
 
 // 删除策略
-router.delete('/:strategyId', async (req, res) => {
+router.delete('/:strategyId', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { strategyId } = req.params;
-    const strategyManager = req.app.get('strategyManager');
+    const strategyManager = req.app.get('strategyManager') as StrategyManager;
     strategyManager.removeStrategy(strategyId);
     res.json({ success: true });
   } catch (error) {
     console.error('Error removing strategy:', error);
-    res.status(500).json({ success: false, error: 'Failed to remove strategy' });
+    res.status(500).json({ 
+      success: false, 
+      message: '删除策略失败',
+      error: error instanceof Error ? error.message : '未知错误'
+    });
   }
 });
 
 // 更新策略参数
-router.put('/:strategyId/params', async (req, res) => {
+router.put('/:strategyId/params', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { strategyId } = req.params;
     const { params } = req.body;
-    const strategyManager = req.app.get('strategyManager');
-    const strategy = strategyManager.getStrategy(strategyId);
-    if (!strategy) {
-      return res.status(404).json({ success: false, error: 'Strategy not found' });
+    if (!params) {
+      return res.status(400).json({
+        success: false,
+        message: '缺少策略参数'
+      });
     }
+    const strategyManager = req.app.get('strategyManager') as StrategyManager;
+    const strategy = strategyManager.getStrategy(strategyId);
     strategy.updateParams(params);
     res.json({ success: true });
   } catch (error) {
     console.error('Error updating strategy params:', error);
-    res.status(500).json({ success: false, error: 'Failed to update strategy params' });
+    res.status(500).json({ 
+      success: false, 
+      message: '更新策略参数失败',
+      error: error instanceof Error ? error.message : '未知错误'
+    });
   }
 });
 
 // 获取策略统计数据
-router.get('/:strategyId/stats', async (req, res) => {
+router.get('/:strategyId/stats', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { strategyId } = req.params;
-    const strategyManager = req.app.get('strategyManager');
+    const strategyManager = req.app.get('strategyManager') as StrategyManager;
     const strategy = strategyManager.getStrategy(strategyId);
-    if (!strategy) {
-      return res.status(404).json({ success: false, error: 'Strategy not found' });
-    }
     const stats = strategy.getStats();
-    res.json({ success: true, stats });
+    res.json({ success: true, data: stats });
   } catch (error) {
     console.error('Error getting strategy stats:', error);
-    res.status(500).json({ success: false, error: 'Failed to get strategy stats' });
+    res.status(500).json({ 
+      success: false, 
+      message: '获取策略统计数据失败',
+      error: error instanceof Error ? error.message : '未知错误'
+    });
   }
 });
 
 // 获取用户收益数据
-router.get('/user-profits', authenticateToken, getUserProfitData);
+router.get('/user/profits', authenticateToken, getUserProfitData);
+
+// Get strategy list
+router.get('/list', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: '未授权' });
+    }
+
+    const { page = 1, limit = 20 } = req.query;
+
+    const strategies = await StrategyModel.find({ userId: new mongoose.Types.ObjectId(userId) })
+      .sort({ createdAt: -1 })
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(Number(limit));
+
+    const total = await StrategyModel.countDocuments({ userId: new mongoose.Types.ObjectId(userId) });
+
+    res.json({
+      strategies: strategies.map(strategy => ({
+        id: strategy._id,
+        name: strategy.name,
+        type: strategy.type,
+        status: strategy.status,
+        profit: strategy.get('profit') || 0,
+        startTime: strategy.startTime,
+        description: strategy.description,
+        parameters: strategy.parameters
+      })),
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        pages: Math.ceil(total / Number(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching strategy list:', error);
+    res.status(500).json({ message: '获取策略列表失败' });
+  }
+});
 
 export default router; 

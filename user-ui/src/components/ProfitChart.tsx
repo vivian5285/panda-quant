@@ -1,78 +1,146 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { Box, Typography, useTheme } from '@mui/material';
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
   Tooltip,
   Legend,
-  ResponsiveContainer
-} from 'recharts';
-import { Box, Typography } from '@mui/material';
+  ChartOptions,
+  ChartData,
+  ChartTypeRegistry
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import { useTranslation } from 'react-i18next';
+
+// 注册 Chart.js 组件
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface ProfitData {
-  date: string;
+  amount: number;
+  period: number;
+  strategy: string;
   profit: number;
-  strategyId: string;
 }
 
 interface ProfitChartProps {
-  data: ProfitData[];
+  data: ProfitData;
 }
 
 const ProfitChart: React.FC<ProfitChartProps> = ({ data }) => {
-  // 按日期分组并计算总收益
-  const groupedData = data.reduce((acc, curr) => {
-    const existingDate = acc.find(item => item.date === curr.date);
-    if (existingDate) {
-      existingDate.profit += curr.profit;
-    } else {
-      acc.push({ date: curr.date, profit: curr.profit });
-    }
-    return acc;
-  }, [] as { date: string; profit: number }[]);
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const chartRef = useRef<ChartJS<'line', (number | null)[], unknown>>(null);
 
-  // 按日期排序
-  const sortedData = groupedData.sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  useEffect(() => {
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+      }
+    };
+  }, []);
+
+  // 生成模拟数据
+  const generateChartData = () => {
+    const labels = [];
+    const values = [];
+    const monthlyRate = data.strategy === 'low' ? 0.5 : data.strategy === 'medium' ? 1.5 : 3.0;
+    let currentAmount = data.amount;
+
+    for (let i = 0; i <= data.period; i += 30) {
+      labels.push(`第${i/30 + 1}个月`);
+      values.push(currentAmount);
+      currentAmount += currentAmount * monthlyRate;
+    }
+
+    return { labels, values };
+  };
+
+  const { labels, values } = generateChartData();
+
+  const chartData: ChartData<'line'> = {
+    labels,
+    datasets: [
+      {
+        label: '预期收益',
+        data: values,
+        borderColor: theme.palette.primary.main,
+        backgroundColor: 'rgba(0, 255, 184, 0.1)',
+        tension: 0.4,
+        fill: true,
+      },
+    ],
+  };
+
+  const options: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          color: theme.palette.text.primary,
+        },
+      },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        backgroundColor: theme.palette.background.paper,
+        titleColor: theme.palette.text.primary,
+        bodyColor: theme.palette.text.primary,
+        borderColor: theme.palette.divider,
+        borderWidth: 1,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: theme.palette.divider,
+        },
+        ticks: {
+          color: theme.palette.text.secondary,
+        },
+      },
+      x: {
+        grid: {
+          color: theme.palette.divider,
+        },
+        ticks: {
+          color: theme.palette.text.secondary,
+        },
+      },
+    },
+  };
 
   return (
     <Box sx={{ width: '100%', height: 400 }}>
-      <Typography variant="h6" gutterBottom>
+      <Typography 
+        variant="h6" 
+        sx={{
+          color: theme.palette.text.primary,
+          mb: 2,
+        }}
+      >
         收益趋势
       </Typography>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={sortedData}
-          margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 5,
-          }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="date" 
-            tickFormatter={(date) => new Date(date).toLocaleDateString()}
-          />
-          <YAxis />
-          <Tooltip 
-            formatter={(value: number) => [`${value.toFixed(2)}`, '收益']}
-            labelFormatter={(label) => new Date(label).toLocaleDateString()}
-          />
-          <Legend />
-          <Line
-            type="monotone"
-            dataKey="profit"
-            stroke="#8884d8"
-            activeDot={{ r: 8 }}
-            name="收益"
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <Line 
+        ref={chartRef}
+        data={chartData} 
+        options={options}
+        style={{ width: '100%', height: '100%' }}
+      />
     </Box>
   );
 };

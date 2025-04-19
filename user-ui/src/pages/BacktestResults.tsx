@@ -1,321 +1,238 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { Box, Typography, Grid } from '@mui/material';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { themeUtils } from '../theme';
 import {
-  Box,
-  Typography,
-  Grid,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  CircularProgress,
-  Alert,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel
-} from '@mui/material';
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
-  Legend
-} from 'chart.js';
-import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
-
-// 注册Chart.js组件
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+import PandaCard from '../components/common/PandaCard';
+import PandaButton from '../components/common/PandaButton';
+import { 
+  ArrowBack as ArrowBackIcon,
+  TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
+  Speed as SpeedIcon,
+  Timeline as TimelineIcon
+} from '@mui/icons-material';
 
 interface BacktestResult {
-  id: number;
-  strategy_name: string;
-  symbol: string;
-  timeframe: string;
-  start_date: string;
-  end_date: string;
-  initial_capital: number;
-  final_capital: number;
-  total_profit: number;
-  profit_percentage: number;
-  monthly_return: number;
-  max_drawdown: number;
-  win_rate: number;
-  total_trades: number;
-  winning_trades: number;
-  losing_trades: number;
-  average_profit: number;
-  average_loss: number;
-  profit_factor: number;
-  sharpe_ratio: number;
-  sortino_ratio: number;
-  trades: Trade[];
+  equityCurve: Array<{
+    date: string;
+    equity: number;
+  }>;
+  totalReturn: number;
+  maxDrawdown: number;
+  sharpeRatio: number;
 }
 
-interface Trade {
-  entry_time: string;
-  exit_time: string;
-  entry_price: number;
-  exit_price: number;
-  profit: number;
-  type: string;
+interface BacktestResultsProps {
+  result: BacktestResult;
 }
 
-const BacktestResults: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
+};
+
+const BacktestResults: React.FC<BacktestResultsProps> = ({ result }) => {
   const navigate = useNavigate();
-  const [result, setResult] = useState<BacktestResult | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [timeRange, setTimeRange] = useState('all');
+  const { t } = useTranslation();
 
-  useEffect(() => {
-    const fetchBacktestDetails = async () => {
-      try {
-        const response = await axios.get(`/api/strategy/backtest/details/${id}`);
-        setResult(response.data);
-      } catch (err) {
-        setError('Failed to fetch backtest details');
-        console.error('Error fetching backtest details:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBacktestDetails();
-  }, [id]);
-
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error || !result) {
-    return (
-      <Box p={3}>
-        <Alert severity="error">{error || 'No backtest results found'}</Alert>
-      </Box>
-    );
-  }
-
-  // 准备图表数据
-  const chartData = {
-    labels: result.trades.map(trade => new Date(trade.exit_time).toLocaleDateString()),
-    datasets: [
-      {
-        label: 'Profit',
-        data: result.trades.map(trade => trade.profit),
-        borderColor: 'rgb(75, 192, 192)',
-        tension: 0.1
-      }
-    ]
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString();
   };
 
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const
-      },
-      title: {
-        display: true,
-        text: 'Profit Over Time'
-      }
-    }
+  const formatNumber = (value: number, decimals = 2) => {
+    return value.toFixed(decimals);
+  };
+
+  const getReturnColor = (value: number) => {
+    return value >= 0 ? 'success.main' : 'error.main';
   };
 
   return (
-    <Box p={3}>
-      <Typography variant="h4" gutterBottom>
-        Backtest Results
-      </Typography>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+        p: 3,
+      }}
+    >
+      <motion.div {...fadeInUp}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+          <PandaButton
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate(-1)}
+            sx={{ mr: 2 }}
+            animate
+          >
+            {t('common.back')}
+          </PandaButton>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 600,
+              background: themeUtils.createGradient('primary'),
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}
+          >
+            {t('backtest.results.title')}
+          </Typography>
+        </Box>
 
-      <Grid container spacing={3}>
-        {/* 策略信息 */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Strategy Information
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6} sm={3}>
-                <Typography variant="subtitle2">Strategy</Typography>
-                <Typography>{result.strategy_name}</Typography>
-              </Grid>
-              <Grid item xs={6} sm={3}>
-                <Typography variant="subtitle2">Symbol</Typography>
-                <Typography>{result.symbol}</Typography>
-              </Grid>
-              <Grid item xs={6} sm={3}>
-                <Typography variant="subtitle2">Timeframe</Typography>
-                <Typography>{result.timeframe}</Typography>
-              </Grid>
-              <Grid item xs={6} sm={3}>
-                <Typography variant="subtitle2">Period</Typography>
-                <Typography>
-                  {new Date(result.start_date).toLocaleDateString()} -{' '}
-                  {new Date(result.end_date).toLocaleDateString()}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <PandaCard
+                sx={{
+                  height: '100%',
+                  p: 3
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <TrendingUpIcon sx={{ mr: 2, color: getReturnColor(result.totalReturn) }} />
+                  <Typography variant="h6" sx={{ color: 'text.secondary' }}>
+                    {t('backtest.results.totalReturn')}
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="h3"
+                  sx={{
+                    color: getReturnColor(result.totalReturn),
+                    fontWeight: 600
+                  }}
+                >
+                  {formatNumber(result.totalReturn * 100)}%
                 </Typography>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
+              </PandaCard>
+            </motion.div>
+          </Grid>
 
-        {/* 性能指标 */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Performance Metrics
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Total Profit</Typography>
-                <Typography color={result.total_profit >= 0 ? 'success.main' : 'error.main'}>
-                  {result.total_profit.toFixed(2)}%
+          <Grid item xs={12} md={4}>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <PandaCard
+                sx={{
+                  height: '100%',
+                  p: 3
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <TrendingDownIcon sx={{ mr: 2, color: 'error.main' }} />
+                  <Typography variant="h6" sx={{ color: 'text.secondary' }}>
+                    {t('backtest.results.maxDrawdown')}
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="h3"
+                  sx={{
+                    color: 'error.main',
+                    fontWeight: 600
+                  }}
+                >
+                  {formatNumber(result.maxDrawdown * 100)}%
                 </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Monthly Return</Typography>
-                <Typography color={result.monthly_return >= 0 ? 'success.main' : 'error.main'}>
-                  {result.monthly_return.toFixed(2)}%
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Max Drawdown</Typography>
-                <Typography color="error.main">
-                  {result.max_drawdown.toFixed(2)}%
-                </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Win Rate</Typography>
-                <Typography>{result.win_rate.toFixed(2)}%</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Sharpe Ratio</Typography>
-                <Typography>{result.sharpe_ratio.toFixed(2)}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Sortino Ratio</Typography>
-                <Typography>{result.sortino_ratio.toFixed(2)}</Typography>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
+              </PandaCard>
+            </motion.div>
+          </Grid>
 
-        {/* 交易统计 */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Trade Statistics
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Total Trades</Typography>
-                <Typography>{result.total_trades}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Winning Trades</Typography>
-                <Typography color="success.main">{result.winning_trades}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Losing Trades</Typography>
-                <Typography color="error.main">{result.losing_trades}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Profit Factor</Typography>
-                <Typography>{result.profit_factor.toFixed(2)}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Average Profit</Typography>
-                <Typography color="success.main">
-                  {result.average_profit.toFixed(2)}
+          <Grid item xs={12} md={4}>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+            >
+              <PandaCard
+                sx={{
+                  height: '100%',
+                  p: 3
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <SpeedIcon sx={{ mr: 2, color: 'primary.main' }} />
+                  <Typography variant="h6" sx={{ color: 'text.secondary' }}>
+                    {t('backtest.results.sharpeRatio')}
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="h3"
+                  sx={{
+                    color: 'primary.main',
+                    fontWeight: 600
+                  }}
+                >
+                  {formatNumber(result.sharpeRatio)}
                 </Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2">Average Loss</Typography>
-                <Typography color="error.main">
-                  {result.average_loss.toFixed(2)}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
+              </PandaCard>
+            </motion.div>
+          </Grid>
 
-        {/* 收益图表 */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Profit Chart
-            </Typography>
-            <Box height={400}>
-              <Line data={chartData} options={chartOptions} />
-            </Box>
-          </Paper>
+          <Grid item xs={12}>
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              transition={{ duration: 0.2 }}
+            >
+              <PandaCard
+                sx={{
+                  p: 3
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <TimelineIcon sx={{ mr: 2, color: 'primary.main' }} />
+                  <Typography variant="h6" sx={{ color: 'text.secondary' }}>
+                    {t('backtest.results.equityCurve')}
+                  </Typography>
+                </Box>
+                <Box height={400}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={result.equityCurve}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
+                      <XAxis 
+                        dataKey="date" 
+                        tickFormatter={formatDate}
+                        stroke="rgba(255, 255, 255, 0.5)"
+                      />
+                      <YAxis 
+                        stroke="rgba(255, 255, 255, 0.5)"
+                        tickFormatter={(value) => `$${formatNumber(value)}`}
+                      />
+                      <Tooltip 
+                        formatter={(value: number) => [`$${formatNumber(value)}`, t('backtest.results.equity')]}
+                        labelFormatter={formatDate}
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="equity" 
+                        stroke={themeUtils.getThemeColor('primary')}
+                        strokeWidth={2}
+                        dot={false}
+                        name={t('backtest.results.equity')}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              </PandaCard>
+            </motion.div>
+          </Grid>
         </Grid>
-
-        {/* 交易记录 */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Trade History
-            </Typography>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Entry Time</TableCell>
-                    <TableCell>Exit Time</TableCell>
-                    <TableCell>Entry Price</TableCell>
-                    <TableCell>Exit Price</TableCell>
-                    <TableCell>Profit</TableCell>
-                    <TableCell>Type</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {result.trades.map((trade, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        {new Date(trade.entry_time).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(trade.exit_time).toLocaleString()}
-                      </TableCell>
-                      <TableCell>{trade.entry_price.toFixed(2)}</TableCell>
-                      <TableCell>{trade.exit_price.toFixed(2)}</TableCell>
-                      <TableCell
-                        sx={{
-                          color: trade.profit >= 0 ? 'success.main' : 'error.main'
-                        }}
-                      >
-                        {trade.profit.toFixed(2)}
-                      </TableCell>
-                      <TableCell>{trade.type}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
-      </Grid>
+      </motion.div>
     </Box>
   );
 };

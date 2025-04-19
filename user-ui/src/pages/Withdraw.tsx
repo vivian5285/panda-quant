@@ -1,34 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Paper,
-  Grid,
-  TextField,
-  Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Alert,
-  CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
-  Tooltip,
-} from '@mui/material';
-import { useAuth } from '../hooks/useAuth';
-import InfoIcon from '@mui/icons-material/Info';
+import { Box, Typography, Grid } from '@mui/material';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
+import { themeUtils } from '../theme';
+import { Info as InfoIcon } from '@mui/icons-material';
+import PandaCard from '../components/common/PandaCard';
+import PandaButton from '../components/common/PandaButton';
+import PandaInput from '../components/common/PandaInput';
+import PandaSelect from '../components/common/PandaSelect';
+import PandaAlert from '../components/common/PandaAlert';
+import PandaProgress from '../components/common/PandaProgress';
+import PandaDialog from '../components/common/PandaDialog';
+import PandaTable from '../components/common/PandaTable';
+import Layout from '../components/Layout';
 
 interface WithdrawalRecord {
   id: string;
@@ -68,7 +53,14 @@ const CHAINS: ChainInfo[] = [
   },
 ];
 
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5 }
+};
+
 const Withdraw: React.FC = () => {
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,13 +86,13 @@ const Withdraw: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('获取提现记录失败');
+        throw new Error(t('withdraw.errors.fetchFailed'));
       }
 
       const data = await response.json();
       setRecords(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '获取提现记录失败');
+      setError(err instanceof Error ? err.message : t('withdraw.errors.fetchFailed'));
     }
   };
 
@@ -125,16 +117,16 @@ const Withdraw: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('提现请求失败');
+        throw new Error(t('withdraw.errors.submitFailed'));
       }
 
-      setSuccess('提现请求已提交，请等待审核');
+      setSuccess(t('withdraw.success'));
       setAmount('');
       setChain('');
       setAddress('');
       fetchWithdrawalRecords();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '提现请求失败');
+      setError(err instanceof Error ? err.message : t('withdraw.errors.submitFailed'));
     } finally {
       setLoading(false);
     }
@@ -156,11 +148,11 @@ const Withdraw: React.FC = () => {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'pending':
-        return '审核中';
+        return t('withdraw.status.pending');
       case 'approved':
-        return '已通过';
+        return t('withdraw.status.approved');
       case 'rejected':
-        return '已拒绝';
+        return t('withdraw.status.rejected');
       default:
         return status;
     }
@@ -170,166 +162,209 @@ const Withdraw: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <Container maxWidth="lg">
-        <Alert severity="warning">请先登录以进行提现操作</Alert>
-      </Container>
+      <Layout>
+        <Box sx={{ p: 3 }}>
+          <PandaAlert severity="warning">{t('withdraw.authRequired')}</PandaAlert>
+        </Box>
+      </Layout>
     );
   }
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          提现
-        </Typography>
+    <Layout>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          pt: 8,
+          pb: 4,
+          background: themeUtils.createGradient('background.default', 'background.paper'),
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'url("/background-pattern.png")',
+            opacity: 0.1,
+            zIndex: 0,
+          },
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: 'lg',
+            mx: 'auto',
+            px: 3,
+          }}
+        >
+          <motion.div {...fadeInUp}>
+            <Typography
+              variant="h2"
+              sx={{
+                mb: 6,
+                fontWeight: 700,
+                background: themeUtils.createGradient('primary'),
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textAlign: 'center',
+                fontSize: { xs: '2.5rem', md: '3rem' },
+              }}
+            >
+              {t('withdraw.title')}
+            </Typography>
 
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                提现信息
-              </Typography>
-              <form onSubmit={handleSubmit}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="提现金额 (USDT)"
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      required
-                      helperText={
-                        selectedChain
-                          ? `最小提现金额: ${selectedChain.minAmount} USDT`
-                          : '请选择提现网络'
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <FormControl fullWidth>
-                      <InputLabel>提现网络</InputLabel>
-                      <Select
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={6}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <PandaCard
+                    sx={{
+                      height: '100%',
+                      p: 4,
+                    }}
+                  >
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        mb: 2,
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}
+                    >
+                      {t('withdraw.form.title')}
+                    </Typography>
+
+                    {error && (
+                      <PandaAlert severity="error" sx={{ mb: 3 }}>
+                        {error}
+                      </PandaAlert>
+                    )}
+
+                    {success && (
+                      <PandaAlert severity="success" sx={{ mb: 3 }}>
+                        {success}
+                      </PandaAlert>
+                    )}
+
+                    <Box component="form" onSubmit={handleSubmit}>
+                      <PandaInput
+                        fullWidth
+                        label={t('withdraw.form.amount')}
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        required
+                        sx={{ mb: 3 }}
+                      />
+
+                      <PandaSelect
+                        fullWidth
+                        label={t('withdraw.form.chain')}
                         value={chain}
-                        label="提现网络"
                         onChange={(e) => setChain(e.target.value)}
                         required
+                        sx={{ mb: 3 }}
                       >
                         {CHAINS.map((chain) => (
-                          <MenuItem key={chain.name} value={chain.name}>
+                          <option key={chain.name} value={chain.name}>
                             {chain.name}
-                          </MenuItem>
+                          </option>
                         ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="提现地址"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      required
-                    />
-                  </Grid>
-                  {selectedChain && (
-                    <Grid item xs={12}>
-                      <Alert severity="info">
-                        网络手续费: {selectedChain.fee} USDT
-                        <IconButton
-                          size="small"
-                          onClick={() => setShowFeeDialog(true)}
-                          sx={{ ml: 1 }}
-                        >
-                          <InfoIcon fontSize="small" />
-                        </IconButton>
-                      </Alert>
-                    </Grid>
-                  )}
-                  <Grid item xs={12}>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      fullWidth
-                      disabled={loading}
+                      </PandaSelect>
+
+                      <PandaInput
+                        fullWidth
+                        label={t('withdraw.form.address')}
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        required
+                        sx={{ mb: 3 }}
+                      />
+
+                      {selectedChain && (
+                        <Box sx={{ mb: 3 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            {t('withdraw.form.minAmount')}: {selectedChain.minAmount} USDT
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {selectedChain.feeDescription}
+                          </Typography>
+                        </Box>
+                      )}
+
+                      <PandaButton
+                        type="submit"
+                        variant="contained"
+                        fullWidth
+                        disabled={loading}
+                        animate
+                        glow
+                      >
+                        {loading ? <PandaProgress size={24} /> : t('withdraw.form.submit')}
+                      </PandaButton>
+                    </Box>
+                  </PandaCard>
+                </motion.div>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <PandaCard
+                    sx={{
+                      height: '100%',
+                      p: 4,
+                    }}
+                  >
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        mb: 2,
+                        fontWeight: 600,
+                        color: 'primary.main',
+                      }}
                     >
-                      {loading ? <CircularProgress size={24} /> : '提交提现'}
-                    </Button>
-                  </Grid>
-                </Grid>
-              </form>
-            </Paper>
-          </Grid>
+                      {t('withdraw.records.title')}
+                    </Typography>
 
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                提现记录
-              </Typography>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>日期</TableCell>
-                      <TableCell>金额</TableCell>
-                      <TableCell>网络</TableCell>
-                      <TableCell>状态</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {records.map((record) => (
-                      <TableRow key={record.id}>
-                        <TableCell>
-                          {new Date(record.createdAt).toLocaleString()}
-                        </TableCell>
-                        <TableCell>{record.amount} USDT</TableCell>
-                        <TableCell>{record.chain}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={getStatusText(record.status)}
-                            color={getStatusColor(record.status) as any}
-                            size="small"
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
-          </Grid>
-        </Grid>
-
-        {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        )}
-
-        {success && (
-          <Alert severity="success" sx={{ mt: 2 }}>
-            {success}
-          </Alert>
-        )}
-
-        <Dialog open={showFeeDialog} onClose={() => setShowFeeDialog(false)}>
-          <DialogTitle>网络手续费说明</DialogTitle>
-          <DialogContent>
-            {selectedChain && (
-              <Typography>
-                {selectedChain.feeDescription}
-                <br />
-                请注意：手续费将从您的提现金额中扣除。
-              </Typography>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowFeeDialog(false)}>关闭</Button>
-          </DialogActions>
-        </Dialog>
+                    <PandaTable>
+                      <thead>
+                        <tr>
+                          <th>{t('withdraw.records.amount')}</th>
+                          <th>{t('withdraw.records.chain')}</th>
+                          <th>{t('withdraw.records.status')}</th>
+                          <th>{t('withdraw.records.date')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {records.map((record) => (
+                          <tr key={record.id}>
+                            <td>{record.amount} USDT</td>
+                            <td>{record.chain}</td>
+                            <td>
+                              <PandaAlert severity={getStatusColor(record.status)}>
+                                {getStatusText(record.status)}
+                              </PandaAlert>
+                            </td>
+                            <td>{new Date(record.createdAt).toLocaleDateString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </PandaTable>
+                  </PandaCard>
+                </motion.div>
+              </Grid>
+            </Grid>
+          </motion.div>
+        </Box>
       </Box>
-    </Container>
+    </Layout>
   );
 };
 

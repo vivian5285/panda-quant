@@ -1,134 +1,166 @@
-import express from 'express';
-import bcrypt from 'bcryptjs';
-import { generateToken } from '../utils/jwt';
-import User from '../models/user.model';
-import Referral from '../models/referral.model';
+import { Router, Request, Response, NextFunction } from 'express';
+import { User } from '../models/user.model';
+import { authenticateToken } from '../middlewares/auth';
+import { Transaction } from '../models/transaction.model';
+import { HostingFee } from '../models/hostingFee.model';
+import { Commission } from '../models/commission.model';
+import mongoose from 'mongoose';
 
-const router = express.Router();
+interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
 
-// 生成唯一的邀请码
-const generateInviteCode = () => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-};
+const router = Router();
 
-// 用户注册
-router.post('/register', async (req, res) => {
+// Get user info
+router.get('/', (req: AuthRequest, res: Response, next: NextFunction) => {
+  authenticateToken(req, res, next);
+}, async (req: AuthRequest, res: Response) => {
   try {
-    const { email, password, username, inviteCode } = req.body;
-
-    // 检查邮箱是否已存在
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: '邮箱已被注册' });
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: '未授权' });
     }
 
-    // 检查邀请码是否有效
-    let referredBy = null;
-    if (inviteCode) {
-      const referrer = await User.findOne({ inviteCode });
-      if (!referrer) {
-        return res.status(400).json({ message: '无效的邀请码' });
-      }
-      referredBy = referrer._id;
+    const user = await User.findById(new mongoose.Types.ObjectId(userId));
+    if (!user) {
+      return res.status(404).json({ message: '用户不存在' });
     }
 
-    // 生成新的邀请码
-    const newInviteCode = generateInviteCode();
-
-    // 创建新用户
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({
-      email,
-      password: hashedPassword,
-      username,
-      inviteCode: newInviteCode,
-      referredBy
-    });
-
-    await user.save();
-
-    // 如果使用了邀请码，创建推荐记录
-    if (referredBy) {
-      const referral = new Referral({
-        referrerId: referredBy,
-        referredId: user._id,
-        commission: 20, // 一代推荐奖励
-        level: '一代',
-        status: 'pending'
-      });
-      await referral.save();
-
-      // 如果推荐人也有推荐人，创建二代推荐记录
-      const referrer = await User.findById(referredBy);
-      if (referrer?.referredBy) {
-        const secondLevelReferral = new Referral({
-          referrerId: referrer.referredBy,
-          referredId: user._id,
-          commission: 10, // 二代推荐奖励
-          level: '二代',
-          status: 'pending'
-        });
-        await secondLevelReferral.save();
-      }
-    }
-
-    // 生成 JWT token
-    const token = generateToken(user._id);
-
-    res.status(201).json({
-      message: '注册成功',
-      token,
-      user: {
-        id: user._id,
-        email: user.email,
-        username: user.username,
-        inviteCode: user.inviteCode
-      }
+    res.json({
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      status: user.status
     });
   } catch (error) {
-    console.error('Error during registration:', error);
-    res.status(500).json({ message: '注册失败' });
+    console.error('Error fetching user info:', error);
+    res.status(500).json({ message: '获取用户信息失败' });
   }
 });
 
-// 用户登录
-router.post('/login', async (req, res) => {
+// Get user account information
+router.get('/account-info', (req: AuthRequest, res: Response, next: NextFunction) => {
+  authenticateToken(req, res, next);
+}, async (req: AuthRequest, res: Response) => {
   try {
-    const { email, password } = req.body;
-
-    // 查找用户
-    const user = await User.findOne({ email });
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: '未授权' });
+    }
+    
+    // Get user basic info
+    const user = await User.findById(new mongoose.Types.ObjectId(userId));
     if (!user) {
-      return res.status(401).json({ message: '邮箱或密码错误' });
+      return res.status(404).json({ message: '用户不存在' });
     }
 
-    // 验证密码
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: '邮箱或密码错误' });
+    // Get balance history
+    const balanceHistory = await Transaction.find({ userId: new mongoose.Types.ObjectId(userId) })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    // Get hosting fee history
+    const hostingFeeHistory = await HostingFee.find({ userId: new mongoose.Types.ObjectId(userId) })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    // Get commission history
+    const commissionHistory = await Commission.find({ userId: new mongoose.Types.ObjectId(userId) })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    const accountInfo = {
+      balance: user.balance,
+      hostingFee: user.hostingFee,
+      status: user.status,
+      referralCode: user.referralCode,
+      referralRewards: user.referralRewards,
+      balanceHistory: balanceHistory.map(record => ({
+        date: record.createdAt,
+        amount: record.amount,
+        type: record.type,
+        description: record.description
+      })),
+      hostingFeeHistory: hostingFeeHistory.map(record => ({
+        date: record.createdAt,
+        amount: record.amount,
+        status: record.status
+      })),
+      commissionHistory: commissionHistory.map(record => ({
+        date: record.createdAt,
+        amount: record.amount,
+        type: record.type,
+        fromUser: record.fromUser
+      }))
+    };
+
+    res.json(accountInfo);
+  } catch (error) {
+    console.error('Error fetching account info:', error);
+    res.status(500).json({ message: '获取账户信息失败' });
+  }
+});
+
+// Get user profile
+router.get('/profile', (req: AuthRequest, res: Response, next: NextFunction) => {
+  authenticateToken(req, res, next);
+}, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: '未授权' });
     }
 
-    // 生成 JWT token
-    const token = generateToken(user._id);
+    const user = await User.findById(new mongoose.Types.ObjectId(userId));
+    if (!user) {
+      return res.status(404).json({ message: '用户不存在' });
+    }
 
     res.json({
-      message: '登录成功',
-      token,
-      user: {
-        id: user._id,
-        email: user.email,
-        username: user.username,
-        inviteCode: user.inviteCode
-      }
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      inviteCode: user.inviteCode,
+      role: user.role
     });
   } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ message: '登录失败' });
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ message: '获取个人信息失败' });
+  }
+});
+
+// Update user profile
+router.put('/profile', (req: AuthRequest, res: Response, next: NextFunction) => {
+  authenticateToken(req, res, next);
+}, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: '未授权' });
+    }
+
+    const { username, email } = req.body;
+
+    const user = await User.findById(new mongoose.Types.ObjectId(userId));
+    if (!user) {
+      return res.status(404).json({ message: '用户不存在' });
+    }
+
+    if (username) user.username = username;
+    if (email) user.email = email;
+
+    await user.save();
+
+    res.json({ message: '个人信息更新成功' });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: '更新个人信息失败' });
   }
 });
 

@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { Box, Typography, Button } from '@mui/material';
 
 interface Props {
@@ -13,7 +13,7 @@ interface State {
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
-    error: null,
+    error: null
   };
 
   public static getDerivedStateFromError(error: Error): State {
@@ -27,18 +27,9 @@ class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '100vh',
-            p: 3,
-          }}
-        >
-          <Typography variant="h4" component="h1" gutterBottom>
-            Something went wrong
+        <Box sx={{ p: 3 }}>
+          <Typography variant="h4" gutterBottom>
+            出错了
           </Typography>
           <Typography variant="body1" gutterBottom>
             {this.state.error?.message}
@@ -46,10 +37,9 @@ class ErrorBoundary extends Component<Props, State> {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => window.location.reload()}
-            sx={{ mt: 2 }}
+            onClick={() => this.setState({ hasError: false, error: null })}
           >
-            Reload Page
+            重试
           </Button>
         </Box>
       );
