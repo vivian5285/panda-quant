@@ -39,7 +39,7 @@ services:
     ports:
       - "3003:80"
     environment:
-      - VITE_API_URL=https://api.pandatrade.space
+      - VITE_API_URL=http://194.164.149.214:3001
     networks:
       - panda-network
     restart: unless-stopped

@@ -1,20 +1,16 @@
-FROM node:18-alpine
+FROM node:18
 
 WORKDIR /app
 
-# 安装依赖
+# Install dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --legacy-peer-deps
 
-# 复制源代码
+# Copy source code
 COPY . .
 
-# 设置环境变量
-ENV NODE_ENV=production
-ENV PORT=3001
+# Build the app
+RUN npm run build
 
-# 暴露端口
-EXPOSE 3001
-
-# 启动应用
+# Start the app
 CMD ["npm", "start"] 
