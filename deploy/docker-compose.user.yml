@@ -16,7 +16,6 @@ services:
     networks:
       - panda-network
     depends_on:
-      - user-api
       - user-ui
     restart: unless-stopped
 
@@ -41,9 +40,6 @@ services:
       - "3003:80"
     environment:
       - VITE_API_URL=https://api.pandatrade.space
-    depends_on:
-      user-api:
-        condition: service_healthy
     networks:
       - panda-network
     restart: unless-stopped
