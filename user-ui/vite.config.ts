@@ -44,45 +44,9 @@ export default defineConfig({
     svgr(),
   ],
   base: '/',
-  optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'react-is',
-      '@emotion/react',
-      '@emotion/styled',
-      '@mui/material',
-      '@mui/icons-material',
-      'framer-motion'
-    ],
-    esbuildOptions: {
-      define: {
-        global: 'globalThis'
-      },
-      resolveExtensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
-    }
-  },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
-    },
-    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
-  },
   server: {
     port: 3003,
     host: true,
-    open: true,
-    cors: true,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-      },
-    },
-    hmr: {
-      overlay: false,
-      clientPort: 3003,
-    },
   },
   build: {
     outDir: 'dist',
@@ -97,29 +61,27 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: (id: string) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'react-vendor';
-            }
-            if (id.includes('@mui') || id.includes('@emotion')) {
-              return 'mui-vendor';
-            }
-            if (id.includes('ethers') || id.includes('web3')) {
-              return 'web3-vendor';
-            }
-            if (id.includes('i18next')) {
-              return 'i18n-vendor';
-            }
-            if (id.includes('framer-motion')) {
-              return 'framer-motion-vendor';
-            }
-            return 'vendor';
-          }
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'mui-vendor': ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
+          'chart-vendor': ['chart.js', 'react-chartjs-2'],
         },
       },
     },
-    chunkSizeWarningLimit: 1000,
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-is',
+      'react-router-dom',
+      '@mui/material',
+      '@mui/icons-material',
+      '@emotion/react',
+      '@emotion/styled',
+      'chart.js',
+      'react-chartjs-2',
+    ],
   },
   css: {
     preprocessorOptions: {
