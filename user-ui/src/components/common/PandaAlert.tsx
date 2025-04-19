@@ -18,6 +18,7 @@ interface PandaAlertProps {
   action?: React.ReactNode;
   animate?: boolean;
   glow?: boolean;
+  children?: React.ReactNode;
 }
 
 export const PandaAlert: React.FC<PandaAlertProps> = ({

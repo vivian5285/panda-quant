@@ -9,6 +9,16 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci
 
+# Install additional dependencies and types
+RUN npm install \
+    chart.js \
+    react-chartjs-2 \
+    @types/chart.js \
+    @types/react-chartjs-2 \
+    @types/react \
+    @types/react-dom \
+    typescript
+
 # Copy source code
 COPY . .
 

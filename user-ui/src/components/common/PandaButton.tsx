@@ -15,6 +15,9 @@ interface PandaButtonProps {
   children: React.ReactNode;
   animate?: boolean;
   glow?: boolean;
+  sx?: any;
+  loading?: boolean;
+  type?: string;
 }
 
 const PandaButton: React.FC<PandaButtonProps> = ({
@@ -29,6 +32,9 @@ const PandaButton: React.FC<PandaButtonProps> = ({
   children,
   animate = false,
   glow = false,
+  sx,
+  loading = false,
+  type,
 }) => {
   const theme = useTheme();
 

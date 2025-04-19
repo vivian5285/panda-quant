@@ -19,6 +19,8 @@ export interface PandaInputProps {
   placeholder?: string;
   autoFocus?: boolean;
   animate?: boolean;
+  sx?: any;
+  readOnly?: boolean;
 }
 
 const PandaInput: React.FC<PandaInputProps> = ({
@@ -38,6 +40,8 @@ const PandaInput: React.FC<PandaInputProps> = ({
   placeholder,
   autoFocus = false,
   animate = true,
+  sx,
+  readOnly = false,
 }) => {
   const theme = useTheme();
 
@@ -96,7 +100,9 @@ const PandaInput: React.FC<PandaInputProps> = ({
         '& .MuiInputAdornment-root': {
           color: error ? theme.palette.error.main : '#00FFB8',
         },
+        ...sx,
       }}
+      readOnly={readOnly}
     />
   );
 

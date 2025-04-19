@@ -26,6 +26,13 @@ interface PandaCardProps extends Omit<CardProps, 'content'> {
   gradient?: boolean;
   animation?: boolean;
   sx?: SxProps<Theme>;
+  image?: string;
+  imagePosition?: string;
+  backgroundColor?: string;
+  borderRadius?: number;
+  padding?: number;
+  boxShadow?: string;
+  backdropFilter?: string;
 }
 
 const PandaCard: React.FC<PandaCardProps> = ({
@@ -40,6 +47,13 @@ const PandaCard: React.FC<PandaCardProps> = ({
   gradient = false,
   animation = true,
   sx,
+  image,
+  imagePosition,
+  backgroundColor,
+  borderRadius,
+  padding,
+  boxShadow,
+  backdropFilter,
   ...props
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);

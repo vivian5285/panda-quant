@@ -30,6 +30,8 @@ interface PandaSelectProps {
   size?: 'small' | 'medium';
   animate?: boolean;
   glow?: boolean;
+  startIcon?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 const PandaSelect: React.FC<PandaSelectProps> = ({
@@ -46,6 +48,8 @@ const PandaSelect: React.FC<PandaSelectProps> = ({
   size = 'medium',
   animate = false,
   glow = false,
+  startIcon,
+  children,
 }) => {
   const theme = useTheme();
 
