@@ -6,11 +6,9 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
-
-# Install additional dependencies and types
-RUN npm install \
+# Install all dependencies in one step
+RUN npm install && \
+    npm install \
     chart.js \
     react-chartjs-2 \
     @types/chart.js \
