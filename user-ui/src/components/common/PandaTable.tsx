@@ -1,12 +1,13 @@
 import React from 'react';
 import {
-  Table as MuiTable,
+  Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
   Paper,
+  TableProps,
   useTheme,
   TablePagination,
   TableSortLabel,
@@ -16,17 +17,17 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 
-interface Column {
+export interface Column {
   id: string;
   label: string;
   minWidth?: number;
   align?: 'left' | 'right' | 'center';
-  format?: (value: string | number | Date) => string;
+  format?: (value: any) => string;
 }
 
-interface PandaTableProps {
+export interface PandaTableProps extends TableProps {
   columns: Column[];
-  data: Record<string, string | number | Date>[];
+  data: any[];
   loading?: boolean;
   page?: number;
   rowsPerPage?: number;
@@ -40,7 +41,7 @@ interface PandaTableProps {
   glow?: boolean;
 }
 
-export const PandaTable: React.FC<PandaTableProps> = ({
+const PandaTable: React.FC<PandaTableProps> = ({
   columns,
   data,
   loading = false,
@@ -54,6 +55,7 @@ export const PandaTable: React.FC<PandaTableProps> = ({
   onSort,
   animate = true,
   glow = false,
+  ...props
 }) => {
   const theme = useTheme();
 
@@ -91,67 +93,75 @@ export const PandaTable: React.FC<PandaTableProps> = ({
     onRowsPerPageChange?.(parseInt(event.target.value, 10));
   };
 
+  const table = (
+    <TableContainer component={Paper} sx={getTableStyle()}>
+      <Table {...props}>
+        <TableHead>
+          <TableRow>
+            {columns.map((column) => (
+              <TableCell
+                key={column.id}
+                align={column.align}
+                style={{ minWidth: column.minWidth }}
+              >
+                {onSort ? (
+                  <TableSortLabel
+                    active={orderBy === column.id}
+                    direction={orderBy === column.id ? order : 'asc'}
+                    onClick={() => onSort(column.id)}
+                  >
+                    {column.label}
+                  </TableSortLabel>
+                ) : (
+                  column.label
+                )}
+              </TableCell>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {loading ? (
+            <TableRow>
+              <TableCell colSpan={columns.length} align="center">
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                  <CircularProgress />
+                </Box>
+              </TableCell>
+            </TableRow>
+          ) : data.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={columns.length} align="center">
+                <Typography variant="body2" color="text.secondary">
+                  No data available
+                </Typography>
+              </TableCell>
+            </TableRow>
+          ) : (
+            data.map((row, index) => (
+              <TableRow hover role="checkbox" tabIndex={-1} key={index}>
+                {columns.map((column) => {
+                  const value = row[column.id];
+                  return (
+                    <TableCell key={column.id} align={column.align}>
+                      {column.format ? column.format(value) : String(value)}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  if (!animate) {
+    return table;
+  }
+
   return (
     <motion.div {...getAnimation()}>
-      <TableContainer component={Paper} sx={getTableStyle()}>
-        <MuiTable stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  align={column.align}
-                  style={{ minWidth: column.minWidth }}
-                >
-                  {onSort ? (
-                    <TableSortLabel
-                      active={orderBy === column.id}
-                      direction={orderBy === column.id ? order : 'asc'}
-                      onClick={() => onSort(column.id)}
-                    >
-                      {column.label}
-                    </TableSortLabel>
-                  ) : (
-                    column.label
-                  )}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} align="center">
-                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                    <CircularProgress />
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ) : data.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columns.length} align="center">
-                  <Typography variant="body2" color="text.secondary">
-                    No data available
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              data.map((row, index) => (
-                <TableRow hover role="checkbox" tabIndex={-1} key={index}>
-                  {columns.map((column) => {
-                    const value = row[column.id];
-                    return (
-                      <TableCell key={column.id} align={column.align}>
-                        {column.format ? column.format(value) : String(value)}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </MuiTable>
-      </TableContainer>
+      {table}
       {onPageChange && onRowsPerPageChange && (
         <TablePagination
           rowsPerPageOptions={[10, 25, 100]}
@@ -165,4 +175,6 @@ export const PandaTable: React.FC<PandaTableProps> = ({
       )}
     </motion.div>
   );
-}; 
+};
+
+export default PandaTable; 

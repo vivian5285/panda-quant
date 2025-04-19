@@ -1,53 +1,49 @@
-import React from 'react';
-import { TextField, InputAdornment, useTheme } from '@mui/material';
+import React, { ChangeEvent } from 'react';
+import { TextField, TextFieldProps } from '@mui/material';
 import { motion } from 'framer-motion';
+import { useTheme } from '@mui/material/styles';
 
-export interface PandaInputProps {
+export interface PandaInputProps extends Omit<TextFieldProps, 'variant'> {
   label?: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-  required?: boolean;
-  fullWidth?: boolean;
+  value: string | number;
+  onChange: (value: string | number) => void;
   error?: boolean;
   helperText?: string;
+  fullWidth?: boolean;
+  required?: boolean;
+  disabled?: boolean;
+  readOnly?: boolean;
+  type?: string;
+  placeholder?: string;
   startIcon?: React.ReactNode;
   endIcon?: React.ReactNode;
-  disabled?: boolean;
-  multiline?: boolean;
-  rows?: number;
-  placeholder?: string;
-  autoFocus?: boolean;
-  animate?: boolean;
-  sx?: any;
-  readOnly?: boolean;
   icon?: React.ReactNode;
+  sx?: any;
+  animate?: boolean;
 }
 
 const PandaInput: React.FC<PandaInputProps> = ({
   label,
   value,
   onChange,
-  type = 'text',
-  required = false,
-  fullWidth = false,
-  error = false,
+  error,
   helperText,
+  fullWidth = true,
+  required = false,
+  disabled = false,
+  readOnly = false,
+  type = 'text',
+  placeholder,
   startIcon,
   endIcon,
-  disabled = false,
-  multiline = false,
-  rows = 1,
-  placeholder,
-  autoFocus = false,
-  animate = true,
-  sx,
-  readOnly = false,
   icon,
+  sx,
+  animate = true,
+  ...props
 }) => {
   const theme = useTheme();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     onChange(e.target.value);
   };
 
@@ -56,47 +52,44 @@ const PandaInput: React.FC<PandaInputProps> = ({
       label={label}
       value={value}
       onChange={handleChange}
-      type={type}
-      required={required}
-      fullWidth={fullWidth}
       error={error}
       helperText={helperText}
+      fullWidth={fullWidth}
+      required={required}
       disabled={disabled}
-      multiline={multiline}
-      rows={rows}
+      type={type}
       placeholder={placeholder}
-      autoFocus={autoFocus}
-      readOnly={readOnly}
       InputProps={{
-        startAdornment: (startIcon || icon) && (
-          <InputAdornment position="start">
-            {startIcon || icon}
-          </InputAdornment>
-        ),
-        endAdornment: endIcon && (
-          <InputAdornment position="end">
-            {endIcon}
-          </InputAdornment>
-        ),
+        readOnly,
+        startAdornment: startIcon || icon,
+        endAdornment: endIcon,
+        sx: {
+          height: 48,
+          borderRadius: theme.shape.borderRadius,
+          backgroundColor: theme.palette.background.paper,
+          '&:hover': {
+            backgroundColor: theme.palette.action.hover,
+          },
+          '&.Mui-focused': {
+            backgroundColor: theme.palette.background.paper,
+          },
+        },
       }}
       sx={{
         '& .MuiOutlinedInput-root': {
-          height: '48px',
-          borderRadius: theme.shape.borderRadius,
-          backgroundColor: theme.palette.background.paper,
-          transition: 'all 0.3s ease',
+          '& fieldset': {
+            borderColor: theme.palette.divider,
+          },
           '&:hover fieldset': {
-            borderColor: error ? theme.palette.error.main : theme.palette.primary.main,
+            borderColor: theme.palette.primary.main,
           },
           '&.Mui-focused fieldset': {
-            borderColor: error ? theme.palette.error.main : theme.palette.primary.main,
+            borderColor: theme.palette.primary.main,
           },
-        },
-        '& .MuiInputBase-input': {
-          color: error ? theme.palette.error.main : '#00FFB8',
         },
         ...sx,
       }}
+      {...props}
     />
   );
 

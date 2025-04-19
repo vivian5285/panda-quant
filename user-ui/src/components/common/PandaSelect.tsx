@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Select,
+  SelectProps,
   MenuItem,
   FormControl,
   InputLabel,
@@ -10,46 +11,46 @@ import {
 import { motion } from 'framer-motion';
 import { themeUtils } from '../../theme';
 
-interface SelectOption {
-  value: string | number;
+export interface Option {
+  value: string;
   label: string;
-  disabled?: boolean;
 }
 
-interface PandaSelectProps {
-  value: string | number;
-  onChange: (value: string | number) => void;
-  options: SelectOption[];
+export interface PandaSelectProps extends Omit<SelectProps, 'onChange'> {
   label?: string;
-  placeholder?: string;
-  disabled?: boolean;
+  value: string;
+  onChange: (value: string) => void;
+  options: Option[];
+  fullWidth?: boolean;
   required?: boolean;
+  disabled?: boolean;
   error?: boolean;
   helperText?: string;
-  fullWidth?: boolean;
-  size?: 'small' | 'medium';
   animate?: boolean;
+  placeholder?: string;
+  size?: 'small' | 'medium';
   glow?: boolean;
   startIcon?: React.ReactNode;
   children?: React.ReactNode;
 }
 
 const PandaSelect: React.FC<PandaSelectProps> = ({
+  label,
   value,
   onChange,
   options,
-  label,
-  placeholder,
-  disabled = false,
+  fullWidth = true,
   required = false,
+  disabled = false,
   error = false,
   helperText,
-  fullWidth = true,
+  animate = true,
+  placeholder,
   size = 'medium',
-  animate = false,
   glow = false,
   startIcon,
   children,
+  ...props
 }) => {
   const theme = useTheme();
 
@@ -117,76 +118,77 @@ const PandaSelect: React.FC<PandaSelectProps> = ({
     return baseStyle;
   };
 
-  const getAnimation = () => {
-    if (!animate) return {};
-    return {
-      initial: { opacity: 0, y: 10 },
-      animate: { opacity: 1, y: 0 },
-      exit: { opacity: 0, y: 10 },
-      transition: { duration: 0.3 },
-    };
-  };
-
-  return (
-    <motion.div {...getAnimation()}>
-      <FormControl
-        fullWidth={fullWidth}
-        size={size}
-        disabled={disabled}
-        required={required}
-        error={error}
-        sx={getSelectStyle()}
-      >
-        {label && <InputLabel>{label}</InputLabel>}
-        <Select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          label={label}
-          placeholder={placeholder}
-          MenuProps={{
-            PaperProps: {
-              sx: {
-                background: themeUtils.createGradient(
-                  theme.palette.background.paper,
-                  theme.palette.background.default
-                ),
-                boxShadow: theme.shadows[24],
-                borderRadius: theme.shape.borderRadius * 2,
-                '& .MuiMenuItem-root': {
-                  padding: theme.spacing(1.5, 2),
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    background: themeUtils.createGradient(
-                      theme.palette.primary.main,
-                      theme.palette.primary.dark
-                    ),
-                    color: theme.palette.primary.contrastText,
-                  },
+  const select = (
+    <FormControl
+      fullWidth={fullWidth}
+      required={required}
+      disabled={disabled}
+      error={error}
+      sx={getSelectStyle()}
+    >
+      {label && <InputLabel>{label}</InputLabel>}
+      <Select
+        value={value}
+        onChange={(e) => onChange(e.target.value as string)}
+        label={label}
+        placeholder={placeholder}
+        MenuProps={{
+          PaperProps: {
+            sx: {
+              background: themeUtils.createGradient(
+                theme.palette.background.paper,
+                theme.palette.background.default
+              ),
+              boxShadow: theme.shadows[24],
+              borderRadius: theme.shape.borderRadius * 2,
+              '& .MuiMenuItem-root': {
+                padding: theme.spacing(1.5, 2),
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  background: themeUtils.createGradient(
+                    theme.palette.primary.main,
+                    theme.palette.primary.dark
+                  ),
+                  color: theme.palette.primary.contrastText,
                 },
               },
             },
-          }}
-        >
-          {options.map((option) => (
-            <MenuItem
-              key={option.value}
-              value={option.value}
-              disabled={option.disabled}
-            >
-              {option.label}
-            </MenuItem>
-          ))}
-        </Select>
-        {helperText && (
-          <Typography
-            variant="caption"
-            color={error ? 'error' : 'text.secondary'}
-            sx={{ mt: 1 }}
+          },
+        }}
+      >
+        {options.map((option) => (
+          <MenuItem
+            key={option.value}
+            value={option.value}
+            disabled={option.disabled}
           >
-            {helperText}
-          </Typography>
-        )}
-      </FormControl>
+            {option.label}
+          </MenuItem>
+        ))}
+      </Select>
+      {helperText && (
+        <Typography
+          variant="caption"
+          color={error ? 'error' : 'text.secondary'}
+          sx={{ mt: 1 }}
+        >
+          {helperText}
+        </Typography>
+      )}
+    </FormControl>
+  );
+
+  if (!animate) {
+    return select;
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      {select}
     </motion.div>
   );
 };
