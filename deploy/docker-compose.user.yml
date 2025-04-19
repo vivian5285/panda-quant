@@ -55,8 +55,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@mongodb:27017/panda-quant
-      - JWT_SECRET=${JWT_SECRET}
+      - MONGODB_URI=mongodb://mongodb:27017/panda-quant
+      - JWT_SECRET=your_jwt_secret
       - JWT_EXPIRES_IN=24h
     networks:
       - panda-network
