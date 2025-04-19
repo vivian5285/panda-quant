@@ -4,22 +4,30 @@ services:
   user-api:
     build:
       context: ../user-api
+    container_name: panda-quant-user-api
     ports:
-      - "4000:4000"
+      - "3001:3001"
     env_file:
       - ../.env
     environment:
       - NODE_ENV=production
+      - PORT=3001
     networks:
-      - panda-network
+      - panda-quant-network
     depends_on:
       - mongodb
       - redis
     restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   admin-api:
     build:
       context: ../admin-api
+    container_name: panda-quant-admin-api
     ports:
       - "3000:3000"
     env_file:
@@ -27,7 +35,7 @@ services:
     environment:
       - NODE_ENV=production
     networks:
-      - panda-network
+      - panda-quant-network
     depends_on:
       - mongodb
       - redis
@@ -35,24 +43,36 @@ services:
 
   mongodb:
     image: mongo:latest
+    container_name: panda-quant-mongodb
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     networks:
-      - panda-network
+      - panda-quant-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   redis:
     image: redis:alpine
+    container_name: panda-quant-redis
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
-      - panda-network
+      - panda-quant-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
-  panda-network:
+  panda-quant-network:
     driver: bridge
 
 volumes:
