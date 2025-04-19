@@ -33,7 +33,8 @@ describe('AuthController', () => {
         body: {
           email: 'test@example.com',
           password: 'password123',
-          name: 'Test User'
+          name: 'Test User',
+          username: 'testuser'
         }
       };
 
@@ -53,6 +54,7 @@ describe('AuthController', () => {
       expect(user).toBeTruthy();
       expect(user?.email).toBe('test@example.com');
       expect(user?.name).toBe('Test User');
+      expect(user?.username).toBe('testuser');
       expect(user?.isVerified).toBe(false);
     });
 
@@ -84,6 +86,7 @@ describe('AuthController', () => {
         email: 'test@example.com',
         password: hashedPassword,
         name: 'Test User',
+        username: 'testuser',
         isVerified: true
       });
     });
@@ -107,6 +110,7 @@ describe('AuthController', () => {
       expect(response.token).toBeTruthy();
       expect(response.user.email).toBe('test@example.com');
       expect(response.user.name).toBe('Test User');
+      expect(response.user.username).toBe('testuser');
     });
 
     it('should not login with incorrect password', async () => {

@@ -1,0 +1,25 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Panda Quant API",
+        "version": "1.0.0",
+        "description": "API documentation for Panda Quant"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3001",
+            "description": "Development server"
+        }
+    ],
+    "paths": {},
+    "components": {
+        "schemas": {},
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    }
+} 
