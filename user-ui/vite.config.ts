@@ -61,13 +61,16 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'mui-vendor': ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
-          'chart-vendor': ['chart.js', 'react-chartjs-2'],
-        },
-      },
-    },
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
+        }
+      }
+    }
+  },
+  esbuild: {
+    jsxInject: `import React from 'react'`
   },
   optimizeDeps: {
     include: [
@@ -98,12 +101,6 @@ export default defineConfig({
     '__REACT_ROUTER_FUTURE_FLAGS': JSON.stringify({
       v7_startTransition: true,
       v7_relativeSplatPath: true,
-      v7_prependBasename: true
-    }),
-    'window.ethereum': 'window.ethereum',
-    __REACT_ROUTER_FUTURE_FLAGS__: JSON.stringify({
-      v7_startTransition: true,
-      v7_relativeSplatPath: true,
-    }),
+    })
   }
-}); 
+}) 

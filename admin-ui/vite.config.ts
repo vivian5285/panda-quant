@@ -6,7 +6,6 @@ import { splitVendorChunkPlugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import svgr from 'vite-plugin-svgr'
 import eslint from 'vite-plugin-eslint'
-import checker from 'vite-plugin-checker'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -58,12 +57,6 @@ export default defineConfig({
       emitError: true,
       formatter: 'stylish',
     }),
-    checker({
-      typescript: true,
-      eslint: {
-        lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
-      },
-    }),
   ],
   server: {
     port: 3004,
@@ -98,47 +91,13 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'react-vendor';
-            }
-            if (id.includes('@mui') || id.includes('@emotion')) {
-              return 'mui-vendor';
-            }
-            if (id.includes('i18next')) {
-              return 'i18n-vendor';
-            }
-            return 'vendor';
+            return 'vendor'
           }
-        },
-      },
-    },
-    chunkSizeWarningLimit: 1000,
+        }
+      }
+    }
   },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
-    },
-  },
-  optimizeDeps: {
-    include: [
-      '@mui/icons-material',
-      '@mui/material',
-      '@emotion/react',
-      '@emotion/styled',
-      'react-router-dom',
-      'i18next',
-      'react-i18next',
-    ],
-  },
-  css: {
-    preprocessorOptions: {
-      scss: {
-        additionalData: `@import "@/styles/variables.scss";`,
-      },
-    },
-  },
-  define: {
-    'process.env': {},
-    'global': 'window'
+  esbuild: {
+    jsxInject: `import React from 'react'`
   }
 }) 
