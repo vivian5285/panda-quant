@@ -13,14 +13,18 @@ RUN apt-get update && apt-get install -y \
 # 复制 package 文件
 COPY package*.json ./
 
-# 安装依赖
-RUN npm install
+# 安装依赖和 TypeScript
+RUN npm install && \
+    npm install -g typescript && \
+    npm install typescript --save-dev
 
 # 复制源代码
 COPY . .
 
-# 构建应用
-RUN npm run build
+# 确保 tsc 有执行权限并构建应用
+RUN chmod -R 755 ./node_modules/.bin && \
+    npx typescript --version && \
+    npx tsc
 
 # 生产阶段
 FROM node:20
