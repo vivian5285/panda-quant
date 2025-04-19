@@ -19,13 +19,15 @@ USER node
 COPY --chown=node:node package*.json ./
 
 # 安装依赖
-RUN npm install
+RUN npm install && \
+    npm install -g typescript@latest && \
+    npm install -g ts-node
 
 # 复制源代码
 COPY --chown=node:node . .
 
 # 构建应用
-RUN npm run build
+RUN ./node_modules/.bin/tsc
 
 # 暴露端口
 EXPOSE 3001

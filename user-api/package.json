@@ -2,11 +2,11 @@
   "name": "user-api",
   "version": "1.0.0",
   "description": "User API for Panda Quant",
-  "main": "index.ts",
+  "main": "dist/app.js",
   "scripts": {
     "start": "node dist/app.js",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "build": "npx tsc",
+    "build": "./node_modules/.bin/tsc",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
