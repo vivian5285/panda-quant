@@ -21,7 +21,7 @@ export default defineConfig({
     }),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'robots.txt'],
+      includeAssets: ['favicon.ico', 'robots.txt', '**/*.{js,css,html,ico,png,svg}'],
       manifest: {
         name: 'Panda Quant User',
         short_name: 'PandaQuant',
