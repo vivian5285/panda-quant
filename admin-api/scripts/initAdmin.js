@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-const User = require('../../admin-api/models/user.model');
+const User = require('../models/user.model.js');
 
 async function initAdmin() {
   try {
