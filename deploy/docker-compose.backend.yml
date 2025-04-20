@@ -12,7 +12,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3001
-      - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@mongodb:27017/panda-quant
+      - MONGODB_URI=mongodb://mongodb:27017/panda-quant
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=your_jwt_secret_key
       - JWT_EXPIRES_IN=7d
@@ -47,7 +47,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
-      - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@mongodb:27017/panda-quant
+      - MONGODB_URI=mongodb://mongodb:27017/panda-quant
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=your_jwt_secret_key
       - JWT_EXPIRES_IN=7d
@@ -80,9 +80,7 @@ services:
       - mongodb_data:/data/db
     networks:
       - panda-quant-network
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
-      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 30s
@@ -99,6 +97,7 @@ services:
       - redis_data:/data
     networks:
       - panda-quant-network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
