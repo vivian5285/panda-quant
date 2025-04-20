@@ -43,5 +43,8 @@ RUN npm rebuild bcrypt --build-from-source
 # 暴露端口
 EXPOSE 3001
 
+# 安装 ts-node
+RUN npm install -g ts-node
+
 # 启动应用
-CMD ["npm", "start"] 
+CMD ["node", "dist/app.js"] 
