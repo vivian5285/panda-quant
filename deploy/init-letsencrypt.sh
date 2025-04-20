@@ -1,6 +1,6 @@
 #!/bin/bash
 
-domains=(admin-api.pandatrade.space admin.pandatrade.space api.pandatrade.space www.pandatrade.space)
+domains=(pandatrade.space www.pandatrade.space)
 email="pandaspace0001@gmail.com" # Adding a valid address is strongly recommended
 staging=0 # Set to 1 if you're testing your setup to avoid hitting request limits
 
@@ -25,22 +25,22 @@ fi
 echo "### Creating dummy certificate for $domains ..."
 path="/etc/letsencrypt/live/$domains"
 mkdir -p "$data_path/conf/live/$domains"
-docker-compose -f docker-compose.admin.yml run --rm --entrypoint "\
+docker-compose -f docker-compose.yml run --rm --entrypoint "\
   openssl req -x509 -nodes -newkey rsa:$rsa_key_size -days 1\
     -keyout '$path/privkey.pem' \
     -out '$path/fullchain.pem' \
-    -subj '/CN=localhost'" certbot-admin
+    -subj '/CN=localhost'" certbot
 echo
 
 echo "### Starting nginx ..."
-docker-compose -f docker-compose.admin.yml up --force-recreate -d nginx-admin
+docker-compose -f docker-compose.yml up --force-recreate -d nginx
 echo
 
 echo "### Deleting dummy certificate for $domains ..."
-docker-compose -f docker-compose.admin.yml run --rm --entrypoint "\
+docker-compose -f docker-compose.yml run --rm --entrypoint "\
   rm -Rf /etc/letsencrypt/live/$domains && \
   rm -Rf /etc/letsencrypt/archive/$domains && \
-  rm -Rf /etc/letsencrypt/renewal/$domains.conf" certbot-admin
+  rm -Rf /etc/letsencrypt/renewal/$domains.conf" certbot
 echo
 
 echo "### Requesting Let's Encrypt certificate for $domains ..."
@@ -58,15 +58,15 @@ esac
 # Enable staging mode if needed
 if [ $staging != "0" ]; then staging_arg="--staging"; fi
 
-docker-compose -f docker-compose.admin.yml run --rm --entrypoint "\
+docker-compose -f docker-compose.yml run --rm --entrypoint "\
   certbot certonly --webroot -w /var/www/certbot \
     $staging_arg \
     $email_arg \
     $domain_args \
     --rsa-key-size $rsa_key_size \
     --agree-tos \
-    --force-renewal" certbot-admin
+    --force-renewal" certbot
 echo
 
 echo "### Reloading nginx ..."
-docker-compose -f docker-compose.admin.yml exec nginx-admin nginx -s reload 
+docker-compose -f docker-compose.yml exec nginx nginx -s reload 
