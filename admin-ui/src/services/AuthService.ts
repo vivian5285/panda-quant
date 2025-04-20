@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://194.164.149.214:3000/api';
 
 export interface LoginCredentials {
   email: string;
@@ -48,7 +48,7 @@ class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return this.getToken() !== null;
+    return !!this.getToken();
   }
 }
 

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 添加 Vite 环境变量的类型声明
 interface ImportMetaEnv {
-  VITE_API_BASE_URL: string;
+  VITE_API_URL: string;
 }
 
 declare global {
@@ -12,7 +12,7 @@ declare global {
 }
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_URL || 'http://194.164.149.214:3000/api',
   headers: {
     'Content-Type': 'application/json',
   },

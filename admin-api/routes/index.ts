@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import userRoutes from './userRoutes';
-import strategyRoutes from './strategyRoutes';
+import userRoutes from './user';
 import assetRoutes from './assetRoutes';
+import authRoutes from './auth';
 
 const router = Router();
 
+router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
-router.use('/strategies', strategyRoutes);
 router.use('/assets', assetRoutes);
 
 export default router; 
