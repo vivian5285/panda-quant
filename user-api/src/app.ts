@@ -20,6 +20,14 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Panda Quant API' });
 });
 
+// 健康检查端点
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    message: 'Panda Quant User API is running'
+  });
+});
+
 // 路由
 app.use('/api/auth', authRoutes);
 app.use('/api/verification', verificationRoutes);
