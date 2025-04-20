@@ -14,13 +14,6 @@ services:
       - PORT=3001
       - MONGODB_URI=mongodb://mongodb:27017/panda-quant
       - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=your_jwt_secret_key
-      - JWT_EXPIRES_IN=7d
-      - SMTP_HOST=smtp.gmail.com
-      - SMTP_PORT=587
-      - SMTP_USER=your_email@gmail.com
-      - SMTP_PASS=your_app_password
-      - FRONTEND_URL=http://localhost:3003
     networks:
       - panda-quant-network
     depends_on:
@@ -41,21 +34,14 @@ services:
       context: ../admin-api
     container_name: panda-quant-admin-api
     ports:
-      - "3000:3000"
+      - "3002:3002"
     env_file:
       - ../.env
     environment:
       - NODE_ENV=development
-      - PORT=3000
+      - PORT=3002
       - MONGODB_URI=mongodb://mongodb:27017/panda-quant
       - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=your_jwt_secret_key
-      - JWT_EXPIRES_IN=7d
-      - SMTP_HOST=smtp.gmail.com
-      - SMTP_PORT=587
-      - SMTP_USER=your_email@gmail.com
-      - SMTP_PASS=your_app_password
-      - FRONTEND_URL=http://localhost:3002
     networks:
       - panda-quant-network
     depends_on:
@@ -65,7 +51,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health"]
       interval: 30s
       timeout: 10s
       retries: 5

@@ -53,7 +53,10 @@ scheduleWeeklyFeeDeduction();
 
 // Health check route
 app.get('/health', (req, res) => {
-  res.send('Panda Quant User API is running');
+  res.status(200).json({
+    status: 'ok',
+    message: 'Panda Quant User API is running'
+  });
 });
 
 // 404 handler

@@ -20,13 +20,21 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/panda-qua
 // 路由
 app.use('/api/admin/users', userRoutes);
 
+// 健康检查端点
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    message: 'Panda Quant Admin API is running'
+  });
+});
+
 // 错误处理中间件
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
   console.log(`Admin API server is running on port ${PORT}`);
 }); 
