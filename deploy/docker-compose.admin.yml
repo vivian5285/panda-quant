@@ -33,15 +33,15 @@ services:
 
   # MongoDB 数据库
   mongodb:
-    image: mongo:4.4
+    image: mongo:latest
     container_name: panda-quant-mongodb
     ports:
-      - "${DB_PORT}:27017"
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
-      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin123
     networks:
       - panda-quant-network
     restart: unless-stopped
@@ -53,10 +53,10 @@ services:
 
   # Redis 缓存
   redis:
-    image: redis:6.0
+    image: redis:alpine
     container_name: panda-quant-redis
     ports:
-      - "${REDIS_PORT}:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -87,23 +87,20 @@ services:
 
   # 管理后端
   admin-api:
-    build:
-      context: ../admin-api
-      dockerfile: Dockerfile
+    image: deploy_admin-api
     container_name: panda-quant-admin-api
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@mongodb:27017/panda-quant
-      - JWT_SECRET=${JWT_SECRET}
+      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/panda-quant
+      - REDIS_URI=redis://redis:6379
+      - JWT_SECRET=panda_quant_secret_key_2024
       - JWT_EXPIRES_IN=24h
     depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - mongodb
+      - redis
     networks:
       - panda-quant-network
     restart: unless-stopped
