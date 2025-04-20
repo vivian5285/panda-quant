@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { Box, AppBar, Toolbar, IconButton, Typography, Button } from '@mui/material';
 import { Menu as MenuIcon, Dashboard as DashboardIcon, People as PeopleIcon, Settings as SettingsIcon, List as ListIcon, Code as CodeIcon, Description as DescriptionIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
@@ -6,9 +6,9 @@ import { Outlet } from 'react-router-dom';
 import MobileMenu from './MobileMenu';
 import { useAuth } from '../hooks/useAuth';
 
-const Layout: React.FC = () => {
+const Layout = () => {
   const { t } = useTranslation();
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { logout } = useAuth();
 
   const handleDrawerToggle = () => {
@@ -50,8 +50,15 @@ const Layout: React.FC = () => {
         onClose={handleDrawerToggle}
         menuItems={menuItems}
       />
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar />
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { sm: `calc(100% - 240px)` },
+          mt: '64px',
+        }}
+      >
         <Outlet />
       </Box>
     </Box>

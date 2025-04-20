@@ -11,8 +11,7 @@ services:
       - "3003:80"
     environment:
       - VITE_API_URL=http://user-api:3001
-      - NODE_ENV=development
-      - DEBUG=*
+      - NODE_ENV=production
     networks:
       - panda-quant-network
     restart: unless-stopped
@@ -23,11 +22,72 @@ services:
       retries: 5
       start_period: 60s
 
+  # 用户后端
+  user-api:
+    build:
+      context: ../user-api
+      dockerfile: Dockerfile
+    container_name: panda-quant-user-api
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/panda-quant
+      - REDIS_URI=redis://redis:6379
+      - JWT_SECRET=panda_quant_secret_key_2024
+      - JWT_EXPIRES_IN=24h
+    networks:
+      - panda-quant-network
+    depends_on:
+      - mongodb
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MongoDB 数据库
+  mongodb:
+    image: mongo:latest
+    container_name: panda-quant-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin123
+    networks:
+      - panda-quant-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存
+  redis:
+    image: redis:alpine
+    container_name: panda-quant-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - panda-quant-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   panda-quant-network:
-    external: true
-    name: panda-quant-network
+    driver: bridge
 
 volumes:
+  mongodb_data:
+  redis_data:
   nginx_letsencrypt:
   nginx_www: 

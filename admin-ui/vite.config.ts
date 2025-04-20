@@ -14,7 +14,14 @@ const __dirname = dirname(__filename)
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      jsxImportSource: 'react',
+      babel: {
+        plugins: [
+          ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }]
+        ]
+      }
+    }),
     splitVendorChunkPlugin(),
     viteStaticCopy({
       targets: [
@@ -45,59 +52,47 @@ export default defineConfig({
           },
         ],
       },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        navigateFallback: null,
+        cleanupOutdatedCaches: true,
+        sourcemap: true
+      }
     }),
     svgr(),
     eslint({
       include: ['src/**/*.ts', 'src/**/*.tsx'],
-      exclude: ['node_modules'],
-      cache: false,
-      fix: true,
-      failOnError: false,
-      emitWarning: true,
-      emitError: true,
-      formatter: 'stylish',
-    }),
+      exclude: ['node_modules', 'dist'],
+      cache: false
+    })
   ],
-  server: {
-    port: 3004,
-    host: 'localhost',
-    open: true,
-    hmr: {
-      clientPort: 3004,
-      timeout: 120000,
-      overlay: false
-    },
-    watch: {
-      usePolling: true,
-    },
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-    headers: {
-      'Content-Security-Policy': "script-src 'self' 'unsafe-inline' 'unsafe-eval'; object-src 'self'"
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src')
     }
   },
   build: {
-    outDir: 'build',
+    outDir: 'dist',
     sourcemap: true,
     rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'index.html'),
-      },
       output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            return 'vendor'
-          }
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'mui-vendor': ['@mui/material', '@mui/icons-material'],
+          'i18n-vendor': ['i18next', 'react-i18next']
         }
       }
     }
   },
-  esbuild: {
-    jsxInject: `import React from 'react'`
+  server: {
+    port: 3002,
+    host: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   }
 }) 
