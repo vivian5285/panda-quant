@@ -22,7 +22,7 @@ COPY . .
 
 # 设置权限并构建应用
 RUN chmod -R 755 ./node_modules/.bin && \
-    ./node_modules/.bin/tsc
+    npm run build
 
 # 生产阶段
 FROM node:20-alpine
@@ -43,8 +43,5 @@ RUN npm rebuild bcrypt --build-from-source
 # 暴露端口
 EXPOSE 3001
 
-# 安装 ts-node
-RUN npm install -g ts-node
-
 # 启动应用
-CMD ["node", "dist/app.js"] 
+CMD ["npm", "start"] 
