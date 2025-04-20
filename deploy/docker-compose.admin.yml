@@ -37,19 +37,12 @@ services:
     container_name: panda-quant-mongodb
     ports:
       - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=admin123
     networks:
       - panda-quant-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # Redis 缓存
   redis:
@@ -57,16 +50,9 @@ services:
     container_name: panda-quant-redis
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
     networks:
       - panda-quant-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # 管理前端
   admin-ui:
@@ -87,7 +73,9 @@ services:
 
   # 管理后端
   admin-api:
-    image: deploy_admin-api
+    build:
+      context: ../admin-api
+      dockerfile: Dockerfile
     container_name: panda-quant-admin-api
     ports:
       - "3000:3000"

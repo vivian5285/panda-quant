@@ -21,6 +21,13 @@ services:
       - admin-ui
       - user-ui
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Certbot 用于 SSL 证书
   certbot:
@@ -32,13 +39,15 @@ services:
     networks:
       - panda-quant-network
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    security_opt:
+      - no-new-privileges:true
 
   # MongoDB 数据库
   mongodb:
-    image: mongo:4.4
+    image: mongo:latest
     container_name: panda-quant-mongodb
     ports:
-      - "${DB_PORT}:27017"
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     environment:
@@ -47,6 +56,8 @@ services:
     networks:
       - panda-quant-network
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -55,15 +66,17 @@ services:
 
   # Redis 缓存
   redis:
-    image: redis:6.0
+    image: redis:alpine
     container_name: panda-quant-redis
     ports:
-      - "${REDIS_PORT}:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
       - panda-quant-network
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -86,6 +99,13 @@ services:
     networks:
       - panda-quant-network
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # 管理前端
   admin-ui:
@@ -103,6 +123,13 @@ services:
     networks:
       - panda-quant-network
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # 用户后端
   user-api:
@@ -116,8 +143,12 @@ services:
       - NODE_ENV=production
       - PORT=3001
       - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@mongodb:27017/panda-quant
+      - REDIS_URI=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=24h
+      - RATE_LIMIT_WINDOW=15
+      - RATE_LIMIT_MAX=100
+      - CORS_ORIGIN=https://pandatrade.space
     depends_on:
       mongodb:
         condition: service_healthy
@@ -126,6 +157,8 @@ services:
     networks:
       - panda-quant-network
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 30s
@@ -144,8 +177,12 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@mongodb:27017/panda-quant
+      - REDIS_URI=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=24h
+      - RATE_LIMIT_WINDOW=15
+      - RATE_LIMIT_MAX=100
+      - CORS_ORIGIN=https://admin.pandatrade.space
     depends_on:
       mongodb:
         condition: service_healthy
@@ -154,6 +191,8 @@ services:
     networks:
       - panda-quant-network
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
       interval: 30s
@@ -163,9 +202,17 @@ services:
 networks:
   panda-quant-network:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
 
 volumes:
   mongodb_data:
+    driver: local
   redis_data:
+    driver: local
   nginx_letsencrypt:
-  nginx_www: 
+    driver: local
+  nginx_www:
+    driver: local 
