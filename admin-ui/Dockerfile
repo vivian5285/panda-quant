@@ -12,11 +12,11 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci --legacy-peer-deps
 
+# Install Vite globally
+RUN npm install -g vite
+
 # Copy source code
 COPY . .
-
-# Install TypeScript globally
-RUN npm install -g typescript
 
 # Build the app
 RUN npm run build
