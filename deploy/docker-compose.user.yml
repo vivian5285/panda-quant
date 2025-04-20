@@ -22,17 +22,6 @@ services:
       retries: 5
       start_period: 30s
 
-  # Certbot 用于 SSL 证书
-  certbot-user:
-    image: certbot/certbot
-    container_name: panda-quant-certbot-user
-    volumes:
-      - ./nginx/letsencrypt:/etc/letsencrypt
-      - ./nginx/www:/var/www/certbot
-    networks:
-      - panda-quant-network
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-
   # 用户前端
   user-ui:
     build:
@@ -56,8 +45,8 @@ services:
 
 networks:
   panda-quant-network:
+    external: true
     name: panda-quant-network
-    driver: bridge
 
 volumes:
   nginx_letsencrypt:
