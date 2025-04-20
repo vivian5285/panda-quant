@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { validateEmail, validatePassword } from '../utils/validation';
 import { ValidationError } from '../utils/errors';
@@ -11,18 +11,21 @@ interface RequestWithUser extends Request {
 }
 
 const router = Router();
+const userController = new UserController();
 
 // 注册路由
-router.post('/register', (req: Request, res: Response) => UserController.register(req, res));
+router.post('/register', userController.register.bind(userController));
 
 // 登录路由
-router.post('/login', (req: Request, res: Response) => UserController.login(req, res));
+router.post('/login', userController.login.bind(userController));
 
 // 验证邮箱路由
-router.post('/verify-email', (req: Request, res: Response) => UserController.verifyEmail(req, res));
+router.post('/verify-email', userController.verifyEmail.bind(userController));
 
-router.get('/profile', (req: Request, res: Response) => UserController.getProfile(req, res));
+// 获取用户信息
+router.get('/profile', userController.getProfile.bind(userController));
 
-router.put('/profile', (req: Request, res: Response) => UserController.updateProfile(req, res));
+// 更新用户信息
+router.put('/profile', userController.updateProfile.bind(userController));
 
 export default router; 

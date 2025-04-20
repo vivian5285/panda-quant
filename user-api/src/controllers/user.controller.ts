@@ -1,12 +1,14 @@
-import { Controller, Post, Body, HttpException, HttpStatus, Request, Response } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
 import { VerificationService } from '../services/verification.service';
-import { User, UserModel } from '../models/user.model';
+import { User } from '../models/user.model';
 import { DatabaseError, ValidationError } from '../utils/errors';
 import { sendVerificationEmail } from '../utils/email';
-import { generateToken, hashPassword, comparePassword } from '../utils/auth';
 import { validateEmail, validatePassword } from '../utils/validation';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 interface RequestWithUser extends Request {
   user?: {
@@ -22,194 +24,224 @@ interface UserRequestBody {
   code?: string;
 }
 
-@Controller('users')
+const generateToken = (payload: { id: string; email: string }): string => {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+};
+
+const hashPassword = async (password: string): Promise<string> => {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
+};
+
+const comparePassword = async (password: string, hash: string): Promise<boolean> => {
+  return bcrypt.compare(password, hash);
+};
+
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly verificationService: VerificationService
-  ) {}
+  private userService: UserService;
+  private verificationService: VerificationService;
 
-  @Post('send-code')
-  async sendCode(@Body() body: { email: string; type: 'register' | 'reset-password' }) {
-    const { email, type } = body;
+  constructor() {
+    this.userService = new UserService();
+    this.verificationService = new VerificationService();
+  }
 
-    // 如果是注册，检查邮箱是否已存在
-    if (type === 'register') {
+  async sendCode(req: Request, res: Response) {
+    try {
+      const { email, type } = req.body;
+
+      if (!email || !type) {
+        return res.status(400).json({ message: 'Email and type are required' });
+      }
+
+      // 如果是注册，检查邮箱是否已存在
+      if (type === 'register') {
+        const existingUser = await this.userService.getUserByEmail(email);
+        if (existingUser) {
+          return res.status(400).json({ message: '该邮箱已被注册' });
+        }
+      }
+
+      // 生成并发送验证码
+      await this.verificationService.sendVerificationEmail(email, type);
+      res.json({ message: '验证码已发送' });
+    } catch (error) {
+      console.error('Failed to send code:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  async register(req: Request, res: Response) {
+    try {
+      const { email, password, name, code } = req.body;
+
+      if (!email || !password || !name || !code) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+
+      if (!validateEmail(email)) {
+        return res.status(400).json({ message: 'Invalid email format' });
+      }
+
+      if (!validatePassword(password)) {
+        return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+      }
+
       const existingUser = await this.userService.getUserByEmail(email);
       if (existingUser) {
-        throw new HttpException('该邮箱已被注册', HttpStatus.BAD_REQUEST);
+        return res.status(409).json({ message: 'Email already registered' });
       }
-    }
 
-    // 生成并发送验证码
-    await this.verificationService.sendVerificationEmail(email, type);
-    return { message: '验证码已发送' };
-  }
+      const hashedPassword = await hashPassword(password);
+      const user = await this.userService.createUser({
+        email,
+        password: hashedPassword,
+        name,
+        isVerified: false
+      });
 
-  @Post('register')
-  async register(@Body() body: UserRequestBody): Promise<{ message: string; user: Partial<User> }> {
-    const { email, password, name } = body;
-
-    if (!email || !password || !name) {
-      throw new HttpException('Missing required fields', HttpStatus.BAD_REQUEST);
-    }
-
-    if (!validateEmail(email)) {
-      throw new HttpException('Invalid email format', HttpStatus.BAD_REQUEST);
-    }
-
-    if (!validatePassword(password)) {
-      throw new HttpException('Password must be at least 8 characters long', HttpStatus.BAD_REQUEST);
-    }
-
-    const existingUser = await this.userService.getUserByEmail(email);
-    if (existingUser) {
-      throw new HttpException('Email already registered', HttpStatus.CONFLICT);
-    }
-
-    const hashedPassword = await hashPassword(password);
-    const verificationCode = Math.random().toString(36).substring(2, 8);
-
-    const user = await this.userService.createUser({
-      email,
-      password: hashedPassword,
-      name,
-      verificationCode,
-      isVerified: false
-    });
-
-    await sendVerificationEmail(email, verificationCode);
-
-    return {
-      message: 'User registered successfully',
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name
+      if (!user) {
+        return res.status(500).json({ message: 'Failed to create user' });
       }
-    };
+
+      res.status(201).json({
+        message: 'User registered successfully',
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name
+        }
+      });
+    } catch (error) {
+      console.error('Failed to register:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   }
 
-  @Post('login')
-  async login(@Body() body: Pick<UserRequestBody, 'email' | 'password'>): Promise<{ message: string; token: string; user: Partial<User> }> {
-    const { email, password } = body;
+  async login(req: Request, res: Response) {
+    try {
+      const { email, password } = req.body;
 
-    if (!email || !password) {
-      throw new HttpException('Missing email or password', HttpStatus.BAD_REQUEST);
-    }
-
-    const user = await this.userService.getUserByEmail(email);
-    if (!user) {
-      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
-    }
-
-    if (!user.isVerified) {
-      throw new HttpException('Please verify your email first', HttpStatus.FORBIDDEN);
-    }
-
-    const isPasswordValid = await this.userService.comparePassword(password, user.password);
-    if (!isPasswordValid) {
-      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
-    }
-
-    const token = generateToken({ id: user.id, email: user.email });
-
-    return {
-      message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name
+      if (!email || !password) {
+        return res.status(400).json({ message: 'Missing email or password' });
       }
-    };
-  }
 
-  @Post('reset-password')
-  async resetPassword(@Body() body: { email: string; newPassword: string; code: string }) {
-    const { email, newPassword, code } = body;
-
-    const isValid = await this.verificationService.verifyCode(email, code, 'reset-password');
-    if (!isValid) {
-      throw new HttpException('验证码无效或已过期', HttpStatus.BAD_REQUEST);
-    }
-
-    await this.userService.updateUser(email, { password: await hashPassword(newPassword) });
-    return { message: '密码重置成功' };
-  }
-
-  @Post('verify-email')
-  async verifyEmail(@Body() body: Pick<UserRequestBody, 'email' | 'code'>): Promise<{ message: string }> {
-    const { email, code } = body;
-
-    if (!email || !code) {
-      throw new HttpException('Missing email or verification code', HttpStatus.BAD_REQUEST);
-    }
-
-    const user = await this.userService.getUserByEmail(email);
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-
-    if (user.isVerified) {
-      throw new HttpException('Email already verified', HttpStatus.BAD_REQUEST);
-    }
-
-    if (user.verificationCode !== code) {
-      throw new HttpException('Invalid verification code', HttpStatus.BAD_REQUEST);
-    }
-
-    await this.userService.updateUser(user.id, { isVerified: true, verificationCode: undefined });
-
-    return { message: 'Email verified successfully' };
-  }
-
-  @Post('profile')
-  async getProfile(@Request() req: RequestWithUser): Promise<{ user: Partial<User> }> {
-    if (!req.user) {
-      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
-    }
-
-    const user = await UserService.getUserById(req.user.id);
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name
+      const user = await this.userService.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ message: 'Invalid credentials' });
       }
-    };
+
+      if (!user.isVerified) {
+        return res.status(403).json({ message: 'Please verify your email first' });
+      }
+
+      const isPasswordValid = await comparePassword(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+
+      const token = generateToken({ id: user.id, email: user.email });
+
+      res.json({
+        message: 'Login successful',
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name
+        }
+      });
+    } catch (error) {
+      console.error('Failed to login:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   }
 
-  @Post('profile/update')
-  async updateProfile(
-    @Request() req: RequestWithUser,
-    @Body() body: Pick<UserRequestBody, 'name'>
-  ): Promise<{ message: string; user: Partial<User> }> {
-    if (!req.user) {
-      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
-    }
+  async verifyEmail(req: Request, res: Response) {
+    try {
+      const { email, code } = req.body;
 
-    const { name } = body;
-    if (!name) {
-      throw new HttpException('Name is required', HttpStatus.BAD_REQUEST);
-    }
-
-    const updatedUser = await this.userService.updateUser(req.user.id, { name });
-    if (!updatedUser) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-
-    return {
-      message: 'Profile updated successfully',
-      user: {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        name: updatedUser.name
+      if (!email || !code) {
+        return res.status(400).json({ message: 'Missing email or verification code' });
       }
-    };
+
+      const user = await this.userService.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      if (user.isVerified) {
+        return res.status(400).json({ message: 'Email already verified' });
+      }
+
+      const isValid = await this.verificationService.verifyCode(email, code, 'register');
+      if (!isValid) {
+        return res.status(400).json({ message: 'Invalid verification code' });
+      }
+
+      const updatedUser = await this.userService.updateUser(user.id, { isVerified: true });
+      if (!updatedUser) {
+        return res.status(500).json({ message: 'Failed to update user' });
+      }
+
+      res.json({ message: 'Email verified successfully' });
+    } catch (error) {
+      console.error('Failed to verify email:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  async getProfile(req: RequestWithUser, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const user = await this.userService.getUserById(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name
+        }
+      });
+    } catch (error) {
+      console.error('Failed to get profile:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  async updateProfile(req: RequestWithUser, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const { name } = req.body;
+      if (!name) {
+        return res.status(400).json({ message: 'Name is required' });
+      }
+
+      const user = await this.userService.updateUser(req.user.id, { name });
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      res.json({
+        message: 'Profile updated successfully',
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name
+        }
+      });
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   }
 } 

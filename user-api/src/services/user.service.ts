@@ -1,7 +1,6 @@
 import { User, UserModel } from '../models/user.model';
 import bcrypt from 'bcrypt';
 import { DatabaseError } from '../utils/errors';
-import { UserRepository } from '../repositories/user.repository';
 import { Model } from 'mongoose';
 
 export class UserService {
@@ -58,9 +57,9 @@ export class UserService {
     return bcrypt.compare(password, hash);
   }
 
-  static async validateUser(email: string, password: string): Promise<User | null> {
+  async validateUser(email: string, password: string): Promise<User | null> {
     try {
-      const user = await UserRepository.findByEmail(email);
+      const user = await this.getUserByEmail(email);
       if (!user) return null;
 
       const isValid = await bcrypt.compare(password, user.password);
@@ -70,25 +69,31 @@ export class UserService {
     }
   }
 
-  static async deleteUser(id: string): Promise<boolean> {
+  async deleteUser(id: string): Promise<boolean> {
     try {
-      return await UserRepository.delete(id);
+      const result = await this.userModel.deleteOne({ _id: id });
+      return result.deletedCount > 0;
     } catch (error) {
       throw new DatabaseError('Failed to delete user', error);
     }
   }
 
-  static async getUserById(id: string): Promise<User | null> {
+  async getUserById(id: string): Promise<User | null> {
     try {
-      return await UserRepository.findById(id);
+      return await this.userModel.findById(id);
     } catch (error) {
       throw new DatabaseError('Failed to get user', error);
     }
   }
 
-  static async getAllUsers(page: number = 1, limit: number = 10): Promise<{ users: User[]; total: number }> {
+  async getAllUsers(page: number = 1, limit: number = 10): Promise<{ users: User[]; total: number }> {
     try {
-      return await UserRepository.findAll(page, limit);
+      const skip = (page - 1) * limit;
+      const [users, total] = await Promise.all([
+        this.userModel.find().skip(skip).limit(limit),
+        this.userModel.countDocuments()
+      ]);
+      return { users, total };
     } catch (error) {
       throw new DatabaseError('Failed to get users', error);
     }
