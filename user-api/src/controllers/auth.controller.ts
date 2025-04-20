@@ -143,7 +143,7 @@ export class AuthController {
         throw new ValidationError('Email is already verified');
       }
 
-      await this.verificationService.sendVerificationEmail(user);
+      await this.verificationService.generateCode('register', user.email);
 
       res.json({ message: 'Verification email sent' });
     } catch (error) {

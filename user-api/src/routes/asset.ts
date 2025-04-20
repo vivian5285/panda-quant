@@ -5,7 +5,7 @@ const router = Router();
 const assetController = new AssetController();
 
 router.get('/', assetController.getAssets);
-router.post('/', assetController.createAsset);
+router.post('/', assetController.addAsset);
 router.put('/:id', assetController.updateAsset);
 router.delete('/:id', assetController.deleteAsset);
 
