@@ -15,7 +15,7 @@ services:
       - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@mongodb:27017/panda-quant
       - REDIS_URL=redis://redis:6379
     networks:
-      - panda-quant-network
+      - deploy_panda-quant-network
     depends_on:
       mongodb:
         condition: service_healthy
@@ -26,7 +26,8 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 30s
 
   admin-api:
     build:
@@ -41,7 +42,7 @@ services:
       - MONGODB_URI=mongodb://${DB_USER}:${DB_PASSWORD}@mongodb:27017/panda-quant
       - REDIS_URL=redis://redis:6379
     networks:
-      - panda-quant-network
+      - deploy_panda-quant-network
     depends_on:
       mongodb:
         condition: service_healthy
@@ -52,7 +53,8 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 30s
 
   mongodb:
     image: mongo:latest
@@ -62,7 +64,7 @@ services:
     volumes:
       - mongodb_data:/data/db
     networks:
-      - panda-quant-network
+      - deploy_panda-quant-network
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
@@ -70,7 +72,8 @@ services:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 30s
 
   redis:
     image: redis:alpine
@@ -80,15 +83,16 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - panda-quant-network
+      - deploy_panda-quant-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 30s
 
 networks:
-  panda-quant-network:
+  deploy_panda-quant-network:
     driver: bridge
 
 volumes:

@@ -7,23 +7,20 @@ services:
     container_name: panda-quant-nginx-user
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./nginx/user.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./nginx/letsencrypt:/etc/letsencrypt
-      - ./nginx/www:/var/www/certbot
     networks:
-      - panda-quant-network
+      - deploy_panda-quant-network
     depends_on:
       user-ui:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "nginx", "-t"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
 
   # Certbot 用于 SSL 证书
   certbot-user:
@@ -33,7 +30,7 @@ services:
       - ./nginx/letsencrypt:/etc/letsencrypt
       - ./nginx/www:/var/www/certbot
     networks:
-      - panda-quant-network
+      - deploy_panda-quant-network
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
   # 用户前端
@@ -47,18 +44,18 @@ services:
     environment:
       - VITE_API_URL=http://user-api:3001
     networks:
-      - panda-quant-network
+      - deploy_panda-quant-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 30s
 
 networks:
-  panda-quant-network:
-    external: true
+  deploy_panda-quant-network:
+    driver: bridge
 
 volumes:
   nginx_letsencrypt:
