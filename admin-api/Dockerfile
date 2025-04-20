@@ -20,7 +20,7 @@ RUN npm install -g ts-node typescript && \
 COPY . .
 
 # 暴露端口
-EXPOSE 3000
+EXPOSE 3002
 
 # 启动应用
 CMD ["ts-node", "index.ts"] 
