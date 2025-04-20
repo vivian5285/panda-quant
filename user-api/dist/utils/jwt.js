@@ -10,6 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 function generateToken(user, expiresIn = '24h') {
     const payload = {
         id: user._id.toString(),
+        userId: user._id.toString(),
         email: user.email
     };
     return jsonwebtoken_1.default.sign(payload, JWT_SECRET, { expiresIn });

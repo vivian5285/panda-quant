@@ -2,9 +2,25 @@ import { Controller, Post, Body, HttpException, HttpStatus, Request, Response } 
 import { UserService } from '../services/user.service';
 import { VerificationService } from '../services/verification.service';
 import { User, UserModel } from '../models/user.model';
-import { DatabaseError } from '../utils/errors';
+import { DatabaseError, ValidationError } from '../utils/errors';
 import { sendVerificationEmail } from '../utils/email';
-import { generateToken } from '../utils/auth';
+import { generateToken, hashPassword, comparePassword } from '../utils/auth';
+import { validateEmail, validatePassword } from '../utils/validation';
+import bcrypt from 'bcrypt';
+
+interface RequestWithUser extends Request {
+  user?: {
+    id: string;
+    email: string;
+  };
+}
+
+interface UserRequestBody {
+  email: string;
+  password: string;
+  name: string;
+  code?: string;
+}
 
 @Controller('users')
 export class UserController {
@@ -31,124 +47,169 @@ export class UserController {
   }
 
   @Post('register')
-  async register(req: Request, res: Response) {
-    try {
-      const { email, password, username } = req.body;
+  async register(@Body() body: UserRequestBody): Promise<{ message: string; user: Partial<User> }> {
+    const { email, password, name } = body;
 
-      // 检查邮箱是否已存在
-      const existingUser = await UserModel.findByEmail(email);
-      if (existingUser) {
-        return res.status(400).json({ message: 'Email already exists' });
-      }
-
-      // 创建新用户
-      const user = await UserModel.create({
-        email,
-        password,
-        username,
-        role: 'user',
-        status: 'active',
-        isAdmin: false,
-        permissions: {},
-        isVerified: false
-      });
-
-      // 生成验证码
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24小时后过期
-
-      // 更新用户验证信息
-      await UserModel.updateVerificationCode(user._id, verificationCode, verificationCodeExpires);
-
-      // 发送验证邮件
-      await sendVerificationEmail(email, verificationCode);
-
-      // 生成 JWT token
-      const token = generateToken(user._id);
-
-      res.status(201).json({
-        message: 'User registered successfully',
-        token,
-        user: {
-          id: user._id,
-          email: user.email,
-          username: user.username,
-          isVerified: user.isVerified
-        }
-      });
-    } catch (error) {
-      if (error instanceof DatabaseError) {
-        res.status(400).json({ message: error.message });
-      } else {
-        console.error('Registration error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-      }
+    if (!email || !password || !name) {
+      throw new HttpException('Missing required fields', HttpStatus.BAD_REQUEST);
     }
+
+    if (!validateEmail(email)) {
+      throw new HttpException('Invalid email format', HttpStatus.BAD_REQUEST);
+    }
+
+    if (!validatePassword(password)) {
+      throw new HttpException('Password must be at least 8 characters long', HttpStatus.BAD_REQUEST);
+    }
+
+    const existingUser = await this.userService.getUserByEmail(email);
+    if (existingUser) {
+      throw new HttpException('Email already registered', HttpStatus.CONFLICT);
+    }
+
+    const hashedPassword = await hashPassword(password);
+    const verificationCode = Math.random().toString(36).substring(2, 8);
+
+    const user = await this.userService.createUser({
+      email,
+      password: hashedPassword,
+      name,
+      verificationCode,
+      isVerified: false
+    });
+
+    await sendVerificationEmail(email, verificationCode);
+
+    return {
+      message: 'User registered successfully',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name
+      }
+    };
   }
 
   @Post('login')
-  async login(@Body() body: { email: string; password: string }) {
+  async login(@Body() body: Pick<UserRequestBody, 'email' | 'password'>): Promise<{ message: string; token: string; user: Partial<User> }> {
     const { email, password } = body;
 
-    // 验证用户
-    const user = await this.userService.validateUser(email, password);
-    if (!user) {
-      throw new HttpException('邮箱或密码错误', HttpStatus.UNAUTHORIZED);
+    if (!email || !password) {
+      throw new HttpException('Missing email or password', HttpStatus.BAD_REQUEST);
     }
 
-    return { message: '登录成功', user };
+    const user = await this.userService.getUserByEmail(email);
+    if (!user) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+
+    if (!user.isVerified) {
+      throw new HttpException('Please verify your email first', HttpStatus.FORBIDDEN);
+    }
+
+    const isPasswordValid = await this.userService.comparePassword(password, user.password);
+    if (!isPasswordValid) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+
+    const token = generateToken({ id: user.id, email: user.email });
+
+    return {
+      message: 'Login successful',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name
+      }
+    };
   }
 
   @Post('reset-password')
   async resetPassword(@Body() body: { email: string; newPassword: string; code: string }) {
     const { email, newPassword, code } = body;
 
-    // 验证验证码
     const isValid = await this.verificationService.verifyCode(email, code, 'reset-password');
     if (!isValid) {
       throw new HttpException('验证码无效或已过期', HttpStatus.BAD_REQUEST);
     }
 
-    // 重置密码
-    await this.userService.resetPassword(email, newPassword);
+    await this.userService.updateUser(email, { password: await hashPassword(newPassword) });
     return { message: '密码重置成功' };
   }
 
-  async verifyEmail(req: Request, res: Response) {
-    try {
-      const { email, code } = req.body;
-      const user = await UserModel.findByEmail(email);
-      
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
+  @Post('verify-email')
+  async verifyEmail(@Body() body: Pick<UserRequestBody, 'email' | 'code'>): Promise<{ message: string }> {
+    const { email, code } = body;
 
-      if (user.isVerified) {
-        return res.status(400).json({ message: 'Email already verified' });
-      }
-
-      if (!user.verificationCode || !user.verificationCodeExpires) {
-        return res.status(400).json({ message: 'No verification code found' });
-      }
-
-      if (user.verificationCode !== code) {
-        return res.status(400).json({ message: 'Invalid verification code' });
-      }
-
-      if (user.verificationCodeExpires < new Date()) {
-        return res.status(400).json({ message: 'Verification code expired' });
-      }
-
-      await UserModel.verifyEmail(user._id);
-
-      res.json({ message: 'Email verified successfully' });
-    } catch (error) {
-      if (error instanceof DatabaseError) {
-        res.status(400).json({ message: error.message });
-      } else {
-        console.error('Verification error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-      }
+    if (!email || !code) {
+      throw new HttpException('Missing email or verification code', HttpStatus.BAD_REQUEST);
     }
+
+    const user = await this.userService.getUserByEmail(email);
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (user.isVerified) {
+      throw new HttpException('Email already verified', HttpStatus.BAD_REQUEST);
+    }
+
+    if (user.verificationCode !== code) {
+      throw new HttpException('Invalid verification code', HttpStatus.BAD_REQUEST);
+    }
+
+    await this.userService.updateUser(user.id, { isVerified: true, verificationCode: undefined });
+
+    return { message: 'Email verified successfully' };
+  }
+
+  @Post('profile')
+  async getProfile(@Request() req: RequestWithUser): Promise<{ user: Partial<User> }> {
+    if (!req.user) {
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+
+    const user = await UserService.getUserById(req.user.id);
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name
+      }
+    };
+  }
+
+  @Post('profile/update')
+  async updateProfile(
+    @Request() req: RequestWithUser,
+    @Body() body: Pick<UserRequestBody, 'name'>
+  ): Promise<{ message: string; user: Partial<User> }> {
+    if (!req.user) {
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+
+    const { name } = body;
+    if (!name) {
+      throw new HttpException('Name is required', HttpStatus.BAD_REQUEST);
+    }
+
+    const updatedUser = await this.userService.updateUser(req.user.id, { name });
+    if (!updatedUser) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    return {
+      message: 'Profile updated successfully',
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name
+      }
+    };
   }
 } 

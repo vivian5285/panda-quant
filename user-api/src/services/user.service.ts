@@ -1,61 +1,96 @@
-import { User } from '../models/user.model';
+import { User, UserModel } from '../models/user.model';
+import bcrypt from 'bcrypt';
+import { DatabaseError } from '../utils/errors';
 import { UserRepository } from '../repositories/user.repository';
-import { Injectable } from '@nestjs/common';
-import { db } from '../config/database';
-import { hashPassword, comparePassword } from '../utils/password';
+import { Model } from 'mongoose';
 
-@Injectable()
 export class UserService {
-  private userRepository: UserRepository;
-
-  constructor() {
-    this.userRepository = new UserRepository();
-  }
+  private userModel = UserModel;
 
   async getUserByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findByEmail(email);
-  }
-
-  async createUser(email: string, password: string) {
-    const hashedPassword = await hashPassword(password);
-    const user = {
-      email,
-      password: hashedPassword,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    const result = await db.collection('users').insertOne(user);
-    return { ...user, _id: result.insertedId };
-  }
-
-  async updateUser(id: string, userData: Partial<User>): Promise<User | null> {
-    return this.userRepository.update(id, userData);
-  }
-
-  async deleteUser(id: string): Promise<boolean> {
-    return this.userRepository.delete(id);
-  }
-
-  async validateUser(email: string, password: string) {
-    const user = await this.getUserByEmail(email);
-    if (!user) {
-      return null;
+    try {
+      return await this.userModel.findOne({ email });
+    } catch (error) {
+      throw new DatabaseError('Error finding user by email');
     }
-    
-    const isValid = await comparePassword(password, user.password);
-    if (!isValid) {
-      return null;
-    }
-    
-    return user;
   }
 
-  async resetPassword(email: string, newPassword: string) {
-    const hashedPassword = await hashPassword(newPassword);
-    await db.collection('users').updateOne(
-      { email },
-      { $set: { password: hashedPassword, updatedAt: new Date() } }
-    );
+  async createUser(userData: Partial<User>): Promise<User> {
+    try {
+      // Hash password before saving
+      if (userData.password) {
+        const salt = await bcrypt.genSalt(10);
+        userData.password = await bcrypt.hash(userData.password, salt);
+      }
+      
+      const user = new this.userModel(userData);
+      return await user.save();
+    } catch (error) {
+      throw new DatabaseError('Error creating user');
+    }
+  }
+
+  async updateUser(id: string, updateData: Partial<User>): Promise<User | null> {
+    try {
+      return await this.userModel.findByIdAndUpdate(
+        id,
+        { $set: updateData },
+        { new: true }
+      );
+    } catch (error) {
+      throw new DatabaseError('Error updating user');
+    }
+  }
+
+  async verifyEmail(email: string): Promise<User | null> {
+    try {
+      return await this.userModel.findOneAndUpdate(
+        { email },
+        { $set: { isEmailVerified: true } },
+        { new: true }
+      );
+    } catch (error) {
+      throw new DatabaseError('Error verifying email');
+    }
+  }
+
+  async comparePassword(password: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(password, hash);
+  }
+
+  static async validateUser(email: string, password: string): Promise<User | null> {
+    try {
+      const user = await UserRepository.findByEmail(email);
+      if (!user) return null;
+
+      const isValid = await bcrypt.compare(password, user.password);
+      return isValid ? user : null;
+    } catch (error) {
+      throw new DatabaseError('Failed to validate user', error);
+    }
+  }
+
+  static async deleteUser(id: string): Promise<boolean> {
+    try {
+      return await UserRepository.delete(id);
+    } catch (error) {
+      throw new DatabaseError('Failed to delete user', error);
+    }
+  }
+
+  static async getUserById(id: string): Promise<User | null> {
+    try {
+      return await UserRepository.findById(id);
+    } catch (error) {
+      throw new DatabaseError('Failed to get user', error);
+    }
+  }
+
+  static async getAllUsers(page: number = 1, limit: number = 10): Promise<{ users: User[]; total: number }> {
+    try {
+      return await UserRepository.findAll(page, limit);
+    } catch (error) {
+      throw new DatabaseError('Failed to get users', error);
+    }
   }
 } 

@@ -53,6 +53,13 @@ const userSchema = new mongoose_1.Schema({
         required: true,
         trim: true
     },
+    username: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+        lowercase: true
+    },
     isVerified: {
         type: Boolean,
         default: false
@@ -62,6 +69,7 @@ const userSchema = new mongoose_1.Schema({
 });
 // 删除所有索引并重新创建
 userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ username: 1 }, { unique: true });
 const User = mongoose_1.default.model('User', userSchema);
 class UserModel {
     async createUser(userData) {

@@ -1,69 +1,64 @@
-import { User } from '../models/user.model';
-import { db } from '../config/database';
-import crypto from 'crypto';
-import { ObjectId } from 'mongodb';
-import { IUser } from '../models/user.model';
-import { Document, ModifyResult } from 'mongoose';
-import { WithId } from 'mongodb';
+import { UserModel, User } from '../models/user.model';
+import { WithId, Document } from 'mongodb';
+import { DatabaseError } from '../utils/errors';
 
 export class UserRepository {
-  private readonly collection = db.collection('users');
-
-  async findByEmail(email: string): Promise<User | null> {
-    const user = await this.collection.findOne({ email });
-    return user as User | null;
+  static async create(userData: Partial<User>): Promise<User> {
+    try {
+      const user = new UserModel(userData);
+      return await user.save();
+    } catch (error) {
+      throw new DatabaseError('Failed to create user', error);
+    }
   }
 
-  async create(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
-    const now = new Date();
-    const newUser: User = {
-      ...user,
-      id: crypto.randomUUID(),
-      createdAt: now,
-      updatedAt: now
-    };
-    await this.collection.insertOne(newUser);
-    return newUser;
+  static async findByEmail(email: string): Promise<User | null> {
+    try {
+      return await UserModel.findOne({ email });
+    } catch (error) {
+      throw new DatabaseError('Failed to find user by email', error);
+    }
   }
 
-  async update(id: string, user: Partial<User>): Promise<User | null> {
-    const updateData = {
-      ...user,
-      updatedAt: new Date()
-    };
-    const result = await this.collection.findOneAndUpdate(
-      { id },
-      { $set: updateData },
-      { returnDocument: 'after' }
-    );
-    return result as User | null;
+  static async findById(id: string): Promise<User | null> {
+    try {
+      return await UserModel.findById(id);
+    } catch (error) {
+      throw new DatabaseError('Failed to find user by id', error);
+    }
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.collection.deleteOne({ id });
-    return result.deletedCount === 1;
+  static async update(id: string, userData: Partial<User>): Promise<User | null> {
+    try {
+      return await UserModel.findByIdAndUpdate(
+        id,
+        { $set: userData },
+        { new: true, runValidators: true }
+      );
+    } catch (error) {
+      throw new DatabaseError('Failed to update user', error);
+    }
   }
 
-  async updateUser(id: string, userData: Partial<IUser>): Promise<User | null> {
-    const result = await db.collection('users').findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      { $set: userData },
-      { returnDocument: 'after' }
-    );
-    
-    if (!result || !result.value) return null;
-    
-    const doc = result.value as WithId<Document>;
-    return {
-      id: doc._id.toString(),
-      email: doc.email as string,
-      password: doc.password as string,
-      name: (doc.name as string) || '',
-      isVerified: (doc.isVerified as boolean) || false,
-      verificationCode: doc.verificationCode as string | undefined,
-      verificationCodeExpires: doc.verificationCodeExpires as Date | undefined,
-      createdAt: doc.createdAt as Date,
-      updatedAt: doc.updatedAt as Date
-    };
+  static async delete(id: string): Promise<boolean> {
+    try {
+      const result = await UserModel.findByIdAndDelete(id);
+      return !!result;
+    } catch (error) {
+      throw new DatabaseError('Failed to delete user', error);
+    }
+  }
+
+  static async findAll(page: number = 1, limit: number = 10): Promise<{ users: User[]; total: number }> {
+    try {
+      const skip = (page - 1) * limit;
+      const [users, total] = await Promise.all([
+        UserModel.find().skip(skip).limit(limit).select('-password'),
+        UserModel.countDocuments()
+      ]);
+      return { users, total };
+    } catch (error) {
+      throw new DatabaseError('Failed to find users', error);
+    }
   }
 } 

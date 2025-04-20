@@ -14,7 +14,7 @@ class VerificationController {
                 if (type !== 'register' && type !== 'reset-password') {
                     throw new errors_1.ValidationError('Invalid verification type');
                 }
-                await this.verificationService.sendVerificationCode(email, type);
+                await this.verificationService.sendVerificationEmail(email, type);
                 res.json({
                     success: true,
                     message: 'Verification code sent successfully'

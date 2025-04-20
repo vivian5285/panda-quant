@@ -22,12 +22,14 @@ const initTestUser = async () => {
         }
         const userModel = new User_1.UserModel();
         const hashedPassword = await (0, password_1.hashPassword)('PandaQuant123!');
-        await userModel.createUser({
-            email: 'test@pandaquant.com',
-            password: hashedPassword,
+        const testUser = {
+            email: 'test@example.com',
+            password: 'password123',
             name: 'Test User',
+            username: 'testuser',
             isVerified: true
-        });
+        };
+        await userModel.createUser(testUser);
         console.log('Test user created successfully');
         process.exit(0);
     }

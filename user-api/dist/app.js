@@ -17,13 +17,17 @@ app.use((0, helmet_1.default)());
 app.use((0, morgan_1.default)('dev'));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
+// 根路由
+app.get('/', (req, res) => {
+    res.json({ message: 'Welcome to Panda Quant API' });
+});
 // 路由
 app.use('/api/auth', auth_routes_1.default);
 app.use('/api/verification', verification_routes_1.default);
 // 错误处理
 app.use(error_middleware_1.errorHandler);
 // 启动服务器
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

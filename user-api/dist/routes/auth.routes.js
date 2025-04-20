@@ -6,6 +6,7 @@ const authenticate_1 = require("../middleware/authenticate");
 const router = (0, express_1.Router)();
 const authController = new auth_controller_1.AuthController();
 // Public routes
+router.post('/send-code', authController.sendVerificationCode);
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/verify-email', authController.verifyEmail);

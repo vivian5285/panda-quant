@@ -1,11 +1,12 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import { Schema, model, Document, SchemaTypes, CallbackError } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { DatabaseError } from '../utils/errors';
+import { validateEmail, validatePassword } from '../utils/validation';
 
-export interface IUser extends Document {
+export interface User extends Document {
   email: string;
   password: string;
-  username: string;
+  name: string;
   role: string;
   status: string;
   isAdmin: boolean;
@@ -13,26 +14,74 @@ export interface IUser extends Document {
   isVerified: boolean;
   verificationCode?: string;
   verificationCodeExpires?: Date;
+  isEmailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const userSchema = new Schema<IUser>({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  username: { type: String, required: true },
-  role: { type: String, default: 'user' },
-  status: { type: String, default: 'active' },
-  isAdmin: { type: Boolean, default: false },
-  permissions: { type: Schema.Types.Mixed, default: {} },
-  isVerified: { type: Boolean, default: false },
-  verificationCode: { type: String },
-  verificationCodeExpires: { type: Date }
-}, {
-  timestamps: true
-});
+const userSchema = new Schema<User>(
+  {
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
+      unique: true,
+      validate: {
+        validator: validateEmail,
+        message: 'Invalid email format'
+      }
+    },
+    password: {
+      type: String,
+      required: [true, 'Password is required'],
+      validate: {
+        validator: validatePassword,
+        message: 'Password must be at least 8 characters long'
+      }
+    },
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    role: {
+      type: String,
+      default: 'user'
+    },
+    status: {
+      type: String,
+      default: 'active'
+    },
+    isAdmin: {
+      type: Boolean,
+      default: false
+    },
+    permissions: {
+      type: SchemaTypes.Mixed,
+      default: {}
+    },
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
+    verificationCode: {
+      type: String,
+      default: undefined
+    },
+    verificationCodeExpires: {
+      type: Date,
+      default: undefined
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false
+    }
+  },
+  {
+    timestamps: true
+  }
+);
 
-// 密码加密中间件
+// Hash password before saving
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
@@ -41,28 +90,24 @@ userSchema.pre('save', async function(next) {
     this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
-    next(error);
+    next(error as CallbackError);
   }
 });
 
-// 验证密码方法
+// Method to compare password
 userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
-  try {
-    return await bcrypt.compare(candidatePassword, this.password);
-  } catch (error) {
-    throw new DatabaseError('Password comparison failed');
-  }
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
-export const UserModel = mongoose.model<IUser>('User', userSchema);
+export const UserModel = model<User>('User', userSchema);
 
 // 静态方法
 export class User {
-  static async findByEmail(email: string): Promise<IUser | null> {
+  static async findByEmail(email: string): Promise<User | null> {
     return UserModel.findOne({ email });
   }
 
-  static async create(userData: Partial<IUser>): Promise<IUser> {
+  static async create(userData: Partial<User>): Promise<User> {
     try {
       return await UserModel.create(userData);
     } catch (error) {

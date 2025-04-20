@@ -10,20 +10,35 @@ class AuthController {
     constructor() {
         this.register = async (req, res) => {
             try {
-                const { email, password, name } = req.body;
-                if (!email || !password || !name) {
+                const { email, password, username, name, code } = req.body;
+                if (!email || !password || !username || !name || !code) {
                     throw new errors_1.ValidationError('Missing required fields');
+                }
+                // 验证验证码
+                const isValid = await this.verificationService.verifyCode('register', email, code);
+                if (!isValid) {
+                    throw new errors_1.ValidationError('Invalid or expired verification code');
                 }
                 const hashedPassword = await (0, password_1.hashPassword)(password);
                 const user = await this.userModel.createUser({
                     email,
                     password: hashedPassword,
+                    username,
                     name,
-                    isVerified: false
+                    isVerified: true // 验证码验证通过后直接设置为已验证
                 });
-                await this.verificationService.sendVerificationEmail(user);
+                const token = (0, jwt_1.generateToken)(user);
                 res.status(201).json({
-                    message: 'User registered successfully. Please check your email for verification.'
+                    token,
+                    user: {
+                        id: user._id,
+                        email: user.email,
+                        username: user.username,
+                        name: user.name,
+                        isVerified: user.isVerified,
+                        createdAt: user.createdAt,
+                        updatedAt: user.updatedAt
+                    }
                 });
             }
             catch (error) {
@@ -119,9 +134,8 @@ class AuthController {
             }
         };
         this.getProfile = async (req, res) => {
-            var _a;
             try {
-                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                const userId = req.user?.id;
                 if (!userId) {
                     throw new errors_1.ValidationError('User not authenticated');
                 }
@@ -147,9 +161,8 @@ class AuthController {
             }
         };
         this.updateProfile = async (req, res) => {
-            var _a;
             try {
-                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                const userId = req.user?.id;
                 if (!userId) {
                     throw new errors_1.ValidationError('User not authenticated');
                 }
@@ -176,9 +189,8 @@ class AuthController {
             }
         };
         this.changePassword = async (req, res) => {
-            var _a;
             try {
-                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                const userId = req.user?.id;
                 if (!userId) {
                     throw new errors_1.ValidationError('User not authenticated');
                 }
@@ -243,6 +255,40 @@ class AuthController {
                 }
                 else {
                     res.status(500).json({ message: 'Internal server error' });
+                }
+            }
+        };
+        this.sendVerificationCode = async (req, res) => {
+            try {
+                const { email, type } = req.body;
+                if (!email || !type) {
+                    throw new errors_1.ValidationError('Email and type are required');
+                }
+                if (type !== 'register' && type !== 'reset-password') {
+                    throw new errors_1.ValidationError('Invalid verification type');
+                }
+                // 如果是注册,检查邮箱是否已存在
+                if (type === 'register') {
+                    const existingUser = await this.userModel.findUserByEmail(email);
+                    if (existingUser) {
+                        throw new errors_1.ValidationError('Email already registered');
+                    }
+                }
+                await this.verificationService.generateCode(type, email);
+                res.json({
+                    message: 'Verification code sent successfully'
+                });
+            }
+            catch (error) {
+                if (error instanceof errors_1.ValidationError) {
+                    res.status(400).json({ message: error.message });
+                }
+                else {
+                    console.error('Failed to send verification code:', error);
+                    res.status(500).json({
+                        message: 'Failed to send verification code',
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    });
                 }
             }
         };

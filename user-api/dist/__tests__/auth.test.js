@@ -32,7 +32,8 @@ describe('AuthController', () => {
                 body: {
                     email: 'test@example.com',
                     password: 'password123',
-                    name: 'Test User'
+                    name: 'Test User',
+                    username: 'testuser'
                 }
             };
             const res = {
@@ -46,9 +47,10 @@ describe('AuthController', () => {
             });
             const user = await userModel.findUserByEmail('test@example.com');
             expect(user).toBeTruthy();
-            expect(user === null || user === void 0 ? void 0 : user.email).toBe('test@example.com');
-            expect(user === null || user === void 0 ? void 0 : user.name).toBe('Test User');
-            expect(user === null || user === void 0 ? void 0 : user.isVerified).toBe(false);
+            expect(user?.email).toBe('test@example.com');
+            expect(user?.name).toBe('Test User');
+            expect(user?.username).toBe('testuser');
+            expect(user?.isVerified).toBe(false);
         });
         it('should not register a user with missing fields', async () => {
             const req = {
@@ -74,6 +76,7 @@ describe('AuthController', () => {
                 email: 'test@example.com',
                 password: hashedPassword,
                 name: 'Test User',
+                username: 'testuser',
                 isVerified: true
             });
         });
@@ -93,6 +96,7 @@ describe('AuthController', () => {
             expect(response.token).toBeTruthy();
             expect(response.user.email).toBe('test@example.com');
             expect(response.user.name).toBe('Test User');
+            expect(response.user.username).toBe('testuser');
         });
         it('should not login with incorrect password', async () => {
             const req = {
@@ -112,8 +116,7 @@ describe('AuthController', () => {
             });
         });
         it('should not login unverified user', async () => {
-            var _a;
-            await userModel.updateUser(((_a = (await userModel.findUserByEmail('test@example.com'))) === null || _a === void 0 ? void 0 : _a._id.toString()) || '', { isVerified: false });
+            await userModel.updateUser((await userModel.findUserByEmail('test@example.com'))?._id.toString() || '', { isVerified: false });
             const req = {
                 body: {
                     email: 'test@example.com',

@@ -20,7 +20,7 @@ export class AuthorizationError extends Error {
 }
 
 export class DatabaseError extends Error {
-  constructor(message: string) {
+  constructor(message: string, public originalError?: any) {
     super(message);
     this.name = 'DatabaseError';
   }
@@ -30,5 +30,19 @@ export class ServiceError extends Error {
   constructor(message: string, public originalError?: any) {
     super(message);
     this.name = 'ServiceError';
+  }
+}
+
+export class NotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotFoundError';
+  }
+}
+
+export class PermissionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'PermissionError';
   }
 } 
