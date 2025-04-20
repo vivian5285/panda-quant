@@ -1,27 +1,25 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-require('dotenv').config();
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+import { User } from '../models/user.model';
 
-const User = require('../models/user.model.js');
+dotenv.config();
 
-async function initAdmin() {
+async function initAdmin(): Promise<void> {
   try {
-    // 连接数据库
+    // Connect to database
     const mongoUri = process.env.MONGODB_URI || 'mongodb://admin:admin123@localhost:27017/panda-quant?authSource=admin';
-    await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
+    await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
 
-    // 检查是否已存在管理员
+    // Check if admin already exists
     const existingAdmin = await User.findOne({ role: 'admin' });
     if (existingAdmin) {
       console.log('Admin user already exists');
       process.exit(0);
     }
 
-    // 创建管理员用户
+    // Create admin user
     const hashedPassword = await bcrypt.hash('Wl528586*', 10);
     const admin = new User({
       email: 'wangjiali240@gmail.com',

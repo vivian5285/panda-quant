@@ -7,7 +7,8 @@
     "start": "ts-node index.ts",
     "dev": "nodemon",
     "build": "npx tsc",
-    "test": "jest"
+    "test": "jest",
+    "init-admin": "ts-node scripts/initAdmin.ts"
   },
   "dependencies": {
     "@types/pg": "^8.11.12",
