@@ -1,24 +1,6 @@
 version: '3.8'
 
 services:
-  # Nginx 反向代理 (管理端)
-  nginx-admin:
-    image: nginx:alpine
-    container_name: panda-quant-nginx-admin
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-    networks:
-      - panda-quant-network
-    depends_on:
-      - admin-api
-      - admin-ui
-    restart: unless-stopped
-
   # MongoDB 数据库
   mongodb:
     image: mongo:latest
@@ -66,7 +48,7 @@ services:
     ports:
       - "3002:80"
     environment:
-      - VITE_API_URL=https://pandatrade.space/api
+      - VITE_API_URL=http://admin.pandatrade.space/api
     depends_on:
       admin-api:
         condition: service_healthy
@@ -95,6 +77,7 @@ services:
       - REDIS_URI=redis://redis:6379
       - JWT_SECRET=panda_quant_secret_key_2024
       - JWT_EXPIRES_IN=24h
+      - CORS_ORIGIN=http://admin.pandatrade.space
     depends_on:
       - mongodb
       - redis
