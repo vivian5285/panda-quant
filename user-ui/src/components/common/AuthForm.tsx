@@ -301,194 +301,42 @@ const AuthForm: React.FC<AuthFormProps> = ({
   const renderField = (field: FormField) => {
     const value = formData[field.name] || '';
     const error = validationErrors[field.name];
-    const showPasswordField = field.name === 'password' || field.name === 'confirmPassword';
-    const showPasswordState = field.name === 'password' ? showPassword : showConfirmPassword;
-    const setShowPasswordState = field.name === 'password' ? setShowPassword : setShowConfirmPassword;
-
-    if (field.name === 'email' && type === 'register' && !verificationCodeSent) {
-      return (
-        <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <EmailIcon sx={{ color: '#00FFB8', fontSize: 20 }} />
-              <Typography variant="subtitle2" sx={{ color: '#666666', fontWeight: 500 }}>
-                邮箱
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Box sx={{ flex: 1 }}>
-                <PandaInput
-                  fullWidth
-                  placeholder="请输入邮箱"
-                  value={value}
-                  onChange={handleChange(field.name)}
-                  required={field.required}
-                  error={!!error}
-                  helperText={error}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      height: '48px',
-                      backgroundColor: 'rgba(0, 255, 184, 0.05)',
-                      borderRadius: '8px',
-                      '& fieldset': {
-                        borderColor: 'rgba(0, 255, 184, 0.2)',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: 'rgba(0, 255, 184, 0.4)',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#00FFB8',
-                      },
-                    },
-                    '& .MuiInputBase-input': {
-                      padding: '12px 16px',
-                      fontSize: '0.95rem',
-                    },
-                  }}
-                />
-              </Box>
-              <Button
-                variant="contained"
-                onClick={handleSendVerificationCode}
-                disabled={!!error || !formData.email || countdown > 0}
-                sx={{
-                  minWidth: '120px',
-                  height: '48px',
-                  borderRadius: '8px',
-                  backgroundColor: '#00FFB8',
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  fontSize: '0.95rem',
-                  '&:hover': {
-                    backgroundColor: '#00CC93',
-                  },
-                  '&.Mui-disabled': {
-                    backgroundColor: 'rgba(0, 255, 184, 0.2)',
-                    color: 'rgba(0, 255, 184, 0.4)',
-                  },
-                }}
-              >
-                {countdown > 0 ? `${countdown}s` : '发送验证码'}
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-      );
-    }
-
-    if (field.name === 'verificationCode') {
-      return (
-        <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <LockIcon sx={{ color: '#00FFB8', fontSize: 20 }} />
-              <Typography variant="subtitle2" sx={{ color: '#666666', fontWeight: 500 }}>
-                验证码
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#999999', ml: 'auto' }}>
-                {resendCount > 0 && `已发送 ${resendCount}/${MAX_RESEND_COUNT} 次`}
-                {resendCount >= MAX_RESEND_COUNT && lastSendTime && (
-                  <>
-                    <br />
-                    {(() => {
-                      const now = Math.floor(Date.now() / 1000);
-                      const elapsed = now - lastSendTime;
-                      const remaining = Math.max(0, UNLOCK_TIME - elapsed);
-                      const hours = Math.floor(remaining / 3600);
-                      const minutes = Math.floor((remaining % 3600) / 60);
-                      return `将在${hours}小时${minutes}分钟后解锁`;
-                    })()}
-                  </>
-                )}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Box sx={{ flex: 1 }}>
-                <PandaInput
-                  fullWidth
-                  placeholder="请输入6位验证码"
-                  value={value}
-                  onChange={handleChange(field.name)}
-                  required={field.required}
-                  error={!!error}
-                  helperText={error}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      height: '48px',
-                      backgroundColor: 'rgba(0, 255, 184, 0.05)',
-                      borderRadius: '8px',
-                      '& fieldset': {
-                        borderColor: 'rgba(0, 255, 184, 0.2)',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: 'rgba(0, 255, 184, 0.4)',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#00FFB8',
-                      },
-                    },
-                    '& .MuiInputBase-input': {
-                      padding: '12px 16px',
-                      fontSize: '0.95rem',
-                    },
-                  }}
-                />
-              </Box>
-              <Button
-                variant="outlined"
-                onClick={handleSendVerificationCode}
-                disabled={countdown > 0 || resendCount >= MAX_RESEND_COUNT}
-                sx={{
-                  minWidth: '120px',
-                  height: '48px',
-                  borderRadius: '8px',
-                  borderColor: '#00FFB8',
-                  color: '#00FFB8',
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  fontSize: '0.95rem',
-                  '&:hover': {
-                    borderColor: '#00CC93',
-                    color: '#00CC93',
-                    backgroundColor: 'rgba(0, 255, 184, 0.05)',
-                  },
-                  '&.Mui-disabled': {
-                    borderColor: 'rgba(0, 255, 184, 0.2)',
-                    color: 'rgba(0, 255, 184, 0.4)',
-                  },
-                }}
-              >
-                {countdown > 0 ? `${countdown}s` : resendCount >= MAX_RESEND_COUNT ? '已达上限' : '重新发送'}
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-      );
-    }
 
     return (
       <Box key={field.name} sx={{ mb: 2 }}>
         <PandaInput
-          fullWidth
-          placeholder={field.label}
+          name={field.name}
+          label={field.label}
+          type={field.type}
           value={value}
-          onChange={handleChange(field.name)}
-          required={field.required}
+          onChange={(e) => handleChange(field.name)(e.target.value)}
           error={!!error}
           helperText={error}
-          type={showPasswordField ? (showPasswordState ? 'text' : 'password') : field.type}
+          required={field.required}
           icon={field.icon}
           endIcon={
-            showPasswordField ? (
+            (field.type === 'password' && field.name === 'password') ? (
               <IconButton
-                onClick={() => setShowPasswordState(!showPasswordState)}
+                onClick={() => setShowPassword(!showPassword)}
                 edge="end"
-                sx={{ color: 'text.secondary' }}
               >
-                {showPasswordState ? <VisibilityOff /> : <Visibility />}
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            ) : (field.type === 'password' && field.name === 'confirmPassword') ? (
+              <IconButton
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                edge="end"
+              >
+                {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
               </IconButton>
             ) : field.action
           }
+          sx={{
+            '& .MuiInputBase-root': {
+              height: '48px',
+              borderRadius: '8px',
+            },
+          }}
         />
       </Box>
     );

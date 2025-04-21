@@ -45,6 +45,7 @@ const PandaInput: React.FC<PandaInputProps> = ({
 
   const input = (
     <TextField
+      variant="outlined"
       label={label}
       value={value}
       onChange={onChange}
@@ -65,7 +66,7 @@ const PandaInput: React.FC<PandaInputProps> = ({
         ) : undefined,
         sx: {
           height: 48,
-          borderRadius: theme.shape.borderRadius,
+          borderRadius: '8px',
           backgroundColor: theme.palette.background.paper,
           '&:hover': {
             backgroundColor: theme.palette.action.hover,
@@ -79,6 +80,7 @@ const PandaInput: React.FC<PandaInputProps> = ({
         '& .MuiOutlinedInput-root': {
           '& fieldset': {
             borderColor: theme.palette.divider,
+            borderRadius: '8px',
           },
           '&:hover fieldset': {
             borderColor: theme.palette.primary.main,
@@ -86,6 +88,16 @@ const PandaInput: React.FC<PandaInputProps> = ({
           '&.Mui-focused fieldset': {
             borderColor: theme.palette.primary.main,
           },
+        },
+        '& .MuiInputLabel-root': {
+          color: theme.palette.text.secondary,
+          '&.Mui-focused': {
+            color: theme.palette.primary.main,
+          },
+        },
+        '& .MuiInputBase-input': {
+          padding: '12px 16px',
+          fontSize: '0.95rem',
         },
         ...sx,
       }}

@@ -49,8 +49,10 @@ const Login: React.FC = () => {
     try {
       if (activeTab === 0) {
         await login(data.email, data.password);
-      } else {
+      } else if (activeTab === 1) {
         await loginWithWallet();
+      } else {
+        await login(data.email, data.password);
       }
       navigate('/dashboard');
     } catch (err) {
@@ -257,7 +259,7 @@ const Login: React.FC = () => {
           </Paper>
         </Box>
       </Container>
-      <ToastContainer position="bottom-right" />
+      <ToastContainer position="top-right" autoClose={3000} />
     </Box>
   );
 };
