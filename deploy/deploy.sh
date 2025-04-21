@@ -39,7 +39,9 @@ print_message "创建必要的目录..."
 mkdir -p /etc/nginx/sites-available
 mkdir -p /etc/nginx/sites-enabled
 mkdir -p /etc/letsencrypt/live/admin.pandatrade.space
+mkdir -p /etc/letsencrypt/live/admin-api.pandatrade.space
 mkdir -p /etc/letsencrypt/live/pandatrade.space
+mkdir -p /etc/letsencrypt/live/api.pandatrade.space
 
 # 复制Nginx主配置文件
 print_message "复制Nginx主配置文件..."
@@ -63,10 +65,16 @@ nginx -t
 print_message "重启Nginx服务..."
 systemctl restart nginx
 
+# 安装Certbot
+print_message "安装Certbot..."
+if ! command -v certbot &> /dev/null; then
+    apt-get update
+    apt-get install -y certbot python3-certbot-nginx
+fi
+
 # 获取SSL证书
 print_message "获取SSL证书..."
-certbot --nginx -d admin.pandatrade.space -d admin-api.pandatrade.space --non-interactive --agree-tos --email admin@pandatrade.space
-certbot --nginx -d pandatrade.space -d api.pandatrade.space --non-interactive --agree-tos --email admin@pandatrade.space
+certbot --nginx -d admin.pandatrade.space -d admin-api.pandatrade.space -d pandatrade.space -d api.pandatrade.space --non-interactive --agree-tos --email admin@pandatrade.space
 
 # 设置证书自动续期
 print_message "设置证书自动续期..."
