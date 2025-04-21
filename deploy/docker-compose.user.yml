@@ -7,6 +7,10 @@ services:
     container_name: panda-quant-mongodb-user
     ports:
       - "27019:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin123
+      - MONGO_INITDB_DATABASE=panda-quant
     volumes:
       - mongodb_user_data:/data/db
     networks:
@@ -37,13 +41,16 @@ services:
 
   # 用户前端
   user-ui:
-    image: deploy-user-ui
+    build:
+      context: ../user-ui
+      dockerfile: Dockerfile
     container_name: panda-quant-user-ui
     restart: always
     ports:
       - "3003:80"
     environment:
-      - VITE_API_URL=http://pandatrade.space/api
+      - REACT_APP_API_URL=https://api.pandatrade.space
+      - REACT_APP_ADMIN_API_URL=https://admin-api.pandatrade.space
     networks:
       - panda-quant-network
     healthcheck:
@@ -54,16 +61,19 @@ services:
 
   # 用户后端
   user-api:
-    image: deploy-user-api
+    build:
+      context: ../user-api
+      dockerfile: Dockerfile
     container_name: panda-quant-user-api
     restart: always
     ports:
-      - "3001:3001"
+      - "3000:3000"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongodb:27017/panda-quant
-      - REDIS_URL=redis://redis:6379
-      - CORS_ORIGIN=http://pandatrade.space
+      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/panda-quant?authSource=admin
+      - REDIS_URI=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGIN=https://pandatrade.space
     depends_on:
       mongodb:
         condition: service_healthy
@@ -72,7 +82,7 @@ services:
     networks:
       - panda-quant-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
