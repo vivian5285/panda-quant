@@ -28,11 +28,12 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# 清理旧的配置
-print_message "清理旧的配置..."
-rm -rf /etc/nginx/sites-available/*
-rm -rf /etc/nginx/sites-enabled/*
-rm -f /etc/nginx/nginx.conf
+# 安装Certbot
+print_message "安装Certbot..."
+if ! command -v certbot &> /dev/null; then
+    apt-get update
+    apt-get install -y certbot python3-certbot-nginx
+fi
 
 # 创建必要的目录
 print_message "创建必要的目录..."
@@ -64,13 +65,6 @@ nginx -t
 # 重启Nginx
 print_message "重启Nginx服务..."
 systemctl restart nginx
-
-# 安装Certbot
-print_message "安装Certbot..."
-if ! command -v certbot &> /dev/null; then
-    apt-get update
-    apt-get install -y certbot python3-certbot-nginx
-fi
 
 # 获取SSL证书
 print_message "获取SSL证书..."
