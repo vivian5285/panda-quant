@@ -39,10 +39,15 @@ fi
 print_message "创建必要的目录..."
 mkdir -p /etc/nginx/sites-available
 mkdir -p /etc/nginx/sites-enabled
+mkdir -p /etc/nginx/ssl
 mkdir -p /etc/letsencrypt/live/admin.pandatrade.space
 mkdir -p /etc/letsencrypt/live/admin-api.pandatrade.space
 mkdir -p /etc/letsencrypt/live/pandatrade.space
 mkdir -p /etc/letsencrypt/live/api.pandatrade.space
+
+# 创建临时 SSL 证书
+print_message "创建临时 SSL 证书..."
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/temp.key -out /etc/nginx/ssl/temp.crt -subj "/CN=temp"
 
 # 复制Nginx主配置文件
 print_message "复制Nginx主配置文件..."
