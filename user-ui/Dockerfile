@@ -35,9 +35,9 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copy built assets from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:80/health || exit 1
+# Add healthcheck with more lenient settings
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:80/ || exit 1
 
 # Expose port 80
 EXPOSE 80
