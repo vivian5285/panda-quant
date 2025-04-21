@@ -30,7 +30,7 @@ const slideInRight: Variants = {
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, loginWithWallet } = useAuth();
+  const { loginWithEmail, loginWithWallet } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -48,11 +48,9 @@ const Login: React.FC = () => {
 
     try {
       if (activeTab === 0) {
-        await login(data.email, data.password);
-      } else if (activeTab === 1) {
-        await loginWithWallet();
+        await loginWithEmail(data.email, data.password);
       } else {
-        await login(data.email, data.password);
+        await loginWithWallet('metamask');
       }
       navigate('/dashboard');
     } catch (err) {
@@ -223,43 +221,51 @@ const Login: React.FC = () => {
             >
               <Tab label="邮箱登录" />
               <Tab label="钱包登录" />
-              <Tab label="邮箱注册" />
             </Tabs>
 
             <AuthForm
-              type={activeTab === 2 ? 'register' : 'login'}
-              method={activeTab === 1 ? 'wallet' : 'email'}
+              type="login"
+              method={activeTab === 0 ? 'email' : 'wallet'}
               onSubmit={handleSubmit}
               loading={loading}
               error={error}
             />
 
-            {activeTab !== 2 && (
-              <Box sx={{ mt: 3, textAlign: 'center' }}>
-                <Typography variant="body2" sx={{ color: '#666666' }}>
-                  还没有账户？
-                  <Link
-                    component="button"
-                    variant="body2"
-                    onClick={() => setActiveTab(2)}
-                    sx={{
-                      color: '#00FFB8',
-                      textDecoration: 'none',
-                      fontWeight: 500,
-                      '&:hover': {
-                        textDecoration: 'underline',
-                      },
-                    }}
-                  >
-                    立即注册
-                  </Link>
-                </Typography>
-              </Box>
-            )}
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ color: '#666666' }}>
+                还没有账户？
+                <Link
+                  component="button"
+                  variant="body2"
+                  onClick={() => navigate('/register')}
+                  sx={{
+                    color: '#00FFB8',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                    '&:hover': {
+                      textDecoration: 'underline',
+                    },
+                  }}
+                >
+                  立即注册
+                </Link>
+              </Typography>
+            </Box>
           </Paper>
         </Box>
       </Container>
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </Box>
   );
 };

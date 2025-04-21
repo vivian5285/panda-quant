@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Box, Typography, Tab, Tabs, Link, Container, useTheme } from '@mui/material';
+import { Box, Typography, Container, useTheme } from '@mui/material';
 import { motion, Variants } from 'framer-motion';
 import { 
-  AccountBalanceWallet as WalletIcon, 
   Email as EmailIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
@@ -36,34 +35,23 @@ const slideInRight: Variants = {
 const Register: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { register, loginWithWallet } = useAuth();
-  const [activeTab, setActiveTab] = useState(0);
+  const { register } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const theme = useTheme();
-
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
-    setError(null);
-  };
 
   const handleSubmit = async (data: Record<string, string>) => {
     setLoading(true);
     setError(null);
 
     try {
-      if (activeTab === 0) {
-        await register(
-          data.email,
-          data.password,
-          data.username,
-          data.verificationCode
-        );
-        toast.success(t('register.success'));
-      } else {
-        await loginWithWallet(data.walletType || 'metamask');
-        toast.success(t('register.walletSuccess'));
-      }
+      await register(
+        data.email,
+        data.password,
+        data.username,
+        data.verificationCode
+      );
+      toast.success(t('register.success'));
       navigate('/dashboard');
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || t('register.error');
@@ -183,32 +171,9 @@ const Register: React.FC = () => {
               </Typography>
             </Box>
 
-            <Tabs
-              value={activeTab}
-              onChange={handleTabChange}
-              centered
-              sx={{
-                mb: 4,
-                '& .MuiTabs-indicator': {
-                  backgroundColor: 'white',
-                  height: 3,
-                  borderRadius: 3,
-                },
-                '& .MuiTab-root': {
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  '&.Mui-selected': {
-                    color: 'white',
-                  },
-                },
-              }}
-            >
-              <Tab label="邮箱注册" />
-              <Tab label="钱包注册" />
-            </Tabs>
-
             <AuthForm
-              type={activeTab === 0 ? 'register' : 'wallet'}
-              method={activeTab === 0 ? 'email' : 'wallet'}
+              type="register"
+              method="email"
               onSubmit={handleSubmit}
               loading={loading}
               error={error}

@@ -222,7 +222,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
     return fields;
   };
 
-  const handleChange = (name: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (name: string) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = event.target.value;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (validationErrors[name]) {
@@ -271,44 +271,43 @@ const AuthForm: React.FC<AuthFormProps> = ({
   };
 
   const renderField = (field: FormField) => {
-    const value = formData[field.name] || '';
     const error = validationErrors[field.name];
+    const value = formData[field.name] || '';
 
     return (
       <Box key={field.name} sx={{ mb: 2 }}>
         <PandaInput
-          name={field.name}
           label={field.label}
-          type={field.type === 'password' ? (field.name === 'password' ? (showPassword ? 'text' : 'password') : (showConfirmPassword ? 'text' : 'password')) : field.type}
+          name={field.name}
+          type={field.type === 'password' ? (showPassword ? 'text' : 'password') : field.type}
           value={value}
-          onChange={(e) => handleChange(field.name)(e)}
+          onChange={handleChange(field.name)}
           error={!!error}
           helperText={error}
           required={field.required}
           icon={field.icon}
           endIcon={
-            (field.type === 'password' && field.name === 'password') ? (
+            field.type === 'password' ? (
               <IconButton
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => {
+                  if (field.name === 'password') {
+                    setShowPassword(!showPassword);
+                  } else {
+                    setShowConfirmPassword(!showConfirmPassword);
+                  }
+                }}
                 edge="end"
               >
-                {showPassword ? <VisibilityOff /> : <Visibility />}
+                {field.name === 'password' ? (
+                  showPassword ? <VisibilityOff /> : <Visibility />
+                ) : (
+                  showConfirmPassword ? <VisibilityOff /> : <Visibility />
+                )}
               </IconButton>
-            ) : (field.type === 'password' && field.name === 'confirmPassword') ? (
-              <IconButton
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                edge="end"
-              >
-                {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            ) : field.action
+            ) : field.action ? (
+              field.action
+            ) : undefined
           }
-          sx={{
-            '& .MuiInputBase-root': {
-              height: '48px',
-              borderRadius: '8px',
-            },
-          }}
         />
       </Box>
     );
