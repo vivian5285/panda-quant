@@ -10,7 +10,7 @@ services:
     ports:
       - "3003:80"
     environment:
-      - VITE_API_URL=http://user-api:3001
+      - VITE_API_URL=http://194.164.149.214:3001
       - NODE_ENV=production
     networks:
       - panda-quant-network
