@@ -1,6 +1,43 @@
 version: '3.8'
 
 services:
+  # MongoDB 数据库
+  mongodb:
+    image: mongo:6.0
+    container_name: panda-quant-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - panda-quant-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis 缓存
+  redis:
+    image: redis:7.0-alpine
+    container_name: panda-quant-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - panda-quant-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # Nginx 反向代理 (用户端)
   nginx-user:
     image: nginx:alpine
@@ -82,4 +119,6 @@ networks:
 
 volumes:
   nginx_letsencrypt:
-  nginx_www: 
+  nginx_www:
+  mongodb_data:
+  redis_data: 

@@ -1,29 +1,21 @@
 # Build stage
-FROM node:20 AS build
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
 # Install build dependencies
-RUN apt-get update && apt-get install -y \
+RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/cache/apk/*
 
 # Copy package files
 COPY package*.json ./
 
 # Clean up and install dependencies
 RUN rm -rf node_modules package-lock.json && \
-    npm install --legacy-peer-deps && \
-    npm install --legacy-peer-deps \
-    chart.js \
-    react-chartjs-2 \
-    @types/chart.js \
-    @types/react-chartjs-2 \
-    @types/react \
-    @types/react-dom \
-    typescript
+    npm install --legacy-peer-deps
 
 # Copy source code
 COPY . .
@@ -38,7 +30,7 @@ FROM nginx:alpine
 RUN apk add --no-cache curl
 
 # Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY deploy/nginx/user.conf /etc/nginx/conf.d/default.conf
 
 # Copy built assets from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
