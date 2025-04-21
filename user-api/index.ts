@@ -14,7 +14,7 @@ import { logger } from './utils/logger';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());

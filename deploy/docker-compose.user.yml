@@ -71,7 +71,11 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:Wl528586*@mongodb:27017/panda-quant?authSource=admin
+      - DB_HOST=mongodb
+      - DB_PORT=27017
+      - DB_USER=admin
+      - DB_PASSWORD=Wl528586*
+      - DB_NAME=panda-quant
       - REDIS_URI=redis://:Wl528586*@redis:6379
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGIN=https://pandatrade.space
