@@ -222,8 +222,9 @@ const AuthForm: React.FC<AuthFormProps> = ({
     return fields;
   };
 
-  const handleChange = (name: string) => (value: string | number) => {
-    setFormData((prev) => ({ ...prev, [name]: String(value) }));
+  const handleChange = (name: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (validationErrors[name]) {
       setValidationErrors((prev) => {
         const newErrors = { ...prev };
@@ -262,40 +263,11 @@ const AuthForm: React.FC<AuthFormProps> = ({
       return;
     }
 
-    if (type === 'register' && method === 'email') {
-      try {
-        // 先验证验证码
-        const response = await fetch('/api/verification/verify-code', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            code: formData.verificationCode,
-            type: 'register'
-          }),
-        });
-
-        const data = await response.json();
-
-        if (!data.success) {
-          setValidationErrors((prev) => ({
-            ...prev,
-            verificationCode: data.message,
-          }));
-          return;
-        }
-      } catch (err) {
-        setValidationErrors((prev) => ({
-          ...prev,
-          verificationCode: err instanceof Error ? err.message : '验证码验证失败',
-        }));
-        return;
-      }
+    try {
+      await onSubmit(formData);
+    } catch (error) {
+      console.error('Form submission error:', error);
     }
-
-    onSubmit(formData);
   };
 
   const renderField = (field: FormField) => {
@@ -307,9 +279,9 @@ const AuthForm: React.FC<AuthFormProps> = ({
         <PandaInput
           name={field.name}
           label={field.label}
-          type={field.type}
+          type={field.type === 'password' ? (field.name === 'password' ? (showPassword ? 'text' : 'password') : (showConfirmPassword ? 'text' : 'password')) : field.type}
           value={value}
-          onChange={(e) => handleChange(field.name)(e.target.value)}
+          onChange={(e) => handleChange(field.name)(e)}
           error={!!error}
           helperText={error}
           required={field.required}
@@ -377,60 +349,33 @@ const AuthForm: React.FC<AuthFormProps> = ({
   return (
     <form onSubmit={handleSubmit}>
       {error && (
-        <PandaAlert
-          severity="error"
-          message={error}
-        />
+        <Box sx={{ mb: 2 }}>
+          <Typography color="error">{error}</Typography>
+        </Box>
       )}
-
+      
       {method === 'wallet' ? (
         renderWalletForm()
       ) : (
         <Box>
-          {getFields().map((field) => (
-            <Box key={field.name} sx={{ mb: 2 }}>
-              <PandaInput
-                fullWidth
-                placeholder={field.label}
-                value={formData[field.name] || ''}
-                onChange={handleChange(field.name)}
-                required={field.required}
-                error={!!validationErrors[field.name]}
-                helperText={validationErrors[field.name]}
-                type={field.name === 'password' || field.name === 'confirmPassword' ? (showPassword ? 'text' : 'password') : field.type}
-                icon={field.icon}
-                endIcon={
-                  (field.name === 'password' || field.name === 'confirmPassword') ? (
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      sx={{ color: 'text.secondary' }}
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  ) : field.action
-                }
-              />
-            </Box>
-          ))}
+          {getFields().map((field) => renderField(field))}
           <Box sx={{ mt: 3 }}>
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={parentLoading}
+              sx={{
+                height: 48,
+                borderRadius: '8px',
+                backgroundColor: '#00FFB8',
+                '&:hover': {
+                  backgroundColor: '#00CC93',
+                },
+              }}
             >
-              <PandaButton
-                fullWidth
-                disabled={parentLoading}
-                endIcon={<ArrowForwardIcon />}
-                onClick={() => {
-                  if (validateForm()) {
-                    onSubmit(formData);
-                  }
-                }}
-              >
-                {type === 'login' ? t('login.loginButton') : t('register.registerButton')}
-              </PandaButton>
-            </motion.div>
+              {type === 'login' ? t('login.loginButton') : t('register.registerButton')}
+            </Button>
           </Box>
         </Box>
       )}
