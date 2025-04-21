@@ -49,6 +49,14 @@ const userSchema = new Schema<IUser>({
     type: Schema.Types.ObjectId,
     ref: 'User',
   },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
 }, {
   timestamps: true,
 });
@@ -77,5 +85,17 @@ userSchema.methods.comparePassword = async function(candidatePassword: string): 
 userSchema.index({ email: 1 });
 userSchema.index({ status: 1 });
 userSchema.index({ role: 1 });
+
+// 添加创建管理员账号的静态方法
+userSchema.statics.createAdmin = async function(email: string, password: string) {
+  const admin = new this({
+    email,
+    password,
+    role: 'admin',
+    status: 'active',
+    balance: 0
+  });
+  return await admin.save();
+};
 
 export const User = mongoose.model<IUser>('User', userSchema); 

@@ -20,31 +20,27 @@ class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await axios.post(`${API_URL}/auth/login`, credentials);
     if (response.data.token) {
-      localStorage.setItem('user', JSON.stringify(response.data));
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
     }
     return response.data;
   }
 
   logout(): void {
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
   }
 
   getCurrentUser(): AuthResponse['user'] | null {
     const userStr = localStorage.getItem('user');
     if (userStr) {
-      const userData = JSON.parse(userStr);
-      return userData.user;
+      return JSON.parse(userStr);
     }
     return null;
   }
 
   getToken(): string | null {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      const userData = JSON.parse(userStr);
-      return userData.token;
-    }
-    return null;
+    return localStorage.getItem('token');
   }
 
   isAuthenticated(): boolean {
