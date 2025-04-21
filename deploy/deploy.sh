@@ -28,6 +28,12 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# 清理旧的配置
+print_message "清理旧的配置..."
+rm -rf /etc/nginx/sites-available/*
+rm -rf /etc/nginx/sites-enabled/*
+rm -f /etc/nginx/nginx.conf
+
 # 创建必要的目录
 print_message "创建必要的目录..."
 mkdir -p /etc/nginx/sites-available
@@ -46,8 +52,6 @@ cp nginx/user.nginx.conf /etc/nginx/sites-available/
 
 # 创建符号链接
 print_message "创建Nginx配置符号链接..."
-rm -f /etc/nginx/sites-enabled/admin.nginx.conf
-rm -f /etc/nginx/sites-enabled/user.nginx.conf
 ln -sf /etc/nginx/sites-available/admin.nginx.conf /etc/nginx/sites-enabled/
 ln -sf /etc/nginx/sites-available/user.nginx.conf /etc/nginx/sites-enabled/
 
