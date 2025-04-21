@@ -46,6 +46,8 @@ cp nginx/user.nginx.conf /etc/nginx/sites-available/
 
 # 创建符号链接
 print_message "创建Nginx配置符号链接..."
+rm -f /etc/nginx/sites-enabled/admin.nginx.conf
+rm -f /etc/nginx/sites-enabled/user.nginx.conf
 ln -sf /etc/nginx/sites-available/admin.nginx.conf /etc/nginx/sites-enabled/
 ln -sf /etc/nginx/sites-available/user.nginx.conf /etc/nginx/sites-enabled/
 
