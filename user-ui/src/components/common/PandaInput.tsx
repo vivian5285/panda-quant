@@ -67,12 +67,12 @@ const PandaInput: React.FC<PandaInputProps> = ({
         sx: {
           height: 48,
           borderRadius: '8px',
-          backgroundColor: theme.palette.background.paper,
+          backgroundColor: 'transparent',
           '&:hover': {
-            backgroundColor: theme.palette.action.hover,
+            backgroundColor: 'transparent',
           },
           '&.Mui-focused': {
-            backgroundColor: theme.palette.background.paper,
+            backgroundColor: 'transparent',
           },
         },
       }}
@@ -98,6 +98,10 @@ const PandaInput: React.FC<PandaInputProps> = ({
         '& .MuiInputBase-input': {
           padding: '12px 16px',
           fontSize: '0.95rem',
+          color: theme.palette.text.primary,
+          '&:focus': {
+            color: theme.palette.text.primary,
+          },
         },
         ...sx,
       }}
