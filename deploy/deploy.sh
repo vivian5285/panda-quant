@@ -35,6 +35,10 @@ mkdir -p /etc/nginx/sites-enabled
 mkdir -p /etc/letsencrypt/live/admin.pandatrade.space
 mkdir -p /etc/letsencrypt/live/pandatrade.space
 
+# 复制Nginx主配置文件
+print_message "复制Nginx主配置文件..."
+cp nginx/nginx.conf /etc/nginx/
+
 # 复制Nginx配置文件
 print_message "复制Nginx配置文件..."
 cp nginx/admin.nginx.conf /etc/nginx/sites-available/
