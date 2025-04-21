@@ -9,7 +9,7 @@ services:
       - "27018:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=admin123
+      - MONGO_INITDB_ROOT_PASSWORD=Wl528586*
       - MONGO_INITDB_DATABASE=panda-quant
     volumes:
       - mongodb_admin_data:/data/db
@@ -28,13 +28,14 @@ services:
     container_name: panda-quant-redis-admin
     ports:
       - "6380:6379"
+    command: redis-server --requirepass Wl528586*
     volumes:
       - redis_admin_data:/data
     networks:
       - panda-quant-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "Wl528586*", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -73,8 +74,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/panda-quant?authSource=admin&retryWrites=true&w=majority
-      - REDIS_URI=redis://redis:6379
+      - MONGODB_URI=mongodb://admin:Wl528586*@mongodb:27017/panda-quant?authSource=admin&retryWrites=true&w=majority
+      - REDIS_URI=redis://:Wl528586*@redis:6379
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=24h
       - CORS_ORIGIN=https://admin.pandatrade.space
