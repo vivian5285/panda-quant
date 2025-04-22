@@ -28,60 +28,6 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# 安装必要的软件
-print_message "安装必要的软件..."
-apt-get update
-
-# 移除可能冲突的包
-print_message "移除可能冲突的包..."
-apt-get remove -y docker docker-engine docker.io containerd runc
-
-# 安装依赖
-print_message "安装依赖..."
-apt-get install -y \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release \
-    nginx \
-    certbot \
-    python3-certbot-nginx
-
-# 添加 Docker 官方 GPG 密钥
-print_message "添加 Docker 官方 GPG 密钥..."
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-# 设置 Docker 仓库
-print_message "设置 Docker 仓库..."
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# 安装 Docker
-print_message "安装 Docker..."
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
-# 启动并启用 Docker
-print_message "启动 Docker 服务..."
-systemctl start docker
-systemctl enable docker
-
-# 创建必要的目录
-print_message "创建必要的目录..."
-mkdir -p /etc/nginx/sites-available
-mkdir -p /etc/nginx/sites-enabled
-mkdir -p /etc/nginx/ssl
-mkdir -p /etc/letsencrypt/live/admin.pandatrade.space
-mkdir -p /etc/letsencrypt/live/admin-api.pandatrade.space
-mkdir -p /etc/letsencrypt/live/pandatrade.space
-mkdir -p /etc/letsencrypt/live/api.pandatrade.space
-
-# 创建临时 SSL 证书
-print_message "创建临时 SSL 证书..."
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/temp.key -out /etc/nginx/ssl/temp.crt -subj "/CN=temp"
-
 # 复制Nginx主配置文件
 print_message "复制Nginx主配置文件..."
 cp nginx/nginx.conf /etc/nginx/
