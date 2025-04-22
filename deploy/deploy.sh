@@ -38,12 +38,10 @@ print_message "设置证书自动续期..."
 
 # 检查证书文件
 print_message "检查证书文件..."
-for domain in admin.pandatrade.space admin-api.pandatrade.space pandatrade.space api.pandatrade.space; do
-    if [ ! -f "/etc/letsencrypt/live/$domain/fullchain.pem" ] || [ ! -f "/etc/letsencrypt/live/$domain/privkey.pem" ]; then
-        print_error "证书文件不存在: $domain"
-        exit 1
-    fi
-done
+if [ ! -f "/etc/letsencrypt/live/admin.pandatrade.space/fullchain.pem" ] || [ ! -f "/etc/letsencrypt/live/admin.pandatrade.space/privkey.pem" ]; then
+    print_error "证书文件不存在"
+    exit 1
+fi
 
 # 复制Nginx主配置文件
 print_message "复制Nginx主配置文件..."
