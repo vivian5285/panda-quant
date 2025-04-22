@@ -30,7 +30,7 @@ fi
 
 # 申请SSL证书
 print_message "申请SSL证书..."
-certbot certonly --standalone -d admin.pandatrade.space -d admin-api.pandatrade.space -d pandatrade.space -d api.pandatrade.space --non-interactive --agree-tos --email admin@pandatrade.space
+certbot certonly --standalone --force-renewal -d admin.pandatrade.space -d admin-api.pandatrade.space -d pandatrade.space -d api.pandatrade.space --non-interactive --agree-tos --email admin@pandatrade.space
 
 # 设置证书自动续期
 print_message "设置证书自动续期..."
