@@ -35,6 +35,10 @@ if [ ! -f "/etc/letsencrypt/live/admin.pandatrade.space/fullchain.pem" ] || [ ! 
     exit 1
 fi
 
+# 创建Docker网络
+print_message "创建Docker网络..."
+docker network create panda-quant-network || true
+
 # 复制Nginx主配置文件
 print_message "复制Nginx主配置文件..."
 cp nginx/nginx.conf /etc/nginx/
