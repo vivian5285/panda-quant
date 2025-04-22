@@ -68,10 +68,10 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - MONGODB_URI=mongodb://mongo:27017/panda-quant
+      - MONGODB_URI=mongodb://mongodb:27017/panda-quant
       - REDIS_URI=redis://redis:6379
     depends_on:
-      mongo:
+      mongodb:
         condition: service_healthy
       redis:
         condition: service_healthy
