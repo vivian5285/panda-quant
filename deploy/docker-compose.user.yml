@@ -41,7 +41,7 @@ services:
     image: deploy-user-ui
     container_name: panda-quant-user-ui
     ports:
-      - "3006:3000"
+      - "3002:3000"
     environment:
       - NODE_ENV=production
       - VITE_API_URL=https://api.pandatrade.space
@@ -63,7 +63,7 @@ services:
     image: deploy-user-api
     container_name: panda-quant-user-api
     ports:
-      - "3007:3001"
+      - "3003:3001"
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongodb:27017/panda-quant-user
@@ -86,7 +86,7 @@ services:
 networks:
   panda-quant-network:
     name: panda-quant-network
-    external: true
+    driver: bridge
 
 volumes:
   mongodb_data:
