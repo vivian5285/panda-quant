@@ -28,14 +28,6 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# 申请SSL证书
-print_message "申请SSL证书..."
-certbot certonly --standalone --force-renewal -d admin.pandatrade.space -d admin-api.pandatrade.space -d pandatrade.space -d api.pandatrade.space --non-interactive --agree-tos --email admin@pandatrade.space
-
-# 设置证书自动续期
-print_message "设置证书自动续期..."
-(crontab -l 2>/dev/null; echo "0 3 * * * certbot renew --quiet") | crontab -
-
 # 检查证书文件
 print_message "检查证书文件..."
 if [ ! -f "/etc/letsencrypt/live/admin.pandatrade.space/fullchain.pem" ] || [ ! -f "/etc/letsencrypt/live/admin.pandatrade.space/privkey.pem" ]; then
