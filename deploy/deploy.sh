@@ -50,14 +50,6 @@ nginx -t
 print_message "重启Nginx服务..."
 systemctl restart nginx
 
-# 获取SSL证书
-print_message "获取SSL证书..."
-certbot --nginx -d admin.pandatrade.space -d admin-api.pandatrade.space -d pandatrade.space -d api.pandatrade.space --non-interactive --agree-tos --email admin@pandatrade.space
-
-# 设置证书自动续期
-print_message "设置证书自动续期..."
-(crontab -l 2>/dev/null; echo "0 3 * * * certbot renew --quiet") | crontab -
-
 # 部署Docker服务
 print_message "部署Docker服务..."
 docker compose -f docker-compose.admin.yml up -d
