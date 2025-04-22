@@ -41,7 +41,7 @@ services:
     image: deploy-admin-ui
     container_name: panda-quant-admin-ui
     ports:
-      - "3000:3000"
+      - "3004:3000"
     environment:
       - NODE_ENV=production
       - VITE_API_URL=https://admin-api.pandatrade.space
@@ -63,7 +63,7 @@ services:
     image: deploy-admin-api
     container_name: panda-quant-admin-api
     ports:
-      - "3001:3001"
+      - "3005:3001"
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongodb:27017/panda-quant-admin
