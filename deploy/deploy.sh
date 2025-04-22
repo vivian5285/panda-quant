@@ -30,7 +30,7 @@ fi
 
 # 检查证书文件
 print_message "检查证书文件..."
-for domain in admin.pandatrade.space admin-api.pandatrade.space pandatrade.space api.pandatrade.space; do
+for domain in admin.pandatrade.space pandatrade.space api.pandatrade.space; do
     if [ ! -f "/etc/letsencrypt/live/$domain/fullchain.pem" ] || [ ! -f "/etc/letsencrypt/live/$domain/privkey.pem" ]; then
         print_error "证书文件不存在: $domain"
         exit 1
