@@ -73,6 +73,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=your_jwt_secret
       - PORT=3000
+      - API_URL=https://api.pandatrade.space
     networks:
       - panda-quant-network
     depends_on:
