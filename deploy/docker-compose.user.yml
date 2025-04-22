@@ -43,17 +43,16 @@ services:
     image: deploy-user-ui
     container_name: panda-quant-user-ui
     ports:
-      - "3002:3000"
+      - "3002:80"
     environment:
       - NODE_ENV=production
       - VITE_API_URL=https://api.pandatrade.space
-      - PORT=3000
     networks:
       - panda-quant-network
     depends_on:
       - user-api
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -70,8 +69,8 @@ services:
       - "3003:3000"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://panda-quant-mongodb-user:27017/panda-quant-user
-      - REDIS_URL=redis://panda-quant-redis-user:6379
+      - MONGODB_URI=mongodb://194.164.149.214:27019/panda-quant-user
+      - REDIS_URL=redis://194.164.149.214:6381
       - JWT_SECRET=your_jwt_secret
       - PORT=3000
     networks:
