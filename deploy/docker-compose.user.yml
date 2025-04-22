@@ -15,7 +15,8 @@ services:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 40s
 
   # Redis 缓存
   redis:
@@ -31,7 +32,8 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 40s
 
   # 用户前端
   user-ui:
@@ -53,7 +55,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 40s
 
   # 用户后端
   user-api:
@@ -66,8 +69,8 @@ services:
       - "3003:3001"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongodb:27017/panda-quant-user
-      - REDIS_URL=redis://redis:6379
+      - MONGODB_URI=mongodb://panda-quant-mongodb-user:27017/panda-quant-user
+      - REDIS_URL=redis://panda-quant-redis-user:6379
       - JWT_SECRET=your_jwt_secret
       - API_PORT=3001
     networks:
@@ -81,7 +84,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 40s
 
 networks:
   panda-quant-network:
