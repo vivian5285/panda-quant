@@ -91,7 +91,7 @@ async function createTestUser() {
     }
 
     // 创建测试用户
-    const hashedPassword = await bcrypt.hash('test123', 10);
+    const hashedPassword = await bcrypt.hash('Test123!', 10);
     const testUser = new User({
       email: 'test@example.com',
       password: hashedPassword,

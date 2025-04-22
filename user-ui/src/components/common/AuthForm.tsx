@@ -26,6 +26,7 @@ interface FormField {
   required?: boolean;
   validation?: (value: string) => string | null;
   action?: React.ReactNode;
+  sx?: any;
 }
 
 interface AuthFormProps {
@@ -140,6 +141,28 @@ const AuthForm: React.FC<AuthFormProps> = ({
           }
           return null;
         },
+        sx: {
+          '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+              borderColor: 'rgba(0, 255, 184, 0.5)',
+            },
+            '&:hover fieldset': {
+              borderColor: '#00FFB8',
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: '#00FFB8',
+            },
+          },
+          '& .MuiInputLabel-root': {
+            color: '#666666',
+            '&.Mui-focused': {
+              color: '#00FFB8',
+            },
+          },
+          '& .MuiInputBase-input': {
+            color: '#333333',
+          },
+        }
       });
 
       if (type === 'register') {
@@ -200,6 +223,28 @@ const AuthForm: React.FC<AuthFormProps> = ({
           }
           return null;
         },
+        sx: {
+          '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+              borderColor: 'rgba(0, 255, 184, 0.5)',
+            },
+            '&:hover fieldset': {
+              borderColor: '#00FFB8',
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: '#00FFB8',
+            },
+          },
+          '& .MuiInputLabel-root': {
+            color: '#666666',
+            '&.Mui-focused': {
+              color: '#00FFB8',
+            },
+          },
+          '& .MuiInputBase-input': {
+            color: '#333333',
+          },
+        }
       });
 
       if (type === 'register') {
@@ -308,6 +353,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
               field.action
             ) : undefined
           }
+          sx={field.sx}
         />
       </Box>
     );

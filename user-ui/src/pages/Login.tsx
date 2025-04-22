@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Container, Typography, Tabs, Tab, useTheme, Avatar, Paper, Link } from '@mui/material';
+import { Box, Container, Typography, Tabs, Tab, useTheme, Avatar, Paper, Link, TextField, InputAdornment, IconButton } from '@mui/material';
 import { motion, Variants } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { themeUtils } from '../theme';
@@ -9,6 +9,10 @@ import AuthForm from '../components/common/AuthForm';
 import { useAuth } from '../contexts/AuthContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import EmailIcon from '@mui/icons-material/Email';
+import LockIcon from '@mui/icons-material/Lock';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 const fadeIn: Variants = {
   initial: { opacity: 0 },
@@ -36,6 +40,9 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
   const theme = useTheme();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -229,7 +236,93 @@ const Login: React.FC = () => {
               onSubmit={handleSubmit}
               loading={loading}
               error={error}
-            />
+            >
+              <TextField
+                fullWidth
+                label={t('login.email')}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                margin="normal"
+                required
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon sx={{ color: '#00FFB8' }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: 'rgba(0, 255, 184, 0.5)',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#00FFB8',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#00FFB8',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: '#666666',
+                    '&.Mui-focused': {
+                      color: '#00FFB8',
+                    },
+                  },
+                  '& .MuiInputBase-input': {
+                    color: '#333333',
+                  },
+                }}
+              />
+              <TextField
+                fullWidth
+                label={t('login.password')}
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                margin="normal"
+                required
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon sx={{ color: '#00FFB8' }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: 'rgba(0, 255, 184, 0.5)',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#00FFB8',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#00FFB8',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: '#666666',
+                    '&.Mui-focused': {
+                      color: '#00FFB8',
+                    },
+                  },
+                  '& .MuiInputBase-input': {
+                    color: '#333333',
+                  },
+                }}
+              />
+            </AuthForm>
 
             <Box sx={{ mt: 3, textAlign: 'center' }}>
               <Typography variant="body2" sx={{ color: '#666666' }}>
