@@ -31,7 +31,37 @@ fi
 # 安装必要的软件
 print_message "安装必要的软件..."
 apt-get update
-apt-get install -y nginx certbot python3-certbot-nginx docker.io docker-compose
+
+# 移除可能冲突的包
+print_message "移除可能冲突的包..."
+apt-get remove -y docker docker-engine docker.io containerd runc
+
+# 安装依赖
+print_message "安装依赖..."
+apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release \
+    nginx \
+    certbot \
+    python3-certbot-nginx
+
+# 添加 Docker 官方 GPG 密钥
+print_message "添加 Docker 官方 GPG 密钥..."
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+# 设置 Docker 仓库
+print_message "设置 Docker 仓库..."
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# 安装 Docker
+print_message "安装 Docker..."
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 # 启动并启用 Docker
 print_message "启动 Docker 服务..."
