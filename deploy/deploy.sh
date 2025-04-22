@@ -28,6 +28,15 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# 检查证书文件
+print_message "检查证书文件..."
+for domain in admin.pandatrade.space admin-api.pandatrade.space pandatrade.space api.pandatrade.space; do
+    if [ ! -f "/etc/letsencrypt/live/$domain/fullchain.pem" ] || [ ! -f "/etc/letsencrypt/live/$domain/privkey.pem" ]; then
+        print_error "证书文件不存在: $domain"
+        exit 1
+    fi
+done
+
 # 复制Nginx主配置文件
 print_message "复制Nginx主配置文件..."
 cp nginx/nginx.conf /etc/nginx/
@@ -64,4 +73,6 @@ print_message "请确保以下域名已正确解析到服务器IP："
 print_message "- admin.pandatrade.space"
 print_message "- admin-api.pandatrade.space"
 print_message "- pandatrade.space"
-print_message "- api.pandatrade.space" 
+print_message "- api.pandatrade.space"
+
+ls -l /etc/letsencrypt/live/admin-api.pandatrade.space/ 
