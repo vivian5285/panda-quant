@@ -28,12 +28,15 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# 安装Certbot
-print_message "安装Certbot..."
-if ! command -v certbot &> /dev/null; then
-    apt-get update
-    apt-get install -y certbot python3-certbot-nginx
-fi
+# 安装必要的软件
+print_message "安装必要的软件..."
+apt-get update
+apt-get install -y nginx certbot python3-certbot-nginx docker.io docker-compose
+
+# 启动并启用 Docker
+print_message "启动 Docker 服务..."
+systemctl start docker
+systemctl enable docker
 
 # 创建必要的目录
 print_message "创建必要的目录..."

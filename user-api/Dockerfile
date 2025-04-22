@@ -41,7 +41,7 @@ COPY --from=builder /app/package*.json ./
 RUN npm rebuild bcrypt --build-from-source
 
 # 暴露端口
-EXPOSE 3001
+EXPOSE 3000
 
 # 启动应用
 CMD ["npm", "start"] 
