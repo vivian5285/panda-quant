@@ -69,8 +69,8 @@ services:
       - "3003:3000"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://194.164.149.214:27019/panda-quant-user
-      - REDIS_URL=redis://194.164.149.214:6381
+      - MONGODB_URI=mongodb://panda-quant-mongodb-user:27017/panda-quant-user
+      - REDIS_URL=redis://panda-quant-redis-user:6379
       - JWT_SECRET=your_jwt_secret
       - PORT=3000
     networks:
