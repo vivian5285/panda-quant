@@ -183,9 +183,32 @@ stop_services() {
 start_services() {
     log "启动服务..."
     
+    # 创建网络
+    log "创建网络..."
+    if ! docker network ls | grep -q "panda-quant-network"; then
+        docker network create panda-quant-network
+    fi
+    
     # 启动admin服务
     log "启动admin服务..."
     docker-compose -f docker-compose.admin.yml up -d
+    
+    # 等待MongoDB启动并验证连接
+    log "等待MongoDB启动并验证连接..."
+    local max_attempts=10
+    local attempt=1
+    while [ $attempt -le $max_attempts ]; do
+        log "尝试连接MongoDB (尝试 $attempt/$max_attempts)..."
+        if docker-compose -f docker-compose.admin.yml exec -T mongodb mongosh --port 27017 -u admin -p PandaQuant@2024 --authenticationDatabase admin --eval "db.adminCommand('ping')" &> /dev/null; then
+            log "MongoDB连接成功！"
+            break
+        fi
+        if [ $attempt -eq $max_attempts ]; then
+            error "MongoDB连接失败，请检查MongoDB服务状态"
+        fi
+        sleep 10
+        attempt=$((attempt + 1))
+    done
     
     # 启动user服务
     log "启动user服务..."
