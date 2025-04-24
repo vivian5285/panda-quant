@@ -31,6 +31,19 @@ check_commands() {
             error "需要安装 $cmd"
         fi
     done
+    
+    # 检查MongoDB工具
+    if ! command -v mongodump &> /dev/null; then
+        log "安装MongoDB工具..."
+        if [ -f /etc/debian_version ]; then
+            sudo apt-get update
+            sudo apt-get install -y mongodb-org-tools
+        elif [ -f /etc/redhat-release ]; then
+            sudo yum install -y mongodb-org-tools
+        else
+            warn "不支持的操作系统，跳过MongoDB工具安装"
+        fi
+    fi
 }
 
 # 设置默认环境变量
@@ -178,6 +191,24 @@ create_directories() {
     mkdir -p admin-ui/prisma
     mkdir -p user-ui/prisma
     mkdir -p backups
+    
+    # 创建共享目录
+    mkdir -p shared/types
+    mkdir -p shared/models
+    
+    # 复制共享类型和模型文件
+    log "复制共享类型和模型文件..."
+    if [ -d "../shared/types" ]; then
+        cp -r ../shared/types/* shared/types/
+    else
+        warn "未找到共享类型目录"
+    fi
+    
+    if [ -d "../shared/models" ]; then
+        cp -r ../shared/models/* shared/models/
+    else
+        warn "未找到共享模型目录"
+    fi
 }
 
 # 拉取最新代码
@@ -207,9 +238,17 @@ deploy_admin() {
     log "构建管理后台API..."
     if [ -d "../admin-api" ]; then
         cd "../admin-api"
+        
+        # 创建符号链接到共享目录
+        ln -sf "$current_dir/shared" .
+        
         if ! docker build -t panda-quant-admin-api .; then
             error "管理后台API镜像构建失败"
         fi
+        
+        # 清理符号链接
+        rm -f shared
+        
         cd "$current_dir"
     else
         error "管理后台API目录不存在"
