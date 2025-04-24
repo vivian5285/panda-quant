@@ -8,6 +8,8 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=PandaQuant@2024
+      - MONGO_INITDB_DATABASE=admin
+    command: ["--auth"]
     volumes:
       - mongodb_data:/data/db
     networks:
