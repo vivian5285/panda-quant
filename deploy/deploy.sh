@@ -37,7 +37,7 @@ check_commands() {
         log "安装MongoDB工具..."
         if [ -f /etc/debian_version ]; then
             sudo apt-get update
-            sudo apt-get install -y mongodb-org-tools
+            sudo apt-get install -y mongodb-database-tools
         elif [ -f /etc/redhat-release ]; then
             sudo yum install -y mongodb-org-tools
         else
