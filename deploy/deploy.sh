@@ -265,58 +265,53 @@ install_certbot() {
     fi
 }
 
+# 清理现有证书和配置
+cleanup_existing_certs() {
+    log "清理现有证书和配置..."
+    
+    # 停止Nginx服务
+    if systemctl is-active --quiet nginx; then
+        sudo systemctl stop nginx
+    fi
+    
+    # 删除现有证书
+    if [ -d "/etc/letsencrypt" ]; then
+        sudo rm -rf /etc/letsencrypt/live/*
+        sudo rm -rf /etc/letsencrypt/archive/*
+        sudo rm -rf /etc/letsencrypt/renewal/*
+    fi
+    
+    # 删除Nginx配置
+    if [ -f "/etc/nginx/nginx.conf" ]; then
+        sudo rm -f /etc/nginx/nginx.conf
+    fi
+    if [ -f "/etc/nginx/conf.d/default.conf" ]; then
+        sudo rm -f /etc/nginx/conf.d/default.conf
+    fi
+    
+    # 删除sites-enabled目录下的所有配置
+    if [ -d "/etc/nginx/sites-enabled" ]; then
+        sudo rm -f /etc/nginx/sites-enabled/*
+    fi
+    
+    log "清理完成"
+}
+
 # 获取SSL证书
 get_ssl_certificates() {
     log "获取SSL证书..."
     
-    # 检查证书是否存在
-    if [ -d "/etc/letsencrypt/live/$DOMAIN" ]; then
-        log "证书已存在，检查是否需要续期..."
-        
-        # 停止Nginx服务
-        log "停止Nginx服务..."
-        if systemctl is-active --quiet nginx; then
-            sudo systemctl stop nginx
-        fi
-        
-        # 检查证书续期
-        if ! sudo certbot renew --dry-run; then
-            warn "证书续期检查失败，尝试重新获取证书"
-            
-            # 获取新证书
-            if ! sudo certbot certonly --standalone -d $DOMAIN -d $ADMIN_SUBDOMAIN.$DOMAIN -d $ADMIN_API_SUBDOMAIN.$DOMAIN -d $API_SUBDOMAIN.$DOMAIN \
-                --non-interactive --agree-tos --email admin@$DOMAIN \
-                --preferred-challenges http; then
-                error "获取SSL证书失败"
-            fi
-        else
-            log "证书有效，无需更新"
-        fi
-        
-        # 重新启动Nginx服务
-        log "重新启动Nginx服务..."
-        if ! sudo systemctl start nginx; then
-            error "Nginx服务启动失败"
-        fi
-    else
-        # 停止Nginx服务
-        log "停止Nginx服务..."
-        if systemctl is-active --quiet nginx; then
-            sudo systemctl stop nginx
-        fi
-        
-        # 获取新证书
-        if ! sudo certbot certonly --standalone -d $DOMAIN -d $ADMIN_SUBDOMAIN.$DOMAIN -d $ADMIN_API_SUBDOMAIN.$DOMAIN -d $API_SUBDOMAIN.$DOMAIN \
-            --non-interactive --agree-tos --email admin@$DOMAIN \
-            --preferred-challenges http; then
-            error "获取SSL证书失败"
-        fi
-        
-        # 重新启动Nginx服务
-        log "重新启动Nginx服务..."
-        if ! sudo systemctl start nginx; then
-            error "Nginx服务启动失败"
-        fi
+    # 停止Nginx服务
+    log "停止Nginx服务..."
+    if systemctl is-active --quiet nginx; then
+        sudo systemctl stop nginx
+    fi
+    
+    # 获取新证书
+    if ! sudo certbot certonly --standalone -d $DOMAIN -d $ADMIN_SUBDOMAIN.$DOMAIN -d $ADMIN_API_SUBDOMAIN.$DOMAIN -d $API_SUBDOMAIN.$DOMAIN \
+        --non-interactive --agree-tos --email admin@$DOMAIN \
+        --preferred-challenges http; then
+        error "获取SSL证书失败"
     fi
     
     log "SSL证书获取成功"
@@ -328,20 +323,6 @@ configure_nginx_ssl() {
     
     # 创建Nginx配置目录
     sudo mkdir -p /etc/nginx/conf.d
-    
-    # 备份现有配置
-    log "备份现有Nginx配置..."
-    if [ -f "/etc/nginx/nginx.conf" ]; then
-        sudo mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
-    fi
-    if [ -f "/etc/nginx/conf.d/default.conf" ]; then
-        sudo mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.bak
-    fi
-    
-    # 清理旧的SSL配置
-    log "清理旧的SSL配置..."
-    sudo rm -f /etc/nginx/conf.d/*.conf
-    sudo rm -f /etc/nginx/sites-enabled/*
     
     # 复制Nginx主配置
     log "复制Nginx主配置..."
@@ -389,6 +370,7 @@ main() {
     load_env
     check_env
     install_certbot
+    cleanup_existing_certs
     get_ssl_certificates
     configure_nginx_ssl
     setup_certbot_renewal
