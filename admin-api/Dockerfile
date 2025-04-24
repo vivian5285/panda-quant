@@ -20,14 +20,17 @@ RUN npm install && \
     npm install --save-dev axios && \
     chmod -R 755 /usr/local/lib/node_modules/typescript/bin/tsc
 
-# Copy Prisma schema first
-COPY prisma ./prisma
-
-# Generate Prisma client
-RUN npx prisma generate
-
 # Copy source code
 COPY . .
+
+# Create prisma directory if it doesn't exist and copy schema if available
+RUN mkdir -p prisma && \
+    if [ -f prisma/schema.prisma ]; then \
+        echo "Prisma schema found, generating client..." && \
+        npx prisma generate; \
+    else \
+        echo "No Prisma schema found, skipping client generation..."; \
+    fi
 
 # Build the app
 RUN npm run build
@@ -44,12 +47,15 @@ RUN npm install --production && \
     npm install --save node-cron && \
     npm install --save axios
 
-# Copy built files and Prisma schema
+# Copy built files
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/prisma ./prisma
 
-# Generate Prisma client in production
-RUN npx prisma generate
+# Copy Prisma schema if it exists
+RUN if [ -d /app/prisma ]; then \
+        mkdir -p prisma && \
+        cp -r /app/prisma/* ./prisma/ && \
+        npx prisma generate; \
+    fi
 
 # Expose port
 EXPOSE 3000
