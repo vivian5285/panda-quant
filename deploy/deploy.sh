@@ -97,8 +97,11 @@ backup_database() {
     local backup_dir="backups"
     mkdir -p "$backup_dir"
     
+    # 转义 MongoDB URI 中的特殊字符
+    local escaped_uri=$(echo "$MONGODB_URI" | sed 's/@/%40/g')
+    
     # 执行备份
-    docker-compose -f docker-compose.admin.yml exec -T mongodb mongodump --uri="$MONGODB_URI" --out="$backup_dir/mongodb_backup_$timestamp"
+    docker-compose -f docker-compose.admin.yml exec -T mongodb mongodump --uri="$escaped_uri" --out="$backup_dir/mongodb_backup_$timestamp"
     
     if [ $? -eq 0 ]; then
         log "数据库备份成功: $backup_dir/mongodb_backup_$timestamp"
