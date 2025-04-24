@@ -65,14 +65,14 @@ services:
   admin-api:
     build:
       context: ../admin-api
-      dockerfile: Dockerfile.api
+      dockerfile: Dockerfile
     image: deploy-admin-api
     container_name: panda-quant-admin-api
     ports:
       - "3001:3000"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongodb:27017/panda-quant-admin
+      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant-admin?authSource=admin
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=your_jwt_secret
       - PORT=3000
