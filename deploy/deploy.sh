@@ -272,19 +272,51 @@ get_ssl_certificates() {
     # 检查证书是否存在
     if [ -d "/etc/letsencrypt/live/$DOMAIN" ]; then
         log "证书已存在，检查是否需要续期..."
+        
+        # 停止Nginx服务
+        log "停止Nginx服务..."
+        if systemctl is-active --quiet nginx; then
+            sudo systemctl stop nginx
+        fi
+        
+        # 检查证书续期
         if ! sudo certbot renew --dry-run; then
             warn "证书续期检查失败，尝试重新获取证书"
+            
+            # 获取新证书
+            if ! sudo certbot certonly --standalone -d $DOMAIN -d $ADMIN_SUBDOMAIN.$DOMAIN -d $ADMIN_API_SUBDOMAIN.$DOMAIN -d $API_SUBDOMAIN.$DOMAIN \
+                --non-interactive --agree-tos --email admin@$DOMAIN \
+                --preferred-challenges http; then
+                error "获取SSL证书失败"
+            fi
         else
             log "证书有效，无需更新"
-            return
         fi
-    fi
-    
-    # 获取新证书
-    if ! sudo certbot --nginx -d $DOMAIN -d $ADMIN_SUBDOMAIN.$DOMAIN -d $ADMIN_API_SUBDOMAIN.$DOMAIN -d $API_SUBDOMAIN.$DOMAIN \
-        --non-interactive --agree-tos --email admin@$DOMAIN \
-        --redirect --hsts --staple-ocsp --must-staple; then
-        error "获取SSL证书失败"
+        
+        # 重新启动Nginx服务
+        log "重新启动Nginx服务..."
+        if ! sudo systemctl start nginx; then
+            error "Nginx服务启动失败"
+        fi
+    else
+        # 停止Nginx服务
+        log "停止Nginx服务..."
+        if systemctl is-active --quiet nginx; then
+            sudo systemctl stop nginx
+        fi
+        
+        # 获取新证书
+        if ! sudo certbot certonly --standalone -d $DOMAIN -d $ADMIN_SUBDOMAIN.$DOMAIN -d $ADMIN_API_SUBDOMAIN.$DOMAIN -d $API_SUBDOMAIN.$DOMAIN \
+            --non-interactive --agree-tos --email admin@$DOMAIN \
+            --preferred-challenges http; then
+            error "获取SSL证书失败"
+        fi
+        
+        # 重新启动Nginx服务
+        log "重新启动Nginx服务..."
+        if ! sudo systemctl start nginx; then
+            error "Nginx服务启动失败"
+        fi
     fi
     
     log "SSL证书获取成功"
@@ -319,7 +351,7 @@ setup_certbot_renewal() {
     
     # 创建续期脚本
     cat > /etc/cron.d/certbot-renew << EOF
-0 0 * * * root certbot renew --quiet --post-hook "systemctl reload nginx"
+0 0 * * * root systemctl stop nginx && certbot renew --quiet --standalone --preferred-challenges http && systemctl start nginx
 EOF
     
     # 设置权限
