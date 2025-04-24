@@ -36,6 +36,14 @@ check_commands() {
     if ! command -v mongodump &> /dev/null; then
         log "安装MongoDB工具..."
         if [ -f /etc/debian_version ]; then
+            # 添加MongoDB GPG密钥
+            sudo apt-get install -y gnupg
+            wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
+            
+            # 添加MongoDB仓库
+            echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+            
+            # 更新包列表并安装工具
             sudo apt-get update
             sudo apt-get install -y mongodb-database-tools
         elif [ -f /etc/redhat-release ]; then
