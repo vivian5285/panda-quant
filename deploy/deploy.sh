@@ -71,9 +71,17 @@ check_env_vars() {
 load_env() {
     if [ -f .env ]; then
         log "加载环境变量..."
-        set -a
-        source .env
-        set +a
+        # 使用 while 循环逐行读取并处理环境变量
+        while IFS= read -r line || [ -n "$line" ]; do
+            # 跳过注释和空行
+            [[ $line =~ ^#.*$ ]] && continue
+            [[ -z $line ]] && continue
+            
+            # 处理带引号的值
+            if [[ $line =~ ^[[:alnum:]_]+=.*$ ]]; then
+                export "$line"
+            fi
+        done < .env
     else
         error ".env 文件不存在"
     fi
