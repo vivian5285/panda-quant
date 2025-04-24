@@ -97,11 +97,21 @@ backup_database() {
     local backup_dir="backups"
     mkdir -p "$backup_dir"
     
-    # 转义 MongoDB URI 中的特殊字符
-    local escaped_uri=$(echo "$MONGODB_URI" | sed 's/@/%40/g')
+    # 使用环境变量中的用户名和密码
+    local mongo_user="admin"
+    local mongo_pass="PandaQuant@2024"
+    local mongo_host="mongodb"
+    local mongo_port="27017"
+    local mongo_db="panda-quant"
     
     # 执行备份
-    docker-compose -f docker-compose.admin.yml exec -T mongodb mongodump --uri="$escaped_uri" --out="$backup_dir/mongodb_backup_$timestamp"
+    docker-compose -f docker-compose.admin.yml exec -T mongodb mongodump \
+        --username="$mongo_user" \
+        --password="$mongo_pass" \
+        --host="$mongo_host" \
+        --port="$mongo_port" \
+        --db="$mongo_db" \
+        --out="$backup_dir/mongodb_backup_$timestamp"
     
     if [ $? -eq 0 ]; then
         log "数据库备份成功: $backup_dir/mongodb_backup_$timestamp"
