@@ -199,16 +199,36 @@ create_network() {
 # 部署管理后台
 deploy_admin() {
     log "部署管理后台..."
-    cd admin-api
-    if ! docker build -t panda-quant-admin-api .; then
-        error "管理后台API镜像构建失败"
-    fi
-    cd ../admin-ui
-    if ! docker build -t panda-quant-admin-ui .; then
-        error "管理后台UI镜像构建失败"
-    fi
-    cd ..
     
+    # 获取当前目录
+    current_dir=$(pwd)
+    
+    # 构建管理后台API
+    log "构建管理后台API..."
+    if [ -d "../admin-api" ]; then
+        cd "../admin-api"
+        if ! docker build -t panda-quant-admin-api .; then
+            error "管理后台API镜像构建失败"
+        fi
+        cd "$current_dir"
+    else
+        error "管理后台API目录不存在"
+    fi
+    
+    # 构建管理后台UI
+    log "构建管理后台UI..."
+    if [ -d "../admin-ui" ]; then
+        cd "../admin-ui"
+        if ! docker build -t panda-quant-admin-ui .; then
+            error "管理后台UI镜像构建失败"
+        fi
+        cd "$current_dir"
+    else
+        error "管理后台UI目录不存在"
+    fi
+    
+    # 启动管理后台服务
+    log "启动管理后台服务..."
     if ! docker-compose -f docker-compose.admin.yml up -d; then
         error "管理后台服务启动失败"
     fi
@@ -217,16 +237,36 @@ deploy_admin() {
 # 部署用户端
 deploy_user() {
     log "部署用户端..."
-    cd user-api
-    if ! docker build -t panda-quant-user-api .; then
-        error "用户端API镜像构建失败"
-    fi
-    cd ../user-ui
-    if ! docker build -t panda-quant-user-ui .; then
-        error "用户端UI镜像构建失败"
-    fi
-    cd ..
     
+    # 获取当前目录
+    current_dir=$(pwd)
+    
+    # 构建用户端API
+    log "构建用户端API..."
+    if [ -d "../user-api" ]; then
+        cd "../user-api"
+        if ! docker build -t panda-quant-user-api .; then
+            error "用户端API镜像构建失败"
+        fi
+        cd "$current_dir"
+    else
+        error "用户端API目录不存在"
+    fi
+    
+    # 构建用户端UI
+    log "构建用户端UI..."
+    if [ -d "../user-ui" ]; then
+        cd "../user-ui"
+        if ! docker build -t panda-quant-user-ui .; then
+            error "用户端UI镜像构建失败"
+        fi
+        cd "$current_dir"
+    else
+        error "用户端UI目录不存在"
+    fi
+    
+    # 启动用户端服务
+    log "启动用户端服务..."
     if ! docker-compose -f docker-compose.user.yml up -d; then
         error "用户端服务启动失败"
     fi
