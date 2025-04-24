@@ -111,8 +111,9 @@ backup_database() {
     
     # 检查用户是否已存在
     log "检查MongoDB用户..."
-    if ! docker-compose -f docker-compose.admin.yml exec -T mongodb mongosh --eval "db.getUsers()" | grep -q "admin"; then
-        log "创建MongoDB用户..."
+    if ! docker-compose -f docker-compose.admin.yml exec -T mongodb mongosh --eval "db.getUsers()" &> /dev/null; then
+        log "MongoDB未启用认证，正在初始化..."
+        # 初始化MongoDB认证
         docker-compose -f docker-compose.admin.yml exec -T mongodb mongosh --eval "
             db = db.getSiblingDB('admin');
             db.createUser({
@@ -124,8 +125,9 @@ backup_database() {
                 ]
             });
         "
+        log "MongoDB认证初始化完成！"
     else
-        log "MongoDB用户已存在，跳过创建"
+        log "MongoDB认证已启用，跳过初始化"
     fi
     
     local timestamp=$(date +%Y%m%d_%H%M%S)
