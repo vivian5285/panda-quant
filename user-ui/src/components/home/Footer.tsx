@@ -22,37 +22,40 @@ const Footer = () => {
     {
       title: '产品',
       links: [
-        { text: '交易策略', href: '/strategies' },
-        { text: '量化交易', href: '/quant' },
-        { text: 'API文档', href: '/api' },
-        { text: '价格方案', href: '/pricing' },
+        { text: '交易策略', href: '/product/strategies' },
+        { text: '量化交易', href: '/product/quant' },
+        { text: 'API文档', href: '/product/api' },
+        { text: '价格方案', href: '/product/pricing' },
       ],
     },
     {
       title: '资源',
       links: [
-        { text: '帮助中心', href: '/help' },
-        { text: '博客', href: '/blog' },
-        { text: '社区', href: '/community' },
-        { text: '更新日志', href: '/changelog' },
+        { text: '帮助中心', href: '/resources/help' },
+        { text: '博客', href: '/resources/blog' },
+        { text: '社区', href: '/resources/community' },
+        { text: '更新日志', href: '/resources/changelog' },
       ],
     },
     {
       title: '公司',
       links: [
         { text: '关于我们', href: '/about' },
-        { text: '联系我们', href: '/contact' },
-        { text: '加入我们', href: '/careers' },
-        { text: '合作伙伴', href: '/partners' },
+        { text: '新闻动态', href: '/about/news' },
+        { text: '团队介绍', href: '/about/team' },
+        { text: '加入我们', href: '/about/careers' },
+        { text: '合作伙伴', href: '/about/partners' },
+        { text: '联系我们', href: '/about/contact' },
       ],
     },
     {
       title: '法律',
       links: [
-        { text: '服务条款', href: '/terms' },
-        { text: '隐私政策', href: '/privacy' },
-        { text: 'Cookie政策', href: '/cookies' },
-        { text: '风险提示', href: '/risk' },
+        { text: '服务条款', href: '/legal/terms' },
+        { text: '隐私政策', href: '/legal/privacy' },
+        { text: 'Cookie政策', href: '/legal/cookies' },
+        { text: '风险提示', href: '/legal/risk' },
+        { text: '免责声明', href: '/legal/disclaimer' },
       ],
     },
   ];
@@ -68,7 +71,7 @@ const Footer = () => {
     <Box
       component="footer"
       sx={{
-        py: { xs: 6, md: 8 },
+        py: { xs: 4, sm: 6, md: 8 },
         bgcolor: '#FFFFFF',
         position: 'relative',
         overflow: 'hidden',
@@ -90,7 +93,7 @@ const Footer = () => {
           mx: 'auto',
           width: '100%',
         }}>
-          <Grid container spacing={4}>
+          <Grid container spacing={{ xs: 3, sm: 4 }}>
             <Grid item xs={12} md={4}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -101,7 +104,7 @@ const Footer = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    mb: 3,
+                    mb: { xs: 2, sm: 3 },
                   }}
                 >
                   <Typography
@@ -109,13 +112,13 @@ const Footer = () => {
                     sx={{
                       color: '#00FFB8',
                       fontWeight: 700,
-                      fontSize: '1.5rem',
+                      fontSize: { xs: '1.2rem', sm: '1.5rem' },
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1,
                     }}
                   >
-                    <span style={{ fontSize: '1.8rem' }}>🐼</span>
+                    <span style={{ fontSize: { xs: '1.5rem', sm: '1.8rem' } }}>🐼</span>
                     <span style={{
                       background: 'linear-gradient(45deg, #00FFB8 30%, #00CC93 90%)',
                       WebkitBackgroundClip: 'text',
@@ -129,8 +132,9 @@ const Footer = () => {
                   variant="body2"
                   sx={{
                     color: '#666666',
-                    mb: 3,
+                    mb: { xs: 2, sm: 3 },
                     maxWidth: '300px',
+                    fontSize: { xs: '0.875rem', sm: '0.9rem' },
                   }}
                 >
                   专业的量化交易平台，为投资者提供智能、高效、安全的交易解决方案。
@@ -138,7 +142,7 @@ const Footer = () => {
                 <Box
                   sx={{
                     display: 'flex',
-                    gap: 2,
+                    gap: { xs: 1.5, sm: 2 },
                   }}
                 >
                   {socialLinks.map((social, index) => (
@@ -164,6 +168,8 @@ const Footer = () => {
                             transform: 'translateY(-2px)',
                           },
                           transition: 'all 0.3s ease',
+                          width: { xs: 36, sm: 40 },
+                          height: { xs: 36, sm: 40 },
                         }}
                       >
                         {social.icon}
@@ -175,7 +181,7 @@ const Footer = () => {
             </Grid>
 
             {footerLinks.map((section, index) => (
-              <Grid item xs={6} md={2} key={section.title}>
+              <Grid item xs={6} sm={3} md={2} key={section.title}>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -189,8 +195,9 @@ const Footer = () => {
                     sx={{
                       color: '#333333',
                       fontWeight: 600,
-                      mb: 2,
+                      mb: { xs: 1.5, sm: 2 },
                       position: 'relative',
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
                       '&::after': {
                         content: '""',
                         position: 'absolute',
@@ -217,7 +224,7 @@ const Footer = () => {
                         component="li"
                         key={link.text}
                         sx={{
-                          mb: 1.5,
+                          mb: { xs: 1, sm: 1.5 },
                         }}
                       >
                         <Link
@@ -226,6 +233,7 @@ const Footer = () => {
                             color: '#666666',
                             textDecoration: 'none',
                             transition: 'all 0.3s ease',
+                            fontSize: { xs: '0.8rem', sm: '0.875rem' },
                             '&:hover': {
                               color: '#00FFB8',
                               transform: 'translateX(5px)',
@@ -244,8 +252,8 @@ const Footer = () => {
 
           <Box
             sx={{
-              mt: 6,
-              pt: 4,
+              mt: { xs: 4, sm: 6 },
+              pt: { xs: 3, sm: 4 },
               borderTop: '1px solid rgba(0, 255, 184, 0.1)',
             }}
           >
@@ -255,6 +263,7 @@ const Footer = () => {
                   variant="body2"
                   sx={{
                     color: '#666666',
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
                   }}
                 >
                   © {new Date().getFullYear()} Panda Quant. All rights reserved.
@@ -265,7 +274,8 @@ const Footer = () => {
                   sx={{
                     display: 'flex',
                     justifyContent: { xs: 'flex-start', md: 'flex-end' },
-                    gap: 3,
+                    gap: { xs: 2, sm: 3 },
+                    flexWrap: 'wrap',
                   }}
                 >
                   <Link
@@ -274,6 +284,7 @@ const Footer = () => {
                       color: '#666666',
                       textDecoration: 'none',
                       transition: 'all 0.3s ease',
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
                       '&:hover': {
                         color: '#00FFB8',
                       },
@@ -287,6 +298,7 @@ const Footer = () => {
                       color: '#666666',
                       textDecoration: 'none',
                       transition: 'all 0.3s ease',
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
                       '&:hover': {
                         color: '#00FFB8',
                       },
@@ -300,6 +312,7 @@ const Footer = () => {
                       color: '#666666',
                       textDecoration: 'none',
                       transition: 'all 0.3s ease',
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
                       '&:hover': {
                         color: '#00FFB8',
                       },

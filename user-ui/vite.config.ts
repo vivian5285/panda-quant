@@ -48,6 +48,11 @@ export default defineConfig({
     port: 3003,
     host: true,
   },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+    },
+  },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

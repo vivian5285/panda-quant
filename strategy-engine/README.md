@@ -1,107 +1,167 @@
 # Strategy Engine
 
-The strategy engine is the core component of the Panda Quant platform, responsible for executing trading strategies and managing positions.
+A high-performance, real-time trading strategy execution engine for quantitative trading.
 
-## 📋 Features
+## Features
 
-- **Strategy Implementation**: SuperTrend and other trading strategies
-- **Market Analysis**: Real-time technical analysis
-- **Position Management**: Automated trade execution
-- **Risk Management**: Stop-loss and take-profit
-- **Performance Tracking**: Detailed strategy statistics
+- **Real-time Market Data Processing**
+  - WebSocket-based market data streaming
+  - Redis caching for performance optimization
+  - Automatic reconnection and error handling
 
-## 🛠 Components
+- **Strategy Execution**
+  - Support for multiple strategy types
+  - Concurrent strategy execution
+  - Risk management and position sizing
+  - Order management and tracking
 
-### Core Components
+- **Performance Monitoring**
+  - Real-time metrics collection
+  - Customizable alert rules
+  - Historical performance analysis
+  - System health monitoring
 
-- `strategies/`: Strategy implementations
-  - `superTrendStrategy.ts`: SuperTrend strategy
-  - `baseStrategy.ts`: Base strategy class
-- `utils/`: Utility functions
-  - `indicators.ts`: Technical indicators
-  - `backtest.ts`: Backtesting framework
-- `types.ts`: TypeScript type definitions
+- **Testing**
+  - Comprehensive unit tests
+  - Integration tests
+  - End-to-end tests
+  - Performance benchmarks
 
-### Strategy Interface
+## Architecture
 
-```typescript
-interface Strategy {
-  analyzeMarket(data: OHLCV[]): Promise<'buy' | 'sell' | 'hold'>;
-  executeTrade(signal: 'buy' | 'sell', price: number): Promise<void>;
-  getStats(): Promise<StrategyStats>;
+```
+strategy-engine/
+├── src/
+│   ├── engine/           # Core strategy execution engine
+│   ├── services/         # Business logic services
+│   ├── interfaces/       # Type definitions
+│   ├── utils/            # Utility functions
+│   ├── monitoring/       # Monitoring and metrics
+│   └── __tests__/        # Test suites
+├── config/              # Configuration files
+└── docs/               # Documentation
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js >= 14
+- Redis >= 6
+- Docker (optional)
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/your-org/strategy-engine.git
+cd strategy-engine
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Configure environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+4. Start Redis:
+```bash
+docker run -d -p 6379:6379 redis
+```
+
+5. Start the engine:
+```bash
+npm start
+```
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REDIS_HOST` | Redis host | localhost |
+| `REDIS_PORT` | Redis port | 6379 |
+| `WS_URL` | WebSocket URL | ws://localhost:8080 |
+| `MAX_CONCURRENT_STRATEGIES` | Maximum concurrent strategies | 10 |
+| `EXECUTION_INTERVAL` | Strategy execution interval (ms) | 1000 |
+
+### Strategy Configuration
+
+Strategies can be configured through the admin interface or by editing the configuration files in `config/strategies/`.
+
+Example strategy configuration:
+```json
+{
+  "name": "SuperTrend",
+  "type": "technical",
+  "parameters": {
+    "period": 10,
+    "multiplier": 3
+  },
+  "risk": {
+    "maxPositionSize": 10000,
+    "maxDrawdown": 0.1
+  }
 }
 ```
 
-## 📊 Technical Indicators
+## API Documentation
 
-### Available Indicators
-
-- ATR (Average True Range)
-- SuperTrend
-- Moving Averages
-- RSI (Relative Strength Index)
-- MACD (Moving Average Convergence Divergence)
-
-### Usage Example
+### Strategy Execution
 
 ```typescript
-import { calculateATR, calculateSuperTrend } from './utils/indicators';
+interface StrategyExecutionRequest {
+  strategyId: string;
+  userId: string;
+  parameters: Record<string, any>;
+}
 
-const data: OHLCV[] = [...];
-const atr = calculateATR(data, 14);
-const superTrend = calculateSuperTrend(data, atr, 3);
-```
-
-## 🔧 Development
-
-### Adding a New Strategy
-
-1. Create a new strategy file in `strategies/`
-2. Implement the `Strategy` interface
-3. Add technical indicators if needed
-4. Test with historical data
-5. Add to strategy manager
-
-### Example Strategy
-
-```typescript
-export class MyStrategy implements Strategy {
-  constructor(private params: StrategyPreset) {}
-
-  async analyzeMarket(data: OHLCV[]): Promise<'buy' | 'sell' | 'hold'> {
-    // Implement market analysis
-  }
-
-  async executeTrade(signal: 'buy' | 'sell', price: number): Promise<void> {
-    // Implement trade execution
-  }
-
-  async getStats(): Promise<StrategyStats> {
-    // Implement statistics calculation
-  }
+interface StrategyExecutionResponse {
+  executionId: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  result?: any;
+  error?: string;
 }
 ```
 
-## 📈 Backtesting
-
-### Backtesting Framework
+### Market Data
 
 ```typescript
-import { Backtest } from './utils/backtest';
-
-const backtest = new Backtest(strategy, historicalData);
-const results = await backtest.run();
+interface MarketData {
+  symbol: string;
+  price: number;
+  volume: number;
+  timestamp: number;
+}
 ```
 
-### Performance Metrics
+### Monitoring
 
-- Total Return
-- Win Rate
-- Maximum Drawdown
-- Sharpe Ratio
-- Sortino Ratio
+```typescript
+interface Metric {
+  name: string;
+  value: number;
+  timestamp: number;
+  tags?: Record<string, string>;
+}
 
-## 🔍 Testing
+interface AlertRule {
+  id: string;
+  metric: string;
+  condition: 'gt' | 'lt' | 'eq' | 'neq';
+  threshold: number;
+  severity: 'info' | 'warning' | 'critical';
+  description: string;
+}
+```
+
+## Testing
 
 ### Unit Tests
 
@@ -109,25 +169,51 @@ const results = await backtest.run();
 npm test
 ```
 
-### Backtest Validation
+### Integration Tests
 
 ```bash
-npm run backtest
+npm run test:integration
 ```
 
-## 📚 Documentation
+### End-to-End Tests
 
-- [Strategy Development Guide](docs/strategy-development.md)
-- [Technical Indicators](docs/indicators.md)
-- [Backtesting Guide](docs/backtesting.md)
+```bash
+npm run test:e2e
+```
 
-## 🤝 Contributing
+## Monitoring and Alerts
+
+The engine provides comprehensive monitoring capabilities:
+
+1. **System Metrics**
+   - CPU usage
+   - Memory usage
+   - Network latency
+   - Disk I/O
+
+2. **Strategy Metrics**
+   - Execution time
+   - Error rate
+   - Profit/loss
+   - Drawdown
+
+3. **Alert Rules**
+   - Customizable thresholds
+   - Multiple severity levels
+   - Email/SMS notifications
+
+## Contributing
 
 1. Fork the repository
-2. Create your feature branch
-3. Implement and test your strategy
-4. Submit a pull request
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support, please open an issue in the GitHub repository or contact the development team at support@example.com. 

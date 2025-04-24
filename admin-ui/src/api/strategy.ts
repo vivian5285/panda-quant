@@ -1,28 +1,78 @@
-import axiosInstance from '../utils/axiosInstance';
+import { get, post, put } from '@/utils/request';
 
 export interface Strategy {
   id: string;
   name: string;
   description: string;
-  createdAt?: string;
-  updatedAt?: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  parameters: Record<string, any>;
+  status: 'active' | 'inactive' | 'pending';
+  creatorId: string;
+  createdAt: string;
+  updatedAt: string;
+  rating?: StrategyRating;
+  performance?: StrategyPerformance;
 }
 
-export const getStrategies = async (): Promise<Strategy[]> => {
-  const response = await axiosInstance.get('/api/admin/strategies');
-  return response.data;
-};
+export interface StrategyRating {
+  performance: number;
+  risk: number;
+  stability: number;
+  userSatisfaction: number;
+  totalUsers: number;
+  averageReturn: number;
+  successRate: number;
+  lastUpdated: string;
+}
 
-export const createStrategy = async (data: Omit<Strategy, 'id'>): Promise<Strategy> => {
-  const response = await axiosInstance.post('/api/admin/strategies', data);
-  return response.data;
-};
+export interface StrategyPerformance {
+  dailyReturns: number[];
+  totalReturn: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+  winRate: number;
+  averageWin: number;
+  averageLoss: number;
+}
 
-export const updateStrategy = async (id: string, data: Partial<Omit<Strategy, 'id'>>): Promise<Strategy> => {
-  const response = await axiosInstance.put(`/api/admin/strategies/${id}`, data);
-  return response.data;
-};
+export interface StrategyFilter {
+  name?: string;
+  riskLevel?: 'all' | 'low' | 'medium' | 'high';
+  status?: 'all' | 'active' | 'inactive' | 'pending';
+  creatorId?: string;
+  startDate?: string;
+  endDate?: string;
+}
 
-export const deleteStrategy = async (id: string): Promise<void> => {
-  await axiosInstance.delete(`/api/admin/strategies/${id}`);
-}; 
+export interface StrategyResponse {
+  strategies: Strategy[];
+  total: number;
+}
+
+export async function getStrategies(filter: StrategyFilter): Promise<StrategyResponse> {
+  return get('/strategies', filter);
+}
+
+export async function getStrategyDetails(id: string): Promise<Strategy> {
+  return get(`/strategies/${id}`);
+}
+
+export async function createStrategy(strategy: Omit<Strategy, 'id' | 'createdAt' | 'updatedAt'>): Promise<Strategy> {
+  return post('/strategies', strategy);
+}
+
+export async function updateStrategy(id: string, strategy: Partial<Strategy>): Promise<Strategy> {
+  return put(`/strategies/${id}`, strategy);
+}
+
+export async function updateStrategyStatus(id: string, status: 'active' | 'inactive' | 'pending'): Promise<void> {
+  return put(`/strategies/${id}/status`, { status });
+}
+
+export async function getStrategyRatings(id: string): Promise<StrategyRating> {
+  return get(`/strategies/${id}/ratings`);
+}
+
+export async function getStrategyPerformance(id: string): Promise<StrategyPerformance> {
+  return get(`/strategies/${id}/performance`);
+} 

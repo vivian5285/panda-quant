@@ -1,5 +1,5 @@
 import React, { useState, FormEvent, useEffect } from 'react';
-import { Box, IconButton, Typography, Button } from '@mui/material';
+import { Box, IconButton, Typography, Button, Grid } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
@@ -267,13 +267,15 @@ const AuthForm: React.FC<AuthFormProps> = ({
     return fields;
   };
 
-  const handleChange = (name: string) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const value = event.target.value;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (validationErrors[name]) {
-      setValidationErrors((prev) => {
+  const handleInputChange = (field: keyof typeof formData) => (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    if (validationErrors[field]) {
+      setValidationErrors(prev => {
         const newErrors = { ...prev };
-        delete newErrors[name];
+        delete newErrors[field];
         return newErrors;
       });
     }
@@ -316,46 +318,33 @@ const AuthForm: React.FC<AuthFormProps> = ({
   };
 
   const renderField = (field: FormField) => {
+    const value = formData[field.name as keyof typeof formData] || '';
     const error = validationErrors[field.name];
-    const value = formData[field.name] || '';
 
     return (
-      <Box key={field.name} sx={{ mb: 2 }}>
+      <Grid item xs={12}>
         <PandaInput
           label={field.label}
           name={field.name}
           type={field.type === 'password' ? (showPassword ? 'text' : 'password') : field.type}
           value={value}
-          onChange={handleChange(field.name)}
+          onChange={handleInputChange(field.name as keyof typeof formData)}
           error={!!error}
           helperText={error}
           required={field.required}
-          icon={field.icon}
-          endIcon={
-            field.type === 'password' ? (
+          fullWidth
+          InputProps={{
+            endAdornment: field.type === 'password' && (
               <IconButton
-                onClick={() => {
-                  if (field.name === 'password') {
-                    setShowPassword(!showPassword);
-                  } else {
-                    setShowConfirmPassword(!showConfirmPassword);
-                  }
-                }}
+                onClick={() => setShowPassword(!showPassword)}
                 edge="end"
               >
-                {field.name === 'password' ? (
-                  showPassword ? <VisibilityOff /> : <Visibility />
-                ) : (
-                  showConfirmPassword ? <VisibilityOff /> : <Visibility />
-                )}
+                {showPassword ? <VisibilityOff /> : <Visibility />}
               </IconButton>
-            ) : field.action ? (
-              field.action
-            ) : undefined
-          }
-          sx={field.sx}
+            ),
+          }}
         />
-      </Box>
+      </Grid>
     );
   };
 
@@ -365,7 +354,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
         fullWidth
         label={t('login.selectWallet')}
         value={formData.walletType || 'metamask'}
-        onChange={handleChange('walletType')}
+        onChange={handleInputChange('walletType')}
         options={[
           { value: 'metamask', label: 'MetaMask' },
           { value: 'walletconnect', label: 'WalletConnect' },
@@ -392,39 +381,37 @@ const AuthForm: React.FC<AuthFormProps> = ({
   );
 
   return (
-    <form onSubmit={handleSubmit}>
-      {error && (
-        <Box sx={{ mb: 2 }}>
-          <Typography color="error">{error}</Typography>
-        </Box>
-      )}
-      
-      {method === 'wallet' ? (
-        renderWalletForm()
-      ) : (
-        <Box>
-          {getFields().map((field) => renderField(field))}
-          <Box sx={{ mt: 3 }}>
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              disabled={parentLoading}
-              sx={{
-                height: 48,
-                borderRadius: '8px',
-                backgroundColor: '#00FFB8',
-                '&:hover': {
-                  backgroundColor: '#00CC93',
-                },
-              }}
-            >
-              {type === 'login' ? t('login.loginButton') : t('register.registerButton')}
-            </Button>
-          </Box>
-        </Box>
-      )}
-    </form>
+    <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+      <Grid container spacing={2}>
+        {method === 'wallet' ? (
+          <>
+            {renderWalletForm()}
+          </>
+        ) : (
+          <>
+            {getFields().map((field) => renderField(field))}
+          </>
+        )}
+      </Grid>
+      <Box sx={{ mt: 2 }}>
+        <PandaButton
+          type="submit"
+          variant="contained"
+          fullWidth
+          disabled={parentLoading}
+          sx={{
+            height: 48,
+            borderRadius: '8px',
+            backgroundColor: '#00FFB8',
+            '&:hover': {
+              backgroundColor: '#00CC93',
+            },
+          }}
+        >
+          {type === 'login' ? t('login.loginButton') : t('register.registerButton')}
+        </PandaButton>
+      </Box>
+    </Box>
   );
 };
 

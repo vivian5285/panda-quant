@@ -30,28 +30,28 @@ const Navbar = () => {
   const drawer = (
     <Box
       sx={{
-        width: 280,
+        width: { xs: '100%', sm: 280 },
         bgcolor: 'background.paper',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        p: 2,
+        p: { xs: 1.5, sm: 2 },
         background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.1) 0%, rgba(0, 0, 0, 0) 100%)',
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 3 } }}>
         <Typography
           variant="h6"
           sx={{
             color: '#00FFB8',
             fontWeight: 700,
-            fontSize: '1.5rem',
+            fontSize: { xs: '1.2rem', sm: '1.5rem' },
             display: 'flex',
             alignItems: 'center',
             gap: 1,
           }}
         >
-          <span style={{ fontSize: '1.8rem' }}>🐼</span>
+          <span style={{ fontSize: { xs: '1.5rem', sm: '1.8rem' } }}>🐼</span>
           <span style={{
             background: 'linear-gradient(45deg, #00FFB8 30%, #00CC93 90%)',
             WebkitBackgroundClip: 'text',
@@ -84,7 +84,7 @@ const Navbar = () => {
                 color: '#00FFB8',
                 '& .MuiTypography-root': {
                   fontWeight: 500,
-                  fontSize: '1.1rem',
+                  fontSize: { xs: '1rem', sm: '1.1rem' },
                   fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
                 },
               }}
@@ -92,23 +92,18 @@ const Navbar = () => {
           </ListItem>
         ))}
       </List>
-      <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 } }}>
         <Button
           variant="outlined"
           fullWidth
           component={Link}
           to="/login"
           sx={{
-            borderColor: '#00FFB8',
             color: '#00FFB8',
-            borderRadius: 2,
-            py: 1,
-            transition: 'all 0.3s ease',
-            fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
+            borderColor: '#00FFB8',
             '&:hover': {
               borderColor: '#00CC93',
-              bgcolor: 'rgba(0, 255, 184, 0.1)',
-              transform: 'translateY(-2px)',
+              backgroundColor: 'rgba(0, 255, 184, 0.1)',
             },
           }}
         >
@@ -121,14 +116,9 @@ const Navbar = () => {
           to="/register"
           sx={{
             bgcolor: '#00FFB8',
-            color: '#000000',
-            borderRadius: 2,
-            py: 1,
-            transition: 'all 0.3s ease',
-            fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
+            color: 'white',
             '&:hover': {
               bgcolor: '#00CC93',
-              transform: 'translateY(-2px)',
             },
           }}
         >
@@ -142,37 +132,40 @@ const Navbar = () => {
     <AppBar
       position="sticky"
       sx={{
-        bgcolor: 'background.paper',
-        boxShadow: 'none',
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-        background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.05) 0%, rgba(0, 0, 0, 0) 100%)',
+        background: 'rgba(255, 255, 255, 0.9)',
         backdropFilter: 'blur(10px)',
+        boxShadow: 'none',
+        borderBottom: '1px solid rgba(0, 255, 184, 0.1)',
       }}
     >
       <Container maxWidth="lg">
-        <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 0, md: 2 } }}>
-          <Box
-            component={Link}
-            to="/"
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              textDecoration: 'none',
+        <Toolbar sx={{ px: { xs: 1.5, sm: 2, md: 3 } }}>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            onClick={handleDrawerToggle}
+            sx={{ 
+              mr: 2,
+              display: { md: 'none' },
+              color: '#00FFB8',
             }}
           >
+            <MenuIcon />
+          </IconButton>
+          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
             <Typography
               variant="h6"
               sx={{
                 color: '#00FFB8',
                 fontWeight: 700,
-                fontSize: '1.5rem',
+                fontSize: { xs: '1.2rem', sm: '1.5rem' },
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
               }}
             >
-              <span style={{ fontSize: '1.8rem' }}>🐼</span>
+              <span style={{ fontSize: { xs: '1.5rem', sm: '1.8rem' } }}>🐼</span>
               <span style={{
                 background: 'linear-gradient(45deg, #00FFB8 30%, #00CC93 90%)',
                 WebkitBackgroundClip: 'text',
@@ -182,124 +175,77 @@ const Navbar = () => {
               </span>
             </Typography>
           </Box>
-
-          {isMobile ? (
-            <>
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
+            {['首页', '产品介绍', '使用流程', '关于我们'].map((text) => (
+              <Button
+                key={text}
+                component={Link}
+                to={text === '首页' ? '/' : `/${text}`}
                 sx={{
                   color: '#00FFB8',
-                  transition: 'all 0.3s ease',
+                  fontWeight: 500,
+                  fontSize: '1rem',
                   '&:hover': {
-                    transform: 'rotate(90deg)',
+                    color: '#00CC93',
+                    backgroundColor: 'rgba(0, 255, 184, 0.1)',
                   },
                 }}
               >
-                <MenuIcon />
-              </IconButton>
-              <Drawer
-                variant="temporary"
-                anchor="right"
-                open={mobileOpen}
-                onClose={handleDrawerToggle}
-                ModalProps={{
-                  keepMounted: true,
-                }}
-                sx={{
-                  '& .MuiDrawer-paper': {
-                    boxSizing: 'border-box',
-                    width: 280,
-                  },
-                }}
-              >
-                {drawer}
-              </Drawer>
-            </>
-          ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              {['首页', '产品介绍', '使用流程', '关于我们'].map((text) => (
-                <Button
-                  key={text}
-                  component={Link}
-                  to={text === '首页' ? '/' : `/${text}`}
-                  sx={{
-                    color: '#00FFB8',
-                    fontWeight: 500,
-                    position: 'relative',
-                    fontSize: '1.1rem',
-                    fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
-                    '&::after': {
-                      content: '""',
-                      position: 'absolute',
-                      bottom: -2,
-                      left: 0,
-                      width: '100%',
-                      height: 2,
-                      bgcolor: '#00FFB8',
-                      transform: 'scaleX(0)',
-                      transition: 'transform 0.3s ease-in-out',
-                    },
-                    '&:hover::after': {
-                      transform: 'scaleX(1)',
-                    },
-                    '&:hover': {
-                      color: '#00CC93',
-                    },
-                  }}
-                >
-                  {text}
-                </Button>
-              ))}
-              <Box sx={{ display: 'flex', gap: 2, ml: 2 }}>
-                <Button
-                  variant="outlined"
-                  component={Link}
-                  to="/login"
-                  sx={{
-                    borderColor: '#00FFB8',
-                    color: '#00FFB8',
-                    borderRadius: 2,
-                    px: 3,
-                    py: 1,
-                    transition: 'all 0.3s ease',
-                    fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
-                    '&:hover': {
-                      borderColor: '#00CC93',
-                      bgcolor: 'rgba(0, 255, 184, 0.1)',
-                      transform: 'translateY(-2px)',
-                    },
-                  }}
-                >
-                  登录
-                </Button>
-                <Button
-                  variant="contained"
-                  component={Link}
-                  to="/register"
-                  sx={{
-                    bgcolor: '#00FFB8',
-                    color: '#000000',
-                    borderRadius: 2,
-                    px: 3,
-                    py: 1,
-                    transition: 'all 0.3s ease',
-                    fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
-                    '&:hover': {
-                      bgcolor: '#00CC93',
-                      transform: 'translateY(-2px)',
-                    },
-                  }}
-                >
-                  注册
-                </Button>
-              </Box>
-            </Box>
-          )}
+                {text}
+              </Button>
+            ))}
+          </Box>
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2, ml: 2 }}>
+            <Button
+              variant="outlined"
+              component={Link}
+              to="/login"
+              sx={{
+                color: '#00FFB8',
+                borderColor: '#00FFB8',
+                '&:hover': {
+                  borderColor: '#00CC93',
+                  backgroundColor: 'rgba(0, 255, 184, 0.1)',
+                },
+              }}
+            >
+              登录
+            </Button>
+            <Button
+              variant="contained"
+              component={Link}
+              to="/register"
+              sx={{
+                bgcolor: '#00FFB8',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: '#00CC93',
+                },
+              }}
+            >
+              注册
+            </Button>
+          </Box>
         </Toolbar>
       </Container>
+      <Drawer
+        variant="temporary"
+        anchor="left"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true,
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: { xs: '100%', sm: 280 },
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
     </AppBar>
   );
 };

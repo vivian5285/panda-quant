@@ -38,16 +38,17 @@ const Navbar: React.FC = () => {
   const { isAuthenticated, logout } = useAuth();
 
   const navItems = [
-    { label: '首页', path: '/' },
-    { label: '策略', path: '/strategies' },
-    { label: '收益', path: '/profit' },
-    { label: '邀请', path: '/invite' },
-    { label: '关于', path: '/about' },
+    { label: t('nav.home'), path: '/' },
+    { label: t('nav.strategies'), path: '/strategies' },
+    { label: t('nav.performance'), path: '/profit' },
+    { label: t('nav.referral'), path: '/invite' },
+    { label: t('nav.about'), path: '/about' },
   ];
 
   const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'zh', name: '中文' },
+    { code: 'en', name: t('language.english') },
+    { code: 'zh', name: t('language.chinese') },
+    { code: 'ko', name: t('language.korean') },
   ];
 
   useEffect(() => {

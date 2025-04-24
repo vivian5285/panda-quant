@@ -1,356 +1,358 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Grid } from '@mui/material';
+import {
+  Box,
+  Container,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  useTheme,
+  IconButton,
+  Tooltip,
+  LinearProgress,
+  Chip,
+} from '@mui/material';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { themeUtils } from '../theme';
-import api from '../services/api';
-import PandaCard from '../components/common/PandaCard';
-import PandaButton from '../components/common/PandaButton';
-import PandaAlert from '../components/common/PandaAlert';
-import PandaProgress from '../components/common/PandaProgress';
-import { 
+import {
   ArrowBack as ArrowBackIcon,
+  PlayArrow as PlayIcon,
+  Pause as PauseIcon,
+  Stop as StopIcon,
   TrendingUp as TrendingUpIcon,
-  Security as SecurityIcon,
-  Speed as SpeedIcon,
-  Timeline as TimelineIcon,
-  AutoGraph as AutoGraphIcon,
-  CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon,
-  Error as ErrorIcon,
-  CalendarToday as CalendarIcon
+  TrendingDown as TrendingDownIcon,
 } from '@mui/icons-material';
+import { StrategyReturnDistribution, RiskMetricsRadar, TradeFrequencyHeatmap } from '../components/charts';
+import GlobalBackground from '../components/GlobalBackground';
+import Navbar from '../components/Navbar';
 
-interface Strategy {
-  _id: string;
+interface StrategyDetailProps {
+  id: string;
   name: string;
-  description: string;
   type: string;
-  status: string;
-  riskLevel: string;
-  expectedReturn: number;
-  createdAt: string;
-  updatedAt: string;
-  icon: string;
+  status: 'running' | 'paused' | 'stopped';
+  riskLevel: 'low' | 'medium' | 'high';
   performance: {
-    totalTrades: number;
+    monthlyReturn: number;
     winRate: number;
-    profitFactor: number;
     maxDrawdown: number;
+    totalReturn: number;
+    annualizedReturn: number;
   };
 }
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5 }
-};
-
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case 'active':
-      return <CheckCircleIcon sx={{ color: 'success.main' }} />;
-    case 'pending':
-      return <WarningIcon sx={{ color: 'warning.main' }} />;
-    case 'error':
-      return <ErrorIcon sx={{ color: 'error.main' }} />;
-    default:
-      return null;
-  }
-};
-
-const getRiskColor = (riskLevel: string) => {
-  switch (riskLevel.toLowerCase()) {
-    case 'low':
-      return 'success.main';
-    case 'medium':
-      return 'warning.main';
-    case 'high':
-      return 'error.main';
-    default:
-      return 'text.secondary';
-  }
-};
-
 const StrategyDetail: React.FC = () => {
+  const theme = useTheme();
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [strategy, setStrategy] = useState<Strategy | null>(null);
+  const [strategy, setStrategy] = useState<StrategyDetailProps | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchStrategy = async () => {
+    // 模拟获取策略详情
+    const fetchStrategyDetail = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/strategies/${id}`);
-        setStrategy({
-          ...response.data,
-          icon: response.data.type === 'arbitrage' ? '🔄' : 
-                response.data.type === 'trend' ? '📈' : 
-                response.data.type === 'momentum' ? '⚡' : '🎯',
+        // 模拟API调用
+        const mockStrategy: StrategyDetailProps = {
+          id: id || '1',
+          name: 'Trend Following',
+          type: 'trend',
+          status: 'running',
+          riskLevel: 'medium',
           performance: {
-            totalTrades: 150,
-            winRate: 65.5,
-            profitFactor: 2.1,
-            maxDrawdown: 12.3
-          }
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+            monthlyReturn: 85.2,
+            winRate: 65,
+            maxDrawdown: 15.2,
+            totalReturn: 1022.4,
+            annualizedReturn: 1022.4,
+          },
+        };
+        setStrategy(mockStrategy);
+      } catch (error) {
+        console.error('Error fetching strategy detail:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchStrategy();
-    }
+    fetchStrategyDetail();
   }, [id]);
+
+  const handleStrategyAction = async (action: 'start' | 'stop' | 'pause') => {
+    if (!strategy) return;
+    
+    try {
+      // 模拟API调用
+      setStrategy(prev => prev ? {
+        ...prev,
+        status: action === 'start' ? 'running' : action === 'pause' ? 'paused' : 'stopped'
+      } : null);
+    } catch (error) {
+      console.error('Error performing strategy action:', error);
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+      },
+    },
+  };
 
   if (loading) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        bgcolor: 'background.default'
-      }}>
-        <PandaProgress />
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <LinearProgress sx={{ width: '100%', maxWidth: 400 }} />
       </Box>
     );
   }
 
-  if (error || !strategy) {
+  if (!strategy) {
     return (
       <Box sx={{ p: 3 }}>
-        <PandaAlert severity="error">{error || 'Strategy not found'}</PandaAlert>
+        <Typography variant="h6" color="error">
+          {t('strategy.notFound')}
+        </Typography>
       </Box>
     );
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        bgcolor: 'background.default',
-        p: 3,
-      }}
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
     >
-      <motion.div {...fadeInUp}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-          <PandaButton
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/strategies')}
-            sx={{ mr: 2 }}
-            animate
-          >
-            {t('common.back')}
-          </PandaButton>
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: 600,
-              background: themeUtils.createGradient('primary'),
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}
-          >
-            {strategy.name}
-          </Typography>
+      <Container maxWidth="lg">
+        <Box sx={{ py: 4 }}>
+          {/* Header */}
+          <motion.div variants={itemVariants}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+              <IconButton onClick={() => navigate(-1)} sx={{ mr: 2 }}>
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                {strategy.name}
+              </Typography>
+            </Box>
+          </motion.div>
+
+          {/* Strategy Overview */}
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12} md={4}>
+              <motion.div variants={itemVariants}>
+                <Card
+                  sx={{
+                    background: themeUtils.gradients.primary,
+                    color: 'white',
+                    borderRadius: 2,
+                    boxShadow: theme.shadows[4],
+                  }}
+                >
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="h6">
+                        {t('strategy.status')}
+                      </Typography>
+                      <Chip
+                        label={t(`strategy.status.${strategy.status}`)}
+                        color={
+                          strategy.status === 'running'
+                            ? 'success'
+                            : strategy.status === 'paused'
+                            ? 'warning'
+                            : 'error'
+                        }
+                      />
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="h6">
+                        {t('strategy.riskLevel')}
+                      </Typography>
+                      <Chip
+                        label={t(`strategy.risk.${strategy.riskLevel}`)}
+                        color={
+                          strategy.riskLevel === 'low'
+                            ? 'success'
+                            : strategy.riskLevel === 'medium'
+                            ? 'warning'
+                            : 'error'
+                        }
+                      />
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Tooltip title={t('strategy.actions.start')}>
+                        <IconButton
+                          onClick={() => handleStrategyAction('start')}
+                          sx={{ color: 'white' }}
+                        >
+                          <PlayIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={t('strategy.actions.pause')}>
+                        <IconButton
+                          onClick={() => handleStrategyAction('pause')}
+                          sx={{ color: 'white' }}
+                        >
+                          <PauseIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={t('strategy.actions.stop')}>
+                        <IconButton
+                          onClick={() => handleStrategyAction('stop')}
+                          sx={{ color: 'white' }}
+                        >
+                          <StopIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+
+            <Grid item xs={12} md={8}>
+              <motion.div variants={itemVariants}>
+                <Card
+                  sx={{
+                    background: themeUtils.gradients.secondary,
+                    color: 'white',
+                    borderRadius: 2,
+                    boxShadow: theme.shadows[4],
+                  }}
+                >
+                  <CardContent>
+                    <Typography variant="h6" sx={{ mb: 3 }}>
+                      {t('strategy.performance')}
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6} md={3}>
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            {t('strategy.monthlyReturn')}
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            {strategy.performance.monthlyReturn >= 0 ? (
+                              <TrendingUpIcon sx={{ color: theme.palette.success.main, mr: 1 }} />
+                            ) : (
+                              <TrendingDownIcon sx={{ color: theme.palette.error.main, mr: 1 }} />
+                            )}
+                            <Typography variant="h6">
+                              {strategy.performance.monthlyReturn >= 0 ? '+' : ''}
+                              {strategy.performance.monthlyReturn.toFixed(2)}%
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} md={3}>
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            {t('strategy.winRate')}
+                          </Typography>
+                          <Typography variant="h6">
+                            {strategy.performance.winRate.toFixed(1)}%
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} md={3}>
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            {t('strategy.maxDrawdown')}
+                          </Typography>
+                          <Typography variant="h6" color="error.main">
+                            {strategy.performance.maxDrawdown.toFixed(2)}%
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} md={3}>
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            {t('strategy.totalReturn')}
+                          </Typography>
+                          <Typography variant="h6">
+                            {strategy.performance.totalReturn.toFixed(2)}%
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+          </Grid>
+
+          {/* Charts */}
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <motion.div variants={itemVariants}>
+                <Card>
+                  <CardContent>
+                    <StrategyReturnDistribution
+                      data={{
+                        labels: ['-5%', '-3%', '-1%', '1%', '3%', '5%'],
+                        values: [10, 20, 30, 40, 30, 20]
+                      }}
+                      title={t('strategy.returnDistribution')}
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <motion.div variants={itemVariants}>
+                <Card>
+                  <CardContent>
+                    <RiskMetricsRadar
+                      data={{
+                        labels: ['波动率', '最大回撤', '夏普比率', '胜率', '盈亏比'],
+                        values: [80, 60, 70, 90, 75]
+                      }}
+                      title={t('strategy.riskMetrics')}
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <motion.div variants={itemVariants}>
+                <Card>
+                  <CardContent>
+                    <TradeFrequencyHeatmap
+                      data={{
+                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                        datasets: [{
+                          label: 'BTC/USDT',
+                          data: [[10, 20, 30, 40, 50, 60], [15, 25, 35, 45, 55, 65]]
+                        }]
+                      }}
+                      title={t('strategy.tradeFrequency')}
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+          </Grid>
         </Box>
-
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.2 }}
-            >
-              <PandaCard
-                sx={{
-                  height: '100%',
-                  p: 4
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-                  <Typography variant="h3" sx={{ mr: 2 }}>{strategy.icon}</Typography>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" sx={{ color: 'text.secondary', mb: 1 }}>
-                      {t('strategy.description')}
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                      {strategy.description}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Grid container spacing={3}>
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <SpeedIcon sx={{ mr: 2, color: 'text.secondary' }} />
-                      <Box>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          {t('strategy.type')}
-                        </Typography>
-                        <Typography variant="body1">
-                          {t(`strategyType.${strategy.type}`)}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <SecurityIcon sx={{ mr: 2, color: getRiskColor(strategy.riskLevel) }} />
-                      <Box>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          {t('strategy.riskLevel')}
-                        </Typography>
-                        <Typography variant="body1" sx={{ color: getRiskColor(strategy.riskLevel) }}>
-                          {strategy.riskLevel}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <TrendingUpIcon sx={{ mr: 2, color: 'success.main' }} />
-                      <Box>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          {t('strategy.expectedReturn')}
-                        </Typography>
-                        <Typography variant="body1" sx={{ color: 'success.main' }}>
-                          {strategy.expectedReturn}%
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <CalendarIcon sx={{ mr: 2, color: 'text.secondary' }} />
-                      <Box>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          {t('strategy.createdAt')}
-                        </Typography>
-                        <Typography variant="body1">
-                          {new Date(strategy.createdAt).toLocaleDateString()}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                </Grid>
-
-                <Box sx={{ mt: 4 }}>
-                  <Typography variant="h6" sx={{ mb: 2 }}>
-                    {t('strategy.performance')}
-                  </Typography>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h4" sx={{ color: 'primary.main' }}>
-                          {strategy.performance.totalTrades}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          {t('strategy.totalTrades')}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h4" sx={{ color: 'success.main' }}>
-                          {strategy.performance.winRate}%
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          {t('strategy.winRate')}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h4" sx={{ color: 'success.main' }}>
-                          {strategy.performance.profitFactor}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          {t('strategy.profitFactor')}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h4" sx={{ color: 'error.main' }}>
-                          {strategy.performance.maxDrawdown}%
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          {t('strategy.maxDrawdown')}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  </Grid>
-                </Box>
-              </PandaCard>
-            </motion.div>
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.2 }}
-            >
-              <PandaCard
-                sx={{
-                  height: '100%',
-                  p: 4
-                }}
-              >
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="h6" sx={{ mb: 2 }}>
-                    {t('strategy.actions')}
-                  </Typography>
-                  <PandaButton
-                    variant="contained"
-                    fullWidth
-                    startIcon={<TimelineIcon />}
-                    onClick={() => navigate(`/strategies/${id}/backtest`)}
-                    sx={{ mb: 2 }}
-                    animate
-                    glow
-                  >
-                    {t('strategy.backtest')}
-                  </PandaButton>
-                  <PandaButton
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<AutoGraphIcon />}
-                    onClick={() => navigate(`/strategies/${id}/optimize`)}
-                    animate
-                  >
-                    {t('strategy.optimize')}
-                  </PandaButton>
-                </Box>
-
-                <Box>
-                  <Typography variant="h6" sx={{ mb: 2 }}>
-                    {t('strategy.status')}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {getStatusIcon(strategy.status)}
-                    <Typography variant="body1" sx={{ ml: 1 }}>
-                      {t(`strategyStatus.${strategy.status}`)}
-                    </Typography>
-                  </Box>
-                </Box>
-              </PandaCard>
-            </motion.div>
-          </Grid>
-        </Grid>
-      </motion.div>
-    </Box>
+      </Container>
+    </motion.div>
   );
 };
 

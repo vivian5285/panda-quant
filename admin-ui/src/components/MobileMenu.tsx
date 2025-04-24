@@ -6,10 +6,13 @@ import {
   ListItemIcon,
   ListItemText,
   IconButton,
+  Box,
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Close as CloseIcon } from '@mui/icons-material';
+import { StyledTypography } from './common/StyledComponents';
+import { themeUtils } from '../theme';
 
 interface MobileMenuProps {
   mobileOpen: boolean;
@@ -35,9 +38,25 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ mobileOpen, onClose, menuItems 
       ModalProps={{
         keepMounted: true,
       }}
+      PaperProps={{
+        sx: {
+          width: { xs: '100%', sm: 250 },
+          background: themeUtils.gradients.primary,
+          backdropFilter: 'blur(10px)',
+          borderRight: `1px solid ${themeUtils.palette.primary.main}20`,
+        },
+      }}
     >
-      <div style={{ width: 250 }}>
-        <IconButton onClick={onClose} style={{ margin: '8px' }}>
+      <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
+        <IconButton 
+          onClick={onClose} 
+          sx={{ 
+            color: themeUtils.palette.primary.main,
+            '&:hover': {
+              backgroundColor: `${themeUtils.palette.primary.main}10`,
+            },
+          }}
+        >
           <CloseIcon />
         </IconButton>
         <List>
@@ -50,13 +69,46 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ mobileOpen, onClose, menuItems 
                 onClose();
               }}
               selected={location.pathname === item.path}
+              sx={{
+                borderRadius: 1,
+                mb: 1,
+                py: { xs: 1, sm: 1.5 },
+                '&.Mui-selected': {
+                  backgroundColor: `${themeUtils.palette.primary.main}20`,
+                  '&:hover': {
+                    backgroundColor: `${themeUtils.palette.primary.main}30`,
+                  },
+                },
+                '&:hover': {
+                  backgroundColor: `${themeUtils.palette.primary.main}10`,
+                },
+              }}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={t(item.text)} />
+              <ListItemIcon sx={{ 
+                color: themeUtils.palette.primary.main,
+                minWidth: { xs: 40, sm: 48 },
+              }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={
+                  <StyledTypography
+                    sx={{
+                      color: location.pathname === item.path 
+                        ? themeUtils.palette.primary.main 
+                        : themeUtils.palette.text.primary,
+                      fontWeight: location.pathname === item.path ? 600 : 400,
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                    }}
+                  >
+                    {t(item.text)}
+                  </StyledTypography>
+                }
+              />
             </ListItem>
           ))}
         </List>
-      </div>
+      </Box>
     </Drawer>
   );
 };

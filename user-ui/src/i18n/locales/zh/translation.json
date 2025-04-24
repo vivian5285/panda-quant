@@ -1,10 +1,12 @@
 {
   "nav": {
-    "products": "产品",
-    "performance": "业绩",
+    "home": "首页",
     "strategies": "策略",
-    "security": "安全",
-    "referral": "推荐"
+    "performance": "收益",
+    "referral": "邀请",
+    "about": "关于",
+    "products": "产品",
+    "security": "安全"
   },
   "login": {
     "title": "登录",
@@ -20,7 +22,8 @@
     "noAccount": "没有账户？",
     "register": "注册",
     "username": "用户名",
-    "wallet": "钱包"
+    "wallet": "钱包",
+    "welcome": "欢迎回来"
   },
   "hero": {
     "title": "熊猫量化",
@@ -416,5 +419,70 @@
     "codeSent": "验证码已发送",
     "resendCode": "重新发送",
     "codeCountdown": "{{count}}秒后重新发送"
+  },
+  "settings": {
+    "tabs": {
+      "account": "账户设置",
+      "security": "安全设置",
+      "notifications": "通知设置",
+      "language": "语言设置",
+      "theme": "主题设置"
+    },
+    "username": "用户名",
+    "email": "邮箱",
+    "phone": "手机号",
+    "emailNotifications": "邮件通知",
+    "pushNotifications": "推送通知",
+    "darkMode": "深色模式"
+  },
+  "portfolio": {
+    "name": "组合名称",
+    "description": "描述"
+  },
+  "payment": {
+    "selectChain": "选择链",
+    "amount": "充值金额 (USDT)"
+  },
+  "deposit": {
+    "amount": "充值金额",
+    "selectChain": "选择链",
+    "txHash": "交易哈希 (txHash)"
+  },
+  "dashboard": {
+    "welcome": "欢迎",
+    "connectedAccount": "已连接账户",
+    "viewStrategy": "查看策略",
+    "error": "加载数据失败",
+    "strategies": {
+      "arbitrage": {
+        "name": "套利策略",
+        "description": "利用市场价差进行套利交易"
+      },
+      "trend": {
+        "name": "趋势策略",
+        "description": "跟随市场趋势进行交易"
+      },
+      "momentum": {
+        "name": "动量策略",
+        "description": "捕捉市场动量进行交易"
+      }
+    }
+  },
+  "userStatus": {
+    "title": "用户状态",
+    "search": "搜索",
+    "email": "邮箱",
+    "balance": "余额",
+    "deductionCredit": "抵扣额度",
+    "status": "状态",
+    "createdAt": "创建时间",
+    "active": "活跃",
+    "insufficientBalance": "余额不足",
+    "suspended": "已暂停"
+  },
+  "language": {
+    "english": "English",
+    "chinese": "中文",
+    "korean": "한국어"
   }
 } 

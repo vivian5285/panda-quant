@@ -15,6 +15,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 
 const DepositConfirm: React.FC = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const DepositConfirm: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +80,7 @@ const DepositConfirm: React.FC = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="充值金额"
+                label={t('deposit.amount')}
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
@@ -88,10 +90,10 @@ const DepositConfirm: React.FC = () => {
 
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel>选择链</InputLabel>
+                <InputLabel>{t('deposit.selectChain')}</InputLabel>
                 <Select
                   value={chain}
-                  label="选择链"
+                  label={t('deposit.selectChain')}
                   onChange={(e) => setChain(e.target.value)}
                   required
                 >
@@ -107,7 +109,7 @@ const DepositConfirm: React.FC = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="交易哈希 (txHash)"
+                label={t('deposit.txHash')}
                 value={txHash}
                 onChange={(e) => setTxHash(e.target.value)}
                 required

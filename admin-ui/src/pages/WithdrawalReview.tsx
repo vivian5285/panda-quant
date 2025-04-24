@@ -1,263 +1,341 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Container,
   Typography,
-  Paper,
+  Container,
+  Grid,
+  LinearProgress,
+  Alert,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  Pagination,
-  Alert,
-  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip,
+  IconButton,
+  Tooltip,
   Card,
   CardContent,
-  IconButton,
-  InputAdornment,
+  Divider,
 } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext';
-import {
-  Search as SearchIcon,
-  Close as CloseIcon,
-} from '@mui/icons-material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
+import {
+  Save as SaveIcon,
+  Edit as EditIcon,
+  Refresh as RefreshIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  Warning as WarningIcon,
+  AttachMoney as AttachMoneyIcon,
+} from '@mui/icons-material';
+import { theme } from '../theme';
+import { animationConfig } from '../theme/animation';
+import PageLayout from '../components/common/PageLayout';
 
-interface Order {
-  _id: string;
+interface WithdrawalRequest {
+  id: string;
   userId: string;
+  username: string;
   amount: number;
-  status: string;
+  currency: string;
+  status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   updatedAt: string;
+  walletAddress: string;
+  reason?: string;
 }
 
 const WithdrawalReview: React.FC = () => {
-  const { isAuthenticated } = useAuth();
   const { t } = useTranslation();
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [remark, setRemark] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequest | null>(null);
+  const [reviewStatus, setReviewStatus] = useState<'approved' | 'rejected'>('approved');
+  const [reviewReason, setReviewReason] = useState('');
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await fetch(`/api/admin/orders?page=${page}&type=withdrawal`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+    fetchRequests();
+  }, []);
 
-        if (!response.ok) {
-          throw new Error(t('withdrawal.fetchError'));
-        }
-
-        const data = await response.json();
-        setOrders(data.orders);
-        setTotalPages(data.totalPages);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : t('withdrawal.fetchError'));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isAuthenticated) {
-      fetchOrders();
-    }
-  }, [isAuthenticated, page, t]);
-
-  const handleApprove = async (status: string) => {
-    if (!selectedOrder) return;
-
+  const fetchRequests = async () => {
     try {
-      const response = await fetch(`/api/admin/withdrawal/${selectedOrder._id}/approve`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      // Mock API call
+      const mockRequests: WithdrawalRequest[] = [
+        {
+          id: '1',
+          userId: 'user1',
+          username: 'John Doe',
+          amount: 1000,
+          currency: 'USDT',
+          status: 'pending',
+          createdAt: '2024-04-23T10:00:00Z',
+          updatedAt: '2024-04-23T10:00:00Z',
+          walletAddress: '0x1234...5678',
         },
-        body: JSON.stringify({ status, remark }),
-      });
-
-      if (!response.ok) {
-        throw new Error(t('withdrawal.approveError'));
-      }
-
-      setOrders(orders.map(order =>
-        order._id === selectedOrder._id
-          ? { ...order, status }
-          : order
-      ));
-      setOpenDialog(false);
-      setSelectedOrder(null);
-      setRemark('');
+        {
+          id: '2',
+          userId: 'user2',
+          username: 'Jane Smith',
+          amount: 500,
+          currency: 'BTC',
+          status: 'pending',
+          createdAt: '2024-04-23T09:00:00Z',
+          updatedAt: '2024-04-23T09:00:00Z',
+          walletAddress: 'bc1q...xyz',
+        },
+      ];
+      setRequests(mockRequests);
+      setLoading(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('withdrawal.approveError'));
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      setLoading(false);
     }
   };
 
-  const filteredOrders = orders.filter(order =>
-    order.userId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.status.toLowerCase().includes(searchQuery.toLowerCase())
+  const getStatusColor = (status: WithdrawalRequest['status']) => {
+    switch (status) {
+      case 'pending':
+        return theme.palette.warning.main;
+      case 'approved':
+        return theme.palette.success.main;
+      case 'rejected':
+        return theme.palette.error.main;
+      default:
+        return theme.palette.text.secondary;
+    }
+  };
+
+  const getStatusIcon = (status: WithdrawalRequest['status']) => {
+    switch (status) {
+      case 'pending':
+        return <WarningIcon />;
+      case 'approved':
+        return <CheckCircleIcon />;
+      case 'rejected':
+        return <CancelIcon />;
+      default:
+        return <WarningIcon />;
+    }
+  };
+
+  const handleReview = (request: WithdrawalRequest) => {
+    setSelectedRequest(request);
+    setReviewStatus('approved');
+    setReviewReason('');
+    setOpenDialog(true);
+  };
+
+  const handleSave = () => {
+    if (selectedRequest) {
+      const updatedRequests = requests.map((request) =>
+        request.id === selectedRequest.id
+          ? {
+              ...request,
+              status: reviewStatus,
+              updatedAt: new Date().toISOString(),
+              reason: reviewReason,
+            }
+          : request
+      );
+      setRequests(updatedRequests);
+      setOpenDialog(false);
+      setSelectedRequest(null);
+    }
+  };
+
+  const renderRequestCard = (request: WithdrawalRequest) => (
+    <motion.div
+      key={request.id}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: animationConfig.duration.medium }}
+    >
+      <Card
+        sx={{
+          backgroundColor: theme.palette.background.paper,
+          boxShadow: theme.shadows[2],
+          '&:hover': {
+            boxShadow: theme.shadows[4],
+          },
+        }}
+      >
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                sx={{
+                  color: getStatusColor(request.status),
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                {getStatusIcon(request.status)}
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                {request.username}
+              </Typography>
+            </Box>
+            <Tooltip title={t('withdrawalReview.review')}>
+              <IconButton onClick={() => handleReview(request)}>
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {request.userId}
+          </Typography>
+          <Divider sx={{ my: 2 }} />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box>
+              <Typography variant="body2" color="text.secondary">
+                {t('withdrawalReview.amount')}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AttachMoneyIcon sx={{ color: theme.palette.primary.main }} />
+                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  {request.amount} {request.currency}
+                </Typography>
+              </Box>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">
+                {t('withdrawalReview.status')}
+              </Typography>
+              <Chip
+                label={t(`withdrawalReview.${request.status}`)}
+                sx={{
+                  bgcolor: `${getStatusColor(request.status)}20`,
+                  color: getStatusColor(request.status),
+                  fontWeight: 500,
+                }}
+              />
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box>
+              <Typography variant="body2" color="text.secondary">
+                {t('withdrawalReview.createdAt')}
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {new Date(request.createdAt).toLocaleString()}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">
+                {t('withdrawalReview.updatedAt')}
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {new Date(request.updatedAt).toLocaleString()}
+              </Typography>
+            </Box>
+          </Box>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            {t('withdrawalReview.walletAddress')}: {request.walletAddress}
+          </Typography>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 
-  const columns: GridColDef[] = [
-    { field: 'userId', headerName: t('withdrawal.userId'), width: 200 },
-    { field: 'amount', headerName: t('withdrawal.amount'), width: 150 },
-    { field: 'status', headerName: t('withdrawal.status'), width: 150 },
-    { field: 'createdAt', headerName: t('withdrawal.createdAt'), width: 200 },
-    {
-      field: 'actions',
-      headerName: t('withdrawal.actions'),
-      width: 150,
-      renderCell: (params) => (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => {
-            setSelectedOrder(params.row);
-            setOpenDialog(true);
-          }}
-        >
-          {t('withdrawal.review')}
-        </Button>
-      ),
-    },
-  ];
+  const renderContent = () => (
+    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 3 }}>
+      {requests.map(renderRequestCard)}
+    </Box>
+  );
 
-  if (!isAuthenticated) {
-    return (
-      <Container maxWidth="lg">
-        <Alert severity="warning" sx={{ mt: 2 }}>
-          {t('withdrawal.loginRequired')}
-        </Alert>
-      </Container>
-    );
-  }
-
-  if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="400px"
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const renderActions = () => (
+    <Button
+      variant="contained"
+      startIcon={<RefreshIcon />}
+      onClick={fetchRequests}
+      sx={{
+        background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+        '&:hover': {
+          background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+        },
+      }}
+    >
+      {t('withdrawalReview.refresh')}
+    </Button>
+  );
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          {t('withdrawal.title')}
-        </Typography>
-
-        {error && (
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography color="error">{error}</Typography>
-            </CardContent>
-          </Card>
-        )}
-
-        <Paper sx={{ p: 2, mb: 3 }}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder={t('withdrawal.searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-              endAdornment: searchQuery && (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setSearchQuery('')}
-                    size="small"
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Paper>
-
-        <Paper sx={{ height: 400, width: '100%' }}>
-          <DataGrid
-            rows={filteredOrders}
-            columns={columns}
-            initialState={{
-              pagination: {
-                paginationModel: { pageSize: 10, page: 0 },
+    <PageLayout
+      title={t('withdrawalReview.title')}
+      actions={renderActions()}
+      content={renderContent()}
+    >
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{t('withdrawalReview.reviewRequest')}</DialogTitle>
+        <DialogContent>
+          {selectedRequest && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                {selectedRequest.username}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <AttachMoneyIcon sx={{ color: theme.palette.primary.main }} />
+                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  {selectedRequest.amount} {selectedRequest.currency}
+                </Typography>
+              </Box>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>{t('withdrawalReview.status')}</InputLabel>
+                <Select
+                  value={reviewStatus}
+                  onChange={(e) => setReviewStatus(e.target.value as 'approved' | 'rejected')}
+                  label={t('withdrawalReview.status')}
+                >
+                  <MenuItem value="approved">{t('withdrawalReview.approved')}</MenuItem>
+                  <MenuItem value="rejected">{t('withdrawalReview.rejected')}</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                value={reviewReason}
+                onChange={(e) => setReviewReason(e.target.value)}
+                label={t('withdrawalReview.reason')}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenDialog(false)}
+            sx={{
+              color: theme.palette.text.secondary,
+              '&:hover': {
+                backgroundColor: `${theme.palette.text.secondary}10`,
               },
             }}
-            pageSizeOptions={[10]}
-            disableRowSelectionOnClick
-          />
-        </Paper>
-
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={(_, value) => setPage(value)}
-            color="primary"
-          />
-        </Box>
-
-        <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-          <DialogTitle>{t('withdrawal.reviewTitle')}</DialogTitle>
-          <DialogContent>
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              value={remark}
-              onChange={(e) => setRemark(e.target.value)}
-              placeholder={t('withdrawal.remarkPlaceholder')}
-              sx={{ mt: 2 }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDialog(false)}>
-              {t('withdrawal.cancel')}
-            </Button>
-            <Button
-              onClick={() => handleApprove('approved')}
-              color="primary"
-              variant="contained"
-            >
-              {t('withdrawal.approve')}
-            </Button>
-            <Button
-              onClick={() => handleApprove('rejected')}
-              color="error"
-              variant="contained"
-            >
-              {t('withdrawal.reject')}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </Container>
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            sx={{
+              background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+              '&:hover': {
+                background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+              },
+            }}
+          >
+            {t('common.save')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </PageLayout>
   );
 };
 

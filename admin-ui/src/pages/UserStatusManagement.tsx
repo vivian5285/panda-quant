@@ -1,57 +1,51 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
+  Typography,
+  Container,
+  Grid,
+  LinearProgress,
+  Alert,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  Typography,
-  Chip,
-  Pagination,
-  Container,
-  Card,
-  CardContent,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Grid,
+  FormControl,
+  InputLabel,
   Select,
   MenuItem,
-  InputAdornment,
+  Chip,
   IconButton,
-  CircularProgress,
-  SelectChangeEvent,
+  Tooltip,
+  Card,
+  CardContent,
+  Divider,
 } from '@mui/material';
-import { getUserStatuses, updateUserStatus } from '../api/user';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
+  Save as SaveIcon,
   Edit as EditIcon,
-  Cancel as CancelIcon,
-  Search as SearchIcon,
-  Close as CloseIcon,
+  Refresh as RefreshIcon,
   CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
-import { format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { theme } from '../theme';
+import { animationConfig } from '../theme/animation';
+import PageLayout from '../components/common/PageLayout';
 
 interface UserStatus {
-  _id: string;
-  email: string;
-  status: 'active' | 'insufficient_balance' | 'suspended';
-  balance: number;
-  hostingFee: number;
-  deductionCredit: number;
-  lastLoginAt: Date;
-  rechargeCount: number;
-  totalRechargeAmount: number;
+  id: string;
+  userId: string;
+  username: string;
+  status: 'active' | 'inactive' | 'suspended' | 'banned';
+  lastLogin: string;
+  loginCount: number;
+  lastActivity: string;
+  ipAddress: string;
 }
 
 const UserStatusManagement: React.FC = () => {
@@ -59,409 +53,248 @@ const UserStatusManagement: React.FC = () => {
   const [users, setUsers] = useState<UserStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [openDialog, setOpenDialog] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserStatus | null>(null);
-  const [formData, setFormData] = useState<Partial<Omit<UserStatus, '_id'>>>({
-    status: 'active',
-  });
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUser, setSelectedUser] = useState<UserStatus | null>(null);
+  const [editedStatus, setEditedStatus] = useState<UserStatus['status']>('active');
 
-  const fetchUserStatuses = useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
     try {
-      const response = await getUserStatuses(page);
-      setUsers(response.users);
-      setTotalPages(response.totalPages);
+      // Mock API call
+      const mockUsers: UserStatus[] = [
+        {
+          id: '1',
+          userId: 'user1',
+          username: 'John Doe',
+          status: 'active',
+          lastLogin: '2024-04-23T10:00:00Z',
+          loginCount: 42,
+          lastActivity: '2024-04-23T10:30:00Z',
+          ipAddress: '192.168.1.1',
+        },
+        {
+          id: '2',
+          userId: 'user2',
+          username: 'Jane Smith',
+          status: 'inactive',
+          lastLogin: '2024-04-22T15:00:00Z',
+          loginCount: 18,
+          lastActivity: '2024-04-22T15:30:00Z',
+          ipAddress: '192.168.1.2',
+        },
+        {
+          id: '3',
+          userId: 'user3',
+          username: 'Bob Johnson',
+          status: 'suspended',
+          lastLogin: '2024-04-21T09:00:00Z',
+          loginCount: 5,
+          lastActivity: '2024-04-21T09:30:00Z',
+          ipAddress: '192.168.1.3',
+        },
+      ];
+      setUsers(mockUsers);
       setLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       setLoading(false);
     }
-  }, [page]);
+  };
 
-  useEffect(() => {
-    fetchUserStatuses();
-  }, [fetchUserStatuses]);
+  const getStatusColor = (status: UserStatus['status']) => {
+    switch (status) {
+      case 'active':
+        return theme.palette.success.main;
+      case 'inactive':
+        return theme.palette.warning.main;
+      case 'suspended':
+        return theme.palette.error.main;
+      case 'banned':
+        return theme.palette.error.dark;
+      default:
+        return theme.palette.text.secondary;
+    }
+  };
 
-  const handleOpenDialog = (user: UserStatus) => {
-    setEditingUser(user);
-    setFormData({
-      status: user.status,
-    });
+  const handleEdit = (user: UserStatus) => {
+    setSelectedUser(user);
+    setEditedStatus(user.status);
     setOpenDialog(true);
   };
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setEditingUser(null);
-    setFormData({
-      status: 'active',
-    });
-  };
-
-  const handleSubmit = async () => {
-    if (!editingUser) return;
-
-    try {
-      await updateUserStatus(editingUser._id, formData);
-      fetchUserStatuses();
-      handleCloseDialog();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+  const handleSave = () => {
+    if (selectedUser) {
+      const updatedUsers = users.map((user) =>
+        user.id === selectedUser.id ? { ...user, status: editedStatus } : user
+      );
+      setUsers(updatedUsers);
+      setOpenDialog(false);
+      setSelectedUser(null);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return '#00FFB8';
-      case 'insufficient_balance':
-        return '#FFB800';
-      case 'suspended':
-        return '#FF4D4D';
-      default:
-        return '#666666';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <CheckCircleIcon sx={{ color: '#00FFB8' }} />;
-      case 'insufficient_balance':
-        return <WarningIcon sx={{ color: '#FFB800' }} />;
-      case 'suspended':
-        return <CancelIcon sx={{ color: '#FF4D4D' }} />;
-      default:
-        return <CheckCircleIcon sx={{ color: '#666666' }} />;
-    }
-  };
-
-  const handleStatusChange = (event: SelectChangeEvent<UserStatus['status']>) => {
-    setFormData({ ...formData, status: event.target.value as UserStatus['status'] });
-  };
-
-  const filteredUsers = users.filter((user) =>
-    user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress sx={{ color: '#00FFB8' }} />
-      </Box>
-    );
-  }
-
-  return (
-    <Container maxWidth="lg">
-      <Box
+  const renderUserCard = (user: UserStatus) => (
+    <motion.div
+      key={user.id}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: animationConfig.duration.medium }}
+    >
+      <Card
         sx={{
-          py: 4,
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.02) 0%, rgba(0, 0, 0, 0) 100%)',
+          backgroundColor: theme.palette.background.paper,
+          boxShadow: theme.shadows[2],
+          '&:hover': {
+            boxShadow: theme.shadows[4],
+          },
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                color: '#333333',
-                position: 'relative',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: -10,
-                  left: 0,
-                  width: '60px',
-                  height: '4px',
-                  background: 'linear-gradient(90deg, #00FFB8, transparent)',
-                  borderRadius: '2px',
-                },
-              }}
-            >
-              {t('userStatus.title')}
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 500 }}>
+              {user.username}
             </Typography>
+            <Tooltip title={t('userStatus.edit')}>
+              <IconButton onClick={() => handleEdit(user)}>
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
-        </motion.div>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {user.userId}
+          </Typography>
+          <Divider sx={{ my: 2 }} />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box>
+              <Typography variant="body2" color="text.secondary">
+                {t('userStatus.status')}
+              </Typography>
+              <Chip
+                label={t(`userStatus.${user.status}`)}
+                sx={{
+                  bgcolor: `${getStatusColor(user.status)}20`,
+                  color: getStatusColor(user.status),
+                  fontWeight: 500,
+                }}
+              />
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">
+                {t('userStatus.loginCount')}
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {user.loginCount}
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box>
+              <Typography variant="body2" color="text.secondary">
+                {t('userStatus.lastLogin')}
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {new Date(user.lastLogin).toLocaleString()}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="text.secondary">
+                {t('userStatus.lastActivity')}
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {new Date(user.lastActivity).toLocaleString()}
+              </Typography>
+            </Box>
+          </Box>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            {t('userStatus.ipAddress')}: {user.ipAddress}
+          </Typography>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
 
-        {error && (
-          <Card
-            sx={{
-              mb: 3,
-              bgcolor: 'rgba(255, 77, 77, 0.1)',
-              border: '1px solid rgba(255, 77, 77, 0.2)',
-              borderRadius: 2,
-            }}
-          >
-            <CardContent>
-              <Typography color="error">{error}</Typography>
-            </CardContent>
-          </Card>
-        )}
+  const renderContent = () => (
+    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 3 }}>
+      {users.map(renderUserCard)}
+    </Box>
+  );
 
-        <Paper
-          sx={{
-            p: 2,
-            mb: 3,
-            borderRadius: 2,
-            background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.05) 0%, rgba(0, 0, 0, 0) 100%)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(0, 255, 184, 0.1)',
-          }}
-        >
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder={t('search')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: '#00FFB8' }} />
-                </InputAdornment>
-              ),
-              endAdornment: searchQuery && (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setSearchQuery('')} size="small">
-                    <CloseIcon sx={{ color: '#666666' }} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                '&:hover fieldset': {
-                  borderColor: '#00FFB8',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#00FFB8',
-                },
-              },
-            }}
-          />
-        </Paper>
+  const renderActions = () => (
+    <Button
+      variant="contained"
+      startIcon={<RefreshIcon />}
+      onClick={fetchUsers}
+      sx={{
+        background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+        '&:hover': {
+          background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+        },
+      }}
+    >
+      {t('userStatus.refresh')}
+    </Button>
+  );
 
-        <TableContainer
-          component={Paper}
-          sx={{
-            borderRadius: 2,
-            background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.05) 0%, rgba(0, 0, 0, 0) 100%)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(0, 255, 184, 0.1)',
-          }}
-        >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('email')}</TableCell>
-                <TableCell>{t('status')}</TableCell>
-                <TableCell>{t('balance')}</TableCell>
-                <TableCell>{t('hostingFee')}</TableCell>
-                <TableCell>{t('deductionCredit')}</TableCell>
-                <TableCell>{t('lastLogin')}</TableCell>
-                <TableCell>{t('recharge')}</TableCell>
-                <TableCell>{t('actions')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredUsers.map((user) => (
-                <TableRow key={user._id} hover>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ color: '#333333' }}>
-                      {user.email}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      icon={getStatusIcon(user.status)}
-                      label={t(`userStatus.${user.status}`)}
-                      sx={{
-                        bgcolor: `${getStatusColor(user.status)}20`,
-                        color: getStatusColor(user.status),
-                        border: `1px solid ${getStatusColor(user.status)}`,
-                        '& .MuiChip-icon': {
-                          color: getStatusColor(user.status),
-                        },
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ color: '#333333' }}>
-                      {user.balance}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ color: '#333333' }}>
-                      {user.hostingFee}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ color: '#333333' }}>
-                      {user.deductionCredit}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ color: '#666666' }}>
-                      {format(user.lastLoginAt, 'PPpp', { locale: zhCN })}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ color: '#333333' }}>
-                      {t('count')}: {user.rechargeCount}
-                      <br />
-                      {t('total')}: {user.totalRechargeAmount}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="contained"
-                      onClick={() => handleOpenDialog(user)}
-                      startIcon={<EditIcon />}
-                      sx={{
-                        bgcolor: '#00FFB8',
-                        color: '#000000',
-                        '&:hover': {
-                          bgcolor: '#00CC93',
-                          transform: 'translateY(-2px)',
-                        },
-                        transition: 'all 0.3s ease',
-                      }}
-                    >
-                      {t('edit')}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={(_, value) => setPage(value)}
-            sx={{
-              '& .MuiPaginationItem-root': {
-                color: '#666666',
-                '&.Mui-selected': {
-                  bgcolor: '#00FFB8',
-                  color: '#000000',
-                  '&:hover': {
-                    bgcolor: '#00CC93',
-                  },
-                },
-              },
-            }}
-          />
-        </Box>
-
-        <Dialog
-          open={openDialog}
-          onClose={handleCloseDialog}
-          maxWidth="sm"
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: 2,
-              background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.05) 0%, rgba(0, 0, 0, 0) 100%)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(0, 255, 184, 0.1)',
-            },
-          }}
-        >
-          <DialogTitle>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 700,
-                color: '#333333',
-                position: 'relative',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: -10,
-                  left: 0,
-                  width: '40px',
-                  height: '3px',
-                  background: 'linear-gradient(90deg, #00FFB8, transparent)',
-                  borderRadius: '2px',
-                },
-              }}
-            >
-              {t('editUserStatus')}
-            </Typography>
-          </DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" sx={{ color: '#333333', fontWeight: 500 }}>
-                  {editingUser?.email}
-                </Typography>
-              </Grid>
-              <Grid item xs={12}>
+  return (
+    <PageLayout
+      title={t('userStatus.title')}
+      actions={renderActions()}
+      content={renderContent()}
+    >
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{t('userStatus.editStatus')}</DialogTitle>
+        <DialogContent>
+          {selectedUser && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                {selectedUser.username}
+              </Typography>
+              <FormControl fullWidth>
+                <InputLabel>{t('userStatus.status')}</InputLabel>
                 <Select
-                  value={formData.status}
-                  onChange={handleStatusChange}
-                  label={t('status')}
-                  sx={{
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#00FFB8',
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#00FFB8',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#00FFB8',
-                    },
-                  }}
+                  value={editedStatus}
+                  onChange={(e) => setEditedStatus(e.target.value as UserStatus['status'])}
+                  label={t('userStatus.status')}
                 >
                   <MenuItem value="active">{t('userStatus.active')}</MenuItem>
-                  <MenuItem value="insufficient_balance">{t('userStatus.insufficient_balance')}</MenuItem>
+                  <MenuItem value="inactive">{t('userStatus.inactive')}</MenuItem>
                   <MenuItem value="suspended">{t('userStatus.suspended')}</MenuItem>
+                  <MenuItem value="banned">{t('userStatus.banned')}</MenuItem>
                 </Select>
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={handleCloseDialog}
-              sx={{
-                color: '#666666',
-                '&:hover': {
-                  bgcolor: 'rgba(0, 0, 0, 0.05)',
-                },
-              }}
-            >
-              {t('cancel')}
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              variant="contained"
-              sx={{
-                bgcolor: '#00FFB8',
-                color: '#000000',
-                '&:hover': {
-                  bgcolor: '#00CC93',
-                },
-              }}
-            >
-              {t('save')}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </Container>
+              </FormControl>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenDialog(false)}
+            sx={{
+              color: theme.palette.text.secondary,
+              '&:hover': {
+                backgroundColor: `${theme.palette.text.secondary}10`,
+              },
+            }}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            sx={{
+              background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+              '&:hover': {
+                background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
+              },
+            }}
+          >
+            {t('common.save')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </PageLayout>
   );
 };
 

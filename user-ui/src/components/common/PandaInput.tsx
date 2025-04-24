@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles';
 export interface PandaInputProps extends Omit<TextFieldProps, 'variant' | 'onChange'> {
   label?: string;
   value: string | number;
-  onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onChange: (value: string) => void;
   error?: boolean;
   helperText?: string;
   fullWidth?: boolean;
@@ -43,12 +43,16 @@ const PandaInput: React.FC<PandaInputProps> = ({
 }) => {
   const theme = useTheme();
 
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    onChange(event.target.value);
+  };
+
   const input = (
     <TextField
       variant="outlined"
       label={label}
       value={value}
-      onChange={onChange}
+      onChange={handleChange}
       error={error}
       helperText={helperText}
       fullWidth={fullWidth}

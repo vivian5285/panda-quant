@@ -1,58 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Typography,
-  Paper,
-  Container,
   Button,
+  Card,
+  CardContent,
+  Chip,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  Paper,
+  Select,
+  SelectChangeEvent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
   TextField,
+  Typography,
+  Tooltip,
+  Container,
+  LinearProgress,
+  Alert,
+  Avatar,
   FormControl,
   InputLabel,
-  Select,
-  MenuItem,
-  IconButton,
 } from '@mui/material';
-import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Search as SearchIcon,
+  TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
+  Warning as WarningIcon,
 } from '@mui/icons-material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { getStrategies, createStrategy, updateStrategy, deleteStrategy } from '../api/strategy';
-
-interface ExtendedStrategy {
-  _id: string;
-  name: string;
-  description: string;
-  type: 'arbitrage' | 'market_making' | 'trend_following';
-  status: 'active' | 'inactive';
-  createdAt?: string;
-  updatedAt?: string;
-}
+import { motion } from 'framer-motion';
+import PageLayout from '../components/common/PageLayout';
+import { animationConfig } from '../theme/animation';
+import { getStrategies, createStrategy, updateStrategy, deleteStrategy, Strategy } from '../api/strategies';
 
 const StrategyManagement: React.FC = () => {
-  const { t } = useTranslation();
-  const [strategies, setStrategies] = useState<ExtendedStrategy[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [selectedStrategy, setSelectedStrategy] = useState<ExtendedStrategy | null>(null);
-  const [formData, setFormData] = useState<{
-    name: string;
-    description: string;
-    type: ExtendedStrategy['type'];
-    status: ExtendedStrategy['status'];
-  }>({
-    name: '',
-    description: '',
-    type: 'arbitrage',
-    status: 'active',
+  const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    type: 'all',
+    status: 'all',
+    riskLevel: 'all',
   });
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
 
   useEffect(() => {
     fetchStrategies();
@@ -60,206 +68,279 @@ const StrategyManagement: React.FC = () => {
 
   const fetchStrategies = async () => {
     try {
+      setLoading(true);
       const data = await getStrategies();
-      setStrategies(data.map(strategy => ({
-        _id: strategy.id || '',
-        name: strategy.name,
-        description: strategy.description || '',
-        type: 'arbitrage',
-        status: 'active'
-      })));
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching strategies:', error);
+      setStrategies(data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch strategies');
+      console.error(err);
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenDialog = (strategy?: ExtendedStrategy) => {
-    if (strategy) {
-      setSelectedStrategy(strategy);
-      setFormData({
-        name: strategy.name,
-        description: strategy.description,
-        type: strategy.type,
-        status: strategy.status,
-      });
-    } else {
-      setSelectedStrategy(null);
-      setFormData({
-        name: '',
-        description: '',
-        type: 'arbitrage',
-        status: 'active',
-      });
-    }
-    setOpenDialog(true);
+  const handlePageChange = (event: unknown, newPage: number) => {
+    setPage(newPage);
   };
 
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
+  const handleRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+    setPage(0);
+  };
+
+  const handleFilterChange = (filter: string) => (event: SelectChangeEvent) => {
+    setFilters({ ...filters, [filter]: event.target.value });
+    setPage(0);
+  };
+
+  const handleDialogOpen = (strategy?: Strategy) => {
+    setSelectedStrategy(strategy || null);
+    setDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
     setSelectedStrategy(null);
-    setFormData({
-      name: '',
-      description: '',
-      type: 'arbitrage',
-      status: 'active',
-    });
   };
 
-  const handleSubmit = async () => {
+  const handleSaveStrategy = async (strategyData: Partial<Strategy>) => {
     try {
       if (selectedStrategy) {
-        await updateStrategy(selectedStrategy._id, formData);
+        await updateStrategy({ ...selectedStrategy, ...strategyData });
       } else {
-        await createStrategy(formData);
+        await createStrategy(strategyData);
       }
       fetchStrategies();
-      handleCloseDialog();
-    } catch (error) {
-      console.error('Error saving strategy:', error);
+      handleDialogClose();
+    } catch (err) {
+      setError('Failed to save strategy');
+      console.error(err);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm(t('strategy.confirmDelete'))) {
-      try {
-        await deleteStrategy(id);
-        fetchStrategies();
-      } catch (error) {
-        console.error('Error deleting strategy:', error);
-      }
+  const handleDeleteStrategy = async (id: string) => {
+    try {
+      await deleteStrategy(id);
+      fetchStrategies();
+    } catch (err) {
+      setError('Failed to delete strategy');
+      console.error(err);
     }
   };
 
-  const columns: GridColDef<ExtendedStrategy>[] = [
-    { field: 'name', headerName: t('strategy.name'), flex: 1 },
-    { field: 'type', headerName: t('strategy.type'), width: 120 },
-    { field: 'status', headerName: t('strategy.status'), width: 120 },
-    {
-      field: 'actions',
-      headerName: t('common.actions'),
-      flex: 1,
-      renderCell: (params) => (
-        <Box>
-          <IconButton onClick={() => handleOpenDialog(params.row)}>
-            <EditIcon />
-          </IconButton>
-          <IconButton onClick={() => handleDelete(params.row._id)}>
-            <DeleteIcon />
-          </IconButton>
-        </Box>
-      ),
-    },
-  ];
+  const filteredStrategies = strategies.filter((strategy) => {
+    const matchesSearch = strategy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      strategy.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = filters.type === 'all' || strategy.type === filters.type;
+    const matchesStatus = filters.status === 'all' || strategy.status === filters.status;
+    const matchesRiskLevel = filters.riskLevel === 'all' || strategy.riskLevel === filters.riskLevel;
+    return matchesSearch && matchesType && matchesStatus && matchesRiskLevel;
+  });
+
+  const renderFilters = () => (
+    <Grid container spacing={2} sx={{ mb: 3 }}>
+      <Grid item={true} xs={12} sm={6} md={3}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search strategies..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Grid>
+      <Grid item={true} xs={12} sm={6} md={3}>
+        <Select
+          fullWidth
+          value={filters.type}
+          onChange={handleFilterChange('type')}
+          variant="outlined"
+        >
+          <MenuItem value="all">All Types</MenuItem>
+          <MenuItem value="momentum">Momentum</MenuItem>
+          <MenuItem value="mean_reversion">Mean Reversion</MenuItem>
+          <MenuItem value="arbitrage">Arbitrage</MenuItem>
+          <MenuItem value="other">Other</MenuItem>
+        </Select>
+      </Grid>
+      <Grid item={true} xs={12} sm={6} md={3}>
+        <Select
+          fullWidth
+          value={filters.status}
+          onChange={handleFilterChange('status')}
+          variant="outlined"
+        >
+          <MenuItem value="all">All Status</MenuItem>
+          <MenuItem value="active">Active</MenuItem>
+          <MenuItem value="inactive">Inactive</MenuItem>
+          <MenuItem value="testing">Testing</MenuItem>
+        </Select>
+      </Grid>
+      <Grid item={true} xs={12} sm={6} md={3}>
+        <Select
+          fullWidth
+          value={filters.riskLevel}
+          onChange={handleFilterChange('riskLevel')}
+          variant="outlined"
+        >
+          <MenuItem value="all">All Risk Levels</MenuItem>
+          <MenuItem value="low">Low</MenuItem>
+          <MenuItem value="medium">Medium</MenuItem>
+          <MenuItem value="high">High</MenuItem>
+        </Select>
+      </Grid>
+    </Grid>
+  );
+
+  const renderContent = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: animationConfig.duration.medium }}
+    >
+      <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Risk Level</TableCell>
+              <TableCell>Performance</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredStrategies
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((strategy) => (
+                <TableRow key={strategy.id} hover>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                        {strategy.name}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {strategy.description}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={strategy.type}
+                      color="primary"
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={strategy.status}
+                      color={
+                        strategy.status === 'active'
+                          ? 'success'
+                          : strategy.status === 'testing'
+                          ? 'warning'
+                          : 'error'
+                      }
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={strategy.riskLevel}
+                      color={
+                        strategy.riskLevel === 'low'
+                          ? 'success'
+                          : strategy.riskLevel === 'medium'
+                          ? 'warning'
+                          : 'error'
+                      }
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <TrendingUpIcon color="success" fontSize="small" />
+                        <Typography variant="body2">
+                          Profit: ${strategy.performance.totalProfit.toLocaleString()}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <WarningIcon color="warning" fontSize="small" />
+                        <Typography variant="body2">
+                          Drawdown: {(strategy.performance.maxDrawdown * 100).toFixed(1)}%
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Tooltip title="Edit">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDialogOpen(strategy)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDeleteStrategy(strategy.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        component="div"
+        count={filteredStrategies.length}
+        page={page}
+        onPageChange={handlePageChange}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleRowsPerPageChange}
+      />
+    </motion.div>
+  );
+
+  const renderActions = () => (
+    <Button
+      variant="contained"
+      startIcon={<AddIcon />}
+      onClick={() => handleDialogOpen()}
+    >
+      Add Strategy
+    </Button>
+  );
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ py: 4 }}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-        >
-          <Paper
-            elevation={0}
-            sx={{
-              p: 4,
-              borderRadius: 2,
-              bgcolor: '#fff',
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
-              <Typography variant="h5" sx={{ color: '#333333', fontWeight: 'bold' }}>
-                {t('strategy.title')}
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => handleOpenDialog()}
-                sx={{
-                  bgcolor: '#00FFB8',
-                  '&:hover': {
-                    bgcolor: '#00E6A5',
-                  },
-                }}
-              >
-                {t('strategy.add')}
-              </Button>
-            </Box>
-            <Box sx={{ height: 400, width: '100%' }}>
-              <DataGrid<ExtendedStrategy>
-                rows={strategies}
-                columns={columns}
-                initialState={{
-                  pagination: {
-                    paginationModel: { pageSize: 5, page: 0 },
-                  },
-                }}
-                pageSizeOptions={[5]}
-                getRowId={(row) => row._id}
-                loading={loading}
-              />
-            </Box>
-          </Paper>
-        </motion.div>
-      </Box>
-
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {selectedStrategy ? t('strategy.edit') : t('strategy.add')}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
-            <TextField
-              fullWidth
-              label={t('strategy.name')}
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              fullWidth
-              label={t('strategy.description')}
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              multiline
-              rows={4}
-              sx={{ mb: 2 }}
-            />
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>{t('strategy.type')}</InputLabel>
-              <Select
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as ExtendedStrategy['type'] })}
-                label={t('strategy.type')}
-              >
-                <MenuItem value="arbitrage">{t('strategy.arbitrage')}</MenuItem>
-                <MenuItem value="market_making">{t('strategy.marketMaking')}</MenuItem>
-                <MenuItem value="trend_following">{t('strategy.trendFollowing')}</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>{t('strategy.status')}</InputLabel>
-              <Select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as ExtendedStrategy['status'] })}
-                label={t('strategy.status')}
-              >
-                <MenuItem value="active">{t('strategy.active')}</MenuItem>
-                <MenuItem value="inactive">{t('strategy.inactive')}</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>{t('common.cancel')}</Button>
-          <Button onClick={handleSubmit} variant="contained" sx={{ bgcolor: '#00FFB8' }}>
-            {t('common.save')}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+    <PageLayout
+      title="Strategy Management"
+      actions={renderActions()}
+      filters={renderFilters()}
+    >
+      {renderContent()}
+    </PageLayout>
   );
 };
 

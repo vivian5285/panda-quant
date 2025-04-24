@@ -17,6 +17,7 @@ import {
   Divider
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface ChainInfo {
   chain: string;
@@ -33,6 +34,7 @@ const DepositCreate: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchChainInfo = async () => {
@@ -128,11 +130,11 @@ const DepositCreate: React.FC = () => {
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel>选择链</InputLabel>
+                <InputLabel>{t('payment.selectChain')}</InputLabel>
                 <Select
                   value={selectedChain}
                   onChange={(e) => setSelectedChain(e.target.value)}
-                  label="选择链"
+                  label={t('payment.selectChain')}
                 >
                   {chainInfo.map((info) => (
                     <MenuItem key={info.chain} value={info.chain}>
@@ -146,7 +148,7 @@ const DepositCreate: React.FC = () => {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="充值金额 (USDT)"
+                label={t('payment.amount')}
                 value={amount}
                 onChange={handleAmountChange}
                 type="text"

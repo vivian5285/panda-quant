@@ -4,8 +4,10 @@ import {
   Typography,
   Avatar,
   Container,
+  alpha,
 } from '@mui/material';
 import { motion } from 'framer-motion';
+import { themeUtils } from '../../theme';
 
 interface Review {
   name: string;
@@ -137,7 +139,8 @@ const UserReviews = () => {
         display: 'flex',
         alignItems: 'center',
         overflow: 'visible',
-        bgcolor: '#FFFFFF',
+        background: `linear-gradient(135deg, ${alpha(themeUtils.palette.background.paper, 0.9)} 0%, ${alpha(themeUtils.palette.background.default, 0.9)} 100%)`,
+        backdropFilter: 'blur(10px)',
       }}
     >
       <Container maxWidth="lg">
@@ -153,7 +156,11 @@ const UserReviews = () => {
               fontWeight: 700,
               textAlign: 'center',
               mb: 3,
-              color: '#00FFB8',
+              ...themeUtils.createTextGradient(
+                themeUtils.palette.primary.main,
+                themeUtils.palette.secondary.main
+              ),
+              textShadow: `0 0 10px ${alpha(themeUtils.palette.primary.main, 0.3)}`,
             }}
           >
             用户评价
@@ -161,7 +168,7 @@ const UserReviews = () => {
           <Typography
             variant="h4"
             sx={{
-              color: '#666666',
+              color: themeUtils.palette.text.secondary,
               textAlign: 'center',
               mb: 6,
               maxWidth: '800px',
@@ -212,13 +219,17 @@ const UserReviews = () => {
                     sx={{
                       p: 4,
                       borderRadius: 2,
-                      bgcolor: '#FFFFFF',
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                      background: `linear-gradient(135deg, ${alpha(themeUtils.palette.background.paper, 0.9)} 0%, ${alpha(themeUtils.palette.background.default, 0.9)} 100%)`,
+                      boxShadow: `0 4px 20px ${alpha(themeUtils.palette.primary.main, 0.1)}`,
                       height: '100%',
+                      backdropFilter: 'blur(10px)',
+                      border: `1px solid ${alpha(themeUtils.palette.divider, 0.1)}`,
                       '&:hover': {
-                        bgcolor: 'rgba(0, 255, 184, 0.1)',
+                        background: `linear-gradient(135deg, ${alpha(themeUtils.palette.primary.main, 0.1)} 0%, ${alpha(themeUtils.palette.secondary.main, 0.1)} 100%)`,
                         transform: 'translateY(-5px)',
+                        boxShadow: `0 8px 30px ${alpha(themeUtils.palette.primary.main, 0.2)}`,
                       },
+                      transition: 'all 0.3s ease',
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -228,8 +239,12 @@ const UserReviews = () => {
                           height: 40,
                           fontSize: '1.5rem',
                           mr: 2,
-                          bgcolor: 'rgba(0, 255, 184, 0.1)',
-                          color: '#00FFB8',
+                          background: themeUtils.createGradient(
+                            themeUtils.palette.primary.main,
+                            themeUtils.palette.secondary.main
+                          ),
+                          color: themeUtils.palette.background.paper,
+                          boxShadow: `0 0 10px ${alpha(themeUtils.palette.primary.main, 0.5)}`,
                         }}
                       >
                         {review.avatar}
@@ -238,36 +253,49 @@ const UserReviews = () => {
                         <Typography
                           sx={{
                             fontWeight: 500,
-                            color: '#00FFB8',
+                            ...themeUtils.createTextGradient(
+                              themeUtils.palette.primary.main,
+                              themeUtils.palette.secondary.main
+                            ),
                           }}
                         >
                           {review.name}
                         </Typography>
                         <Typography
                           sx={{
-                            color: '#666666',
+                            color: themeUtils.palette.text.secondary,
                           }}
                         >
-                          {review.country} · {review.time}
+                          {review.country}
                         </Typography>
                       </Box>
                     </Box>
                     <Typography
                       sx={{
-                        color: '#666666',
+                        color: themeUtils.palette.text.primary,
                         mb: 2,
+                        lineHeight: 1.6,
                       }}
                     >
                       {review.content}
                     </Typography>
-                    <Typography
-                      sx={{
-                        color: '#00FFB8',
-                        fontWeight: 500,
-                      }}
-                    >
-                      {review.amount}
-                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography
+                        sx={{
+                          color: themeUtils.palette.primary.main,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {review.amount}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: themeUtils.palette.text.secondary,
+                        }}
+                      >
+                        {review.time}
+                      </Typography>
+                    </Box>
                   </Box>
                 </motion.div>
               ))}

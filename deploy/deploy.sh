@@ -1,80 +1,133 @@
 #!/bin/bash
 
-# 设置错误时退出
+# 设置错误处理
 set -e
+set -o pipefail
 
-# 颜色定义
+# 定义颜色
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# 打印带颜色的消息
-print_message() {
-    echo -e "${GREEN}[INFO]${NC} $1"
+# 日志函数
+log() {
+    echo -e "${GREEN}[$(date '+%Y-%m-%d %H:%M:%S')] $1${NC}"
 }
 
-print_warning() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# 检查是否以root权限运行
-if [ "$EUID" -ne 0 ]; then
-    print_error "请使用root权限运行此脚本"
+error() {
+    echo -e "${RED}[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1${NC}" >&2
     exit 1
-fi
+}
 
-# 检查证书文件
-print_message "检查证书文件..."
-if [ ! -f "/etc/letsencrypt/live/admin.pandatrade.space/fullchain.pem" ] || [ ! -f "/etc/letsencrypt/live/admin.pandatrade.space/privkey.pem" ]; then
-    print_error "证书文件不存在"
-    exit 1
-fi
+warn() {
+    echo -e "${YELLOW}[$(date '+%Y-%m-%d %H:%M:%S')] WARNING: $1${NC}"
+}
 
-# 创建Docker网络
-print_message "创建Docker网络..."
-docker network create panda-quant-network || true
+# 检查必要的命令
+check_commands() {
+    local commands=("docker" "docker-compose" "git")
+    for cmd in "${commands[@]}"; do
+        if ! command -v "$cmd" &> /dev/null; then
+            error "$cmd 未安装，请先安装 $cmd"
+        fi
+    done
+}
 
-# 复制Nginx主配置文件
-print_message "复制Nginx主配置文件..."
-cp nginx/nginx.conf /etc/nginx/
+# 检查环境变量
+check_env() {
+    if [ ! -f .env ]; then
+        error ".env 文件不存在，请先创建 .env 文件"
+    fi
 
-# 复制Nginx配置文件
-print_message "复制Nginx配置文件..."
-cp nginx/admin.nginx.conf /etc/nginx/sites-available/
-cp nginx/user.nginx.conf /etc/nginx/sites-available/
+    local required_vars=("JWT_SECRET" "DB_USERNAME" "DB_PASSWORD" "DB_NAME")
+    for var in "${required_vars[@]}"; do
+        if [ -z "${!var}" ]; then
+            error "环境变量 $var 未设置"
+        fi
+    done
+}
 
-# 创建符号链接
-print_message "创建Nginx配置符号链接..."
-ln -sf /etc/nginx/sites-available/admin.nginx.conf /etc/nginx/sites-enabled/
-ln -sf /etc/nginx/sites-available/user.nginx.conf /etc/nginx/sites-enabled/
+# 备份数据库
+backup_database() {
+    log "开始备份数据库..."
+    ./backup.sh || warn "数据库备份失败"
+}
 
-# 测试Nginx配置
-print_message "测试Nginx配置..."
-nginx -t
+# 拉取最新代码
+pull_code() {
+    log "拉取最新代码..."
+    git pull || error "拉取代码失败"
+}
 
-# 重启Nginx
-print_message "重启Nginx服务..."
-systemctl restart nginx
+# 构建镜像
+build_images() {
+    log "构建 Docker 镜像..."
+    docker-compose build --no-cache || error "构建镜像失败"
+}
 
-# 部署Docker服务
-print_message "部署Docker服务..."
-docker compose -f docker-compose.admin.yml up -d
-docker compose -f docker-compose.user.yml up -d
+# 停止服务
+stop_services() {
+    log "停止服务..."
+    docker-compose down || error "停止服务失败"
+}
+
+# 启动服务
+start_services() {
+    log "启动服务..."
+    docker-compose up -d || error "启动服务失败"
+}
 
 # 检查服务状态
-print_message "检查服务状态..."
-docker ps
+check_services() {
+    log "检查服务状态..."
+    local services=("server" "postgres" "redis" "nginx")
+    for service in "${services[@]}"; do
+        if ! docker-compose ps "$service" | grep -q "Up"; then
+            error "服务 $service 启动失败"
+        fi
+    done
+}
 
-print_message "部署完成！"
-print_message "请确保以下域名已正确解析到服务器IP："
-print_message "- admin.pandatrade.space"
-print_message "- admin-api.pandatrade.space"
-print_message "- pandatrade.space"
-print_message "- api.pandatrade.space"
+# 清理未使用的镜像和容器
+cleanup() {
+    log "清理未使用的资源..."
+    docker system prune -f || warn "清理资源失败"
+}
 
-ls -l /etc/letsencrypt/live/admin-api.pandatrade.space/ 
+# 主函数
+main() {
+    log "开始部署..."
+    
+    # 检查命令
+    check_commands
+    
+    # 检查环境变量
+    check_env
+    
+    # 备份数据库
+    backup_database
+    
+    # 拉取代码
+    pull_code
+    
+    # 停止服务
+    stop_services
+    
+    # 构建镜像
+    build_images
+    
+    # 启动服务
+    start_services
+    
+    # 检查服务状态
+    check_services
+    
+    # 清理资源
+    cleanup
+    
+    log "部署完成！"
+}
+
+# 执行主函数
+main "$@" 

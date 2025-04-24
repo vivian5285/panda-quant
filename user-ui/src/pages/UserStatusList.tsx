@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { DataGrid, GridColDef, GridValueFormatterParams, GridRenderCellParams } from '@mui/x-data-grid';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 
 interface User {
   _id: string;
@@ -20,6 +21,7 @@ interface User {
 }
 
 const UserStatusList: React.FC = () => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,9 +43,9 @@ const UserStatusList: React.FC = () => {
 
   const getStatusChip = (status: string) => {
     const statusMap: Record<string, { label: string; color: 'success' | 'warning' | 'error' }> = {
-      active: { label: 'Active', color: 'success' },
-      insufficient_balance: { label: 'Insufficient Balance', color: 'warning' },
-      suspended: { label: 'Suspended', color: 'error' }
+      active: { label: t('userStatus.active'), color: 'success' },
+      insufficient_balance: { label: t('userStatus.insufficientBalance'), color: 'warning' },
+      suspended: { label: t('userStatus.suspended'), color: 'error' }
     };
 
     const statusInfo = statusMap[status] || { label: status, color: 'default' };
@@ -51,42 +53,16 @@ const UserStatusList: React.FC = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: 'email', headerName: 'Email', flex: 1 },
-    {
-      field: 'balance',
-      headerName: 'Balance',
-      flex: 1,
-      valueFormatter: (params: GridValueFormatterParams) => `$${params.value.toFixed(2)}`
-    },
-    {
-      field: 'deductionCredit',
-      headerName: 'Deduction Credit',
-      flex: 1,
-      valueFormatter: (params: GridValueFormatterParams) => `$${params.value.toFixed(2)}`
-    },
-    {
-      field: 'status',
-      headerName: 'Status',
-      flex: 1,
+    { field: 'email', headerName: t('userStatus.email'), width: 200 },
+    { field: 'balance', headerName: t('userStatus.balance'), width: 130 },
+    { field: 'deductionCredit', headerName: t('userStatus.deductionCredit'), width: 130 },
+    { 
+      field: 'status', 
+      headerName: t('userStatus.status'), 
+      width: 130,
       renderCell: (params: GridRenderCellParams) => getStatusChip(params.value)
     },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      flex: 1,
-      renderCell: (params: GridRenderCellParams) => (
-        <Box>
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            onClick={() => handleEdit(params.row._id)}
-          >
-            Edit
-          </Button>
-        </Box>
-      )
-    }
+    { field: 'createdAt', headerName: t('userStatus.createdAt'), width: 180 }
   ];
 
   const handleEdit = (userId: string) => {
@@ -94,7 +70,7 @@ const UserStatusList: React.FC = () => {
     console.log('Edit user:', userId);
   };
 
-  const filteredUsers = users.filter(user =>
+  const filteredUsers = users.filter(user => 
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -102,9 +78,9 @@ const UserStatusList: React.FC = () => {
     <Box sx={{ height: 400, width: '100%' }}>
       <Paper sx={{ p: 2 }}>
         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">User Status</Typography>
+          <Typography variant="h6">{t('userStatus.title')}</Typography>
           <TextField
-            label="Search"
+            label={t('userStatus.search')}
             variant="outlined"
             size="small"
             value={searchTerm}

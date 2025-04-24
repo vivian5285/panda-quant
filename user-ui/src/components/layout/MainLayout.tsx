@@ -23,9 +23,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         width: '100%',
         maxWidth: '1200px',
         mx: 'auto',
-        px: { xs: 2, md: 4 },
+        px: { xs: 1.5, sm: 2, md: 4 },
+        py: { xs: 2, sm: 3, md: 4 },
         position: 'relative',
         zIndex: 1,
+        overflow: 'hidden',
       }}>
         {children}
       </Box>

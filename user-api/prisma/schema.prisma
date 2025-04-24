@@ -24,4 +24,32 @@ model User {
   lastLogin     DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  depositAddresses DepositAddress[]
+  depositRecords   DepositRecord[]
+}
+
+model DepositAddress {
+  id        String   @id @default(cuid())
+  userId    String
+  chain     String
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, chain])
+}
+
+model DepositRecord {
+  id              String   @id @default(cuid())
+  userId          String
+  chain           String
+  amount          String
+  status          String   @default("pending")
+  transactionHash String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
 } 

@@ -1,233 +1,173 @@
-import React, { useState } from 'react';
-import { Box, Container, Typography, Grid, Avatar } from '@mui/material';
-import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
-import { themeUtils } from '../theme';
-import PandaCard from '../components/common/PandaCard';
-import PandaButton from '../components/common/PandaButton';
-import PandaInput from '../components/common/PandaInput';
-import PandaSelect from '../components/common/PandaSelect';
-import { 
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { StyledCard } from '../components/common/StyledCard';
+import { GradientTitle } from '../components/common/GradientTitle';
+import {
+  Box,
+  Container,
+  Grid,
+  Typography,
+  TextField,
+  Button,
+  Avatar,
+  CardContent,
+  IconButton,
+  useTheme,
+} from '@mui/material';
+import {
   Edit as EditIcon,
   Save as SaveIcon,
-  Person as PersonIcon,
-  Email as EmailIcon,
-  Phone as PhoneIcon,
-  LocationOn as LocationIcon,
-  Language as LanguageIcon,
-  Notifications as NotificationsIcon,
-  Security as SecurityIcon
+  Cancel as CancelIcon,
 } from '@mui/icons-material';
+import { motion } from 'framer-motion';
+import { fadeIn, slideUp, staggerChildren } from '../animations';
+import { useTranslation } from 'react-i18next';
 
-interface ProfileData {
-  username: string;
-  email: string;
-  phone: string;
-  location: string;
-  language: string;
-  notificationEnabled: boolean;
-  twoFactorEnabled: boolean;
-  avatar: string;
-}
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5 }
-};
-
-const Profile: React.FC = () => {
+const Profile = () => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const navigate = useNavigate();
+  const { user, updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState<ProfileData>({
-    username: 'PandaTrader',
-    email: 'panda@example.com',
-    phone: '+86 123 4567 8901',
-    location: 'China',
-    language: 'zh-CN',
-    notificationEnabled: true,
-    twoFactorEnabled: true,
-    avatar: '/images/panda-avatar.png'
+  const [formData, setFormData] = useState({
+    username: user?.username || '',
+    email: user?.email || '',
+    bio: user?.bio || '',
   });
 
-  const handleSave = () => {
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
     setIsEditing(false);
-    // TODO: 实现保存逻辑
+    setFormData({
+      username: user?.username || '',
+      email: user?.email || '',
+      bio: user?.bio || '',
+    });
+  };
+
+  const handleSave = async () => {
+    try {
+      await updateProfile(formData);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        pt: 8,
-        pb: 4,
-        bgcolor: 'background.default',
-      }}
+    <motion.div
+      initial="initial"
+      animate="animate"
+      variants={staggerChildren}
     >
       <Container maxWidth="lg">
-        <motion.div {...fadeInUp}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 600,
-                background: themeUtils.createGradient('primary'),
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}
-            >
+        <Box sx={{ mt: 4, mb: 4 }}>
+          <motion.div variants={fadeIn}>
+            <GradientTitle variant="h4" gutterBottom>
               {t('profile.title')}
-            </Typography>
-            <PandaButton
-              variant="contained"
-              startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
-              onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-              animate
-              glow
-            >
-              {isEditing ? t('profile.save') : t('profile.edit')}
-            </PandaButton>
-          </Box>
+            </GradientTitle>
+          </motion.div>
 
-          <Grid container spacing={4}>
+          <Grid container spacing={3}>
             <Grid item xs={12} md={4}>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.2 }}
-              >
-                <PandaCard
-                  sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    p: 4,
-                    textAlign: 'center'
-                  }}
-                >
-                  <Avatar
-                    src={profileData.avatar}
-                    sx={{
-                      width: 120,
-                      height: 120,
-                      mb: 3,
-                      border: '4px solid',
-                      borderColor: 'primary.main'
-                    }}
-                  />
-                  <Typography variant="h5" sx={{ mb: 1, fontWeight: 600 }}>
-                    {profileData.username}
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: 'text.secondary', mb: 3 }}>
-                    {t('profile.memberSince')}: 2024-01-01
-                  </Typography>
-                  <PandaButton
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<PersonIcon />}
-                    animate
-                  >
-                    {t('profile.changeAvatar')}
-                  </PandaButton>
-                </PandaCard>
+              <motion.div variants={slideUp}>
+                <StyledCard>
+                  <CardContent sx={{ textAlign: 'center' }}>
+                    <Avatar
+                      sx={{
+                        width: 120,
+                        height: 120,
+                        margin: '0 auto 16px',
+                        border: `4px solid ${theme.palette.primary.main}`,
+                      }}
+                      src={user?.avatar}
+                    />
+                    <Typography variant="h6" gutterBottom>
+                      {user?.username}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {user?.email}
+                    </Typography>
+                  </CardContent>
+                </StyledCard>
               </motion.div>
             </Grid>
 
             <Grid item xs={12} md={8}>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.2 }}
-              >
-                <PandaCard
-                  sx={{
-                    height: '100%',
-                    p: 4
-                  }}
-                >
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6}>
-                      <PandaInput
-                        label={t('profile.username')}
-                        value={profileData.username}
-                        disabled={!isEditing}
-                        startIcon={<PersonIcon />}
-                        fullWidth
-                      />
+              <motion.div variants={slideUp}>
+                <StyledCard>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="h6">
+                        {t('profile.personalInfo')}
+                      </Typography>
+                      {!isEditing ? (
+                        <IconButton onClick={handleEdit} color="primary">
+                          <EditIcon />
+                        </IconButton>
+                      ) : (
+                        <Box>
+                          <IconButton onClick={handleSave} color="primary" sx={{ mr: 1 }}>
+                            <SaveIcon />
+                          </IconButton>
+                          <IconButton onClick={handleCancel} color="error">
+                            <CancelIcon />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </Box>
+
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label={t('profile.username')}
+                          name="username"
+                          value={formData.username}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label={t('profile.email')}
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label={t('profile.bio')}
+                          name="bio"
+                          value={formData.bio}
+                          onChange={handleChange}
+                          disabled={!isEditing}
+                          multiline
+                          rows={4}
+                        />
+                      </Grid>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <PandaInput
-                        label={t('profile.email')}
-                        value={profileData.email}
-                        disabled={!isEditing}
-                        startIcon={<EmailIcon />}
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <PandaInput
-                        label={t('profile.phone')}
-                        value={profileData.phone}
-                        disabled={!isEditing}
-                        startIcon={<PhoneIcon />}
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <PandaInput
-                        label={t('profile.location')}
-                        value={profileData.location}
-                        disabled={!isEditing}
-                        startIcon={<LocationIcon />}
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <PandaSelect
-                        label={t('profile.language')}
-                        value={profileData.language}
-                        disabled={!isEditing}
-                        startIcon={<LanguageIcon />}
-                        options={[
-                          { value: 'zh-CN', label: '中文' },
-                          { value: 'en-US', label: 'English' }
-                        ]}
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <PandaSelect
-                        label={t('profile.notifications')}
-                        value={profileData.notificationEnabled ? 'enabled' : 'disabled'}
-                        disabled={!isEditing}
-                        startIcon={<NotificationsIcon />}
-                        options={[
-                          { value: 'enabled', label: t('profile.enabled') },
-                          { value: 'disabled', label: t('profile.disabled') }
-                        ]}
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <PandaSelect
-                        label={t('profile.twoFactor')}
-                        value={profileData.twoFactorEnabled ? 'enabled' : 'disabled'}
-                        disabled={!isEditing}
-                        startIcon={<SecurityIcon />}
-                        options={[
-                          { value: 'enabled', label: t('profile.enabled') },
-                          { value: 'disabled', label: t('profile.disabled') }
-                        ]}
-                        fullWidth
-                      />
-                    </Grid>
-                  </Grid>
-                </PandaCard>
+                  </CardContent>
+                </StyledCard>
               </motion.div>
             </Grid>
           </Grid>
-        </motion.div>
+        </Box>
       </Container>
-    </Box>
+    </motion.div>
   );
 };
 
