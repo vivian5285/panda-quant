@@ -39,9 +39,7 @@ check_env_vars() {
     log "检查环境变量..."
     local required_vars=(
         "JWT_SECRET"
-        "DB_USERNAME"
-        "DB_PASSWORD"
-        "DB_NAME"
+        "MONGODB_URI"
         "REDIS_PASSWORD"
         "CSRF_SECRET"
     )
@@ -55,9 +53,6 @@ check_env_vars() {
     # 检查敏感变量是否使用默认值
     if [ "$JWT_SECRET" = "your_jwt_secret_key_here" ]; then
         error "请修改 JWT_SECRET 的值"
-    fi
-    if [ "$DB_PASSWORD" = "your_db_password_here" ]; then
-        error "请修改 DB_PASSWORD 的值"
     fi
     if [ "$REDIS_PASSWORD" = "your_redis_password_here" ]; then
         error "请修改 REDIS_PASSWORD 的值"
@@ -90,14 +85,23 @@ load_env() {
 # 备份数据库
 backup_database() {
     log "备份数据库..."
+    
+    # 检查数据库是否运行，如果没有运行则启动
+    if ! docker-compose ps mongodb | grep -q "Up"; then
+        log "MongoDB 服务未运行，正在启动..."
+        docker-compose up -d mongodb
+        sleep 10  # 等待数据库启动
+    fi
+    
     local timestamp=$(date +%Y%m%d_%H%M%S)
     local backup_dir="backups"
     mkdir -p "$backup_dir"
     
-    docker-compose exec -T postgres pg_dump -U "$DB_USERNAME" "$DB_NAME" > "$backup_dir/db_backup_$timestamp.sql"
+    # 执行备份
+    docker-compose exec -T mongodb mongodump --uri="$MONGODB_URI" --out="$backup_dir/mongodb_backup_$timestamp"
     
     if [ $? -eq 0 ]; then
-        log "数据库备份成功: $backup_dir/db_backup_$timestamp.sql"
+        log "数据库备份成功: $backup_dir/mongodb_backup_$timestamp"
     else
         error "数据库备份失败"
     fi
@@ -148,7 +152,7 @@ check_services() {
     log "检查服务状态..."
     sleep 10  # 等待服务启动
     
-    local services=("server" "postgres" "redis" "nginx")
+    local services=("server" "mongodb" "redis" "nginx")
     for service in "${services[@]}"; do
         if ! docker-compose ps "$service" | grep -q "Up"; then
             error "服务 $service 启动失败"
