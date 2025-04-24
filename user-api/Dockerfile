@@ -9,13 +9,22 @@ RUN apk add --no-cache python3 make g++
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies including TypeScript
+# Install dependencies including TypeScript and required packages
 RUN npm install && \
     npm install -g typescript && \
+    npm install --save-dev @types/node && \
+    npm install --save-dev @types/node-cron && \
+    npm install --save-dev @types/axios && \
+    npm install --save-dev @prisma/client && \
+    npm install --save-dev node-cron && \
+    npm install --save-dev axios && \
     chmod -R 755 /usr/local/lib/node_modules/typescript/bin/tsc
 
 # Copy source code
 COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate
 
 # Build the app
 RUN npm run build
@@ -27,10 +36,14 @@ WORKDIR /app
 
 # Install production dependencies
 COPY package*.json ./
-RUN npm install --production
+RUN npm install --production && \
+    npm install --save @prisma/client && \
+    npm install --save node-cron && \
+    npm install --save axios
 
 # Copy built files
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/prisma ./prisma
 
 # Expose port
 EXPOSE 3000
