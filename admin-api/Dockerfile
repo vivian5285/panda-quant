@@ -1,26 +1,37 @@
-FROM node:18
+# Build stage
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# 安装系统依赖
-RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
 
-# 复制 package 文件
+# Copy package files
 COPY package*.json ./
 
-# 安装依赖
-RUN npm install -g ts-node typescript && \
-    npm install
+# Install dependencies
+RUN npm install
 
-# 复制源代码
+# Copy source code
 COPY . .
 
-# 暴露端口
-EXPOSE 3002
+# Build the app
+RUN npm run build
 
-# 启动应用
-CMD ["ts-node", "index.ts"] 
+# Production stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install production dependencies
+COPY package*.json ./
+RUN npm install --production
+
+# Copy built files
+COPY --from=build /app/dist ./dist
+
+# Expose port
+EXPOSE 3000
+
+# Start the app
+CMD ["node", "dist/index.js"] 

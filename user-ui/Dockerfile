@@ -1,21 +1,16 @@
 # Build stage
-FROM node:20-alpine AS build
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
 # Install build dependencies
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    && rm -rf /var/cache/apk/*
+RUN apk add --no-cache python3 make g++
 
 # Copy package files
 COPY package*.json ./
 
-# Clean up and install dependencies
-RUN rm -rf node_modules package-lock.json && \
-    npm install --legacy-peer-deps
+# Install dependencies
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -26,8 +21,8 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
-# Install curl for healthcheck
-RUN apk add --no-cache curl
+# Install wget for healthcheck
+RUN apk add --no-cache wget
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
@@ -35,9 +30,9 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copy built assets from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Add healthcheck with more lenient settings
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:80/ || exit 1
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1
 
 # Expose port 80
 EXPOSE 80

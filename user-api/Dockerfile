@@ -1,47 +1,37 @@
-# 构建阶段
-FROM node:20-alpine AS builder
+# Build stage
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# 安装系统依赖
+# Install build dependencies
 RUN apk add --no-cache python3 make g++
 
-# 复制 package 文件
+# Copy package files
 COPY package*.json ./
 
-# 安装依赖
-RUN npm install && \
-    npm install typescript --save-dev
+# Install dependencies
+RUN npm install
 
-# 确保 TypeScript 安装成功
-RUN ls -la ./node_modules/.bin/tsc && \
-    ./node_modules/.bin/tsc --version
-
-# 复制源代码
+# Copy source code
 COPY . .
 
-# 设置权限并构建应用
-RUN chmod -R 755 ./node_modules/.bin && \
-    npm run build
+# Build the app
+RUN npm run build
 
-# 生产阶段
-FROM node:20-alpine
+# Production stage
+FROM node:18-alpine
 
 WORKDIR /app
 
-# 安装生产环境依赖
-RUN apk add --no-cache python3 make g++
+# Install production dependencies
+COPY package*.json ./
+RUN npm install --production
 
-# 从构建阶段复制构建产物
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+# Copy built files
+COPY --from=build /app/dist ./dist
 
-# 重新安装 bcrypt 以确保正确编译
-RUN npm rebuild bcrypt --build-from-source
-
-# 暴露端口
+# Expose port
 EXPOSE 3000
 
-# 启动应用
-CMD ["npm", "start"] 
+# Start the app
+CMD ["node", "dist/index.js"] 
