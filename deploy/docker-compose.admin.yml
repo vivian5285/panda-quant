@@ -7,6 +7,9 @@ services:
     container_name: panda-quant-mongodb-admin
     ports:
       - "27018:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=PandaQuant@2024
     volumes:
       - mongodb_data:/data/db
     networks:

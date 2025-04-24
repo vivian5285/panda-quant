@@ -93,6 +93,20 @@ backup_database() {
         sleep 10  # 等待数据库启动
     fi
     
+    # 创建 MongoDB 用户
+    log "创建 MongoDB 用户..."
+    docker-compose -f docker-compose.admin.yml exec -T mongodb mongosh --eval "
+        db = db.getSiblingDB('admin');
+        db.createUser({
+            user: 'admin',
+            pwd: 'PandaQuant@2024',
+            roles: [
+                { role: 'root', db: 'admin' },
+                { role: 'readWrite', db: 'panda-quant' }
+            ]
+        });
+    "
+    
     local timestamp=$(date +%Y%m%d_%H%M%S)
     local backup_dir="backups"
     mkdir -p "$backup_dir"
@@ -100,16 +114,17 @@ backup_database() {
     # 使用环境变量中的用户名和密码
     local mongo_user="admin"
     local mongo_pass="PandaQuant@2024"
-    local mongo_host="mongodb"
-    local mongo_port="27017"
+    local mongo_host="mongodb"  # 使用容器名而不是 localhost
+    local mongo_port="27017"    # 使用容器内部端口
     local mongo_db="panda-quant"
     
-    # 执行备份
+    # 执行备份，使用 --authenticationDatabase admin
     docker-compose -f docker-compose.admin.yml exec -T mongodb mongodump \
         --username="$mongo_user" \
         --password="$mongo_pass" \
         --host="$mongo_host" \
         --port="$mongo_port" \
+        --authenticationDatabase="admin" \
         --db="$mongo_db" \
         --out="$backup_dir/mongodb_backup_$timestamp"
     
