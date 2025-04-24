@@ -9,8 +9,10 @@ RUN apk add --no-cache python3 make g++
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies including TypeScript
+RUN npm install && \
+    npm install -g typescript && \
+    chmod -R 755 /usr/local/lib/node_modules/typescript/bin/tsc
 
 # Copy source code
 COPY . .
