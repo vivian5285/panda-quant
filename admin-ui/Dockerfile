@@ -10,10 +10,7 @@ RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --legacy-peer-deps
-
-# Install Vite globally
-RUN npm install -g vite
+RUN npm ci
 
 # Copy source code
 COPY . .
