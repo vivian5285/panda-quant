@@ -368,14 +368,10 @@ EOF
 main() {
     log "开始部署..."
     
+    # 基础部署步骤
     check_commands
     load_env
     check_env
-    install_certbot
-    cleanup_existing_certs
-    get_ssl_certificates
-    configure_nginx_ssl
-    setup_certbot_renewal
     backup_database
     create_directories
     create_network
@@ -383,6 +379,13 @@ main() {
     deploy_admin
     deploy_user
     check_services
+    
+    # SSL证书配置步骤
+    install_certbot
+    cleanup_existing_certs
+    get_ssl_certificates
+    configure_nginx_ssl
+    setup_certbot_renewal
     
     log "部署完成！"
 }
