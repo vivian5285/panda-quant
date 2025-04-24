@@ -20,11 +20,14 @@ RUN npm install && \
     npm install --save-dev axios && \
     chmod -R 755 /usr/local/lib/node_modules/typescript/bin/tsc
 
-# Copy source code
-COPY . .
+# Copy Prisma schema first
+COPY prisma ./prisma
 
 # Generate Prisma client
 RUN npx prisma generate
+
+# Copy source code
+COPY . .
 
 # Build the app
 RUN npm run build
@@ -41,9 +44,12 @@ RUN npm install --production && \
     npm install --save node-cron && \
     npm install --save axios
 
-# Copy built files
+# Copy built files and Prisma schema
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
+
+# Generate Prisma client in production
+RUN npx prisma generate
 
 # Expose port
 EXPOSE 3000
