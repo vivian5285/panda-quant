@@ -307,14 +307,16 @@ get_ssl_certificates() {
         sudo systemctl stop nginx
     fi
     
-    # 获取新证书
-    if ! sudo certbot certonly --standalone -d $DOMAIN -d $ADMIN_SUBDOMAIN.$DOMAIN -d $ADMIN_API_SUBDOMAIN.$DOMAIN -d $API_SUBDOMAIN.$DOMAIN \
-        --non-interactive --agree-tos --email admin@$DOMAIN \
-        --preferred-challenges http; then
-        error "获取SSL证书失败"
+    # 检查是否已存在有效证书
+    if [ -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ] && [ -f "/etc/letsencrypt/live/${DOMAIN}/privkey.pem" ]; then
+        log "发现已存在的有效证书，跳过证书获取..."
+    else
+        certbot certonly --standalone -d "${DOMAIN}" -d "admin.${DOMAIN}" -d "admin-api.${DOMAIN}" -d "api.${DOMAIN}" --non-interactive --agree-tos --email "${ADMIN_EMAIL}"
+        if [ $? -ne 0 ]; then
+            error "获取SSL证书失败"
+        fi
+        log "SSL证书获取成功"
     fi
-    
-    log "SSL证书获取成功"
 }
 
 # 配置Nginx SSL
