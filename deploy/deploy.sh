@@ -90,22 +90,43 @@ backup_database() {
     if ! docker-compose -f docker-compose.admin.yml ps mongodb | grep -q "Up"; then
         log "MongoDB 服务未运行，正在启动..."
         docker-compose -f docker-compose.admin.yml up -d mongodb
-        sleep 10  # 等待数据库启动
+        
+        # 等待MongoDB启动并初始化认证
+        log "等待MongoDB启动并初始化认证..."
+        local max_attempts=10
+        local attempt=1
+        while [ $attempt -le $max_attempts ]; do
+            log "等待MongoDB初始化 (尝试 $attempt/$max_attempts)..."
+            if docker-compose -f docker-compose.admin.yml exec -T mongodb mongosh --eval "db.adminCommand('ping')" &> /dev/null; then
+                log "MongoDB初始化完成！"
+                break
+            fi
+            if [ $attempt -eq $max_attempts ]; then
+                error "MongoDB初始化失败，请检查MongoDB服务状态"
+            fi
+            sleep 10
+            attempt=$((attempt + 1))
+        done
     fi
     
-    # 创建 MongoDB 用户
-    log "创建 MongoDB 用户..."
-    docker-compose -f docker-compose.admin.yml exec -T mongodb mongosh --eval "
-        db = db.getSiblingDB('admin');
-        db.createUser({
-            user: 'admin',
-            pwd: 'PandaQuant@2024',
-            roles: [
-                { role: 'root', db: 'admin' },
-                { role: 'readWrite', db: 'panda-quant' }
-            ]
-        });
-    "
+    # 检查用户是否已存在
+    log "检查MongoDB用户..."
+    if ! docker-compose -f docker-compose.admin.yml exec -T mongodb mongosh --eval "db.getUsers()" | grep -q "admin"; then
+        log "创建MongoDB用户..."
+        docker-compose -f docker-compose.admin.yml exec -T mongodb mongosh --eval "
+            db = db.getSiblingDB('admin');
+            db.createUser({
+                user: 'admin',
+                pwd: 'PandaQuant@2024',
+                roles: [
+                    { role: 'root', db: 'admin' },
+                    { role: 'readWrite', db: 'panda-quant' }
+                ]
+            });
+        "
+    else
+        log "MongoDB用户已存在，跳过创建"
+    fi
     
     local timestamp=$(date +%Y%m%d_%H%M%S)
     local backup_dir="backups"
@@ -119,6 +140,7 @@ backup_database() {
     local mongo_db="panda-quant"
     
     # 执行备份，使用 --authenticationDatabase admin
+    log "开始备份数据库..."
     docker-compose -f docker-compose.admin.yml exec -T mongodb mongodump \
         --username="$mongo_user" \
         --password="$mongo_pass" \
