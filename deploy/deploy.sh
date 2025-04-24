@@ -87,9 +87,9 @@ backup_database() {
     log "备份数据库..."
     
     # 检查数据库是否运行，如果没有运行则启动
-    if ! docker-compose ps mongodb | grep -q "Up"; then
+    if ! docker-compose -f docker-compose.admin.yml ps mongodb | grep -q "Up"; then
         log "MongoDB 服务未运行，正在启动..."
-        docker-compose up -d mongodb
+        docker-compose -f docker-compose.admin.yml up -d mongodb
         sleep 10  # 等待数据库启动
     fi
     
@@ -98,7 +98,7 @@ backup_database() {
     mkdir -p "$backup_dir"
     
     # 执行备份
-    docker-compose exec -T mongodb mongodump --uri="$MONGODB_URI" --out="$backup_dir/mongodb_backup_$timestamp"
+    docker-compose -f docker-compose.admin.yml exec -T mongodb mongodump --uri="$MONGODB_URI" --out="$backup_dir/mongodb_backup_$timestamp"
     
     if [ $? -eq 0 ]; then
         log "数据库备份成功: $backup_dir/mongodb_backup_$timestamp"
@@ -120,7 +120,14 @@ pull_latest_code() {
 # 构建Docker镜像
 build_images() {
     log "构建Docker镜像..."
-    docker-compose build --no-cache
+    
+    # 构建admin服务
+    log "构建admin服务镜像..."
+    docker-compose -f docker-compose.admin.yml build --no-cache
+    
+    # 构建user服务
+    log "构建user服务镜像..."
+    docker-compose -f docker-compose.user.yml build --no-cache
     
     if [ $? -ne 0 ]; then
         error "镜像构建失败"
@@ -130,7 +137,14 @@ build_images() {
 # 停止服务
 stop_services() {
     log "停止服务..."
-    docker-compose down
+    
+    # 停止admin服务
+    log "停止admin服务..."
+    docker-compose -f docker-compose.admin.yml down
+    
+    # 停止user服务
+    log "停止user服务..."
+    docker-compose -f docker-compose.user.yml down
     
     if [ $? -ne 0 ]; then
         error "服务停止失败"
@@ -140,7 +154,14 @@ stop_services() {
 # 启动服务
 start_services() {
     log "启动服务..."
-    docker-compose up -d
+    
+    # 启动admin服务
+    log "启动admin服务..."
+    docker-compose -f docker-compose.admin.yml up -d
+    
+    # 启动user服务
+    log "启动user服务..."
+    docker-compose -f docker-compose.user.yml up -d
     
     if [ $? -ne 0 ]; then
         error "服务启动失败"
@@ -152,10 +173,21 @@ check_services() {
     log "检查服务状态..."
     sleep 10  # 等待服务启动
     
-    local services=("server" "mongodb" "redis" "nginx")
-    for service in "${services[@]}"; do
-        if ! docker-compose ps "$service" | grep -q "Up"; then
-            error "服务 $service 启动失败"
+    # 检查admin服务
+    log "检查admin服务状态..."
+    local admin_services=("server" "mongodb" "redis" "nginx")
+    for service in "${admin_services[@]}"; do
+        if ! docker-compose -f docker-compose.admin.yml ps "$service" | grep -q "Up"; then
+            error "admin服务 $service 启动失败"
+        fi
+    done
+    
+    # 检查user服务
+    log "检查user服务状态..."
+    local user_services=("server" "redis" "nginx")
+    for service in "${user_services[@]}"; do
+        if ! docker-compose -f docker-compose.user.yml ps "$service" | grep -q "Up"; then
+            error "user服务 $service 启动失败"
         fi
     done
 }
