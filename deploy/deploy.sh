@@ -329,15 +329,36 @@ configure_nginx_ssl() {
     # 创建Nginx配置目录
     sudo mkdir -p /etc/nginx/conf.d
     
-    # 复制Nginx配置
+    # 备份现有配置
+    log "备份现有Nginx配置..."
+    if [ -f "/etc/nginx/nginx.conf" ]; then
+        sudo mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
+    fi
+    if [ -f "/etc/nginx/conf.d/default.conf" ]; then
+        sudo mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.bak
+    fi
+    
+    # 清理旧的SSL配置
+    log "清理旧的SSL配置..."
+    sudo rm -f /etc/nginx/conf.d/*.conf
+    sudo rm -f /etc/nginx/sites-enabled/*
+    
+    # 复制Nginx主配置
+    log "复制Nginx主配置..."
+    sudo cp nginx/nginx.conf /etc/nginx/
+    
+    # 复制虚拟主机配置
+    log "复制虚拟主机配置..."
     sudo cp nginx/conf.d/default.conf /etc/nginx/conf.d/
     
     # 检查Nginx配置
+    log "检查Nginx配置..."
     if ! sudo nginx -t; then
         error "Nginx配置检查失败"
     fi
     
     # 重启Nginx
+    log "重启Nginx服务..."
     if ! sudo systemctl restart nginx; then
         error "Nginx重启失败"
     fi
