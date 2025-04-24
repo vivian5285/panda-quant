@@ -76,13 +76,13 @@ set_default_env() {
     export ADMIN_API_SUBDOMAIN=${ADMIN_API_SUBDOMAIN:-"admin-api"}
     export API_SUBDOMAIN=${API_SUBDOMAIN:-"api"}
     
-    # 设置默认数据库连接
-    export MONGODB_ADMIN_URI="mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant-admin?authSource=admin"
-    export MONGODB_USER_URI="mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant-user?authSource=admin"
+    # 设置默认数据库连接（转义@符号）
+    export MONGODB_ADMIN_URI="mongodb://admin:PandaQuant%402024@mongodb:27017/panda-quant-admin?authSource=admin"
+    export MONGODB_USER_URI="mongodb://admin:PandaQuant%402024@mongodb:27017/panda-quant-user?authSource=admin"
     
-    # 设置默认Redis连接
-    export REDIS_ADMIN_URL="redis://:PandaQuant@2024@redis:6379"
-    export REDIS_USER_URL="redis://:PandaQuant@2024@redis:6379"
+    # 设置默认Redis连接（转义@符号）
+    export REDIS_ADMIN_URL="redis://:PandaQuant%402024@redis:6379"
+    export REDIS_USER_URL="redis://:PandaQuant%402024@redis:6379"
     
     # 设置默认密钥
     export JWT_SECRET=${JWT_SECRET:-"your_jwt_secret_key_here"}
