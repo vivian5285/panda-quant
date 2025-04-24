@@ -1,18 +1,17 @@
 version: '3.8'
 
 services:
-  server:
-    build:
-      context: ../server
-      dockerfile: Dockerfile
+  admin-api:
+    image: panda-quant-admin-api
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant?authSource=admin
       - JWT_SECRET=${JWT_SECRET}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
       - mongodb
       - redis
@@ -31,6 +30,51 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  user-api:
+    image: panda-quant-user-api
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant?authSource=admin
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - panda-quant-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    image: panda-quant-frontend
+    ports:
+      - "80:80"
+    networks:
+      - panda-quant-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   mongodb:
     image: mongo:latest
@@ -75,7 +119,7 @@ services:
           cpus: '0.25'
           memory: 256M
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -86,11 +130,12 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/user.nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/admin.nginx.conf:/etc/nginx/conf.d/admin.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
       - /etc/letsencrypt:/etc/letsencrypt
     depends_on:
-      - server
+      - admin-api
+      - user-api
+      - frontend
     networks:
       - panda-quant-network
     deploy:

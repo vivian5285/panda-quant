@@ -13,7 +13,7 @@ services:
       - MONGO_INITDB_DATABASE=admin
     command: ["--auth"]
     volumes:
-      - mongodb_data:/data/db
+      - mongodb_admin_data:/data/db
     networks:
       - panda-quant-network
     healthcheck:
@@ -29,12 +29,13 @@ services:
     container_name: panda-quant-redis-admin
     ports:
       - "6380:6379"    # Redis 管理端口
+    command: redis-server --requirepass PandaQuant@2024
     volumes:
-      - redis_data:/data
+      - redis_admin_data:/data
     networks:
       - panda-quant-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "PandaQuant@2024", "ping"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -75,8 +76,8 @@ services:
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant-admin?authSource=admin
-      - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=your_jwt_secret
+      - REDIS_URL=redis://:PandaQuant@2024@redis:6379
+      - JWT_SECRET=${JWT_SECRET}
       - PORT=3000
     networks:
       - panda-quant-network
@@ -94,8 +95,8 @@ services:
 
 networks:
   panda-quant-network:
-    driver: bridge
+    external: true
 
 volumes:
-  mongodb_data:
-  redis_data: 
+  mongodb_admin_data:
+  redis_admin_data: 

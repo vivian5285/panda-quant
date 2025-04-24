@@ -28,29 +28,104 @@ check_commands() {
     log "检查必要的命令..."
     for cmd in docker docker-compose git; do
         if ! command -v $cmd &> /dev/null; then
-            log "错误: 需要安装 $cmd"
-            exit 1
+            error "需要安装 $cmd"
         fi
     done
+}
+
+# 设置默认环境变量
+set_default_env() {
+    log "设置默认环境变量..."
+    
+    # 设置默认端口
+    export ADMIN_API_PORT=${ADMIN_API_PORT:-8081}
+    export USER_API_PORT=${USER_API_PORT:-8083}
+    export ADMIN_UI_PORT=${ADMIN_UI_PORT:-8080}
+    export USER_UI_PORT=${USER_UI_PORT:-8082}
+    
+    # 设置默认数据库端口
+    export MONGODB_ADMIN_PORT=${MONGODB_ADMIN_PORT:-27018}
+    export MONGODB_USER_PORT=${MONGODB_USER_PORT:-27019}
+    export REDIS_ADMIN_PORT=${REDIS_ADMIN_PORT:-6380}
+    export REDIS_USER_PORT=${REDIS_USER_PORT:-6381}
+    
+    # 设置默认域名
+    export DOMAIN=${DOMAIN:-"pandatrade.space"}
+    export ADMIN_SUBDOMAIN=${ADMIN_SUBDOMAIN:-"admin"}
+    export ADMIN_API_SUBDOMAIN=${ADMIN_API_SUBDOMAIN:-"admin-api"}
+    export API_SUBDOMAIN=${API_SUBDOMAIN:-"api"}
+    
+    # 设置默认数据库连接
+    export MONGODB_ADMIN_URI="mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant-admin?authSource=admin"
+    export MONGODB_USER_URI="mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant-user?authSource=admin"
+    
+    # 设置默认Redis连接
+    export REDIS_ADMIN_URL="redis://:PandaQuant@2024@redis:6379"
+    export REDIS_USER_URL="redis://:PandaQuant@2024@redis:6379"
+    
+    # 设置默认密钥
+    export JWT_SECRET=${JWT_SECRET:-"your_jwt_secret_key_here"}
+    
+    # 创建 .env 文件
+    cat > .env << EOF
+# 应用配置
+NODE_ENV=production
+
+# 端口配置
+ADMIN_API_PORT=${ADMIN_API_PORT}
+USER_API_PORT=${USER_API_PORT}
+ADMIN_UI_PORT=${ADMIN_UI_PORT}
+USER_UI_PORT=${USER_UI_PORT}
+MONGODB_ADMIN_PORT=${MONGODB_ADMIN_PORT}
+MONGODB_USER_PORT=${MONGODB_USER_PORT}
+REDIS_ADMIN_PORT=${REDIS_ADMIN_PORT}
+REDIS_USER_PORT=${REDIS_USER_PORT}
+
+# 域名配置
+DOMAIN=${DOMAIN}
+ADMIN_SUBDOMAIN=${ADMIN_SUBDOMAIN}
+ADMIN_API_SUBDOMAIN=${ADMIN_API_SUBDOMAIN}
+API_SUBDOMAIN=${API_SUBDOMAIN}
+
+# 数据库配置
+MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI}
+MONGODB_USER_URI=${MONGODB_USER_URI}
+MONGO_INITDB_ROOT_USERNAME=admin
+MONGO_INITDB_ROOT_PASSWORD=PandaQuant@2024
+
+# Redis配置
+REDIS_ADMIN_URL=${REDIS_ADMIN_URL}
+REDIS_USER_URL=${REDIS_USER_URL}
+REDIS_PASSWORD=PandaQuant@2024
+
+# JWT配置
+JWT_SECRET=${JWT_SECRET}
+EOF
+    
+    log "环境变量已设置并保存到 .env 文件"
 }
 
 # 检查环境变量
 check_env() {
     log "检查环境变量..."
-    required_vars=(
-        "MONGODB_URI"
-        "JWT_SECRET"
-        "ADMIN_API_PORT"
-        "USER_API_PORT"
-        "FRONTEND_PORT"
-    )
     
-    for var in "${required_vars[@]}"; do
-        if [ -z "${!var}" ]; then
-            log "错误: 环境变量 $var 未设置"
-            exit 1
-        fi
-    done
+    # 设置默认值
+    set_default_env
+    
+    # 检查关键环境变量
+    if [ "$JWT_SECRET" = "your_jwt_secret_key_here" ]; then
+        warn "JWT_SECRET 使用默认值，建议在生产环境中修改"
+    fi
+    
+    # 检查域名配置
+    if [ "$DOMAIN" != "pandatrade.space" ]; then
+        warn "DOMAIN 配置与DNS记录不匹配，请使用 pandatrade.space"
+    fi
+    
+    # 检查子域名配置
+    if [ "$ADMIN_SUBDOMAIN" != "admin" ] || [ "$ADMIN_API_SUBDOMAIN" != "admin-api" ] || [ "$API_SUBDOMAIN" != "api" ]; then
+        warn "子域名配置与DNS记录不匹配，请使用 admin, admin-api, api"
+    fi
 }
 
 # 加载环境变量
@@ -59,7 +134,7 @@ load_env() {
     if [ -f .env ]; then
         source .env
     else
-        log "警告: 未找到 .env 文件"
+        warn "未找到 .env 文件，将使用默认值"
     fi
 }
 
@@ -72,14 +147,26 @@ backup_database() {
     
     mkdir -p $backup_dir
     
-    # 使用 mongodump 备份数据库
-    mongodump --uri="$MONGODB_URI" --out="$backup_file"
+    # 检查 mongodump 是否可用
+    if ! command -v mongodump &> /dev/null; then
+        warn "mongodump 命令不可用，跳过数据库备份"
+        return
+    fi
     
-    if [ $? -eq 0 ]; then
-        log "数据库备份成功: $backup_file"
+    # 备份管理后台数据库
+    log "备份管理后台数据库..."
+    if mongodump --uri="$MONGODB_ADMIN_URI" --out="$backup_file/admin"; then
+        log "管理后台数据库备份成功: $backup_file/admin"
     else
-        log "错误: 数据库备份失败"
-        exit 1
+        warn "管理后台数据库备份失败，继续部署..."
+    fi
+    
+    # 备份用户端数据库
+    log "备份用户端数据库..."
+    if mongodump --uri="$MONGODB_USER_URI" --out="$backup_file/user"; then
+        log "用户端数据库备份成功: $backup_file/user"
+    else
+        warn "用户端数据库备份失败，继续部署..."
     fi
 }
 
@@ -88,49 +175,157 @@ create_directories() {
     log "创建必要的目录结构..."
     mkdir -p admin-api/prisma
     mkdir -p user-api/prisma
-    mkdir -p frontend/prisma
+    mkdir -p admin-ui/prisma
+    mkdir -p user-ui/prisma
+    mkdir -p backups
 }
 
 # 拉取最新代码
 pull_latest_code() {
     log "拉取最新代码..."
-    git pull origin main
+    if ! git pull origin main; then
+        warn "代码拉取失败，继续使用当前代码..."
+    fi
 }
 
-# 构建Docker镜像
-build_docker_images() {
-    log "构建Docker镜像..."
-    
-    # 构建admin服务镜像
-    log "构建admin服务镜像..."
+# 创建网络
+create_network() {
+    log "创建Docker网络..."
+    if ! docker network ls | grep -q "panda-quant-network"; then
+        docker-compose -f docker-compose.network.yml up -d
+    fi
+}
+
+# 部署管理后台
+deploy_admin() {
+    log "部署管理后台..."
     cd admin-api
-    docker build -t panda-quant-admin-api .
+    if ! docker build -t panda-quant-admin-api .; then
+        error "管理后台API镜像构建失败"
+    fi
+    cd ../admin-ui
+    if ! docker build -t panda-quant-admin-ui .; then
+        error "管理后台UI镜像构建失败"
+    fi
     cd ..
     
-    # 构建user服务镜像
-    log "构建user服务镜像..."
-    cd user-api
-    docker build -t panda-quant-user-api .
-    cd ..
-    
-    # 构建前端镜像
-    log "构建前端镜像..."
-    cd frontend
-    docker build -t panda-quant-frontend .
-    cd ..
+    if ! docker-compose -f docker-compose.admin.yml up -d; then
+        error "管理后台服务启动失败"
+    fi
 }
 
-# 启动服务
-start_services() {
-    log "启动服务..."
-    docker-compose up -d
+# 部署用户端
+deploy_user() {
+    log "部署用户端..."
+    cd user-api
+    if ! docker build -t panda-quant-user-api .; then
+        error "用户端API镜像构建失败"
+    fi
+    cd ../user-ui
+    if ! docker build -t panda-quant-user-ui .; then
+        error "用户端UI镜像构建失败"
+    fi
+    cd ..
+    
+    if ! docker-compose -f docker-compose.user.yml up -d; then
+        error "用户端服务启动失败"
+    fi
 }
 
 # 检查服务状态
 check_services() {
     log "检查服务状态..."
     sleep 10
-    docker-compose ps
+    
+    # 检查管理后台服务
+    log "检查管理后台服务状态..."
+    if ! docker-compose -f docker-compose.admin.yml ps; then
+        error "管理后台服务状态检查失败"
+    fi
+    
+    # 检查用户端服务
+    log "检查用户端服务状态..."
+    if ! docker-compose -f docker-compose.user.yml ps; then
+        error "用户端服务状态检查失败"
+    fi
+}
+
+# 安装Certbot
+install_certbot() {
+    log "安装Certbot..."
+    if ! command -v certbot &> /dev/null; then
+        if [ -f /etc/debian_version ]; then
+            sudo apt-get update
+            sudo apt-get install -y certbot python3-certbot-nginx
+        elif [ -f /etc/redhat-release ]; then
+            sudo yum install -y certbot python3-certbot-nginx
+        else
+            error "不支持的操作系统"
+        fi
+    fi
+}
+
+# 获取SSL证书
+get_ssl_certificates() {
+    log "获取SSL证书..."
+    
+    # 检查证书是否存在
+    if [ -d "/etc/letsencrypt/live/$DOMAIN" ]; then
+        log "证书已存在，检查是否需要续期..."
+        if ! sudo certbot renew --dry-run; then
+            warn "证书续期检查失败，尝试重新获取证书"
+        else
+            log "证书有效，无需更新"
+            return
+        fi
+    fi
+    
+    # 获取新证书
+    if ! sudo certbot --nginx -d $DOMAIN -d $ADMIN_SUBDOMAIN.$DOMAIN -d $ADMIN_API_SUBDOMAIN.$DOMAIN -d $API_SUBDOMAIN.$DOMAIN \
+        --non-interactive --agree-tos --email admin@$DOMAIN \
+        --redirect --hsts --staple-ocsp --must-staple; then
+        error "获取SSL证书失败"
+    fi
+    
+    log "SSL证书获取成功"
+}
+
+# 配置Nginx SSL
+configure_nginx_ssl() {
+    log "配置Nginx SSL..."
+    
+    # 创建Nginx配置目录
+    sudo mkdir -p /etc/nginx/conf.d
+    
+    # 复制Nginx配置
+    sudo cp nginx/conf.d/default.conf /etc/nginx/conf.d/
+    
+    # 检查Nginx配置
+    if ! sudo nginx -t; then
+        error "Nginx配置检查失败"
+    fi
+    
+    # 重启Nginx
+    if ! sudo systemctl restart nginx; then
+        error "Nginx重启失败"
+    fi
+    
+    log "Nginx SSL配置完成"
+}
+
+# 设置证书自动续期
+setup_certbot_renewal() {
+    log "设置证书自动续期..."
+    
+    # 创建续期脚本
+    cat > /etc/cron.d/certbot-renew << EOF
+0 0 * * * root certbot renew --quiet --post-hook "systemctl reload nginx"
+EOF
+    
+    # 设置权限
+    chmod 644 /etc/cron.d/certbot-renew
+    
+    log "证书自动续期设置完成"
 }
 
 # 主函数
@@ -140,11 +335,16 @@ main() {
     check_commands
     load_env
     check_env
+    install_certbot
+    get_ssl_certificates
+    configure_nginx_ssl
+    setup_certbot_renewal
     backup_database
     create_directories
+    create_network
     pull_latest_code
-    build_docker_images
-    start_services
+    deploy_admin
+    deploy_user
     check_services
     
     log "部署完成！"
