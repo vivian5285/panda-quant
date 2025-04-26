@@ -8,14 +8,13 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install dependencies
-RUN npm install && npm install -g typescript tsconfig-paths
+RUN npm install && npm install -g typescript tsconfig-paths prisma
 
-# Copy source code and shared directory
+# Copy source code
 COPY . .
-COPY ../shared ./shared
 
 # Generate Prisma client
-RUN npx prisma generate
+RUN prisma generate
 
 # Build the app
 RUN npm run build
@@ -35,7 +34,6 @@ RUN npm install --production
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/shared ./shared
 
 # Set environment variables
 ARG MONGODB_ADMIN_URI
@@ -51,5 +49,5 @@ ENV PORT=3000
 # Expose port
 EXPOSE 3000
 
-# Start the application
-CMD ["node", "-r", "tsconfig-paths/register", "dist/index.js"] 
+# Start the app
+CMD ["npm", "start"] 

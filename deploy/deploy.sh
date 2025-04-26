@@ -328,6 +328,12 @@ build_images() {
     log "构建admin-api镜像..."
     cd "$WORKSPACE_DIR/admin-api" || exit 1
     
+    # 确保shared目录存在
+    if [ ! -d "shared" ]; then
+        log "复制shared目录到admin-api..."
+        cp -r "$WORKSPACE_DIR/shared" .
+    fi
+    
     # 安装依赖
     log "安装依赖..."
     npm install
@@ -357,11 +363,22 @@ build_images() {
     log "构建 Docker 镜像..."
     docker build -t admin-api .
     
+    # 清理复制的shared目录
+    if [ -d "shared" ]; then
+        rm -rf shared
+    fi
+    
     cd "$WORKSPACE_DIR" || exit 1
     
     # 构建user-api镜像
     log "构建user-api镜像..."
     cd "$WORKSPACE_DIR/user-api" || exit 1
+    
+    # 确保shared目录存在
+    if [ ! -d "shared" ]; then
+        log "复制shared目录到user-api..."
+        cp -r "$WORKSPACE_DIR/shared" .
+    fi
     
     # 安装依赖
     log "安装依赖..."
@@ -391,6 +408,11 @@ build_images() {
     # 构建 Docker 镜像
     log "构建 Docker 镜像..."
     docker build -t user-api .
+    
+    # 清理复制的shared目录
+    if [ -d "shared" ]; then
+        rm -rf shared
+    fi
     
     cd "$WORKSPACE_DIR" || exit 1
 }

@@ -1,36 +1,20 @@
 # Build stage
-FROM node:18-alpine AS build
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apk add --no-cache python3 make g++
-
 # Copy package files
 COPY package*.json ./
+COPY prisma ./prisma/
 
-# Install dependencies including TypeScript and required packages
-RUN npm install && \
-    npm install -g typescript && \
-    npm install --save-dev @types/node && \
-    npm install --save-dev @types/node-cron && \
-    npm install --save-dev @types/axios && \
-    npm install --save-dev @prisma/client && \
-    npm install --save-dev node-cron && \
-    npm install --save-dev axios && \
-    chmod -R 755 /usr/local/lib/node_modules/typescript/bin/tsc
+# Install dependencies
+RUN npm install && npm install -g typescript tsconfig-paths prisma
 
 # Copy source code
 COPY . .
 
-# Create prisma directory if it doesn't exist and copy schema if available
-RUN mkdir -p prisma && \
-    if [ -f prisma/schema.prisma ]; then \
-        echo "Prisma schema found, generating client..." && \
-        npx prisma generate; \
-    else \
-        echo "No Prisma schema found, skipping client generation..."; \
-    fi
+# Generate Prisma client
+RUN prisma generate
 
 # Build the app
 RUN npm run build
@@ -40,25 +24,30 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install production dependencies
+# Copy package files
 COPY package*.json ./
-RUN npm install --production && \
-    npm install --save @prisma/client && \
-    npm install --save node-cron && \
-    npm install --save axios
+COPY prisma ./prisma/
 
-# Copy built files
-COPY --from=build /app/dist ./dist
+# Install production dependencies
+RUN npm install --production
 
-# Copy Prisma schema if it exists
-RUN if [ -d /app/prisma ]; then \
-        mkdir -p prisma && \
-        cp -r /app/prisma/* ./prisma/ && \
-        npx prisma generate; \
-    fi
+# Copy built files from builder
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Set environment variables
+ARG MONGODB_USER_URI
+ARG REDIS_USER_URL
+ARG JWT_SECRET
+
+ENV MONGODB_USER_URI=${MONGODB_USER_URI}
+ENV REDIS_USER_URL=${REDIS_USER_URL}
+ENV JWT_SECRET=${JWT_SECRET}
+ENV NODE_ENV=production
+ENV PORT=3000
 
 # Expose port
 EXPOSE 3000
 
 # Start the app
-CMD ["node", "dist/index.js"] 
+CMD ["npm", "start"] 
