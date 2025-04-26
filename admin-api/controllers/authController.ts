@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model';
+import bcrypt from 'bcrypt';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -18,7 +19,14 @@ export const initAdmin = async () => {
     // 检查是否已存在管理员账号
     const existingAdmin = await User.findOne({ role: 'admin' });
     if (!existingAdmin) {
-      await User.createAdmin(adminEmail, adminPassword);
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+      await User.create({
+        email: adminEmail,
+        password: hashedPassword,
+        role: 'admin',
+        status: 'active',
+        balance: 0
+      });
       console.log('Admin account created successfully');
     }
   } catch (error) {

@@ -17,6 +17,9 @@ export interface IUserAsset {
     userId: string;
     assetId: string;
     amount: number;
+    balance: number;
+    status: string;
+    lastFeeDeduction: Date;
     lastUpdated: Date;
     createdAt: Date;
     updatedAt: Date;
@@ -45,6 +48,9 @@ const userAssetSchema = new mongoose.Schema({
     userId: { type: String, required: true },
     assetId: { type: String, required: true },
     amount: { type: Number, required: true },
+    balance: { type: Number, default: 0 },
+    status: { type: String, default: 'active' },
+    lastFeeDeduction: { type: Date, default: Date.now },
     lastUpdated: { type: Date, default: Date.now },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
