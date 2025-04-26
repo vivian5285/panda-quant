@@ -10,8 +10,9 @@ COPY prisma ./prisma/
 # Install dependencies
 RUN npm install && npm install -g typescript
 
-# Copy source code
+# Copy source code and shared directory
 COPY . .
+COPY ../shared ./shared
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -34,9 +35,7 @@ RUN npm install --production
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-
-# Copy shared directory
-COPY shared ./shared
+COPY --from=builder /app/shared ./shared
 
 # Set environment variables
 ARG MONGODB_ADMIN_URI

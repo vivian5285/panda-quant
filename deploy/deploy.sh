@@ -273,9 +273,10 @@ deploy_admin() {
     if [ -d "../admin-api" ]; then
         cd "../admin-api"
         
-        # 创建符号链接到共享目录
+        # 复制共享目录
         if [ -d "../shared" ]; then
-            ln -sf "../shared" .
+            log "复制共享目录..."
+            cp -r "../shared" .
         else
             error "共享目录不存在"
         fi
@@ -300,8 +301,8 @@ deploy_admin() {
             error "管理后台API镜像构建失败"
         fi
         
-        # 清理符号链接
-        rm -f shared
+        # 清理复制的共享目录
+        rm -rf shared
         
         cd "$current_dir"
     else
