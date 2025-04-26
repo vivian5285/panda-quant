@@ -222,6 +222,26 @@ create_directories() {
     mkdir -p user-ui/prisma
     mkdir -p backups
     
+    # 复制docker-compose文件
+    log "复制docker-compose配置文件..."
+    if [ -f "../deploy/docker-compose.admin.yml" ]; then
+        cp "../deploy/docker-compose.admin.yml" .
+    else
+        error "未找到docker-compose.admin.yml文件"
+    fi
+    
+    if [ -f "../deploy/docker-compose.user.yml" ]; then
+        cp "../deploy/docker-compose.user.yml" .
+    else
+        error "未找到docker-compose.user.yml文件"
+    fi
+    
+    if [ -f "../deploy/docker-compose.network.yml" ]; then
+        cp "../deploy/docker-compose.network.yml" .
+    else
+        error "未找到docker-compose.network.yml文件"
+    fi
+    
     # 确保Prisma schema文件存在
     log "检查Prisma schema文件..."
     if [ ! -f "../admin-api/prisma/schema.prisma" ]; then
@@ -261,21 +281,73 @@ build_images() {
     
     # 构建admin-api
     log "构建admin-api镜像..."
-    cd admin-api
-    docker build --build-arg MONGODB_ADMIN_URI=$MONGODB_ADMIN_URI \
-                 --build-arg REDIS_ADMIN_URL=$REDIS_ADMIN_URL \
-                 --build-arg JWT_SECRET=$JWT_SECRET \
-                 -t panda-quant-admin-api .
-    cd ..
+    if [ -d "../admin-api" ]; then
+        cd "../admin-api"
+        
+        # 复制共享目录
+        if [ -d "../shared" ]; then
+            log "复制共享目录..."
+            # 如果目标目录已存在，先删除
+            if [ -d "shared" ]; then
+                rm -rf shared
+            fi
+            # 复制共享目录
+            cp -r "../shared" .
+        else
+            error "共享目录不存在"
+        fi
+        
+        # 构建镜像
+        if ! docker build \
+            --build-arg MONGODB_ADMIN_URI="${MONGODB_ADMIN_URI}" \
+            --build-arg REDIS_ADMIN_URL="${REDIS_ADMIN_URL}" \
+            --build-arg JWT_SECRET="${JWT_SECRET}" \
+            -t panda-quant-admin-api .; then
+            error "管理后台API镜像构建失败"
+        fi
+        
+        # 清理复制的共享目录
+        rm -rf shared
+        
+        cd -
+    else
+        error "admin-api目录不存在"
+    fi
     
     # 构建user-api
     log "构建user-api镜像..."
-    cd user-api
-    docker build --build-arg MONGODB_USER_URI=$MONGODB_USER_URI \
-                 --build-arg REDIS_USER_URL=$REDIS_USER_URL \
-                 --build-arg JWT_SECRET=$JWT_SECRET \
-                 -t panda-quant-user-api .
-    cd ..
+    if [ -d "../user-api" ]; then
+        cd "../user-api"
+        
+        # 复制共享目录
+        if [ -d "../shared" ]; then
+            log "复制共享目录..."
+            # 如果目标目录已存在，先删除
+            if [ -d "shared" ]; then
+                rm -rf shared
+            fi
+            # 复制共享目录
+            cp -r "../shared" .
+        else
+            error "共享目录不存在"
+        fi
+        
+        # 构建镜像
+        if ! docker build \
+            --build-arg MONGODB_USER_URI="${MONGODB_USER_URI}" \
+            --build-arg REDIS_USER_URL="${REDIS_USER_URL}" \
+            --build-arg JWT_SECRET="${JWT_SECRET}" \
+            -t panda-quant-user-api .; then
+            error "用户端API镜像构建失败"
+        fi
+        
+        # 清理复制的共享目录
+        rm -rf shared
+        
+        cd -
+    else
+        error "user-api目录不存在"
+    fi
 }
 
 # 部署管理后台
@@ -315,6 +387,7 @@ deploy_admin() {
             error "Prisma 客户端生成失败"
         fi
         
+        # 构建镜像
         if ! docker build \
             --build-arg MONGODB_ADMIN_URI="${MONGODB_ADMIN_URI}" \
             --build-arg REDIS_ADMIN_URL="${REDIS_ADMIN_URL}" \
@@ -361,9 +434,32 @@ deploy_user() {
     log "构建用户端API..."
     if [ -d "../user-api" ]; then
         cd "../user-api"
-        if ! docker build -t panda-quant-user-api .; then
+        
+        # 复制共享目录
+        if [ -d "../shared" ]; then
+            log "复制共享目录..."
+            # 如果目标目录已存在，先删除
+            if [ -d "shared" ]; then
+                rm -rf shared
+            fi
+            # 复制共享目录
+            cp -r "../shared" .
+        else
+            error "共享目录不存在"
+        fi
+        
+        # 构建镜像
+        if ! docker build \
+            --build-arg MONGODB_USER_URI="${MONGODB_USER_URI}" \
+            --build-arg REDIS_USER_URL="${REDIS_USER_URL}" \
+            --build-arg JWT_SECRET="${JWT_SECRET}" \
+            -t panda-quant-user-api .; then
             error "用户端API镜像构建失败"
         fi
+        
+        # 清理复制的共享目录
+        rm -rf shared
+        
         cd "$current_dir"
     else
         error "用户端API目录不存在"
