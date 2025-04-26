@@ -38,12 +38,12 @@ export class LogController {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      const log = await logService.createLog({
-        level: level as LogLevel,
+      const log = await logService.createLog(
+        level as LogLevel,
         message,
-        source: source as LogSource,
+        source as LogSource,
         details
-      });
+      );
 
       res.status(201).json(log);
     } catch (error) {

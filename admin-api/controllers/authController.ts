@@ -193,19 +193,9 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     if (status) user.status = status;
 
     await user.save();
-
-    res.json({
-      user: {
-        id: user._id,
-        email: user.email,
-        role: user.role,
-        balance: user.balance,
-        status: user.status,
-        referralCode: user.referralCode
-      }
-    });
+    res.json({ message: 'Profile updated successfully' });
   } catch (error) {
-    console.error('Profile update error:', error);
+    console.error('Update profile error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
