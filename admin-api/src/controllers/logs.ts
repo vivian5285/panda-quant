@@ -39,9 +39,9 @@ export class LogController {
       }
 
       const log = await logService.createLog({
-        level,
+        level: level as LogLevel,
         message,
-        source,
+        source: source as LogSource,
         details
       });
 

@@ -1,9 +1,9 @@
-import { Fee } from '@shared/models/fee';
-import { UserAsset } from '@shared/models/asset';
+import { Fee } from '../models/fee.model';
+import { User } from '../models/user.model';
 import { IUser } from '@shared/models/user';
+import { UserAsset } from '@shared/models/asset';
 import { Transaction } from '@models/Transaction';
 import { Asset } from '../models/Asset';
-import { User } from '../../shared/models/user';
 import cron from 'node-cron';
 
 // 每月1号凌晨执行
