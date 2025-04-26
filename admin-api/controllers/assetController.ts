@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthRequest } from '@shared/types/auth';
 import { Asset, UserAsset } from '@shared/models/asset';
-import { IUser } from '@shared/models/user';
+import { IUser, User } from '@shared/models/user';
 import { Transaction } from '@models/Transaction';
 import { FeeService } from '@services/feeService';
+import { Fee } from '@shared/models/fee';
 
 // 获取所有用户资产
 export const getAllAssets = async (req: Request, res: Response) => {
