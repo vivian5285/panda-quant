@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -8,14 +8,25 @@ import {
   Typography,
   useTheme
 } from '@mui/material';
-import { changeLanguage, getCurrentLanguage, languageNames, SupportedLng } from '../../i18n';
-import LanguageIcon from '@mui/icons-material/Language';
+import { motion, AnimatePresence } from 'framer-motion';
+import { themeUtils } from '../../theme';
 
 const LanguageSwitcher: React.FC = () => {
-  const { t } = useTranslation();
+  const { i18n } = useTranslation();
   const theme = useTheme();
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const currentLanguage = getCurrentLanguage();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const languages = [
+    { code: 'zh', label: '中文' },
+    { code: 'en', label: 'English' },
+  ];
+
+  const handleLanguageChange = (languageCode: string) => {
+    i18n.changeLanguage(languageCode);
+    setAnchorEl(null);
+  };
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -25,57 +36,139 @@ const LanguageSwitcher: React.FC = () => {
     setAnchorEl(null);
   };
 
-  const handleLanguageChange = (lng: SupportedLng) => {
-    changeLanguage(lng);
-    handleClose();
-  };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+        setAnchorEl(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
-    <Box>
-      <IconButton
-        onClick={handleClick}
-        sx={{
-          color: theme.palette.text.primary,
-          '&:hover': {
-            backgroundColor: theme.palette.action.hover,
-          },
-        }}
+    <Box sx={{ position: 'relative' }}>
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
       >
-        <LanguageIcon />
-      </IconButton>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleClose}
-        PaperProps={{
-          sx: {
-            mt: 1.5,
-            minWidth: 120,
-            borderRadius: 2,
-            boxShadow: theme.shadows[3],
-          },
-        }}
-      >
-        {Object.entries(languageNames).map(([code, name]) => (
-          <MenuItem
-            key={code}
-            onClick={() => handleLanguageChange(code as SupportedLng)}
-            selected={code === currentLanguage}
+        <IconButton
+          ref={buttonRef}
+          onClick={handleClick}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          sx={{
+            color: theme.palette.text.primary,
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: themeUtils.createGradient(
+                theme.palette.primary.main,
+                theme.palette.secondary.main
+              ),
+              opacity: 0,
+              transition: 'opacity 0.3s ease',
+            },
+            '&:hover::before': {
+              opacity: 0.1,
+            },
+          }}
+        >
+          <Typography
+            variant="body1"
             sx={{
-              py: 1,
-              px: 2,
-              '&.Mui-selected': {
-                backgroundColor: theme.palette.primary.light,
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.light,
-                },
-              },
+              fontWeight: 600,
+              background: themeUtils.createTextGradient(
+                theme.palette.primary.main,
+                theme.palette.secondary.main
+              ),
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
             }}
           >
-            <Typography variant="body2">{name}</Typography>
-          </MenuItem>
-        ))}
-      </Menu>
+            {languages.find(lang => lang.code === i18n.language)?.label || 'EN'}
+          </Typography>
+        </IconButton>
+      </motion.div>
+
+      <AnimatePresence>
+        {anchorEl && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+              PaperProps={{
+                sx: {
+                  mt: 1,
+                  background: themeUtils.glassEffect(theme),
+                  backdropFilter: 'blur(10px)',
+                  border: `1px solid ${theme.palette.border.main}`,
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                  minWidth: 120,
+                },
+              }}
+            >
+              {languages.map((language) => (
+                <MenuItem
+                  key={language.code}
+                  onClick={() => handleLanguageChange(language.code)}
+                  selected={i18n.language === language.code}
+                  sx={{
+                    py: 1,
+                    px: 2,
+                    '&:hover': {
+                      background: themeUtils.createGradient(
+                        theme.palette.primary.main,
+                        theme.palette.secondary.main,
+                        0.1
+                      ),
+                    },
+                    '&.Mui-selected': {
+                      background: themeUtils.createGradient(
+                        theme.palette.primary.main,
+                        theme.palette.secondary.main,
+                        0.2
+                      ),
+                      '&:hover': {
+                        background: themeUtils.createGradient(
+                          theme.palette.primary.main,
+                          theme.palette.secondary.main,
+                          0.3
+                        ),
+                      },
+                    },
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: i18n.language === language.code ? 600 : 400,
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    {language.label}
+                  </Typography>
+                </MenuItem>
+              ))}
+            </Menu>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Box>
   );
 };

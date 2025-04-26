@@ -15,7 +15,6 @@ import {
   AutoGraph as AutoGraphIcon,
   SupportAgent as SupportIcon,
 } from '@mui/icons-material';
-import { themeUtils } from '../../theme';
 
 interface Advantage {
   id: number;
@@ -33,7 +32,7 @@ const advantages: Advantage[] = [
     description: '毫秒级交易执行，把握每一个市场机会',
     icon: <SpeedIcon />,
     color: '#00FFB8',
-    stats: '0.001s',
+    stats: '0.001秒',
   },
   {
     id: 2,
@@ -67,6 +66,10 @@ const CoreAdvantages = () => {
   return (
     <Box
       sx={{
+        minHeight: '100vh',
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
         py: { xs: 8, md: 12 },
         overflow: 'hidden',
         bgcolor: '#FFFFFF',
@@ -78,16 +81,23 @@ const CoreAdvantages = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'radial-gradient(circle at 50% 0%, rgba(0, 255, 184, 0.1) 0%, rgba(0, 255, 184, 0) 50%)',
+          background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.05) 0%, rgba(0, 255, 184, 0.02) 100%)',
           zIndex: 0,
         },
       }}
     >
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+      <Container 
+        maxWidth="lg" 
+        sx={{ 
+          position: 'relative', 
+          zIndex: 1,
+          px: { xs: 2, md: 4 }
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: themeUtils.animationConfig.duration.medium }}
+          transition={{ duration: 0.5 }}
         >
           <Typography
             variant="h2"
@@ -139,8 +149,8 @@ const CoreAdvantages = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ 
-                  duration: themeUtils.animationConfig.duration.medium,
-                  delay: index * themeUtils.animationConfig.delay.small 
+                  duration: 0.5,
+                  delay: index * 0.1
                 }}
               >
                 <Card

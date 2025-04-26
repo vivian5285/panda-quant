@@ -3,7 +3,7 @@ import { Box, Container, Typography, CircularProgress } from '@mui/material';
 import GlobalBackground from '@/components/common/GlobalBackground';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
-import GradientTitle from '@/components/common/GradientTitle';
+import { GradientTitle } from '@/components/common/GradientTitle';
 
 const LoadingPage: React.FC = () => {
   return (

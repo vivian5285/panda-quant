@@ -5,6 +5,9 @@ import {
   Avatar,
   Container,
   alpha,
+  useTheme,
+  Card,
+  CardContent,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { themeUtils } from '../../theme';
@@ -19,7 +22,9 @@ interface Review {
 }
 
 const UserReviews = () => {
+  const theme = useTheme();
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const generateRandomReviews = () => {
@@ -123,27 +128,53 @@ const UserReviews = () => {
         };
       });
 
-      setReviews(newReviews);
+      return newReviews;
     };
 
-    generateRandomReviews();
-    const interval = setInterval(generateRandomReviews, 30000);
-
-    return () => clearInterval(interval);
+    const generatedReviews = generateRandomReviews();
+    setReviews(generatedReviews);
+    setIsLoading(false);
   }, []);
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+        <Typography>加载中...</Typography>
+      </Box>
+    );
+  }
+
+  if (!reviews || reviews.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+        <Typography>暂无评论</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box
       sx={{
-        py: 8,
+        width: '100%',
         display: 'flex',
         alignItems: 'center',
-        overflow: 'visible',
-        background: `linear-gradient(135deg, ${alpha(themeUtils.palette.background.paper, 0.9)} 0%, ${alpha(themeUtils.palette.background.default, 0.9)} 100%)`,
-        backdropFilter: 'blur(10px)',
+        py: { xs: 0.5, md: 1 },
+        overflow: 'hidden',
+        bgcolor: '#FFFFFF',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.05) 0%, rgba(0, 255, 184, 0.02) 100%)',
+          zIndex: 0,
+        },
       }}
     >
-      <Container maxWidth="lg">
+      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -152,28 +183,40 @@ const UserReviews = () => {
           <Typography
             variant="h2"
             sx={{
-              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              color: '#00FFB8',
               fontWeight: 700,
               textAlign: 'center',
-              mb: 3,
-              ...themeUtils.createTextGradient(
-                themeUtils.palette.primary.main,
-                themeUtils.palette.secondary.main
-              ),
-              textShadow: `0 0 10px ${alpha(themeUtils.palette.primary.main, 0.3)}`,
+              mb: 2,
+              fontSize: { xs: '2.5rem', md: '3.5rem' },
+              lineHeight: 1.2,
+              position: 'relative',
+              display: 'inline-block',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: -10,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '80px',
+                height: '4px',
+                background: 'linear-gradient(90deg, transparent, #00FFB8, transparent)',
+                borderRadius: '2px',
+              },
             }}
           >
             用户评价
           </Typography>
           <Typography
-            variant="h4"
+            variant="body1"
             sx={{
-              color: themeUtils.palette.text.secondary,
+              color: '#666666',
               textAlign: 'center',
-              mb: 6,
+              mb: 1,
+              fontSize: '1.2rem',
               maxWidth: '800px',
               mx: 'auto',
-              fontWeight: 400,
             }}
           >
             听听用户怎么说
@@ -182,7 +225,7 @@ const UserReviews = () => {
 
         <Box
           sx={{
-            height: '400px',
+            height: '300px',
             overflow: 'hidden',
             position: 'relative',
             width: '100%',
@@ -192,7 +235,7 @@ const UserReviews = () => {
             animate={{
               x: [0, -2000],
             }}
-            transition={{
+            transition={{ 
               duration: 40,
               repeat: Infinity,
               ease: "linear",
@@ -215,88 +258,105 @@ const UserReviews = () => {
                   transition={{ duration: 0.5 }}
                   style={{ minWidth: '300px' }}
                 >
-                  <Box
+                  <Card
                     sx={{
-                      p: 4,
-                      borderRadius: 2,
-                      background: `linear-gradient(135deg, ${alpha(themeUtils.palette.background.paper, 0.9)} 0%, ${alpha(themeUtils.palette.background.default, 0.9)} 100%)`,
-                      boxShadow: `0 4px 20px ${alpha(themeUtils.palette.primary.main, 0.1)}`,
                       height: '100%',
+                      background: 'rgba(255, 255, 255, 0.9)',
                       backdropFilter: 'blur(10px)',
-                      border: `1px solid ${alpha(themeUtils.palette.divider, 0.1)}`,
-                      '&:hover': {
-                        background: `linear-gradient(135deg, ${alpha(themeUtils.palette.primary.main, 0.1)} 0%, ${alpha(themeUtils.palette.secondary.main, 0.1)} 100%)`,
-                        transform: 'translateY(-5px)',
-                        boxShadow: `0 8px 30px ${alpha(themeUtils.palette.primary.main, 0.2)}`,
-                      },
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                      border: '1px solid rgba(0, 255, 184, 0.1)',
+                      borderRadius: '24px',
                       transition: 'all 0.3s ease',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(45deg, transparent, rgba(0,255,184,0.05), transparent)',
+                        transform: 'translateX(-100%)',
+                        transition: 'transform 0.6s ease',
+                      },
+                      '&:hover': {
+                        transform: 'translateY(-5px)',
+                        boxShadow: '0 8px 30px rgba(0, 255, 184, 0.15)',
+                        border: '1px solid rgba(0, 255, 184, 0.2)',
+                        '&::before': {
+                          transform: 'translateX(100%)',
+                        },
+                      },
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Avatar
-                        sx={{
-                          width: 40,
-                          height: 40,
-                          fontSize: '1.5rem',
-                          mr: 2,
-                          background: themeUtils.createGradient(
-                            themeUtils.palette.primary.main,
-                            themeUtils.palette.secondary.main
-                          ),
-                          color: themeUtils.palette.background.paper,
-                          boxShadow: `0 0 10px ${alpha(themeUtils.palette.primary.main, 0.5)}`,
-                        }}
-                      >
-                        {review.avatar}
-                      </Avatar>
-                      <Box>
-                        <Typography
+                    <CardContent sx={{ p: 4 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <Avatar
                           sx={{
-                            fontWeight: 500,
-                            ...themeUtils.createTextGradient(
-                              themeUtils.palette.primary.main,
-                              themeUtils.palette.secondary.main
-                            ),
+                            width: 40,
+                            height: 40,
+                            fontSize: '1.5rem',
+                            mr: 2,
+                            background: 'linear-gradient(135deg, #00FFB8 0%, #00B8FF 100%)',
+                            color: '#FFFFFF',
+                            boxShadow: '0 0 10px rgba(0, 255, 184, 0.5)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: '2px solid rgba(255, 255, 255, 0.5)',
                           }}
                         >
-                          {review.name}
+                          {review.avatar}
+                        </Avatar>
+                        <Box>
+                          <Typography
+                            sx={{
+                              fontWeight: 500,
+                              background: 'linear-gradient(135deg, #00FFB8 0%, #00B8FF 100%)',
+                              WebkitBackgroundClip: 'text',
+                              WebkitTextFillColor: 'transparent',
+                            }}
+                          >
+                            {review.name}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              color: '#666666',
+                            }}
+                          >
+                            {review.country}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Typography
+                        sx={{
+                          color: '#333333',
+                          mb: 2,
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {review.content}
+                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography
+                          sx={{
+                            color: '#00FFB8',
+                            fontWeight: 500,
+                          }}
+                        >
+                          {review.amount}
                         </Typography>
                         <Typography
                           sx={{
-                            color: themeUtils.palette.text.secondary,
+                            color: '#666666',
                           }}
                         >
-                          {review.country}
+                          {review.time}
                         </Typography>
                       </Box>
-                    </Box>
-                    <Typography
-                      sx={{
-                        color: themeUtils.palette.text.primary,
-                        mb: 2,
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      {review.content}
-                    </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography
-                        sx={{
-                          color: themeUtils.palette.primary.main,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {review.amount}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          color: themeUtils.palette.text.secondary,
-                        }}
-                      >
-                        {review.time}
-                      </Typography>
-                    </Box>
-                  </Box>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               ))}
             </Box>

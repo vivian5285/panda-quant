@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
-import { Strategy } from '../models/strategy.model';
+import { Strategy as StrategyModel, IStrategy } from '../models/strategy.model';
 import { Profit } from '../models/profit.model';
 import { AuthRequest } from '../middleware/auth';
+import { ObjectId } from 'mongodb';
 
 // 计算每日收益
 const calculateDailyProfit = async (userId: string, strategyId: string, date: Date) => {
-  const strategy = await Strategy.findById(strategyId);
+  const strategy = await StrategyModel.findById(strategyId) as IStrategy;
   if (!strategy) {
     throw new Error('策略不存在');
   }
@@ -53,7 +54,7 @@ export const getUserProfitData = async (req: AuthRequest, res: Response) => {
     startDate.setDate(startDate.getDate() - 30);
 
     // 查询用户的所有活跃策略
-    const strategies = await Strategy.find({ active: true });
+    const strategies = await StrategyModel.find({ active: true });
 
     // 获取每个策略的收益数据
     const profits = await Promise.all(
@@ -92,32 +93,33 @@ export const getUserProfitData = async (req: AuthRequest, res: Response) => {
 // 更新每日收益
 export const updateDailyProfits = async () => {
   try {
-    const strategies = await Strategy.find({ active: true });
+    const strategies = await StrategyModel.find({ active: true });
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     for (const strategy of strategies) {
       // 获取使用该策略的所有用户
-      const uniqueUserIds = await Profit.distinct('userId', { strategyId: strategy._id });
+      const strategyId = typeof strategy._id === 'string' ? new ObjectId(strategy._id) : strategy._id;
+      const uniqueUserIds = await Profit.distinct('userId', { strategyId });
 
       for (const userId of uniqueUserIds) {
         // 检查是否已存在今日收益记录
         const existingProfit = await Profit.findOne({
           userId,
-          strategyId: strategy._id,
+          strategyId,
           date: today
         });
 
         if (!existingProfit) {
           const { profit, totalProfit } = await calculateDailyProfit(
             userId,
-            strategy._id.toString(),
+            (strategyId as ObjectId).toString(),
             today
           );
 
           await Profit.create({
             userId,
-            strategyId: strategy._id,
+            strategyId,
             date: today,
             profit,
             totalProfit

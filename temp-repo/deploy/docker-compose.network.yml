@@ -1,0 +1,8 @@
+version: '3.8'
+
+networks:
+  panda-quant-network:
+    name: panda-quant-network
+    driver: bridge
+    labels:
+      com.docker.compose.network: panda-quant-network 

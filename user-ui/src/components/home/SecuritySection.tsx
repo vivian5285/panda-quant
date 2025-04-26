@@ -24,9 +24,11 @@ const SecuritySection: React.FC = () => {
   return (
     <Box
       sx={{
-        py: { xs: 6, md: 10 },
+        minHeight: '100vh',
+        width: '100%',
         display: 'flex',
         alignItems: 'center',
+        py: { xs: 6, md: 10 },
         overflow: 'visible',
         bgcolor: '#FFFFFF',
       }}

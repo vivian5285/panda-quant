@@ -1,31 +1,43 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, ThemeOptions, Palette, PaletteColor } from '@mui/material/styles';
 import type { TypographyOptions } from '@mui/material/styles/createTypography';
+import { alpha } from '@mui/material/styles';
 
 // 主题颜色
 interface ThemeColors {
-  primary: string;
-  secondary: string;
-  background: string;
-  text: string;
-  card: string;
-  border: string;
-  accent: string;
-  success: string;
-  warning: string;
-  error: string;
+  primary: PaletteColor;
+  secondary: PaletteColor;
+  background: {
+    default: string;
+    paper: string;
+  };
+  text: {
+    primary: string;
+    secondary: string;
+  };
+  card: {
+    main: string;
+    border: string;
+  };
+  border: {
+    main: string;
+  };
+  accent: PaletteColor;
+  success: PaletteColor;
+  warning: PaletteColor;
+  error: PaletteColor;
 }
 
 // 扩展 Material-UI 的 Palette 类型
 declare module '@mui/material/styles' {
   interface Palette {
-    accent: Palette['primary'];
-    border: string;
-    card: string;
+    card: ThemeColors['card'];
+    border: ThemeColors['border'];
+    accent: PaletteColor;
   }
   interface PaletteOptions {
-    accent?: PaletteOptions['primary'];
-    border?: string;
-    card?: string;
+    card?: ThemeColors['card'];
+    border?: ThemeColors['border'];
+    accent?: PaletteColor;
   }
 }
 
@@ -33,137 +45,171 @@ declare module '@mui/material/styles' {
 const themeConfig = {
   light: {
     primary: {
-      main: '#00FFB8', // 熊猫绿
+      main: '#00FFB8',
       light: '#33FFC6',
       dark: '#00CC93',
+      contrastText: '#000000',
     },
     secondary: {
-      main: '#FFFFFF', // 纯白
-      light: '#FFFFFF',
-      dark: '#F5F5F5',
+      main: '#00CCFF',
+      light: '#33D6FF',
+      dark: '#00A3CC',
+      contrastText: '#000000',
     },
     background: {
       default: '#FFFFFF',
-      paper: '#F5F5F5',
+      paper: '#F8F9FA',
     },
     text: {
       primary: '#333333',
       secondary: '#666666',
     },
-    card: '#FFFFFF',
-    border: 'rgba(0, 0, 0, 0.1)',
+    card: {
+      main: '#FFFFFF',
+      border: 'rgba(0, 0, 0, 0.1)',
+    },
+    border: {
+      main: 'rgba(0, 0, 0, 0.1)',
+    },
     accent: {
-      main: '#00FFB8', // 使用熊猫绿作为强调色
-      light: '#33FFC6',
-      dark: '#00CC93',
+      main: '#FF4D4D',
+      light: '#FF7A7A',
+      dark: '#CC3D3D',
+      contrastText: '#FFFFFF',
     },
     success: {
-      main: '#00FFB8', // 使用熊猫绿作为成功色
-      light: '#33FFC6',
-      dark: '#00CC93',
+      main: '#00CC93',
+      light: '#33D6A8',
+      dark: '#00A375',
+      contrastText: '#FFFFFF',
     },
     warning: {
-      main: '#FFD600', // 保留警告色
-      light: '#FFDE33',
-      dark: '#CCAB00',
+      main: '#FFB800',
+      light: '#FFC633',
+      dark: '#CC9300',
+      contrastText: '#000000',
     },
     error: {
-      main: '#FF1744', // 保留错误色
-      light: '#FF4569',
-      dark: '#CC1236',
+      main: '#FF4D4D',
+      light: '#FF7A7A',
+      dark: '#CC3D3D',
+      contrastText: '#FFFFFF',
     },
   },
   dark: {
     primary: {
-      main: '#00FFB8', // 熊猫绿
+      main: '#00FFB8',
       light: '#33FFC6',
       dark: '#00CC93',
+      contrastText: '#000000',
     },
     secondary: {
-      main: '#FFFFFF', // 纯白
-      light: '#FFFFFF',
-      dark: '#F5F5F5',
+      main: '#00CCFF',
+      light: '#33D6FF',
+      dark: '#00A3CC',
+      contrastText: '#000000',
     },
     background: {
-      default: '#000000', // 纯黑
-      paper: '#121212',
+      default: '#121212',
+      paper: '#1E1E1E',
     },
     text: {
       primary: '#FFFFFF',
-      secondary: 'rgba(255, 255, 255, 0.7)',
+      secondary: '#B0B0B0',
     },
-    card: '#121212',
-    border: 'rgba(255, 255, 255, 0.1)',
+    card: {
+      main: '#1E1E1E',
+      border: 'rgba(255, 255, 255, 0.1)',
+    },
+    border: {
+      main: 'rgba(255, 255, 255, 0.1)',
+    },
     accent: {
-      main: '#00FFB8', // 使用熊猫绿作为强调色
-      light: '#33FFC6',
-      dark: '#00CC93',
+      main: '#FF4D4D',
+      light: '#FF7A7A',
+      dark: '#CC3D3D',
+      contrastText: '#FFFFFF',
     },
     success: {
-      main: '#00FFB8', // 使用熊猫绿作为成功色
-      light: '#33FFC6',
-      dark: '#00CC93',
+      main: '#00CC93',
+      light: '#33D6A8',
+      dark: '#00A375',
+      contrastText: '#FFFFFF',
     },
     warning: {
-      main: '#FFD600', // 保留警告色
-      light: '#FFDE33',
-      dark: '#CCAB00',
+      main: '#FFB800',
+      light: '#FFC633',
+      dark: '#CC9300',
+      contrastText: '#000000',
     },
     error: {
-      main: '#FF1744', // 保留错误色
-      light: '#FF4569',
-      dark: '#CC1236',
+      main: '#FF4D4D',
+      light: '#FF7A7A',
+      dark: '#CC3D3D',
+      contrastText: '#FFFFFF',
     },
+  },
+};
+
+// 过渡配置
+const transitions = {
+  duration: {
+    shortest: 150,
+    shorter: 200,
+    short: 250,
+    standard: 300,
+    complex: 375,
+    enteringScreen: 225,
+    leavingScreen: 195,
+  },
+  easing: {
+    easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
+    easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+    sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
   },
 };
 
 // 排版配置
 const typography: TypographyOptions = {
-  fontFamily: '"Poppins", "Alibaba PuHuiTi", "Roboto", "Helvetica", "Arial", sans-serif',
+  fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
   h1: {
-    fontSize: '3.5rem',
+    fontSize: '2.5rem',
     fontWeight: 700,
     lineHeight: 1.2,
-    letterSpacing: '-0.02em',
   },
   h2: {
-    fontSize: '2.5rem',
-    fontWeight: 600,
-    lineHeight: 1.3,
-    letterSpacing: '-0.01em',
+    fontSize: '2rem',
+    fontWeight: 700,
+    lineHeight: 1.2,
   },
   h3: {
-    fontSize: '2rem',
+    fontSize: '1.75rem',
     fontWeight: 600,
-    lineHeight: 1.4,
+    lineHeight: 1.2,
   },
   h4: {
     fontSize: '1.5rem',
     fontWeight: 600,
-    lineHeight: 1.4,
+    lineHeight: 1.2,
   },
   h5: {
     fontSize: '1.25rem',
     fontWeight: 600,
-    lineHeight: 1.4,
+    lineHeight: 1.2,
   },
   h6: {
     fontSize: '1rem',
     fontWeight: 600,
-    lineHeight: 1.4,
-  },
-  subtitle1: {
-    fontSize: '1.125rem',
-    fontWeight: 500,
-    lineHeight: 1.4,
+    lineHeight: 1.2,
   },
   body1: {
     fontSize: '1rem',
-    lineHeight: 1.6,
+    lineHeight: 1.5,
   },
   body2: {
     fontSize: '0.875rem',
-    lineHeight: 1.6,
+    lineHeight: 1.5,
   },
   button: {
     textTransform: 'none',
@@ -171,193 +217,206 @@ const typography: TypographyOptions = {
   },
 };
 
-// 主题工具函数
-export const themeUtils = {
-  createGradient: (color1: string, color2: string) => {
-    return `linear-gradient(45deg, ${color1}, ${color2})`;
-  },
-  createTextGradient: (color1: string, color2: string) => ({
-    background: `linear-gradient(45deg, ${color1}, ${color2})`,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-  }),
-  createRadialGradient: (color: string, opacity: number) => {
-    return `radial-gradient(circle at center, ${color}${Math.floor(opacity * 255).toString(16)}, transparent)`;
-  },
-  glassEffect: (opacity: number = 0.1) => ({
-    background: `rgba(255, 255, 255, ${opacity})`,
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-  }),
-  spacing: (multiplier: number) => `${multiplier * 8}px`,
-  textStyles: {
-    h1: {
-      fontSize: '2.5rem',
-      fontWeight: 700,
-      lineHeight: 1.2,
-    },
-    h2: {
-      fontSize: '2rem',
-      fontWeight: 600,
-      lineHeight: 1.3,
-    },
-    h3: {
-      fontSize: '1.75rem',
-      fontWeight: 600,
-      lineHeight: 1.4,
-    },
-    h4: {
-      fontSize: '1.5rem',
-      fontWeight: 500,
-      lineHeight: 1.4,
-    },
-    h5: {
-      fontSize: '1.25rem',
-      fontWeight: 500,
-      lineHeight: 1.4,
-    },
-    h6: {
-      fontSize: '1rem',
-      fontWeight: 500,
-      lineHeight: 1.4,
-    },
-    body1: {
-      fontSize: '1rem',
-      lineHeight: 1.5,
-    },
-    body2: {
-      fontSize: '0.875rem',
-      lineHeight: 1.5,
-    },
-  },
-  cardStyle: {
-    borderRadius: 2,
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      transform: 'translateY(-4px)',
-      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.15)',
-    },
-  },
-  buttonStyles: {
-    contained: {
-      borderRadius: 2,
-      textTransform: 'none',
-      fontWeight: 600,
-      boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.1)',
-      transition: 'all 0.3s ease',
-      '&:hover': {
-        transform: 'translateY(-2px)',
-        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
-      },
-    },
-    outlined: {
-      borderRadius: 2,
-      textTransform: 'none',
-      fontWeight: 600,
-      transition: 'all 0.3s ease',
-      '&:hover': {
-        transform: 'translateY(-2px)',
-      },
-    },
-    text: {
-      borderRadius: 2,
-      textTransform: 'none',
-      fontWeight: 600,
-      transition: 'all 0.3s ease',
-    },
-  },
-  animationConfig: {
-    duration: {
-      fast: 0.2,
-      medium: 0.5,
-      slow: 0.8,
-    },
-    delay: {
-      small: 0.1,
-      medium: 0.2,
-      large: 0.3,
-    },
-    easing: {
-      easeInOut: [0.4, 0, 0.2, 1],
-      easeOut: [0, 0, 0.2, 1],
-      easeIn: [0.4, 0, 1, 1],
-    },
-  },
-  backgroundStyles: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: -1,
-    card: (theme: any) => ({
-      background: theme.palette.mode === 'light' 
-        ? '#FFFFFF'
-        : '#121212',
-      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
-      border: '1px solid rgba(0, 255, 184, 0.1)',
-      transition: 'all 0.3s ease',
-      '&:hover': {
-        transform: 'translateY(-8px)',
-        boxShadow: '0 12px 40px rgba(0, 255, 184, 0.15)',
-        borderColor: 'rgba(0, 255, 184, 0.3)',
-        bgcolor: 'rgba(0, 255, 184, 0.05)',
-      },
-    }),
-  },
-};
+export const createCustomTheme = (mode: 'light' | 'dark' = 'light') => {
+  const colors = mode === 'light' ? themeConfig.light : themeConfig.dark;
 
-export const createCustomTheme = (mode: 'light' | 'dark') => {
-  return createTheme({
+  const themeOptions: ThemeOptions = {
     palette: {
       mode,
-      ...themeConfig[mode],
+      primary: colors.primary,
+      secondary: colors.secondary,
+      background: colors.background,
+      text: colors.text,
+      card: colors.card,
+      border: colors.border,
+      accent: colors.accent,
+      success: colors.success,
+      warning: colors.warning,
+      error: colors.error,
     },
     typography,
+    transitions,
     components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          '*': {
+            margin: 0,
+            padding: 0,
+            boxSizing: 'border-box',
+          },
+          html: {
+            WebkitFontSmoothing: 'antialiased',
+            MozOsxFontSmoothing: 'grayscale',
+            height: '100%',
+            width: '100%',
+          },
+          body: {
+            height: '100%',
+          },
+          '#root': {
+            height: '100%',
+          },
+          '::-webkit-scrollbar': {
+            width: '8px',
+            height: '8px',
+          },
+          '::-webkit-scrollbar-track': {
+            background: colors.background.paper,
+          },
+          '::-webkit-scrollbar-thumb': {
+            background: colors.border.main,
+            borderRadius: '4px',
+            '&:hover': {
+              background: colors.text.secondary,
+            },
+          },
+        },
+      },
       MuiButton: {
+        defaultProps: {
+          disableElevation: true,
+          variant: 'contained',
+        },
         styleOverrides: {
           root: {
-            borderRadius: 8,
-            textTransform: 'none',
+            borderRadius: '8px',
+            padding: '8px 16px',
+            fontSize: '1rem',
             fontWeight: 600,
-            padding: '8px 24px',
-            transition: 'all 0.3s ease',
+            textTransform: 'none',
+            transition: 'all 0.2s ease',
           },
           contained: {
-            ...themeUtils.buttonStyles.contained,
-            variants: [],
-          },
-          outlined: {
-            ...themeUtils.buttonStyles.outlined,
-            variants: [],
-          },
-          text: {
-            ...themeUtils.buttonStyles.text,
-            variants: [],
+            backgroundColor: colors.primary.main,
+            color: colors.primary.contrastText,
+            boxShadow: 'none',
+            '&:hover': {
+              backgroundColor: colors.primary.dark,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            },
+            '&:active': {
+              backgroundColor: colors.primary.dark,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            },
           },
         },
       },
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 16,
-            ...themeUtils.backgroundStyles.card({ palette: { mode } }),
+            borderRadius: '16px',
+            background: mode === 'light' 
+              ? 'rgba(255, 255, 255, 0.8)'
+              : 'rgba(30, 30, 30, 0.8)',
+            backdropFilter: 'blur(10px)',
+            border: `1px solid ${colors.border.main}`,
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
+            },
           },
         },
       },
-      MuiAppBar: {
+      MuiPaper: {
         styleOverrides: {
           root: {
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+            backgroundImage: 'none',
+          },
+        },
+      },
+      MuiTypography: {
+        styleOverrides: {
+          h1: {
+            background: `linear-gradient(45deg, ${colors.primary.main} 30%, ${colors.secondary.main} 90%)`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: 700,
+          },
+          h2: {
+            background: `linear-gradient(45deg, ${colors.primary.main} 30%, ${colors.secondary.main} 90%)`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: 700,
+          },
+        },
+      },
+      MuiTextField: {
+        styleOverrides: {
+          root: {
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '12px',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: colors.primary.main,
+                },
+              },
+              '&.Mui-focused': {
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: colors.primary.main,
+                  borderWidth: '2px',
+                },
+              },
+            },
           },
         },
       },
     },
-  });
+  };
+
+  return createTheme(themeOptions);
+};
+
+// 导出主题工具函数
+export const themeUtils = {
+  animationConfig: {
+    duration: {
+      short: 0.2,
+      medium: 0.4,
+      long: 0.6
+    },
+    easing: {
+      easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+      easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
+      easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+      sharp: 'cubic-bezier(0.4, 0, 0.6, 1)'
+    }
+  },
+  createGradient: (color1: string, color2: string) => {
+    return `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
+  },
+  textStyles: typography,
+  cardStyle: {
+    borderRadius: '12px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+    },
+  },
+  buttonStyles: {
+    contained: {
+      backgroundColor: themeConfig.light.primary.main,
+      color: themeConfig.light.primary.contrastText,
+      '&:hover': {
+        backgroundColor: themeConfig.light.primary.dark,
+      },
+    },
+    outlined: {
+      borderColor: themeConfig.light.primary.main,
+      color: themeConfig.light.primary.main,
+      '&:hover': {
+        backgroundColor: alpha(themeConfig.light.primary.main, 0.1),
+      },
+    },
+    text: {
+      color: themeConfig.light.primary.main,
+      '&:hover': {
+        backgroundColor: alpha(themeConfig.light.primary.main, 0.1),
+      },
+    },
+  },
 };
 
 // 导出主题实例

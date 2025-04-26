@@ -66,18 +66,46 @@ const ProfitCalculator: React.FC = () => {
   return (
     <Box
       sx={{
-        py: { xs: 6, md: 10 },
+        minHeight: '100vh',
+        width: '100%',
         display: 'flex',
         alignItems: 'center',
-        overflow: 'visible',
+        justifyContent: 'center',
+        py: { xs: 6, md: 10 },
+        position: 'relative',
+        overflow: 'hidden',
         bgcolor: '#FFFFFF',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.05) 0%, rgba(0, 255, 184, 0.02) 100%)',
+          zIndex: 0,
+        },
       }}
     >
-      <Container maxWidth="lg">
+      <Container 
+        maxWidth="lg" 
+        sx={{ 
+          position: 'relative', 
+          zIndex: 1,
+          px: { xs: 2, md: 4 },
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100%',
+          flex: 1,
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
+          style={{ width: '100%' }}
         >
           <Typography
             variant="h2"
@@ -89,6 +117,21 @@ const ProfitCalculator: React.FC = () => {
               color: '#00FFB8',
               textShadow: '0 0 10px rgba(0, 255, 184, 0.3)',
               fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
+              position: 'relative',
+              display: 'inline-block',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: -10,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '80px',
+                height: '4px',
+                background: 'linear-gradient(90deg, transparent, #00FFB8, transparent)',
+                borderRadius: '2px',
+              },
             }}
           >
             收益计算器
@@ -97,9 +140,10 @@ const ProfitCalculator: React.FC = () => {
             variant="h5"
             sx={{
               textAlign: 'center',
-              mb: 4,
+              mb: 6,
               color: '#666',
               fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
+              fontSize: { xs: '1.1rem', md: '1.25rem' },
             }}
           >
             计算您的潜在收益，开启量化交易之旅
@@ -116,10 +160,16 @@ const ProfitCalculator: React.FC = () => {
                 <Card
                   sx={{
                     p: 3,
-                    borderRadius: 4,
-                    background: 'rgba(255, 255, 255, 0.9)',
+                    borderRadius: 3,
+                    background: 'rgba(255, 255, 255, 0.95)',
                     backdropFilter: 'blur(10px)',
                     boxShadow: '0 8px 32px rgba(0, 255, 184, 0.1)',
+                    border: '1px solid rgba(0, 255, 184, 0.1)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 12px 40px rgba(0, 255, 184, 0.15)',
+                    },
                   }}
                 >
                   <CardContent>
@@ -128,7 +178,7 @@ const ProfitCalculator: React.FC = () => {
                         sx={{
                           color: '#00FFB8',
                           fontWeight: 600,
-                          fontSize: '1.2rem',
+                          fontSize: '1.1rem',
                           mb: 2,
                         }}
                       >
@@ -162,6 +212,7 @@ const ProfitCalculator: React.FC = () => {
                                       color: '#00FFB8',
                                       fontWeight: 600,
                                       textTransform: 'capitalize',
+                                      fontSize: '1rem',
                                     }}
                                   >
                                     {key}
@@ -197,7 +248,7 @@ const ProfitCalculator: React.FC = () => {
                           color: '#00FFB8',
                           fontWeight: 600,
                           mb: 2,
-                          fontSize: '1.2rem',
+                          fontSize: '1.1rem',
                         }}
                       >
                         投资金额
@@ -237,7 +288,7 @@ const ProfitCalculator: React.FC = () => {
                           color: '#00FFB8',
                           fontWeight: 600,
                           mb: 2,
-                          fontSize: '1.2rem',
+                          fontSize: '1.1rem',
                         }}
                       >
                         投资期限（月）
@@ -254,18 +305,16 @@ const ProfitCalculator: React.FC = () => {
                             '&:hover, &.Mui-focusVisible': {
                               boxShadow: '0 0 0 8px rgba(0, 255, 184, 0.16)',
                             },
+                            '&.Mui-active': {
+                              boxShadow: '0 0 0 14px rgba(0, 255, 184, 0.16)',
+                            },
                           },
                         }}
                       />
-                      <Typography
-                        sx={{
-                          textAlign: 'center',
-                          color: 'text.secondary',
-                          mt: 1,
-                        }}
-                      >
-                        {duration} 个月
-                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                        <Typography variant="body2" color="text.secondary">1个月</Typography>
+                        <Typography variant="body2" color="text.secondary">36个月</Typography>
+                      </Box>
                     </Box>
                   </CardContent>
                 </Card>
@@ -282,111 +331,104 @@ const ProfitCalculator: React.FC = () => {
                 <Card
                   sx={{
                     p: 3,
-                    borderRadius: 4,
-                    background: 'rgba(255, 255, 255, 0.9)',
+                    borderRadius: 3,
+                    background: 'rgba(255, 255, 255, 0.95)',
                     backdropFilter: 'blur(10px)',
                     boxShadow: '0 8px 32px rgba(0, 255, 184, 0.1)',
-                    height: '100%',
+                    border: '1px solid rgba(0, 255, 184, 0.1)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 12px 40px rgba(0, 255, 184, 0.15)',
+                    },
                   }}
                 >
                   <CardContent>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: '#00FFB8',
-                        fontWeight: 600,
-                        mb: 3,
-                        textAlign: 'center',
-                      }}
-                    >
-                      计算结果
-                    </Typography>
-
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 3,
-                      }}
-                    >
-                      <Box
+                    <Box sx={{ textAlign: 'center', mb: 4 }}>
+                      <TrendingUpIcon sx={{ fontSize: 60, color: '#00FFB8', mb: 2 }} />
+                      <Typography
+                        variant="h4"
                         sx={{
-                          p: 2,
-                          borderRadius: 2,
-                          background: 'rgba(0, 255, 184, 0.05)',
-                          border: '1px solid rgba(0, 255, 184, 0.2)',
+                          color: '#00FFB8',
+                          fontWeight: 700,
+                          mb: 2,
                         }}
                       >
-                        <Typography sx={{ color: 'text.secondary', mb: 1 }}>
-                          总收益
-                        </Typography>
-                        <Typography
-                          variant="h5"
-                          sx={{
-                            color: '#00FFB8',
-                            fontWeight: 700,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                          }}
-                        >
-                          <TrendingUpIcon />
-                          ¥{totalProfit.toFixed(2)}
-                        </Typography>
-                      </Box>
-
-                      <Box
-                        sx={{
-                          p: 2,
-                          borderRadius: 2,
-                          background: 'rgba(0, 255, 184, 0.05)',
-                          border: '1px solid rgba(0, 255, 184, 0.2)',
-                        }}
-                      >
-                        <Typography sx={{ color: 'text.secondary', mb: 1 }}>
-                          月均收益
-                        </Typography>
-                        <Typography
-                          variant="h5"
-                          sx={{
-                            color: '#00FFB8',
-                            fontWeight: 700,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                          }}
-                        >
-                          <MoneyIcon />
-                          ¥{monthlyProfit.toFixed(2)}
-                        </Typography>
-                      </Box>
-
-                      <Box
-                        sx={{
-                          p: 2,
-                          borderRadius: 2,
-                          background: 'rgba(0, 255, 184, 0.05)',
-                          border: '1px solid rgba(0, 255, 184, 0.2)',
-                        }}
-                      >
-                        <Typography sx={{ color: 'text.secondary', mb: 1 }}>
-                          总金额
-                        </Typography>
-                        <Typography
-                          variant="h5"
-                          sx={{
-                            color: '#00FFB8',
-                            fontWeight: 700,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                          }}
-                        >
-                          <MoneyIcon />
-                          ¥{totalAmount.toFixed(2)}
-                        </Typography>
-                      </Box>
+                        预计收益
+                      </Typography>
                     </Box>
+
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} sm={6}>
+                        <Paper
+                          sx={{
+                            p: 3,
+                            borderRadius: 2,
+                            bgcolor: 'rgba(0, 255, 184, 0.1)',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <Typography variant="h6" color="text.secondary" gutterBottom>
+                            总收益
+                          </Typography>
+                          <Typography
+                            variant="h4"
+                            sx={{
+                              color: '#00FFB8',
+                              fontWeight: 700,
+                            }}
+                          >
+                            ¥{totalProfit.toLocaleString()}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Paper
+                          sx={{
+                            p: 3,
+                            borderRadius: 2,
+                            bgcolor: 'rgba(0, 255, 184, 0.1)',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <Typography variant="h6" color="text.secondary" gutterBottom>
+                            月均收益
+                          </Typography>
+                          <Typography
+                            variant="h4"
+                            sx={{
+                              color: '#00FFB8',
+                              fontWeight: 700,
+                            }}
+                          >
+                            ¥{monthlyProfit.toLocaleString()}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Paper
+                          sx={{
+                            p: 3,
+                            borderRadius: 2,
+                            bgcolor: 'rgba(0, 255, 184, 0.1)',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <Typography variant="h6" color="text.secondary" gutterBottom>
+                            总金额
+                          </Typography>
+                          <Typography
+                            variant="h4"
+                            sx={{
+                              color: '#00FFB8',
+                              fontWeight: 700,
+                            }}
+                          >
+                            ¥{totalAmount.toLocaleString()}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                    </Grid>
                   </CardContent>
                 </Card>
               </motion.div>

@@ -265,19 +265,19 @@ const Header: React.FC = () => {
         },
       }}
     >
-      <List>
+        <List>
         {navItems.map((item) => (
-          <ListItem
+              <ListItem 
             key={item.href}
-            button
+                button 
             component="a"
             href={item.href}
             onClick={toggleDrawer}
-            sx={{
+                sx={{
               color: theme.palette.primary.main,
               position: 'relative',
-              py: 2,
-              '&:hover': {
+                  py: 2,
+                  '&:hover': {
                 backgroundColor: alpha(theme.palette.primary.main, 0.1),
                 '&::after': {
                   width: '100%',
@@ -300,17 +300,17 @@ const Header: React.FC = () => {
                 ),
                 transition: `all ${themeUtils.animationConfig.duration.slow}s ease`,
                 boxShadow: 'none',
-              },
-            }}
-          >
-            <ListItemText 
+                  },
+                }}
+              >
+                <ListItemText
               primary={item.label}
               sx={{
                 '& .MuiTypography-root': {
-                  fontWeight: 500,
-                },
-              }}
-            />
+                      fontWeight: 500,
+                    },
+                  }}
+                />
             <ArrowForwardIcon 
               className="arrow-icon"
               sx={{ 
@@ -318,16 +318,16 @@ const Header: React.FC = () => {
                 transition: 'transform 0.3s ease',
               }}
             />
-          </ListItem>
-        ))}
-      </List>
+              </ListItem>
+          ))}
+        </List>
     </Drawer>
   );
 
   return (
-    <AppBar
+    <AppBar 
       position="sticky"
-      sx={{
+      sx={{ 
         ...themeUtils.backgroundStyles.section(theme),
         backdropFilter: 'blur(10px)',
         boxShadow: `0 4px 30px ${alpha(theme.palette.action.hover, 0.1)}`,
@@ -347,10 +347,10 @@ const Header: React.FC = () => {
           <Box sx={{ flexGrow: 1 }} />
           {!isMobile && <DesktopNav />}
           <Stack direction="row" spacing={1} sx={{ ml: 2 }}>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
               <IconButton
                 onClick={handleLanguageClick}
                 sx={{
@@ -384,12 +384,12 @@ const Header: React.FC = () => {
           </Stack>
         </Toolbar>
       </Container>
-      <Menu
+          <Menu
         anchorEl={languageAnchor}
         open={Boolean(languageAnchor)}
         onClose={handleLanguageClose}
-        PaperProps={{
-          sx: {
+            PaperProps={{
+              sx: {
             ...themeUtils.backgroundStyles.card(theme),
             ...themeUtils.cardStyle,
             mt: 1,
@@ -417,9 +417,9 @@ const Header: React.FC = () => {
             }}
           >
             {lang.name}
-          </MenuItem>
+            </MenuItem>
         ))}
-      </Menu>
+          </Menu>
       <MobileNav />
     </AppBar>
   );

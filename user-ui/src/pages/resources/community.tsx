@@ -1,130 +1,109 @@
 import React from 'react';
 import { Box, Container, Typography, Grid, Card, CardContent, Button, Avatar, Chip } from '@mui/material';
 import GlobalBackground from '@/components/common/GlobalBackground';
-import Navbar from '@/components/common/Navbar';
-import Footer from '@/components/common/Footer';
-import GradientTitle from '@/components/common/GradientTitle';
+import { GradientTitle } from '@/components/common/GradientTitle';
 import PandaCard from '@/components/common/PandaCard';
 
 const CommunityPage: React.FC = () => {
   const communitySections = [
     {
-      id: 1,
-      title: '策略讨论区',
-      description: '分享交易策略、讨论市场趋势、交流投资经验',
-      icon: '📈',
-      memberCount: 1280,
-      postCount: 3560,
-    },
-    {
-      id: 2,
-      title: '新手入门',
-      description: '新手交流区，解答入门问题，分享学习心得',
-      icon: '🎓',
-      memberCount: 890,
-      postCount: 1240,
-    },
-    {
-      id: 3,
-      title: '技术分析',
-      description: '技术指标讨论、图表分析、交易信号分享',
+      title: '策略讨论',
+      description: '分享交易策略，交流交易心得',
       icon: '📊',
-      memberCount: 1560,
-      postCount: 2890,
+      members: '2.5k+',
+      posts: '1.2k+'
     },
     {
-      id: 4,
-      title: '风险管理',
-      description: '风险控制方法、资金管理策略、止损技巧',
-      icon: '🛡️',
-      memberCount: 1120,
-      postCount: 1780,
+      title: '市场分析',
+      description: '分析市场趋势，分享交易机会',
+      icon: '📈',
+      members: '3.1k+',
+      posts: '1.8k+'
     },
+    {
+      title: '新手入门',
+      description: '新手交流，快速成长',
+      icon: '🎓',
+      members: '5.2k+',
+      posts: '3.4k+'
+    },
+    {
+      title: '技术交流',
+      description: '讨论技术指标，优化交易系统',
+      icon: '💻',
+      members: '1.8k+',
+      posts: '900+'
+    }
   ];
 
   const recentPosts = [
     {
-      id: 1,
       title: '超级趋势策略实战分享',
-      author: '张明',
-      avatar: '/avatars/zhangming.jpg',
+      author: 'CryptoWhale',
       date: '2024-03-20',
-      category: '策略讨论',
       likes: 128,
       comments: 45,
+      category: '策略讨论'
     },
     {
-      id: 2,
-      title: '新手如何选择第一个策略',
-      author: '李华',
-      avatar: '/avatars/lihua.jpg',
+      title: '比特币突破关键阻力位分析',
+      author: 'TradingNinja',
       date: '2024-03-19',
-      category: '新手入门',
       likes: 95,
       comments: 32,
+      category: '市场分析'
     },
     {
-      id: 3,
-      title: 'MACD指标在加密货币中的应用',
-      author: '王芳',
-      avatar: '/avatars/wangfang.jpg',
+      title: '新手如何选择交易策略？',
+      author: 'BlockchainSage',
       date: '2024-03-18',
-      category: '技术分析',
-      likes: 156,
-      comments: 78,
+      likes: 76,
+      comments: 28,
+      category: '新手入门'
     },
+    {
+      title: 'RSI指标优化方案',
+      author: 'DeFiMaster',
+      date: '2024-03-17',
+      likes: 64,
+      comments: 21,
+      category: '技术交流'
+    }
   ];
 
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh' }}>
       <GlobalBackground />
-      <Navbar />
       
       <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box sx={{ mb: 6 }}>
-          <GradientTitle>
-            社区
-          </GradientTitle>
-          <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
-            交流分享，共同成长
-          </Typography>
-        </Box>
-        
-        <Grid container spacing={4} sx={{ mb: 6 }}>
-          {communitySections.map((section) => (
-            <Grid item xs={12} md={6} key={section.id}>
+        <GradientTitle
+          title="社区"
+          subtitle="交流与分享"
+          sx={{ mb: 6 }}
+        />
+
+        <Grid container spacing={4} sx={{ mb: 8 }}>
+          {communitySections.map((section, index) => (
+            <Grid item xs={12} sm={6} md={3} key={index}>
               <PandaCard>
-                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Typography variant="h4" sx={{ mr: 2 }}>
-                        {section.icon}
-                      </Typography>
-                      <Typography variant="h6">
-                        {section.title}
-                      </Typography>
-                    </Box>
+                <Card sx={{ height: '100%' }}>
+                  <CardContent sx={{ textAlign: 'center' }}>
+                    <Typography variant="h3" sx={{ mb: 2 }}>
+                      {section.icon}
+                    </Typography>
+                    <Typography variant="h6" gutterBottom>
+                      {section.title}
+                    </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                       {section.description}
                     </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                       <Typography variant="caption" color="text.secondary">
-                        {section.memberCount} 成员 · {section.postCount} 帖子
+                        {section.members} 成员
                       </Typography>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        sx={{
-                          color: '#00FFB8',
-                          borderColor: '#00FFB8',
-                          '&:hover': {
-                            borderColor: '#00FFB8',
-                            bgcolor: 'rgba(0, 255, 184, 0.1)',
-                          },
-                        }}
-                      >
-                        加入讨论
-                      </Button>
+                      <Typography variant="caption" color="text.secondary">
+                        {section.posts} 帖子
+                      </Typography>
                     </Box>
                   </CardContent>
                 </Card>
@@ -133,37 +112,31 @@ const CommunityPage: React.FC = () => {
           ))}
         </Grid>
 
-        <Box sx={{ mb: 4 }}>
-          <GradientTitle>
-            最新帖子
-          </GradientTitle>
-          <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
-            社区最新动态
-          </Typography>
-        </Box>
-
-        <Grid container spacing={3}>
-          {recentPosts.map((post) => (
-            <Grid item xs={12} key={post.id}>
+        <Typography variant="h5" sx={{ mb: 4 }}>
+          最新帖子
+        </Typography>
+        
+        <Grid container spacing={4}>
+          {recentPosts.map((post, index) => (
+            <Grid item xs={12} key={index}>
               <PandaCard>
                 <Card>
                   <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Avatar
-                        src={post.avatar}
-                        alt={post.author}
-                        sx={{ width: 40, height: 40, mr: 2 }}
-                      />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                       <Box>
-                        <Typography variant="subtitle1">
+                        <Typography variant="h6" gutterBottom>
                           {post.title}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {post.author} · {post.date}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                          <Avatar sx={{ width: 24, height: 24 }} />
+                          <Typography variant="body2" color="text.secondary">
+                            {post.author}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {post.date}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Chip
                         label={post.category}
                         size="small"
@@ -172,14 +145,14 @@ const CommunityPage: React.FC = () => {
                           color: '#00FFB8',
                         }}
                       />
-                      <Box sx={{ display: 'flex', gap: 2 }}>
-                        <Typography variant="caption" color="text.secondary">
-                          👍 {post.likes}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          💬 {post.comments}
-                        </Typography>
-                      </Box>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        {post.likes} 点赞
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {post.comments} 评论
+                      </Typography>
                     </Box>
                   </CardContent>
                 </Card>
@@ -188,8 +161,6 @@ const CommunityPage: React.FC = () => {
           ))}
         </Grid>
       </Container>
-
-      <Footer />
     </Box>
   );
 };

@@ -1,10 +1,16 @@
 {
   "nav": {
+    "login": "Login",
+    "register": "Register",
     "products": "Products",
-    "performance": "Performance",
+    "profit": "Profit",
     "strategies": "Strategies",
     "security": "Security",
-    "referral": "Referral"
+    "invite": "Invite",
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "language": "Language",
+    "profile": "Profile"
   },
   "login": {
     "title": "Sign In",
@@ -20,7 +26,8 @@
     "selectWallet": "Select Wallet",
     "forgotPassword": "Forgot Password?",
     "noAccount": "Don't have an account?",
-    "register": "Register"
+    "register": "Register",
+    "submit": "Login"
   },
   "hero": {
     "title": "Let Panda Trade for You",
@@ -332,59 +339,118 @@
     }
   },
   "invite": {
-    "title": "Invite and Earn",
-    "subtitle": "Invite friends, share profits",
-    "code": {
-      "title": "My Invite Code"
-    },
-    "levels": {
-      "1": {
-        "level": "First Level",
-        "description": "Direct referral trading fees"
+    "title": "Referral Program",
+    "subtitle": "Invite friends to join and earn up to 20% commission, enjoy permanent profit sharing",
+    "description": "Panda Quant's referral program helps you multiply your earnings. By inviting friends to join, you not only earn high commissions but also enjoy permanent profit sharing. Our multi-level profit sharing mechanism ensures continuous growth of your earnings.",
+    "benefits": [
+      {
+        "level": "High Commission",
+        "rate": "Up to 20%",
+        "description": "Earn high commissions from friends' trading, 20% for first generation, 10% for second generation"
       },
-      "2": {
-        "level": "Second Level",
-        "description": "Indirect referral trading fees"
-      }
-    },
-    "features": {
-      "0": "Real-time commission, automatic settlement",
-      "1": "Multi-level commission, multiplied earnings",
-      "2": "Transparent data, view anytime"
-    },
-    "benefits": {
-      "0": {
-        "level": "First Level",
-        "rate": "20%",
-        "description": "Get 20% of your direct invitees' profits"
+      {
+        "level": "Permanent Earnings",
+        "rate": "Permanent",
+        "description": "Referral relationship is permanent, earn continuously with no time limit"
       },
-      "1": {
-        "level": "Second Level",
-        "rate": "10%",
-        "description": "Get 10% of your indirect invitees' profits"
+      {
+        "level": "Extra Rewards",
+        "rate": "Multiple Rewards",
+        "description": "Get 100 USDT for each friend registration, additional rewards for trading milestones"
       }
+    ],
+    "features": [
+      "Secure and Reliable - Using blockchain technology to ensure transparent commission distribution",
+      "Team Support - Professional customer service available 24/7",
+      "Transparent Earnings - Real-time commission records, track your earnings anytime",
+      "Automatic Settlement - System automatically calculates and distributes commissions",
+      "Multi-level Sharing - Support multi-level referrals for continuous earnings growth"
+    ],
+    "how_it_works": {
+      "title": "How to Participate",
+      "steps": [
+        {
+          "title": "Get Your Code",
+          "description": "Get your unique referral code after logging in"
+        },
+        {
+          "title": "Invite Friends",
+          "description": "Share your code or link to invite friends to register"
+        },
+        {
+          "title": "Friends Trade",
+          "description": "Friends complete registration and start trading"
+        },
+        {
+          "title": "Earn Commissions",
+          "description": "System automatically calculates and distributes commission rewards"
+        }
+      ]
+    },
+    "faq": {
+      "title": "FAQ",
+      "questions": [
+        {
+          "question": "How are commissions calculated?",
+          "answer": "Commissions are calculated as a percentage of friends' trading volume, 20% for first generation, 10% for second generation, settled in real-time"
+        },
+        {
+          "question": "When do commissions arrive?",
+          "answer": "Commissions are calculated in real-time, settled daily, and credited the next day"
+        },
+        {
+          "question": "How to view commission records?",
+          "answer": "View detailed commission records in your personal center after logging in"
+        },
+        {
+          "question": "Is there a commission limit?",
+          "answer": "No commission limit, the more friends you invite, the more you earn"
+        }
+      ]
+    },
+    "cta": "Invite Friends Now",
+    "link": {
+      "title": "My Referral Link",
+      "copy": "Copy Referral Link",
+      "description": "Share your exclusive referral link to invite friends"
+    },
+    "reward": {
+      "title": "Commission Rewards",
+      "description": "View your commission earnings and referral history"
     },
     "records": {
-      "title": "Real-time Commission Records",
-      "0": {
-        "user": "User A",
-        "amount": "50 USDT",
-        "time": "2024-03-15"
+      "title": "Invitation Records",
+      "subtitle": "View your invitation history and commission records",
+      "table": {
+        "user": "User",
+        "level": "Level",
+        "amount": "Commission",
+        "time": "Time",
+        "status": "Status"
       },
-      "1": {
-        "user": "User B",
-        "amount": "30 USDT",
-        "time": "2024-03-14"
-      },
-      "2": {
-        "user": "User C",
-        "amount": "25 USDT",
-        "time": "2024-03-13"
+      "status": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "failed": "Failed"
       }
     },
+    "share": "Share Invitation",
+    "rewards": "Real-time Commission Records",
+    "real_time_rewards": "Real-time Commission",
+    "invite_code": "Invitation Code",
+    "login_required": "Please login to view invitation details",
+    "login": "Login Now",
     "share": {
-      "title": "Join PandaQuant Trading Platform",
-      "text": "Use my invite code {code} to join PandaQuant trading platform and enjoy professional quantitative trading services"
+      "title": "Share Invitation",
+      "text": "Join Panda Quant using my invitation code: {{code}}"
+    },
+    "user_prefix": "User",
+    "rewards": {
+      "title": "Rebate Rewards",
+      "currency": "USDT"
+    },
+    "realtime": {
+      "title": "Real-time Rebate"
     }
   },
   "common": {
@@ -490,5 +556,39 @@
     "wallet": "Wallet",
     "haveAccount": "Already have an account?",
     "signIn": "Sign In"
+  },
+  "home": {
+    "title": "Home"
+  },
+  "products": {
+    "title": "Products"
+  },
+  "features": {
+    "title": "Core Features",
+    "subtitle": "Discover the powerful features that make our platform stand out",
+    "speed": {
+      "title": "Lightning Fast",
+      "description": "Ultra-low latency trading execution with real-time market data processing"
+    },
+    "security": {
+      "title": "Bank-Level Security",
+      "description": "Advanced encryption and multi-layer protection for your assets"
+    },
+    "analytics": {
+      "title": "Smart Analytics",
+      "description": "AI-powered market analysis and trading insights"
+    },
+    "automation": {
+      "title": "Full Automation",
+      "description": "24/7 automated trading with intelligent risk management"
+    },
+    "api": {
+      "title": "Powerful API",
+      "description": "Comprehensive API for custom strategy development and integration"
+    },
+    "support": {
+      "title": "Premium Support",
+      "description": "24/7 dedicated support team ready to assist you"
+    }
   }
 } 

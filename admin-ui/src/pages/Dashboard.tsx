@@ -2,27 +2,23 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Container,
   Grid,
   Card,
   CardContent,
-  LinearProgress,
-  Alert,
   Button,
   IconButton,
   Tooltip as MuiTooltip,
   Chip,
   useTheme,
   alpha,
-  CircularProgress
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
-  AccountBalance as AccountBalanceIcon,
   TrendingUp as TrendingUpIcon,
   People as PeopleIcon,
-  Warning as WarningIcon,
   ArrowForward as ArrowForwardIcon,
   Refresh as RefreshIcon,
   AttachMoney as MoneyIcon,
@@ -34,7 +30,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 import { getDashboardData, subscribeToDashboardUpdates } from '../api/dashboard';
 import PageLayout from '../components/common/PageLayout';
 import { animationConfig } from '../theme/animation';
-import { theme } from '../theme';
+import axios from 'axios';
 
 interface DashboardData {
   totalUsers: number;
@@ -60,8 +56,10 @@ interface DashboardStats {
   activeStrategies: number;
 }
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
 const Dashboard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
   const theme = useTheme();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -100,8 +98,8 @@ const Dashboard: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/admin/stats');
-      const data = await response.json();
+      const response = await axios.get(`${API_URL}/admin/stats`);
+      const data = await response.data;
       setStats(data);
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -153,153 +151,192 @@ const Dashboard: React.FC = () => {
     </motion.div>
   );
 
-  const renderChart = (title: string, data: { date: string; value: number }[], color: string) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: animationConfig.duration.medium }}
-    >
-      <Card sx={{ height: '100%' }}>
-        <CardContent>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            {title}
-          </Typography>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <RechartsTooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke={color}
-                strokeWidth={2}
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-
-  const renderHighRiskStrategies = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: animationConfig.duration.medium }}
-    >
-      <Card>
-        <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">
-              High Risk Strategies
+  const renderChart = (title: string, data: { date: string; value: number }[] | undefined, color: string) => {
+    if (!data || data.length === 0) {
+      return (
+        <Card sx={{ height: '100%' }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              {title}
             </Typography>
-            <MuiTooltip title="Refresh">
-              <span>
-                <IconButton onClick={fetchDashboardData}>
-                  <RefreshIcon />
-                </IconButton>
-              </span>
-            </MuiTooltip>
-          </Box>
-          {data?.highRiskStrategies.map((strategy) => (
-            <Box
-              key={strategy.id}
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                p: 2,
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-                '&:last-child': {
-                  borderBottom: 'none',
-                },
-              }}
-            >
-              <Box>
-                <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                  {strategy.name}
-                </Typography>
-                <Chip
-                  label={strategy.riskLevel}
-                  color={
-                    strategy.riskLevel === 'high'
-                      ? 'error'
-                      : strategy.riskLevel === 'medium'
-                      ? 'warning'
-                      : 'success'
-                  }
-                  size="small"
-                  sx={{ mt: 1 }}
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+              <Typography color="text.secondary">No data available</Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: animationConfig.duration.medium }}
+      >
+        <Card sx={{ height: '100%' }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              {title}
+            </Typography>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <RechartsTooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke={color}
+                  strokeWidth={2}
+                  dot={false}
                 />
-              </Box>
-              <Typography
-                variant="body1"
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  };
+
+  const renderHighRiskStrategies = () => {
+    if (!data?.highRiskStrategies || data.highRiskStrategies.length === 0) {
+      return (
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">
+                High Risk Strategies
+              </Typography>
+              <MuiTooltip title="Refresh">
+                <span>
+                  <IconButton onClick={fetchDashboardData}>
+                    <RefreshIcon />
+                  </IconButton>
+                </span>
+              </MuiTooltip>
+            </Box>
+            <Typography color="text.secondary" align="center">
+              No high risk strategies found
+            </Typography>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: animationConfig.duration.medium }}
+      >
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">
+                High Risk Strategies
+              </Typography>
+              <MuiTooltip title="Refresh">
+                <span>
+                  <IconButton onClick={fetchDashboardData}>
+                    <RefreshIcon />
+                  </IconButton>
+                </span>
+              </MuiTooltip>
+            </Box>
+            {data.highRiskStrategies.map((strategy) => (
+              <Box
+                key={strategy.id}
                 sx={{
-                  color: strategy.performance >= 0 ? 'success.main' : 'error.main',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  p: 2,
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                  '&:last-child': {
+                    borderBottom: 'none',
+                  },
                 }}
               >
-                {strategy.performance >= 0 ? '+' : ''}
-                {(strategy.performance * 100).toFixed(1)}%
-              </Typography>
-            </Box>
-          ))}
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                    {strategy.name}
+                  </Typography>
+                  <Chip
+                    label={strategy.riskLevel}
+                    color={
+                      strategy.riskLevel === 'high'
+                        ? 'error'
+                        : strategy.riskLevel === 'medium'
+                        ? 'warning'
+                        : 'success'
+                    }
+                    size="small"
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: strategy.performance >= 0 ? 'success.main' : 'error.main',
+                  }}
+                >
+                  {strategy.performance >= 0 ? '+' : ''}
+                  {(strategy.performance * 100).toFixed(1)}%
+                </Typography>
+              </Box>
+            ))}
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  };
 
-  const renderContent = () => (
-    <Box sx={{ mt: 4 }}>
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    if (error) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <Typography color="error">{error}</Typography>
+        </Box>
+      );
+    }
+
+    return (
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={3}>
-          {renderMetricCard(
-            'Total Users',
-            data?.totalUsers || 0,
-            <PeopleIcon />,
-            theme.palette.primary.main
-          )}
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          {renderMetricCard(
-            'Active Users',
-            data?.activeUsers || 0,
-            <TrendingUpIcon />,
-            theme.palette.success.main
-          )}
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          {renderMetricCard(
-            'Total Orders',
-            data?.totalOrders || 0,
-            <TrendingUpIcon />,
-            theme.palette.warning.main
-          )}
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          {renderMetricCard(
-            'Total Profit',
-            data?.totalProfit || 0,
-            <MoneyIcon />,
-            theme.palette.warning.main
-          )}
+        <Grid item xs={12} md={6}>
+          {renderMetricCard('Total Users', data?.totalUsers || 0, <PeopleIcon />, theme.palette.primary.main)}
         </Grid>
         <Grid item xs={12} md={6}>
-          {renderChart('Profit Trend', data?.profitTrend.map(item => ({ ...item, value: item.profit })) || [], theme.palette.primary.main)}
+          {renderMetricCard('Active Users', data?.activeUsers || 0, <PeopleIcon />, theme.palette.success.main)}
         </Grid>
         <Grid item xs={12} md={6}>
-          {renderChart('User Activity', data?.userActivity || [], theme.palette.secondary.main)}
+          {renderMetricCard('Total Orders', data?.totalOrders || 0, <MoneyIcon />, theme.palette.secondary.main)}
+        </Grid>
+        <Grid item xs={12} md={6}>
+          {renderMetricCard('Total Profit', data?.totalProfit || 0, <TrendingUpIcon />, theme.palette.info.main)}
+        </Grid>
+        <Grid item xs={12} md={6}>
+          {renderChart('Profit Trend', data?.profitTrend.map(item => ({ date: item.date, value: item.profit })), theme.palette.primary.main)}
+        </Grid>
+        <Grid item xs={12} md={6}>
+          {renderChart('User Activity', data?.userActivity, theme.palette.secondary.main)}
         </Grid>
         <Grid item xs={12}>
           {renderHighRiskStrategies()}
         </Grid>
       </Grid>
-    </Box>
-  );
+    );
+  };
 
   const renderActions = () => (
     <Button

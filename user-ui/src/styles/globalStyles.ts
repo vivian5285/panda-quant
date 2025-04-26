@@ -12,29 +12,31 @@ export const theme = createTheme({
   },
   palette: {
     primary: {
-      main: '#00C853',
-      light: '#5EFC82',
-      dark: '#009624',
+      main: '#00FFB8',
+      light: '#33FFC6',
+      dark: '#00B281',
+      contrastText: '#000',
     },
     secondary: {
-      main: '#212121',
-      light: '#484848',
-      dark: '#000000',
+      main: '#00B8FF',
+      light: '#33C6FF',
+      dark: '#0081B2',
+      contrastText: '#000',
     },
     background: {
-      default: '#121212',
-      paper: '#1E1E1E',
+      default: '#0A0A0A',
+      paper: '#1A1A1A',
     },
     text: {
       primary: '#FFFFFF',
-      secondary: 'rgba(255, 255, 255, 0.7)',
+      secondary: '#B0B0B0',
     },
   },
   shape: {
     borderRadius: 12,
   },
   typography: {
-    fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
+    fontFamily: '"Poppins", "Alibaba PuHuiTi", "Roboto", "Helvetica", "Arial", sans-serif',
     h1: {
       fontSize: '2.5rem',
       fontWeight: 600,

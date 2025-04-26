@@ -62,8 +62,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { themeUtils } from '../theme';
 import PandaCard from '../components/common/PandaCard';
 import PandaButton from '../components/common/PandaButton';
-import { PandaAlert as PandaAlertComponent } from '../components/common/PandaAlert';
-import { PandaProgress } from '../components/common/PandaProgress';
+import PandaAlert from '../components/common/PandaAlert';
+import PandaProgress from '../components/common/PandaProgress';
 import PandaTable from '../components/common/PandaTable';
 import { PandaChip } from '../components/common/PandaChip';
 import apiService from '../services/apiService';
@@ -291,7 +291,7 @@ const ApiManagement: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <Box sx={{ p: 3 }}>
-        <PandaAlertComponent severity="warning" message={t('api.authRequired')} />
+        <PandaAlert severity="warning" message={t('api.authRequired')} />
       </Box>
     );
   }
@@ -307,7 +307,7 @@ const ApiManagement: React.FC = () => {
   if (error) {
     return (
       <Box sx={{ p: 3 }}>
-        <PandaAlertComponent severity="error" message={error} />
+        <PandaAlert severity="error" message={error} />
       </Box>
     );
   }

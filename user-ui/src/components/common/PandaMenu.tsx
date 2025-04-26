@@ -118,8 +118,9 @@ const PandaMenu: React.FC<PandaMenuProps> = ({
     >
       <motion.div {...getAnimation()}>
         {items.map((item, index) => (
-          <React.Fragment key={index}>
+          <>
             <MenuItem
+              key={index}
               onClick={() => {
                 item.onClick?.();
                 onClose();
@@ -130,7 +131,7 @@ const PandaMenu: React.FC<PandaMenuProps> = ({
               <ListItemText primary={item.label} />
             </MenuItem>
             {item.divider && <Divider />}
-          </React.Fragment>
+          </>
         ))}
       </motion.div>
     </Menu>

@@ -21,7 +21,7 @@ interface PandaAlertProps {
   children?: React.ReactNode;
 }
 
-export const PandaAlert: React.FC<PandaAlertProps> = ({
+const PandaAlert: React.FC<PandaAlertProps> = ({
   severity = 'info',
   title,
   message,
@@ -70,4 +70,6 @@ export const PandaAlert: React.FC<PandaAlertProps> = ({
       </motion.div>
     </Collapse>
   );
-}; 
+};
+
+export default PandaAlert; 

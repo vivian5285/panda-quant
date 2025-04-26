@@ -130,7 +130,10 @@ const ProfitSection = () => {
   return (
     <Box
       sx={{
-        py: { xs: 3, md: 4 },
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        py: { xs: 6, md: 10 },
         overflow: 'hidden',
         bgcolor: '#FFFFFF',
         position: 'relative',
@@ -156,12 +159,14 @@ const ProfitSection = () => {
           <Typography
             variant="h2"
             sx={{
-              color: '#00FFB8',
-              fontWeight: 700,
               mb: 1,
               textAlign: 'center',
-              fontSize: { xs: '1.8rem', md: '2.2rem' },
+              fontSize: { xs: '2rem', md: '2.5rem' },
               fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
+              background: 'linear-gradient(45deg, #00FFB8 30%, #00B8FF 90%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              fontWeight: 700,
             }}
           >
             收益计算器

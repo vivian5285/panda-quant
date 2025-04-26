@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import GlobalBackground from '@/components/common/GlobalBackground';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
-import GradientTitle from '@/components/common/GradientTitle';
+import { GradientTitle } from '@/components/common/GradientTitle';
 
 const UnauthorizedPage: React.FC = () => {
   const navigate = useNavigate();

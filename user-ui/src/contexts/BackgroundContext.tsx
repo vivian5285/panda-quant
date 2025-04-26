@@ -10,7 +10,7 @@ interface BackgroundContextType {
 const BackgroundContext = createContext<BackgroundContextType | undefined>(undefined);
 
 export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [backgroundTheme, setBackgroundTheme] = useState<BackgroundTheme>('dark');
+  const [backgroundTheme, setBackgroundTheme] = useState<BackgroundTheme>('gradient');
 
   return (
     <BackgroundContext.Provider value={{ backgroundTheme, setBackgroundTheme }}>

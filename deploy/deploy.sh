@@ -174,21 +174,41 @@ backup_database() {
         return
     fi
     
+    # 重试次数和间隔
+    max_retries=5
+    retry_interval=10
+    
     # 备份管理后台数据库
     log "备份管理后台数据库..."
-    if mongodump --uri="$MONGODB_ADMIN_URI" --out="$backup_file/admin"; then
-        log "管理后台数据库备份成功: $backup_file/admin"
-    else
-        warn "管理后台数据库备份失败，继续部署..."
-    fi
+    for i in $(seq 1 $max_retries); do
+        if mongodump --uri="$MONGODB_ADMIN_URI" --out="$backup_file/admin"; then
+            log "管理后台数据库备份成功: $backup_file/admin"
+            break
+        else
+            if [ $i -eq $max_retries ]; then
+                warn "管理后台数据库备份失败，已达到最大重试次数，继续部署..."
+            else
+                warn "管理后台数据库备份失败，将在 ${retry_interval} 秒后重试 (${i}/${max_retries})..."
+                sleep $retry_interval
+            fi
+        fi
+    done
     
     # 备份用户端数据库
     log "备份用户端数据库..."
-    if mongodump --uri="$MONGODB_USER_URI" --out="$backup_file/user"; then
-        log "用户端数据库备份成功: $backup_file/user"
-    else
-        warn "用户端数据库备份失败，继续部署..."
-    fi
+    for i in $(seq 1 $max_retries); do
+        if mongodump --uri="$MONGODB_USER_URI" --out="$backup_file/user"; then
+            log "用户端数据库备份成功: $backup_file/user"
+            break
+        else
+            if [ $i -eq $max_retries ]; then
+                warn "用户端数据库备份失败，已达到最大重试次数，继续部署..."
+            else
+                warn "用户端数据库备份失败，将在 ${retry_interval} 秒后重试 (${i}/${max_retries})..."
+                sleep $retry_interval
+            fi
+        fi
+    done
 }
 
 # 创建必要的目录结构
@@ -208,14 +228,32 @@ create_directories() {
     log "复制共享类型和模型文件..."
     if [ -d "../shared/types" ]; then
         cp -r ../shared/types/* shared/types/
+    elif [ -d "shared/types" ]; then
+        cp -r shared/types/* shared/types/
     else
-        warn "未找到共享类型目录"
+        warn "未找到共享类型目录，将创建空目录"
+        mkdir -p shared/types
     fi
     
     if [ -d "../shared/models" ]; then
         cp -r ../shared/models/* shared/models/
+    elif [ -d "shared/models" ]; then
+        cp -r shared/models/* shared/models/
     else
-        warn "未找到共享模型目录"
+        warn "未找到共享模型目录，将创建空目录"
+        mkdir -p shared/models
+    fi
+    
+    # 确保Prisma schema文件存在
+    log "检查Prisma schema文件..."
+    if [ ! -f "../admin-api/prisma/schema.prisma" ]; then
+        warn "未找到管理后台API的Prisma schema文件，将创建空文件"
+        touch ../admin-api/prisma/schema.prisma
+    fi
+    
+    if [ ! -f "../user-api/prisma/schema.prisma" ]; then
+        warn "未找到用户端API的Prisma schema文件，将创建空文件"
+        touch ../user-api/prisma/schema.prisma
     fi
 }
 
@@ -459,13 +497,19 @@ main() {
     check_commands
     load_env
     check_env
-    backup_database
     create_directories
     create_network
     pull_latest_code
     deploy_admin
     deploy_user
     check_services
+    
+    # 等待服务启动
+    log "等待服务启动..."
+    sleep 30
+    
+    # 备份数据库
+    backup_database
     
     # SSL证书配置步骤
     install_certbot

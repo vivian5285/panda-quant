@@ -26,6 +26,10 @@ if (!i18n.isInitialized) {
       react: {
         useSuspense: false,
       },
+      // 添加默认命名空间
+      defaultNS: 'translation',
+      // 添加命名空间列表
+      ns: ['translation'],
     });
 }
 

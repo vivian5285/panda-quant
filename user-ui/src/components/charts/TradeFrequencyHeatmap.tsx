@@ -8,7 +8,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { HeatMap } from 'react-chartjs-2';
+import { Chart } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
@@ -77,7 +77,7 @@ const TradeFrequencyHeatmap: React.FC<TradeFrequencyHeatmapProps> = ({ data, tit
 
   return (
     <Box sx={{ width: '100%', height: '100%', p: 2 }}>
-      <HeatMap data={chartData} options={options} />
+      <Chart type="matrix" data={chartData} options={options} />
     </Box>
   );
 };

@@ -1,12 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
+  Button,
+  IconButton,
+  Tooltip as MuiTooltip,
+  Chip,
+  useTheme,
+  alpha,
+  CircularProgress,
+  Alert
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Search as SearchIcon,
+  Refresh as RefreshIcon
+} from '@mui/icons-material';
+import {
   Container,
   Grid,
   LinearProgress,
-  Alert,
-  Button,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -16,19 +30,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip,
-  IconButton,
-  Tooltip,
   Card,
   CardContent,
   Divider,
 } from '@mui/material';
-import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   Save as SaveIcon,
   Edit as EditIcon,
-  Refresh as RefreshIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
   Warning as WarningIcon,
@@ -53,11 +62,14 @@ interface WithdrawalRequest {
 
 const WithdrawalReview: React.FC = () => {
   const { t } = useTranslation();
-  const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const theme = useTheme();
+  const [data, setData] = useState<WithdrawalRequest[]>([]);
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [_loading, setLoading] = useState(false);
+  const [_error, setError] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<WithdrawalRequest | null>(null);
   const [reviewStatus, setReviewStatus] = useState<'approved' | 'rejected'>('approved');
   const [reviewReason, setReviewReason] = useState('');
 
@@ -92,7 +104,7 @@ const WithdrawalReview: React.FC = () => {
           walletAddress: 'bc1q...xyz',
         },
       ];
-      setRequests(mockRequests);
+      setData(mockRequests);
       setLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -127,16 +139,16 @@ const WithdrawalReview: React.FC = () => {
   };
 
   const handleReview = (request: WithdrawalRequest) => {
-    setSelectedRequest(request);
+    setSelectedWithdrawal(request);
     setReviewStatus('approved');
     setReviewReason('');
     setOpenDialog(true);
   };
 
   const handleSave = () => {
-    if (selectedRequest) {
-      const updatedRequests = requests.map((request) =>
-        request.id === selectedRequest.id
+    if (selectedWithdrawal) {
+      const updatedRequests = data.map((request) =>
+        request.id === selectedWithdrawal.id
           ? {
               ...request,
               status: reviewStatus,
@@ -145,9 +157,9 @@ const WithdrawalReview: React.FC = () => {
             }
           : request
       );
-      setRequests(updatedRequests);
+      setData(updatedRequests);
       setOpenDialog(false);
-      setSelectedRequest(null);
+      setSelectedWithdrawal(null);
     }
   };
 
@@ -183,11 +195,11 @@ const WithdrawalReview: React.FC = () => {
                 {request.username}
               </Typography>
             </Box>
-            <Tooltip title={t('withdrawalReview.review')}>
+            <MuiTooltip title={t('withdrawalReview.review')}>
               <IconButton onClick={() => handleReview(request)}>
                 <EditIcon />
               </IconButton>
-            </Tooltip>
+            </MuiTooltip>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             {request.userId}
@@ -247,7 +259,7 @@ const WithdrawalReview: React.FC = () => {
 
   const renderContent = () => (
     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 3 }}>
-      {requests.map(renderRequestCard)}
+      {data.map(renderRequestCard)}
     </Box>
   );
 
@@ -276,15 +288,15 @@ const WithdrawalReview: React.FC = () => {
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{t('withdrawalReview.reviewRequest')}</DialogTitle>
         <DialogContent>
-          {selectedRequest && (
+          {selectedWithdrawal && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                {selectedRequest.username}
+                {selectedWithdrawal.username}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <AttachMoneyIcon sx={{ color: theme.palette.primary.main }} />
                 <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                  {selectedRequest.amount} {selectedRequest.currency}
+                  {selectedWithdrawal.amount} {selectedWithdrawal.currency}
                 </Typography>
               </Box>
               <FormControl fullWidth sx={{ mb: 2 }}>

@@ -20,8 +20,9 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import PandaCard from '../components/common/PandaCard';
 import PandaButton from '../components/common/PandaButton';
-import { PandaAlert } from '../components/common/PandaAlert';
+import PandaAlert from '../components/common/PandaAlert';
 import { fadeIn, slideUp, staggerChildren } from '../animations';
+import Layout from '../components/Layout';
 
 interface UserProfile {
   email: string;
@@ -178,206 +179,208 @@ const AccountSettings: React.FC = () => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.03) 0%, rgba(0, 0, 0, 0) 100%)',
-        py: 4,
-      }}
-    >
-      <Container maxWidth="lg">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={staggerChildren}
-        >
-          <motion.div variants={fadeIn}>
-            <Typography
-              variant="h2"
+    <Layout>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.03) 0%, rgba(0, 0, 0, 0) 100%)',
+          py: 4,
+        }}
+      >
+        <Container maxWidth="lg">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerChildren}
+          >
+            <motion.div variants={fadeIn}>
+              <Typography
+                variant="h2"
+                sx={{
+                  color: '#00FFB8',
+                  fontWeight: 700,
+                  mb: 2,
+                  fontSize: { xs: '2rem', md: '2.5rem' },
+                  fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
+                }}
+              >
+                {t('accountSettings.title')}
+              </Typography>
+            </motion.div>
+
+            {error && (
+              <PandaAlert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </PandaAlert>
+            )}
+
+            {success && (
+              <PandaAlert severity="success" sx={{ mb: 2 }}>
+                {success}
+              </PandaAlert>
+            )}
+
+            <Tabs
+              value={activeTab}
+              onChange={handleTabChange}
               sx={{
-                color: '#00FFB8',
-                fontWeight: 700,
-                mb: 2,
-                fontSize: { xs: '2rem', md: '2.5rem' },
-                fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
+                mb: 3,
+                '& .MuiTab-root': {
+                  color: '#00FFB8',
+                  '&.Mui-selected': {
+                    color: '#00FFB8',
+                  },
+                },
               }}
             >
-              {t('accountSettings.title')}
-            </Typography>
+              <Tab icon={<PersonIcon />} label={t('accountSettings.profile')} />
+              <Tab icon={<SecurityIcon />} label={t('accountSettings.security')} />
+              <Tab icon={<NotificationsIcon />} label={t('accountSettings.notifications')} />
+              <Tab icon={<LanguageIcon />} label={t('accountSettings.preferences')} />
+            </Tabs>
+
+            {activeTab === 0 && (
+              <motion.div variants={slideUp}>
+                <PandaCard
+                  title={t('accountSettings.profile')}
+                  gradient
+                  animation
+                >
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label={t('accountSettings.name')}
+                        value={profile.name}
+                        onChange={handleProfileChange('name')}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label={t('accountSettings.email')}
+                        value={profile.email}
+                        onChange={handleProfileChange('email')}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label={t('accountSettings.phone')}
+                        value={profile.phone}
+                        onChange={handleProfileChange('phone')}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <TextField
+                        fullWidth
+                        label={t('accountSettings.timezone')}
+                        value={profile.timezone}
+                        onChange={handleProfileChange('timezone')}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                    <PandaButton
+                      variant="contained"
+                      onClick={handleSaveProfile}
+                      disabled={isLoading}
+                    >
+                      {t('common.save')}
+                    </PandaButton>
+                  </Box>
+                </PandaCard>
+              </motion.div>
+            )}
+
+            {activeTab === 1 && (
+              <motion.div variants={slideUp}>
+                <PandaCard
+                  title={t('accountSettings.security')}
+                  gradient
+                  animation
+                >
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={security.twoFactorEnabled}
+                            onChange={handleSecurityChange('twoFactorEnabled')}
+                          />
+                        }
+                        label={t('accountSettings.twoFactorAuth')}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label={t('accountSettings.apiKey')}
+                        value={security.apiKey}
+                        disabled
+                      />
+                    </Grid>
+                  </Grid>
+                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                    <PandaButton
+                      variant="contained"
+                      onClick={handleSaveSecurity}
+                      disabled={isLoading}
+                    >
+                      {t('common.save')}
+                    </PandaButton>
+                  </Box>
+                </PandaCard>
+              </motion.div>
+            )}
+
+            {activeTab === 2 && (
+              <motion.div variants={slideUp}>
+                <PandaCard
+                  title={t('accountSettings.notifications')}
+                  gradient
+                  animation
+                >
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={security.emailNotifications}
+                            onChange={handleSecurityChange('emailNotifications')}
+                          />
+                        }
+                        label={t('accountSettings.emailNotifications')}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={security.smsNotifications}
+                            onChange={handleSecurityChange('smsNotifications')}
+                          />
+                        }
+                        label={t('accountSettings.smsNotifications')}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                    <PandaButton
+                      variant="contained"
+                      onClick={handleSave}
+                      disabled={isLoading}
+                    >
+                      {t('common.save')}
+                    </PandaButton>
+                  </Box>
+                </PandaCard>
+              </motion.div>
+            )}
           </motion.div>
-
-          {error && (
-            <PandaAlert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </PandaAlert>
-          )}
-
-          {success && (
-            <PandaAlert severity="success" sx={{ mb: 2 }}>
-              {success}
-            </PandaAlert>
-          )}
-
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            sx={{
-              mb: 3,
-              '& .MuiTab-root': {
-                color: '#00FFB8',
-                '&.Mui-selected': {
-                  color: '#00FFB8',
-                },
-              },
-            }}
-          >
-            <Tab icon={<PersonIcon />} label={t('accountSettings.profile')} />
-            <Tab icon={<SecurityIcon />} label={t('accountSettings.security')} />
-            <Tab icon={<NotificationsIcon />} label={t('accountSettings.notifications')} />
-            <Tab icon={<LanguageIcon />} label={t('accountSettings.preferences')} />
-          </Tabs>
-
-          {activeTab === 0 && (
-            <motion.div variants={slideUp}>
-              <PandaCard
-                title={t('accountSettings.profile')}
-                gradient
-                animation
-              >
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label={t('accountSettings.name')}
-                      value={profile.name}
-                      onChange={handleProfileChange('name')}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label={t('accountSettings.email')}
-                      value={profile.email}
-                      onChange={handleProfileChange('email')}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label={t('accountSettings.phone')}
-                      value={profile.phone}
-                      onChange={handleProfileChange('phone')}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label={t('accountSettings.timezone')}
-                      value={profile.timezone}
-                      onChange={handleProfileChange('timezone')}
-                    />
-                  </Grid>
-                </Grid>
-                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-                  <PandaButton
-                    variant="contained"
-                    onClick={handleSaveProfile}
-                    disabled={isLoading}
-                  >
-                    {t('common.save')}
-                  </PandaButton>
-                </Box>
-              </PandaCard>
-            </motion.div>
-          )}
-
-          {activeTab === 1 && (
-            <motion.div variants={slideUp}>
-              <PandaCard
-                title={t('accountSettings.security')}
-                gradient
-                animation
-              >
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={security.twoFactorEnabled}
-                          onChange={handleSecurityChange('twoFactorEnabled')}
-                        />
-                      }
-                      label={t('accountSettings.twoFactorAuth')}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label={t('accountSettings.apiKey')}
-                      value={security.apiKey}
-                      disabled
-                    />
-                  </Grid>
-                </Grid>
-                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-                  <PandaButton
-                    variant="contained"
-                    onClick={handleSaveSecurity}
-                    disabled={isLoading}
-                  >
-                    {t('common.save')}
-                  </PandaButton>
-                </Box>
-              </PandaCard>
-            </motion.div>
-          )}
-
-          {activeTab === 2 && (
-            <motion.div variants={slideUp}>
-              <PandaCard
-                title={t('accountSettings.notifications')}
-                gradient
-                animation
-              >
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={security.emailNotifications}
-                          onChange={handleSecurityChange('emailNotifications')}
-                        />
-                      }
-                      label={t('accountSettings.emailNotifications')}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={security.smsNotifications}
-                          onChange={handleSecurityChange('smsNotifications')}
-                        />
-                      }
-                      label={t('accountSettings.smsNotifications')}
-                    />
-                  </Grid>
-                </Grid>
-                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-                  <PandaButton
-                    variant="contained"
-                    onClick={handleSave}
-                    disabled={isLoading}
-                  >
-                    {t('common.save')}
-                  </PandaButton>
-                </Box>
-              </PandaCard>
-            </motion.div>
-          )}
-        </motion.div>
-      </Container>
-    </Box>
+        </Container>
+      </Box>
+    </Layout>
   );
 };
 

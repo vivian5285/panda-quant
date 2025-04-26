@@ -92,11 +92,21 @@
     "users": "用户管理",
     "chains": "链地址管理",
     "strategies": "策略管理",
-    "logs": "日志管理"
+    "logs": "日志管理",
+    "withdrawals": "提现管理",
+    "userStatus": "用户状态",
+    "commissions": "佣金管理",
+    "profits": "收益管理",
+    "commissionSettlement": "佣金结算",
+    "education": "教育培训",
+    "abTesting": "AB测试",
+    "monitoring": "系统监控"
   },
   "login": {
     "title": "管理员登录",
+    "subtitle": "欢迎使用熊猫量化管理系统",
     "email": "邮箱",
+    "username": "用户名",
     "password": "密码",
     "submit": "登录",
     "error": "登录失败，请检查您的邮箱和密码"

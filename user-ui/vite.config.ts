@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
-import { splitVendorChunkPlugin } from 'vite'
 import viteCompression from 'vite-plugin-compression'
 import { VitePWA } from 'vite-plugin-pwa'
 import svgr from 'vite-plugin-svgr'
@@ -14,7 +13,6 @@ const __dirname = dirname(__filename)
 export default defineConfig({
   plugins: [
     react(),
-    splitVendorChunkPlugin(),
     viteCompression({
       algorithm: 'gzip',
       ext: '.gz',
@@ -44,51 +42,53 @@ export default defineConfig({
     svgr(),
   ],
   base: '/',
-  server: {
-    port: 3003,
-    host: true,
-  },
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      '@components': resolve(__dirname, './src/components'),
+      '@pages': resolve(__dirname, './src/pages'),
+      '@contexts': resolve(__dirname, './src/contexts'),
+      '@hooks': resolve(__dirname, './src/hooks'),
+      '@utils': resolve(__dirname, './src/utils'),
+      '@assets': resolve(__dirname, './src/assets'),
+      '@services': resolve(__dirname, './src/services'),
+    },
+  },
+  server: {
+    port: 3003,
+    host: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
     },
   },
   build: {
     outDir: 'dist',
-    assetsDir: 'assets',
-    sourcemap: false,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            return 'vendor'
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@mui') || id.includes('@emotion')) {
+              return 'mui-vendor';
+            }
+            return 'vendor';
           }
-        }
-      }
-    }
-  },
-  esbuild: {
-    jsxInject: `import React from 'react'`
+        },
+      },
+    },
   },
   optimizeDeps: {
     include: [
       'react',
       'react-dom',
-      'react-is',
       'react-router-dom',
       '@mui/material',
       '@mui/icons-material',
       '@emotion/react',
       '@emotion/styled',
-      'chart.js',
-      'react-chartjs-2',
     ],
   },
   css: {
@@ -107,5 +107,9 @@ export default defineConfig({
       v7_startTransition: true,
       v7_relativeSplatPath: true,
     })
+  },
+  mode: 'development',
+  ssr: {
+    noExternal: ['@vitejs/plugin-react']
   }
 }) 

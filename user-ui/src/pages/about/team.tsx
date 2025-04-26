@@ -1,39 +1,38 @@
 import React from 'react';
 import { Box, Container, Typography, Grid, Avatar } from '@mui/material';
-import { GlobalBackground } from '@/components/common/GlobalBackground';
-import { Navbar } from '@/components/common/Navbar';
-import { Footer } from '@/components/common/Footer';
+import GlobalBackground from '@/components/common/GlobalBackground';
+import Navbar from '@/components/common/Navbar';
 import { GradientTitle } from '@/components/common/GradientTitle';
-import { PandaCard } from '@/components/common/PandaCard';
+import PandaCard from '@/components/common/PandaCard';
 
 const TeamPage: React.FC = () => {
   const teamMembers = [
     {
-      name: '张明',
-      position: '创始人 & CEO',
-      avatar: '/team/ceo.jpg',
-      bio: '拥有15年金融科技行业经验，曾在多家知名金融机构担任高管。',
+      name: 'Michael Johnson',
+      position: '创始人兼首席执行官',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+      bio: '拥有15年金融科技行业经验，曾在多家知名金融机构担任高管职务。',
       expertise: ['金融科技', '量化交易', '区块链'],
     },
     {
-      name: '李华',
-      position: 'CTO',
-      avatar: '/team/cto.jpg',
-      bio: '人工智能专家，专注于量化交易算法研发，拥有多项技术专利。',
+      name: 'David Wilson',
+      position: '首席技术官',
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop',
+      bio: '人工智能专家，专注于量化交易算法开发，拥有多项技术专利。',
       expertise: ['人工智能', '机器学习', '算法设计'],
     },
     {
-      name: '王芳',
+      name: 'Sarah Anderson',
       position: '产品总监',
-      avatar: '/team/product.jpg',
-      bio: '用户体验专家，负责产品设计和用户增长，打造极致用户体验。',
+      avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=400&fit=crop',
+      bio: '用户体验专家，负责产品设计和用户增长，致力于创造卓越的用户体验。',
       expertise: ['产品设计', '用户体验', '用户增长'],
     },
     {
-      name: '刘强',
+      name: 'Kevin Taylor',
       position: '风控总监',
-      avatar: '/team/risk.jpg',
-      bio: '风险管理专家，负责平台风控体系建设，保障用户资产安全。',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+      bio: '风险管理专家，负责平台风控系统建设，确保用户资产安全。',
       expertise: ['风险管理', '合规', '安全'],
     },
   ];
@@ -45,7 +44,7 @@ const TeamPage: React.FC = () => {
       
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <GradientTitle
-          title="团队介绍"
+          title="我们的团队"
           subtitle="专业、创新、值得信赖"
           sx={{ mb: 6 }}
         />
@@ -87,9 +86,9 @@ const TeamPage: React.FC = () => {
                         sx={{
                           bgcolor: 'rgba(0, 255, 184, 0.1)',
                           color: '#00FFB8',
-                          px: 1,
+                          px: 1.5,
                           py: 0.5,
-                          borderRadius: 1,
+                          borderRadius: '12px',
                         }}
                       >
                         {skill}
@@ -108,7 +107,7 @@ const TeamPage: React.FC = () => {
               加入我们
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              我们正在寻找志同道合的伙伴，一起打造全球领先的量化交易平台。如果你对金融科技充满热情，欢迎加入我们的团队。
+              我们正在寻找志同道合的伙伴，共同打造世界领先的量化交易平台。如果您对金融科技充满热情，欢迎加入我们的团队。
             </Typography>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Typography
@@ -133,14 +132,12 @@ const TeamPage: React.FC = () => {
                   },
                 }}
               >
-                投递简历
+                提交简历
               </Typography>
             </Box>
           </PandaCard>
         </Box>
       </Container>
-
-      <Footer />
     </Box>
   );
 };

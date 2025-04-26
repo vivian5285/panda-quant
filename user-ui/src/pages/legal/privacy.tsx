@@ -2,8 +2,7 @@ import React from 'react';
 import { Box, Container, Typography, List, ListItem } from '@mui/material';
 import GlobalBackground from '@/components/common/GlobalBackground';
 import Navbar from '@/components/common/Navbar';
-import Footer from '@/components/common/Footer';
-import GradientTitle from '@/components/common/GradientTitle';
+import { GradientTitle } from '@/components/common/GradientTitle';
 import PandaCard from '@/components/common/PandaCard';
 
 const PrivacyPage: React.FC = () => {
@@ -74,8 +73,6 @@ const PrivacyPage: React.FC = () => {
           </Box>
         </PandaCard>
       </Container>
-
-      <Footer />
     </Box>
   );
 };

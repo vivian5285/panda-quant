@@ -1,12 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
+  Button,
+  IconButton,
+  Tooltip as MuiTooltip,
+  Chip,
+  useTheme,
+  alpha,
+  CircularProgress,
+  Alert
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Search as SearchIcon,
+  Refresh as RefreshIcon,
+  Edit as EditIcon
+} from '@mui/icons-material';
+import {
   Container,
   Grid,
   LinearProgress,
-  Alert,
-  Button,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -16,23 +31,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip,
-  IconButton,
-  Tooltip,
   Card,
   CardContent,
   Divider,
 } from '@mui/material';
-import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import {
-  Save as SaveIcon,
-  Edit as EditIcon,
-  Refresh as RefreshIcon,
-  CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
-  Warning as WarningIcon,
-} from '@mui/icons-material';
 import { theme } from '../theme';
 import { animationConfig } from '../theme/animation';
 import PageLayout from '../components/common/PageLayout';
@@ -50,11 +53,14 @@ interface UserStatus {
 
 const UserStatusManagement: React.FC = () => {
   const { t } = useTranslation();
-  const [users, setUsers] = useState<UserStatus[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [openDialog, setOpenDialog] = useState(false);
+  const theme = useTheme();
+  const [data, setData] = useState<UserStatus[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserStatus | null>(null);
+  const [_searchTerm, setSearchTerm] = useState('');
+  const [_statusFilter, setStatusFilter] = useState('all');
+  const [_loading, setLoading] = useState(false);
+  const [_error, setError] = useState<string | null>(null);
+  const [openDialog, setOpenDialog] = useState(false);
   const [editedStatus, setEditedStatus] = useState<UserStatus['status']>('active');
 
   useEffect(() => {
@@ -96,7 +102,7 @@ const UserStatusManagement: React.FC = () => {
           ipAddress: '192.168.1.3',
         },
       ];
-      setUsers(mockUsers);
+      setData(mockUsers);
       setLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -127,10 +133,10 @@ const UserStatusManagement: React.FC = () => {
 
   const handleSave = () => {
     if (selectedUser) {
-      const updatedUsers = users.map((user) =>
+      const updatedUsers = data.map((user) =>
         user.id === selectedUser.id ? { ...user, status: editedStatus } : user
       );
-      setUsers(updatedUsers);
+      setData(updatedUsers);
       setOpenDialog(false);
       setSelectedUser(null);
     }
@@ -157,11 +163,11 @@ const UserStatusManagement: React.FC = () => {
             <Typography variant="h6" sx={{ fontWeight: 500 }}>
               {user.username}
             </Typography>
-            <Tooltip title={t('userStatus.edit')}>
+            <MuiTooltip title={t('userStatus.edit')}>
               <IconButton onClick={() => handleEdit(user)}>
                 <EditIcon />
               </IconButton>
-            </Tooltip>
+            </MuiTooltip>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             {user.userId}
@@ -218,7 +224,7 @@ const UserStatusManagement: React.FC = () => {
 
   const renderContent = () => (
     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 3 }}>
-      {users.map(renderUserCard)}
+      {data.map(renderUserCard)}
     </Box>
   );
 

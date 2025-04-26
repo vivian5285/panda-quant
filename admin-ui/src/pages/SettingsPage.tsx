@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 
 const SettingsPage: React.FC = () => {
   const { t } = useTranslation();
-  const theme = useTheme();
+  const _theme = useTheme();
   const [settings, setSettings] = useState({
     systemName: 'PandaQuant Admin',
     systemVersion: '1.0.0',

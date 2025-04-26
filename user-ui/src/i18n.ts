@@ -3,25 +3,26 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import Backend from 'i18next-http-backend';
 
+// Import translations from language-specific directories
 import enTranslation from './i18n/locales/en/translation.json';
 import zhTranslation from './i18n/locales/zh/translation.json';
 import koTranslation from './i18n/locales/ko/translation.json';
+import jaTranslation from './i18n/locales/ja/translation.json';
+
+// Import zh.json separately since it's in the root
+import zhRoot from './i18n/locales/zh.json';
 
 // 定义支持的语言类型
-export const supportedLngs = ['en', 'zh', 'ko'] as const;
+export const supportedLngs = ['en', 'zh', 'zh-CN', 'ko', 'ja'] as const;
 export type SupportedLng = typeof supportedLngs[number];
 
 // 语言名称映射
 export const languageNames: Record<SupportedLng, string> = {
   en: 'English',
   zh: '中文',
-  ko: '한국어'
-};
-
-const resources = {
-  en: { translation: enTranslation },
-  zh: { translation: zhTranslation },
-  ko: { translation: koTranslation }
+  'zh-CN': '中文',
+  ko: '한국어',
+  ja: '日本語'
 };
 
 // 初始化 i18n
@@ -30,7 +31,29 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources,
+    resources: {
+      en: {
+        translation: enTranslation
+      },
+      zh: {
+        translation: {
+          ...zhRoot,
+          ...zhTranslation
+        }
+      },
+      'zh-CN': {
+        translation: {
+          ...zhRoot,
+          ...zhTranslation
+        }
+      },
+      ko: {
+        translation: koTranslation
+      },
+      ja: {
+        translation: jaTranslation
+      }
+    },
     supportedLngs,
     fallbackLng: 'en',
     lng: localStorage.getItem('i18nextLng') || 'zh',

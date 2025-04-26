@@ -16,7 +16,7 @@ import {
 import PandaInput from './PandaInput';
 import PandaButton from './PandaButton';
 import PandaSelect from './PandaSelect';
-import { PandaAlert } from './PandaAlert';
+import PandaAlert from './PandaAlert';
 
 interface FormField {
   name: string;

@@ -1,35 +1,34 @@
 import React from 'react';
 import { Box, Container, Typography, List, ListItem } from '@mui/material';
-import { GlobalBackground } from '@/components/common/GlobalBackground';
-import { Navbar } from '@/components/common/Navbar';
-import { Footer } from '@/components/common/Footer';
+import GlobalBackground from '@/components/common/GlobalBackground';
+import Navbar from '@/components/common/Navbar';
 import { GradientTitle } from '@/components/common/GradientTitle';
-import { PandaCard } from '@/components/common/PandaCard';
+import PandaCard from '@/components/common/PandaCard';
 
 const DisclaimerPage: React.FC = () => {
   const disclaimerPoints = [
     {
-      title: '信息准确性',
-      content: '熊猫量化平台提供的所有信息仅供参考，不构成投资建议。我们尽力确保信息的准确性，但不保证所有信息的完整性和及时性。',
+      title: '平台服务',
+      content: '熊猫量化平台提供的所有服务均按"现状"提供，不提供任何形式的明示或暗示的保证。平台不对服务的及时性、安全性、准确性或可靠性做出任何保证。',
     },
     {
-      title: '投资风险',
-      content: '量化交易涉及高风险，可能导致资金损失。投资者应充分了解相关风险，并根据自身情况谨慎决策。熊猫量化不对任何投资决策或结果负责。',
-    },
-    {
-      title: '第三方链接',
-      content: '平台可能包含指向第三方网站的链接。这些链接仅供参考，熊猫量化不对第三方网站的内容、准确性或可用性负责。',
-    },
-    {
-      title: '服务可用性',
-      content: '我们尽力确保平台的稳定运行，但不保证服务不会中断或出现错误。对于因服务中断或错误导致的任何损失，熊猫量化不承担责任。',
+      title: '用户责任',
+      content: '用户应自行承担使用平台服务的所有风险。用户应确保其使用平台服务的行为符合相关法律法规，并对其账户下的所有操作负责。',
     },
     {
       title: '知识产权',
-      content: '平台上的所有内容，包括但不限于文字、图片、图表、数据等，均受知识产权法保护。未经授权，不得复制、传播或用于商业目的。',
+      content: '平台上的所有内容，包括但不限于文字、图片、图表、数据、软件等，均受知识产权法保护。未经授权，不得复制、传播或用于商业目的。',
     },
     {
-      title: '免责范围',
+      title: '第三方服务',
+      content: '平台可能包含指向第三方网站或服务的链接。这些链接仅供参考，熊猫量化不对第三方网站或服务的内容、准确性或可用性负责。',
+    },
+    {
+      title: '服务中断',
+      content: '平台可能因系统维护、升级或其他原因暂时中断服务。对于因服务中断导致的任何损失，熊猫量化不承担责任。',
+    },
+    {
+      title: '责任限制',
       content: '在法律允许的最大范围内，熊猫量化不对因使用平台服务导致的任何直接、间接、偶然、特殊或后果性损失承担责任。',
     },
   ];
@@ -68,12 +67,10 @@ const DisclaimerPage: React.FC = () => {
           </List>
 
           <Typography variant="body1" color="text.secondary" sx={{ mt: 4 }}>
-            本免责声明可能会不时更新，请定期查看。如果您对本免责声明有任何疑问，请联系我们的客服团队。
+            如果您对本免责声明有任何疑问，请联系我们的客服团队。
           </Typography>
         </PandaCard>
       </Container>
-
-      <Footer />
     </Box>
   );
 };

@@ -1,8 +1,6 @@
 import React from 'react';
 import { Box, Container, Typography, Grid, Card, CardContent, Button, Stepper, Step, StepLabel, StepContent } from '@mui/material';
 import GlobalBackground from '@/components/common/GlobalBackground';
-import Navbar from '@/components/common/Navbar';
-import Footer from '@/components/common/Footer';
 import { GradientTitle } from '@/components/common/GradientTitle';
 import PandaCard from '@/components/common/PandaCard';
 
@@ -61,12 +59,11 @@ const ProfitPage: React.FC = () => {
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh' }}>
       <GlobalBackground />
-      <Navbar />
       
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <Box sx={{ mb: 6, textAlign: 'center' }}>
           <GradientTitle>
-            收益说明
+            收益榜
           </GradientTitle>
           <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
             月化收益50%-300%，我们只收取收益的10%
@@ -158,8 +155,6 @@ const ProfitPage: React.FC = () => {
           </Grid>
         </Grid>
       </Container>
-
-      <Footer />
     </Box>
   );
 };

@@ -296,3 +296,13 @@
 {"level":"info","message":"Server is running on port 3001","service":"user-api","timestamp":"2025-04-18 01:59:46"}
 {"level":"info","message":"MongoDB connected successfully","service":"user-api","timestamp":"2025-04-18 01:59:46"}
 {"level":"info","message":"MongoDB connected","service":"user-api","timestamp":"2025-04-18 01:59:46"}
+{"level":"info","message":"Connecting to MongoDB at mongodb://localhost:27017/panda-quant (attempt 1/3)","service":"user-api","timestamp":"2025-04-26 21:15:50"}
+{"level":"info","message":"每周费用扣除任务已安排","service":"user-api","timestamp":"2025-04-26 21:15:51"}
+{"level":"info","message":"Server is running on port 3001","service":"user-api","timestamp":"2025-04-26 21:15:51"}
+{"level":"info","message":"MongoDB connected successfully","service":"user-api","timestamp":"2025-04-26 21:15:51"}
+{"level":"info","message":"MongoDB connected","service":"user-api","timestamp":"2025-04-26 21:15:51"}
+{"level":"info","message":"Connecting to MongoDB at mongodb://localhost:27017/panda-quant (attempt 1/3)","service":"user-api","timestamp":"2025-04-26 21:16:28"}
+{"level":"info","message":"每周费用扣除任务已安排","service":"user-api","timestamp":"2025-04-26 21:16:28"}
+{"level":"info","message":"Server is running on port 3001","service":"user-api","timestamp":"2025-04-26 21:16:28"}
+{"level":"info","message":"MongoDB connected successfully","service":"user-api","timestamp":"2025-04-26 21:16:28"}
+{"level":"info","message":"MongoDB connected","service":"user-api","timestamp":"2025-04-26 21:16:28"}

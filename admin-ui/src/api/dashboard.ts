@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
 export interface DashboardData {
   totalBalance: number;
   totalProfit: number;
@@ -20,7 +22,7 @@ let socket: Socket | null = null;
 
 export const getDashboardData = async (): Promise<DashboardData> => {
   try {
-    const response = await axios.get('/api/dashboard');
+    const response = await axios.get(`${API_URL}/dashboard`);
     return response.data;
   } catch (error) {
     console.error('Error fetching dashboard data:', error);

@@ -12,5 +12,25 @@
     "forgotPassword": "忘记密码？",
     "noAccount": "还没有账号？",
     "haveAccount": "已有账号？"
+  },
+  "nav": {
+    "login": "登录",
+    "register": "注册",
+    "products": "产品",
+    "profit": "收益",
+    "strategies": "策略",
+    "security": "安全",
+    "invite": "邀请",
+    "language": "语言"
+  },
+  "invite": {
+    "user_prefix": "用户",
+    "rewards": {
+      "title": "返佣奖励",
+      "currency": "USDT"
+    },
+    "realtime": {
+      "title": "实时返佣"
+    }
   }
 } 

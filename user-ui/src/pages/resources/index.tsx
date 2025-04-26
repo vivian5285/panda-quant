@@ -1,10 +1,10 @@
 import React from 'react';
 import { Box, Container, Typography, Grid, Button } from '@mui/material';
-import { GlobalBackground } from '@/components/common/GlobalBackground';
-import { Navbar } from '@/components/common/Navbar';
-import { Footer } from '@/components/common/Footer';
+import GlobalBackground from '@/components/common/GlobalBackground';
+import Navbar from '@/components/common/Navbar';
+import Footer from '@/components/common/Footer';
 import { GradientTitle } from '@/components/common/GradientTitle';
-import { PandaCard } from '@/components/common/PandaCard';
+import PandaCard from '@/components/common/PandaCard';
 
 const ResourcesPage: React.FC = () => {
   return (

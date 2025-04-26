@@ -22,6 +22,7 @@ import {
   Card,
   CardContent,
   Divider,
+  CircularProgress
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -68,37 +69,18 @@ const CommissionList: React.FC = () => {
 
   const fetchCommissions = async () => {
     try {
-      // Mock API call
-      const mockCommissions: Commission[] = [
-        {
-          id: '1',
-          userId: 'user1',
-          username: 'John Doe',
-          amount: 1000,
-          currency: 'USDT',
-          type: 'referral',
-          status: 'pending',
-          createdAt: '2024-04-23T10:00:00Z',
-          updatedAt: '2024-04-23T10:00:00Z',
-          description: 'Referral commission for new user registration',
-        },
-        {
-          id: '2',
-          userId: 'user2',
-          username: 'Jane Smith',
-          amount: 500,
-          currency: 'BTC',
-          type: 'trading',
-          status: 'pending',
-          createdAt: '2024-04-23T09:00:00Z',
-          updatedAt: '2024-04-23T09:00:00Z',
-          description: 'Trading commission for successful trades',
-        },
-      ];
-      setCommissions(mockCommissions);
-      setLoading(false);
+      setLoading(true);
+      setError(null);
+      const response = await fetch('/api/admin/commissions');
+      if (!response.ok) {
+        throw new Error('Failed to fetch commissions');
+      }
+      const data = await response.json();
+      setCommissions(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error fetching commissions:', err);
+    } finally {
       setLoading(false);
     }
   };
@@ -142,28 +124,42 @@ const CommissionList: React.FC = () => {
     }
   };
 
-  const handlePayment = (commission: Commission) => {
-    setSelectedCommission(commission);
-    setPaymentStatus('paid');
-    setPaymentNote('');
-    setOpenDialog(true);
-  };
+  const handlePayment = async (commission: Commission) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`/api/admin/commissions/${commission.id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: paymentStatus,
+          note: paymentNote,
+        }),
+      });
 
-  const handleSave = () => {
-    if (selectedCommission) {
-      const updatedCommissions = commissions.map((commission) =>
-        commission.id === selectedCommission.id
-          ? {
-              ...commission,
-              status: paymentStatus,
-              updatedAt: new Date().toISOString(),
-              description: paymentNote || commission.description,
-            }
-          : commission
-      );
-      setCommissions(updatedCommissions);
+      if (!response.ok) {
+        throw new Error('Failed to update commission status');
+      }
+
+      const updatedCommission = await response.json();
+      setCommissions(commissions.map(c => 
+        c.id === commission.id ? updatedCommission : c
+      ));
       setOpenDialog(false);
       setSelectedCommission(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error updating commission:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (selectedCommission) {
+      await handlePayment(selectedCommission);
     }
   };
 
@@ -200,7 +196,12 @@ const CommissionList: React.FC = () => {
               </Typography>
             </Box>
             <Tooltip title={t('commissionList.processPayment')}>
-              <IconButton onClick={() => handlePayment(commission)}>
+              <IconButton onClick={() => {
+                setSelectedCommission(commission);
+                setPaymentStatus('paid');
+                setPaymentNote('');
+                setOpenDialog(true);
+              }}>
                 <AccountBalanceIcon />
               </IconButton>
             </Tooltip>
@@ -287,6 +288,22 @@ const CommissionList: React.FC = () => {
       {t('commissionList.refresh')}
     </Button>
   );
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
 
   return (
     <PageLayout

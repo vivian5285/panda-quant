@@ -42,10 +42,10 @@ import {
   TrendingDown as TrendingDownIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
-import { motion } from 'framer-motion';
 import PageLayout from '../components/common/PageLayout';
-import { animationConfig } from '../theme/animation';
 import { getStrategies, createStrategy, updateStrategy, deleteStrategy, Strategy } from '../api/strategies';
+import { animationConfig } from '../theme/animation';
+import { motion } from 'framer-motion';
 
 const StrategyManagement: React.FC = () => {
   const [strategies, setStrategies] = useState<Strategy[]>([]);

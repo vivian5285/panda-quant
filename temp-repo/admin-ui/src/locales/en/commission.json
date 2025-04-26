@@ -1,0 +1,13 @@
+{
+  "commission": {
+    "title": "Commission Statistics",
+    "search": "Search users...",
+    "trend": "Commission Trend",
+    "user": "User",
+    "teamSize": "Team Size",
+    "direct": "Direct Commission",
+    "indirect": "Indirect Commission",
+    "total": "Total Commission",
+    "lastUpdated": "Last Updated"
+  }
+} 

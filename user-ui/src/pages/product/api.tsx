@@ -3,28 +3,25 @@ import { Box, Container, Typography, Grid, Card, CardContent, Button, List, List
 import CodeIcon from '@mui/icons-material/Code';
 import SecurityIcon from '@mui/icons-material/Security';
 import SpeedIcon from '@mui/icons-material/Speed';
-import GlobalBackground from '@/components/common/GlobalBackground';
-import Navbar from '@/components/common/Navbar';
-import Footer from '@/components/common/Footer';
-import GradientTitle from '@/components/common/GradientTitle';
+import { GradientTitle } from '@/components/common/GradientTitle';
 import PandaCard from '@/components/common/PandaCard';
 
 const ApiPage: React.FC = () => {
   const features = [
     {
       icon: <CodeIcon />,
-      title: '简单易用',
-      description: '提供清晰的API文档和示例代码，支持多种编程语言，快速上手。',
+      title: 'API文档',
+      description: '详细的API文档，支持多种编程语言',
     },
     {
       icon: <SecurityIcon />,
-      title: '安全可靠',
-      description: '采用行业标准的安全协议，多重加密保护，确保数据传输安全。',
+      title: '安全认证',
+      description: '多重安全认证机制，保障API调用安全',
     },
     {
       icon: <SpeedIcon />,
       title: '高性能',
-      description: '低延迟、高并发的API服务，支持实时数据推送，满足高频交易需求。',
+      description: '低延迟、高并发的API服务',
     },
   ];
 
@@ -52,37 +49,28 @@ const ApiPage: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ position: 'relative', minHeight: '100vh' }}>
-      <GlobalBackground />
-      <Navbar />
-      
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box sx={{ mb: 6, textAlign: 'center' }}>
-          <GradientTitle>
-            API文档
-          </GradientTitle>
-          <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
-            强大的API接口，助力您的交易自动化
-          </Typography>
-        </Box>
-        
-        <Grid container spacing={4} sx={{ mb: 6 }}>
+    <Box sx={{ py: 8 }}>
+      <Container maxWidth="lg">
+        <GradientTitle variant="h2" align="center" sx={{ mb: 6 }}>
+          API 服务
+        </GradientTitle>
+        <Grid container spacing={4}>
           {features.map((feature, index) => (
             <Grid item xs={12} md={4} key={index}>
               <PandaCard>
-                <Card sx={{ height: '100%' }}>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Box sx={{ mb: 2 }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <ListItemIcon sx={{ minWidth: 40 }}>
                       {feature.icon}
-                    </Box>
-                    <Typography variant="h6" gutterBottom>
+                    </ListItemIcon>
+                    <Typography variant="h5" component="h3">
                       {feature.title}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {feature.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
+                  </Box>
+                  <Typography color="text.secondary">
+                    {feature.description}
+                  </Typography>
+                </CardContent>
               </PandaCard>
             </Grid>
           ))}
@@ -139,8 +127,6 @@ const ApiPage: React.FC = () => {
           </Button>
         </Box>
       </Container>
-
-      <Footer />
     </Box>
   );
 };

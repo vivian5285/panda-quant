@@ -74,4 +74,76 @@ declare module '@/pages/Dashboard' {
   import { FC } from 'react';
   const Dashboard: FC;
   export default Dashboard;
+}
+
+declare module '../pages/HomePage' {
+  import { FC } from 'react';
+  const HomePage: FC;
+  export default HomePage;
+}
+
+declare module '../pages/about/team' {
+  import { FC } from 'react';
+  const TeamPage: FC;
+  export default TeamPage;
+}
+
+declare module '../pages/about/news' {
+  import { FC } from 'react';
+  const NewsPage: FC;
+  export default NewsPage;
+}
+
+declare module '../pages/about/contact' {
+  import { FC } from 'react';
+  const ContactPage: FC;
+  export default ContactPage;
+}
+
+declare module '../pages/about/partners' {
+  import { FC } from 'react';
+  const PartnersPage: FC;
+  export default PartnersPage;
+}
+
+declare module '../pages/legal/risk' {
+  import { FC } from 'react';
+  const RiskPage: FC;
+  export default RiskPage;
+}
+
+declare module '../pages/legal/disclaimer' {
+  import { FC } from 'react';
+  const DisclaimerPage: FC;
+  export default DisclaimerPage;
+}
+
+declare module '../pages/legal/privacy' {
+  import { FC } from 'react';
+  const PrivacyPage: FC;
+  export default PrivacyPage;
+}
+
+declare module '../pages/resources/blog' {
+  import { FC } from 'react';
+  const BlogPage: FC;
+  export default BlogPage;
+}
+
+declare module '../pages/resources/community' {
+  import { FC } from 'react';
+  const CommunityPage: FC;
+  export default CommunityPage;
+}
+
+declare module '../pages/resources/help' {
+  import { FC } from 'react';
+  const HelpPage: FC;
+  export default HelpPage;
+}
+
+declare module '../pages/product' {
+  import { FC } from 'react';
+  const ProductPage: FC;
+  export default ProductPage;
 } 

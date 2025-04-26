@@ -6,6 +6,7 @@ import AssetOverview from '../components/dashboard/AssetOverview';
 import { AssetData } from '../services/dashboardService';
 import { StyledCard } from '../components/common/StyledCard';
 import { GradientTitle } from '../components/common/GradientTitle';
+import Layout from '../components/Layout';
 import { 
   Box, 
   Typography, 
@@ -94,8 +95,8 @@ import dashboardService, {
   ProfitTarget as ServiceProfitTarget,
   DashboardData
 } from '../services/dashboardService';
-import { PandaAlert } from '../components/common/PandaAlert';
-import { PandaProgress } from '../components/common/PandaProgress';
+import PandaAlert from '../components/common/PandaAlert';
+import PandaProgress from '../components/common/PandaProgress';
 import PandaButton from '../components/common/PandaButton';
 import PandaCard from '../components/common/PandaCard';
 import PandaTable from '../components/common/PandaTable';
@@ -196,42 +197,35 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
-  const { isAuthenticated, user: authUser } = useAuth();
-  const { account } = useWeb3();
-  const [currentTab, setCurrentTab] = useState(0);
-  const [timeRange, setTimeRange] = useState<TimeRange>({
-    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    end: new Date().toISOString(),
-    interval: '1d'
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const { isAuthenticated, logout } = useAuth();
+  const { connect, disconnect, isConnected, account } = useWeb3();
   
-  // Dashboard data states
-  const [assetData, setAssetData] = useState<AssetData | null>(null);
-  const [strategyData, setStrategyData] = useState<StrategyData[]>([]);
-  const [apiStatus, setApiStatus] = useState<ApiStatus[]>([]);
-  const [chartData, setChartData] = useState<ChartData | null>(null);
-  const [profitTargets, setProfitTargets] = useState<ServiceProfitTarget[]>([]);
-  const [showAddTargetDialog, setShowAddTargetDialog] = useState(false);
-  const [strategyStatus, setStrategyStatus] = useState<StrategyStatus[]>([]);
-
-  // 图表和时间范围控制
+  const [activeTab, setActiveTab] = useState(0);
   const [chartType, setChartType] = useState<ChartType>('line');
   const [timeInterval, setTimeInterval] = useState<TimeInterval>('1m');
-  const [activeTab, setActiveTab] = useState(0);
-
-  const [selectedCurrency, setSelectedCurrency] = useState<string>('USD');
-  const [currencies, setCurrencies] = useState<Record<string, CurrencyData>>({});
-  const [newProfitTarget, setNewProfitTarget] = useState<NewProfitTarget>({
-    currency: 'USD',
+  const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [assetDistribution, setAssetDistribution] = useState<AssetData[]>([]);
+  const [strategyStatus, setStrategyStatus] = useState<StrategyStatus[]>([]);
+  const [apiStatus, setApiStatus] = useState<ApiStatus[]>([]);
+  const [profitTargets, setProfitTargets] = useState<ServiceProfitTarget[]>([]);
+  const [selectedCurrency, setSelectedCurrency] = useState('USDT');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(30);
+  const [timeRange, setTimeRange] = useState<TimeRange>('1m');
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
+  const [showAddTargetDialog, setShowAddTargetDialog] = useState(false);
+  const [newTarget, setNewTarget] = useState<NewProfitTarget>({
+    currency: 'USDT',
     targetAmount: 0,
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    deadline: new Date().toISOString().split('T')[0]
   });
 
+  const [currentTab, setCurrentTab] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [riskMetrics, setRiskMetrics] = useState({
     sharpeRatio: 0,
     sortinoRatio: 0,
@@ -239,24 +233,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     beta: 0
   });
 
-  const [assetDistribution, setAssetDistribution] = useState<{
-    total: number;
-    byCurrency: Record<string, number>;
-    byStrategy: Record<string, number>;
-  }>({
+  const [assets, setAssets] = useState<AssetData>({
     total: 0,
-    byCurrency: {},
-    byStrategy: {}
+    change24h: 0,
+    currencies: {}
   });
-
-  const [monthlyReturn] = useState(2.5);
-  const [annualReturn] = useState(30);
-  const [targetReturn] = useState(40);
-
-  const totalAssets = useMemo(() => 
-    apiStatus.reduce((sum, api) => sum + api.balance, 0),
-    [apiStatus]
-  );
 
   const [strategies] = useState<Strategy[]>([
     {
@@ -323,16 +304,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [totalProfit, setTotalProfit] = useState(0);
   const [activeStrategies, setActiveStrategies] = useState(0);
   const [successRate, setSuccessRate] = useState(0);
-  const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [recentActivities, setRecentActivities] = useState([]);
-
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-
-  const [assets, setAssets] = useState<AssetData>({
-    total: 0,
-    change24h: 0,
-    currencies: {}
-  });
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -533,15 +505,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   const handleAddTarget = async () => {
     try {
-      if (!newProfitTarget.currency || !newProfitTarget.targetAmount || !newProfitTarget.deadline) {
+      if (!newTarget.currency || !newTarget.targetAmount || !newTarget.deadline) {
         setError(t('dashboard.errors.invalidTarget'));
         return;
       }
 
       const target: Omit<ServiceProfitTarget, 'id'> = {
-        target: newProfitTarget.targetAmount,
-        current: currencies[newProfitTarget.currency]?.amount || 0,
-        deadline: newProfitTarget.deadline,
+        target: newTarget.targetAmount,
+        current: currencies[newTarget.currency]?.amount || 0,
+        deadline: newTarget.deadline,
         progress: 0,
         status: 'active'
       };
@@ -549,7 +521,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       await dashboardService.createProfitTarget(target);
       await fetchProfitTargets();
       setShowAddTargetDialog(false);
-      setNewProfitTarget({
+      setNewTarget({
         currency: 'USD',
         targetAmount: 0,
         deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
@@ -1098,29 +1070,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   // 添加新的渲染函数
   const renderVisualizationSection = () => (
-    <Grid container spacing={3} sx={{ mt: 2 }}>
-      <Grid item xs={12} md={4}>
-        <PandaCard title="策略收益分布">
-          <StrategyReturnDistribution 
-            data={returnDistributionData}
-            title="策略收益分布"
-          />
+    <Grid container spacing={4}>
+      <Grid item xs={12} md={6}>
+        <PandaCard title={t('dashboard.performance')}>
+          <PerformanceChart data={performanceData} />
         </PandaCard>
       </Grid>
-      <Grid item xs={12} md={4}>
-        <PandaCard title="风险指标">
-          <RiskMetricsRadar 
-            data={riskMetricsData}
-            title="风险指标雷达图"
-          />
-        </PandaCard>
-      </Grid>
-      <Grid item xs={12} md={4}>
-        <PandaCard title="交易频率">
-          <TradeFrequencyHeatmap 
-            data={tradeFrequencyData}
-            title="交易频率热力图"
-          />
+      <Grid item xs={12} md={6}>
+        <PandaCard title={t('dashboard.assetDistribution')}>
+          <AssetDistributionChart data={assetDistribution} />
         </PandaCard>
       </Grid>
     </Grid>
@@ -1160,176 +1118,133 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         previousValue = currentValue;
       }
 
-      return data;
+      setPerformanceData(data);
     };
 
-    // 计算月度收益率
-    const calculateMonthlyReturn = (data: PerformanceData[], currentValue: number) => {
-      if (data.length < 30) return 0;
-      const monthAgoValue = data[data.length - 30].value;
-      return (currentValue - monthAgoValue) / monthAgoValue * 100;
-    };
-
-    // 计算年化收益率
-    const calculateAnnualizedReturn = (data: PerformanceData[], currentValue: number, startDate: Date, currentDate: Date) => {
-      const daysPassed = Math.max(1, (currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-      const totalReturn = (currentValue - 1000000) / 1000000;
-      return (Math.pow(1 + totalReturn, 365 / daysPassed) - 1) * 100;
-    };
-
-    // 计算夏普比率
-    const calculateSharpeRatio = (data: PerformanceData[]) => {
-      if (data.length < 2) return 0;
-      const returns = data.slice(-30).map(d => d.dailyReturn || 0);
-      const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
-      const stdDev = Math.sqrt(
-        returns.reduce((a, b) => a + Math.pow(b - avgReturn, 2), 0) / (returns.length - 1)
-      );
-      const riskFreeRate = 2; // 假设无风险利率为 2%
-      return stdDev === 0 ? 0 : (avgReturn - riskFreeRate) / stdDev;
-    };
-
-    // 计算最大回撤
-    const calculateMaxDrawdown = (data: PerformanceData[], currentValue: number) => {
-      if (data.length === 0) return 0;
-      let maxValue = Math.max(currentValue, ...data.map(d => d.value));
-      return (currentValue - maxValue) / maxValue * 100;
-    };
-
-    setPerformanceData(generatePerformanceData());
+    generatePerformanceData();
   }, []);
 
-  const performanceData = {
-    value: 100000,
-    dailyReturn: 5.2,
-    monthlyReturn: 150, // 月化收益
-    annualizedReturn: 1800, // 年化收益
-    sharpeRatio: 2.5,
-    maxDrawdown: 15.2,
-  };
-
   return (
-    <Box sx={{ position: 'relative', minHeight: '100vh' }}>
-      <GlobalBackground />
-      <Navbar />
-      
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box sx={{ mb: 6, textAlign: 'center' }}>
-          <GradientTitle>
-            我的交易仪表盘
-          </GradientTitle>
-          <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
-            月化收益50%-300%，我们只收取收益的10%
-          </Typography>
-        </Box>
+    <Layout>
+      <Box sx={{ flexGrow: 1, p: 3 }}>
+        <Container maxWidth="lg" sx={{ py: 8 }}>
+          <Box sx={{ mb: 6, textAlign: 'center' }}>
+            <GradientTitle>
+              我的交易仪表盘
+            </GradientTitle>
+            <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
+              月化收益50%-300%，我们只收取收益的10%
+            </Typography>
+          </Box>
 
-        <Grid container spacing={4}>
-          <Grid item xs={12}>
-            <motion.div variants={slideUp}>
-              <PandaCard
-                title="策略表现"
-                gradient
-                animation
-              >
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <PerformanceChart 
-                      data={performanceData} 
-                      showMetrics={['value', 'dailyReturn']}
-                      title="每日收益"
-                    />
+          <Grid container spacing={4}>
+            <Grid item xs={12}>
+              <motion.div variants={slideUp}>
+                <PandaCard
+                  title="策略表现"
+                  gradient
+                  animation
+                >
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
+                      <PerformanceChart 
+                        data={performanceData} 
+                        showMetrics={['value', 'dailyReturn']}
+                        title="每日收益"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <PerformanceChart 
+                        data={performanceData}
+                        showMetrics={['monthlyReturn']}
+                        title="月化收益"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <PerformanceChart 
+                        data={performanceData}
+                        showMetrics={['sharpeRatio']}
+                        title="夏普比率"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <PerformanceChart 
+                        data={performanceData}
+                        showMetrics={['maxDrawdown']}
+                        title="最大回撤"
+                      />
+                    </Grid>
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <PerformanceChart 
-                      data={performanceData}
-                      showMetrics={['monthlyReturn']}
-                      title="月化收益"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <PerformanceChart 
-                      data={performanceData}
-                      showMetrics={['sharpeRatio']}
-                      title="夏普比率"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <PerformanceChart 
-                      data={performanceData}
-                      showMetrics={['maxDrawdown']}
-                      title="最大回撤"
-                    />
-                  </Grid>
-                </Grid>
-              </PandaCard>
-            </motion.div>
-          </Grid>
+                </PandaCard>
+              </motion.div>
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <motion.div variants={slideUp}>
-              <PandaCard
-                title="资产概览"
-                gradient
-                animation
-              >
-                <AssetOverview assets={assets} />
-              </PandaCard>
-            </motion.div>
-          </Grid>
+            <Grid item xs={12} md={6}>
+              <motion.div variants={slideUp}>
+                <PandaCard
+                  title="资产概览"
+                  gradient
+                  animation
+                >
+                  <AssetOverview assets={assets} />
+                </PandaCard>
+              </motion.div>
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <motion.div variants={slideUp}>
-              <PandaCard
-                title="资产分布"
-                gradient
-                animation
-              >
-                <AssetDistributionChart data={assetDistribution} />
-              </PandaCard>
-            </motion.div>
-          </Grid>
+            <Grid item xs={12} md={6}>
+              <motion.div variants={slideUp}>
+                <PandaCard
+                  title="资产分布"
+                  gradient
+                  animation
+                >
+                  <AssetDistributionChart data={assetDistribution} />
+                </PandaCard>
+              </motion.div>
+            </Grid>
 
-          <Grid item xs={12}>
-            <motion.div variants={slideUp}>
-              <PandaCard
-                title="风险分析"
-                gradient
-                animation
-              >
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={4}>
-                    <StrategyReturnDistribution 
-                      data={returnDistributionData}
-                      title="策略收益分布"
-                    />
+            <Grid item xs={12}>
+              <motion.div variants={slideUp}>
+                <PandaCard
+                  title="风险分析"
+                  gradient
+                  animation
+                >
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={4}>
+                      <StrategyReturnDistribution 
+                        data={returnDistributionData}
+                        title="策略收益分布"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <RiskMetricsRadar 
+                        data={riskMetricsData}
+                        title="风险指标雷达图"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <TradeFrequencyHeatmap 
+                        data={tradeFrequencyData}
+                        title="交易频率热力图"
+                      />
+                    </Grid>
                   </Grid>
-                  <Grid item xs={12} md={4}>
-                    <RiskMetricsRadar 
-                      data={riskMetricsData}
-                      title="风险指标雷达图"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <TradeFrequencyHeatmap 
-                      data={tradeFrequencyData}
-                      title="交易频率热力图"
-                    />
-                  </Grid>
-                </Grid>
-              </PandaCard>
-            </motion.div>
-          </Grid>
+                </PandaCard>
+              </motion.div>
+            </Grid>
 
-          <Grid item xs={12} md={6}>
-            <motion.div variants={slideUp}>
-              <PandaCard
-                title="API 状态"
-                gradient
-                animation
-              >
-                {renderApiStatus()}
-              </PandaCard>
-            </motion.div>
+            <Grid item xs={12} md={6}>
+              <motion.div variants={slideUp}>
+                <PandaCard
+                  title="API 状态"
+                  gradient
+                  animation
+                >
+                  {renderApiStatus()}
+                </PandaCard>
+              </motion.div>
+            </Grid>
             <Grid item xs={12} md={6}>
               <motion.div variants={slideUp}>
                 <PandaCard
@@ -1342,9 +1257,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
               </motion.div>
             </Grid>
           </Grid>
-        </motion.div>
-      </Container>
-    </Box>
+        </Container>
+      </Box>
+    </Layout>
   );
 };
 

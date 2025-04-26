@@ -68,6 +68,10 @@ const HowItWorks = () => {
   return (
     <Box
       sx={{
+        minHeight: '100vh',
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
         py: { xs: 8, md: 12 },
         overflow: 'hidden',
         bgcolor: '#FFFFFF',
@@ -88,7 +92,7 @@ const HowItWorks = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: themeUtils.animationConfig.duration.medium }}
+          transition={{ duration: 0.5 }}
         >
           <Typography
             variant="h2"
@@ -155,8 +159,8 @@ const HowItWorks = () => {
               initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ 
-                duration: themeUtils.animationConfig.duration.medium,
-                delay: index * themeUtils.animationConfig.delay.small 
+                duration: 0.5,
+                delay: index * 0.1
               }}
             >
               <Box
@@ -206,13 +210,13 @@ const HowItWorks = () => {
                             width: 64,
                             height: 64,
                             borderRadius: '16px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                             bgcolor: 'rgba(0, 255, 184, 0.1)',
                             color: '#00FFB8',
                             mr: 3,
-                            position: 'relative',
+                    position: 'relative',
                             '&::after': {
                               content: '""',
                               position: 'absolute',
@@ -229,22 +233,22 @@ const HowItWorks = () => {
                                 '100%': { transform: 'scale(1)' },
                               },
                             },
-                          }}
-                        >
-                          {step.icon}
-                        </Box>
+                  }}
+                >
+                  {step.icon}
+                </Box>
                         <Box sx={{ flex: 1 }}>
-                          <Typography
-                            variant="h5"
+                <Typography
+                  variant="h5"
                             sx={{
                               color: '#333333',
                               fontWeight: 600,
                               mb: 1,
                             }}
-                          >
-                            {step.title}
-                          </Typography>
-                          <Typography
+                >
+                  {step.title}
+                </Typography>
+                <Typography
                             variant="h6"
                             sx={{
                               color: '#00FFB8',
@@ -276,9 +280,9 @@ const HowItWorks = () => {
                             borderRadius: '1px',
                           },
                         }}
-                      >
-                        {step.description}
-                      </Typography>
+                >
+                  {step.description}
+                </Typography>
                     </CardContent>
                   </Card>
                 </Box>

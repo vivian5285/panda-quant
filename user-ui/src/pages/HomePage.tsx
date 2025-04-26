@@ -1,51 +1,70 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import { motion, Variants } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
-import { themeUtils } from '../theme';
-import HeroSection from '../components/home/HeroSection';
-import PandaCharacter from '../components/home/PandaCharacter';
-import CoreAdvantages from '../components/home/CoreAdvantages';
-import StrategySection from '../components/home/StrategySection';
-import ProfitSection from '../components/home/ProfitSection';
-import SecuritySection from '../components/home/SecuritySection';
-import InviteSection from '../components/home/InviteSection';
-import SupportSection from '../components/home/SupportSection';
-import UserReviews from '../components/home/UserReviews';
-import HowItWorks from '../components/home/HowItWorks';
-
-const fadeIn: Variants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 }
-};
+import { motion } from 'framer-motion';
+import {
+  HeroSection,
+  PandaCharacter,
+  CoreAdvantages,
+  FeaturesSection,
+  StrategySection,
+  ProfitSection,
+  HowItWorks,
+  SecuritySection,
+  UserReviews,
+  InviteSection,
+  SupportSection
+} from '../components/home';
 
 const HomePage: React.FC = () => {
-  const { t } = useTranslation();
-
   return (
     <Box
       component={motion.div}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={fadeIn}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
       sx={{
+        width: '100%',
         minHeight: '100vh',
-        background: themeUtils.createGradient('background.default', 'background.paper'),
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
+      {/* 首页顶部展示区域 */}
       <HeroSection />
+      
+      {/* 熊猫角色展示 */}
       <PandaCharacter />
+      
+      {/* 核心优势展示 */}
       <CoreAdvantages />
+      
+      {/* 功能特点展示 */}
+      <FeaturesSection />
+      
+      {/* 策略展示 */}
       <StrategySection />
+      
+      {/* 收益展示 */}
       <ProfitSection />
-      <SecuritySection />
-      <InviteSection />
-      <SupportSection />
-      <UserReviews />
+      
+      {/* 工作原理说明 */}
       <HowItWorks />
+      
+      {/* 安全特性展示 */}
+      <SecuritySection />
+      
+      {/* 用户评价展示 */}
+      <UserReviews />
+      
+      {/* 邀请功能展示 */}
+      <InviteSection />
+      
+      {/* 支持服务展示 */}
+      <SupportSection />
     </Box>
   );
 };

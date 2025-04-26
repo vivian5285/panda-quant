@@ -18,7 +18,10 @@ export default defineConfig({
       jsxImportSource: 'react',
       babel: {
         plugins: [
-          ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }]
+          ['@babel/plugin-transform-react-jsx', {
+            runtime: 'automatic',
+            importSource: 'react'
+          }]
         ]
       }
     }),

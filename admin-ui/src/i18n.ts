@@ -17,9 +17,19 @@ i18n
       }
     },
     fallbackLng: 'zh',
-    debug: process.env.NODE_ENV === 'development',
+    debug: false,
     interpolation: {
       escapeValue: false,
+    },
+    detection: {
+      order: ['querystring', 'cookie', 'localStorage', 'sessionStorage', 'navigator', 'htmlTag'],
+      caches: ['localStorage', 'cookie'],
+      cookieOptions: {
+        sameSite: 'strict'
+      }
+    },
+    react: {
+      useSuspense: false
     }
   });
 

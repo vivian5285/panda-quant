@@ -6,7 +6,15 @@
     "referral": "邀请",
     "about": "关于",
     "products": "产品",
-    "security": "安全"
+    "security": "安全",
+    "login": "登录",
+    "register": "注册",
+    "profit": "收益榜",
+    "invite": "邀请返佣",
+    "dashboard": "仪表盘",
+    "logout": "退出登录",
+    "language": "语言",
+    "profile": "个人资料"
   },
   "login": {
     "title": "登录",
@@ -23,12 +31,28 @@
     "register": "注册",
     "username": "用户名",
     "wallet": "钱包",
-    "welcome": "欢迎回来"
+    "welcome": "欢迎回来",
+    "submit": "登录"
   },
-  "hero": {
-    "title": "熊猫量化",
-    "subtitle": "智能交易，轻松盈利",
-    "cta": "立即开始"
+  "home": {
+    "hero": {
+      "title": "AI 量化新纪元",
+      "subtitle": "智能交易，引领未来",
+      "cta": {
+        "primary": "立即体验",
+        "secondary": "观看演示"
+      },
+      "features": {
+        "performance": "智能趋势分析",
+        "performanceDesc": "基于深度学习算法，实时分析市场数据，精准预测趋势，捕捉最佳交易机会。",
+        "security": "安全可靠",
+        "securityDesc": "多重风控机制，资金隔离，实时监控，确保交易安全，最大回撤控制在1%以内。",
+        "ai": "多策略组合",
+        "aiDesc": "融合多种交易策略，包括趋势跟踪、套利交易、高频交易等，实现收益最大化。",
+        "easy": "简单易用",
+        "easyDesc": "直观的操作界面，完善的教程文档，专业的客服支持，让您轻松上手。"
+      }
+    }
   },
   "panda": {
     "title": "熊猫量化",
@@ -47,7 +71,7 @@
     },
     "2": {
       "title": "收益保障",
-      "description": "支持低中高风险策略，动态调节"
+      "description": "多重风控 / 资金隔离 / 实时监控"
     }
   },
   "profit": {
@@ -141,34 +165,26 @@
   "footer": {
     "title": "熊猫量化",
     "description": "您的智能量化交易助手",
-    "about": {
-      "title": "关于我们",
-      "company": "公司",
-      "team": "团队",
-      "careers": "招聘",
-      "press": "新闻"
-    },
-    "services": {
-      "title": "服务",
-      "trading": "交易",
-      "strategies": "策略",
-      "analytics": "分析",
-      "api": "API"
-    },
-    "support": {
-      "title": "支持",
-      "help": "帮助中心",
-      "contact": "联系我们",
-      "faq": "常见问题",
-      "status": "系统状态"
-    },
-    "legal": {
-      "title": "法律",
-      "terms": "服务条款",
-      "privacy": "隐私政策",
-      "security": "安全政策",
-      "compliance": "合规"
-    },
+    "product": "产品",
+    "features": "功能",
+    "pricing": "价格",
+    "documentation": "文档",
+    "updates": "更新",
+    "company": "公司",
+    "about": "关于我们",
+    "blog": "博客",
+    "careers": "招聘",
+    "partners": "合作伙伴",
+    "resources": "资源",
+    "community": "社区",
+    "help": "帮助",
+    "tutorials": "教程",
+    "support": "支持",
+    "legal": "法律",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "security": "安全政策",
+    "cookies": "Cookie政策",
     "subscribe": {
       "placeholder": "输入您的邮箱",
       "button": "订阅"
@@ -305,31 +321,116 @@
     }
   },
   "invite": {
-    "title": "邀请返佣",
-    "subtitle": "邀请好友，共享收益",
-    "code": {
-      "title": "我的邀请码"
-    },
-    "copy": "复制邀请码",
-    "share": {
-      "title": "分享邀请",
-      "text": "使用我的邀请码 {code} 加入熊猫量化交易平台，享受专业量化交易服务"
-    },
-    "more": "邀请好友越多，收益越高",
-    "benefits": {
-      "0": {
-        "level": "一代",
-        "rate": "20%",
-        "description": "直接邀请好友，获得其收益的20%"
+    "title": "邀请返佣计划",
+    "subtitle": "邀请好友加入，最高可获得20%佣金，享受永久分润",
+    "description": "熊猫量化邀请返佣计划，让您的收益倍增。通过邀请好友加入，您不仅可以获得高额返佣，还能享受永久分润。我们的返佣计划采用多级分润机制，让您的收益持续增长。",
+    "benefits": [
+      {
+        "level": "高额佣金",
+        "rate": "最高20%",
+        "description": "邀请好友交易，获得高额佣金，一代好友20%，二代好友10%"
       },
-      "1": {
-        "level": "二代",
-        "rate": "10%",
-        "description": "好友邀请的好友，获得其收益的10%"
+      {
+        "level": "永久收益",
+        "rate": "永久有效",
+        "description": "邀请关系永久有效，持续获得收益，无时间限制"
+      },
+      {
+        "level": "额外奖励",
+        "rate": "多重奖励",
+        "description": "邀请好友注册即送100USDT，交易达标再送额外奖励"
       }
+    ],
+    "features": [
+      "安全可靠 - 采用区块链技术，确保返佣安全透明",
+      "团队支持 - 专业客服团队7*24小时为您服务",
+      "收益透明 - 实时查看返佣记录，随时掌握收益情况",
+      "自动结算 - 系统自动计算返佣，无需手动操作",
+      "多级分润 - 支持多级邀请，收益持续增长"
+    ],
+    "how_it_works": {
+      "title": "如何参与",
+      "steps": [
+        {
+          "title": "获取邀请码",
+          "description": "登录后获取您的专属邀请码"
+        },
+        {
+          "title": "邀请好友",
+          "description": "通过分享邀请码或链接邀请好友注册"
+        },
+        {
+          "title": "好友交易",
+          "description": "好友完成注册并开始交易"
+        },
+        {
+          "title": "获得返佣",
+          "description": "系统自动计算并发放返佣奖励"
+        }
+      ]
+    },
+    "faq": {
+      "title": "常见问题",
+      "questions": [
+        {
+          "question": "返佣如何计算？",
+          "answer": "返佣按照好友交易金额的百分比计算，一代好友20%，二代好友10%，实时结算"
+        },
+        {
+          "question": "返佣何时到账？",
+          "answer": "返佣实时计算，每日自动结算，次日到账"
+        },
+        {
+          "question": "如何查看返佣记录？",
+          "answer": "登录后在个人中心可查看详细的返佣记录"
+        },
+        {
+          "question": "返佣有上限吗？",
+          "answer": "返佣无上限，邀请越多，收益越高"
+        }
+      ]
+    },
+    "cta": "立即邀请好友",
+    "link": {
+      "title": "我的邀请链接",
+      "copy": "复制邀请链接",
+      "description": "分享您的专属邀请链接，邀请好友加入"
+    },
+    "reward": {
+      "title": "返佣奖励",
+      "description": "查看您的返佣收益和邀请记录"
     },
     "records": {
-      "title": "实时返佣记录"
+      "title": "邀请记录",
+      "subtitle": "查看您的邀请历史和返佣记录",
+      "table": {
+        "user": "用户",
+        "level": "等级",
+        "amount": "返佣金额",
+        "time": "时间",
+        "status": "状态"
+      },
+      "status": {
+        "pending": "待结算",
+        "completed": "已结算",
+        "failed": "失败"
+      }
+    },
+    "share": "分享邀请",
+    "rewards": "实时返佣记录",
+    "real_time_rewards": "实时返佣",
+    "invite_code": "邀请码",
+    "login_required": "请登录查看邀请详情",
+    "login": "立即登录",
+    "share": {
+      "title": "分享邀请",
+      "text": "使用我的邀请码加入熊猫量化: {{code}}"
+    },
+    "levels": {
+      "1": "一代好友",
+      "1.description": "直接推荐好友的交易手续费",
+      "2": "二代好友",
+      "2.description": "间接推荐好友的交易手续费"
     }
   },
   "reviews": {
@@ -484,5 +585,55 @@
     "english": "English",
     "chinese": "中文",
     "korean": "한국어"
+  },
+  "products": {
+    "title": "产品"
+  },
+  "team": {
+    "title": "我们的团队",
+    "subtitle": "由行业专家组成的精英团队，致力于为您提供最专业的量化交易服务",
+    "joinUs": "加入我们",
+    "joinUsSubtitle": "我们正在寻找志同道合的伙伴，一起打造量化交易的未来",
+    "viewPositions": "查看职位空缺 →"
+  },
+  "cookies": {
+    "title": "Cookie 政策",
+    "lastUpdated": "最后更新日期：2024年4月25日",
+    "introduction": {
+      "title": "什么是 Cookie？",
+      "content": "Cookie 是当您访问网站时存储在您设备上的小型文本文件。它们被广泛用于使网站工作或更有效地工作，以及向网站所有者提供信息。"
+    },
+    "types": {
+      "title": "我们使用的 Cookie 类型",
+      "essential": {
+        "title": "必要 Cookie",
+        "description": "这些 Cookie 对于网站的基本功能是必需的，无法关闭。它们通常仅用于响应您所做的操作，例如设置隐私偏好、登录或填写表单。"
+      },
+      "analytics": {
+        "title": "分析 Cookie",
+        "description": "这些 Cookie 帮助我们了解访问者如何与网站互动。它们帮助我们改进网站的功能和用户体验。"
+      },
+      "functional": {
+        "title": "功能 Cookie",
+        "description": "这些 Cookie 使网站能够提供增强的功能和个性化设置。它们可能由我们或第三方提供商设置。"
+      },
+      "marketing": {
+        "title": "营销 Cookie",
+        "description": "这些 Cookie 用于跟踪访问者跨网站的行为。目的是显示与个人用户相关和吸引人的广告。"
+      }
+    },
+    "control": {
+      "title": "如何控制 Cookie",
+      "content": "您可以通过浏览器设置控制或删除 Cookie。如果您禁用 Cookie，请注意，网站的某些部分可能无法正常工作。"
+    },
+    "changes": {
+      "title": "政策变更",
+      "content": "我们可能会不时更新此 Cookie 政策。我们建议您定期查看此页面以了解任何更改。"
+    },
+    "contact": {
+      "title": "联系我们",
+      "content": "如果您对我们的 Cookie 政策有任何疑问，请通过以下方式联系我们：",
+      "email": "电子邮件："
+    }
   }
 } 

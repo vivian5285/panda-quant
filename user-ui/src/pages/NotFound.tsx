@@ -15,18 +15,43 @@ const NotFound: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
+        position: 'relative',
+        zIndex: 1,
+        background: 'transparent'
       }}
     >
-      <Typography variant="h1" component="h1" gutterBottom>
+      <Typography 
+        variant="h1" 
+        component="h1" 
+        gutterBottom
+        sx={{
+          fontSize: '8rem',
+          fontWeight: 'bold',
+          color: 'primary.main',
+          opacity: 0.8
+        }}
+      >
         404
       </Typography>
-      <Typography variant="h5" gutterBottom>
+      <Typography 
+        variant="h5" 
+        gutterBottom
+        sx={{
+          mb: 4,
+          color: 'text.secondary'
+        }}
+      >
         {t('pageNotFound')}
       </Typography>
       <Button
         variant="contained"
         onClick={() => navigate('/')}
-        sx={{ mt: 2 }}
+        sx={{ 
+          mt: 2,
+          borderRadius: '20px',
+          px: 4,
+          py: 1.5
+        }}
       >
         {t('goHome')}
       </Button>

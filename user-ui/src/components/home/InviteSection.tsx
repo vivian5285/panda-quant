@@ -32,7 +32,6 @@ import {
   AccountCircle as AccountCircleIcon,
   AccessTime as AccessTimeIcon,
 } from '@mui/icons-material';
-import { themeUtils } from '../../theme';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface CommissionRecord {
@@ -41,12 +40,17 @@ interface CommissionRecord {
   time: string;
 }
 
+interface User {
+  inviteCode?: string;
+  // Add other user properties as needed
+}
+
 const InviteSection = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [copySuccess, setCopySuccess] = useState(false);
   const { user } = useAuth();
-  const inviteCode = user?.inviteCode || '';
+  const inviteCode = (user as User)?.inviteCode || '';
   const [records, setRecords] = useState<CommissionRecord[]>([]);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isScrolling, setIsScrolling] = useState(true);
@@ -126,7 +130,7 @@ const InviteSection = () => {
     try {
       await navigator.clipboard.writeText(inviteCode);
       setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), themeUtils.animationConfig.duration.fast);
+      setTimeout(() => setCopySuccess(false), 300);
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
@@ -142,7 +146,7 @@ const InviteSection = () => {
     } else {
       navigator.clipboard.writeText(shareText);
       setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), themeUtils.animationConfig.duration.fast);
+      setTimeout(() => setCopySuccess(false), 300);
     }
   };
 
@@ -186,6 +190,10 @@ const InviteSection = () => {
   return (
     <Box
       sx={{
+        minHeight: '100vh',
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
         py: { xs: 8, md: 12 },
         overflow: 'hidden',
         bgcolor: '#FFFFFF',
@@ -206,7 +214,7 @@ const InviteSection = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: themeUtils.animationConfig.duration.medium }}
+          transition={{ duration: 0.5 }}
         >
           <Typography
             variant="h2"
@@ -256,7 +264,7 @@ const InviteSection = () => {
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: themeUtils.animationConfig.duration.medium }}
+              transition={{ duration: 0.5 }}
             >
               <Card
                 sx={{
@@ -424,35 +432,35 @@ const InviteSection = () => {
                           textAlign: 'center',
                         }}
                       >
-                        <Typography
-                          variant="body1"
-                          sx={{
-                            color: '#666666',
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: '#666666',
                             mb: 2,
-                          }}
-                        >
+                        }}
+                      >
                           登录后即可获取专属邀请链接
-                        </Typography>
-                        <Button
-                          variant="contained"
-                          href="/login"
-                          sx={{
-                            bgcolor: '#00FFB8',
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        href="/login"
+                        sx={{
+                          bgcolor: '#00FFB8',
                             color: '#FFFFFF',
                             px: 4,
                             py: 1.5,
                             borderRadius: '12px',
                             fontSize: '1.1rem',
-                            fontWeight: 600,
-                            '&:hover': {
+                          fontWeight: 600,
+                          '&:hover': {
                               bgcolor: '#00E0A3',
-                            },
-                          }}
-                        >
+                          },
+                        }}
+                      >
                           立即登录
-                        </Button>
-                      </Box>
-                    )}
+                      </Button>
+                    </Box>
+                  )}
                   </Box>
                 </CardContent>
               </Card>
@@ -463,7 +471,7 @@ const InviteSection = () => {
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: themeUtils.animationConfig.duration.medium }}
+              transition={{ duration: 0.5 }}
             >
               <Card
                 sx={{

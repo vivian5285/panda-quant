@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo, Component, ErrorInfo, ReactNode } from 'react';
 import { ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { theme as baseTheme } from '../styles/globalStyles';
+import { createCustomTheme } from '../theme';
 
 interface ThemeContextType {
   mode: 'light' | 'dark';
@@ -10,55 +10,73 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [mode, setMode] = useState<'light' | 'dark'>('dark');
+class ErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
 
-  const theme = useMemo(
-    () => ({
-      ...baseTheme,
-      palette: {
-        ...baseTheme.palette,
-        mode,
-        primary: {
-          ...baseTheme.palette.primary,
-          main: '#00FFB8',
-          light: '#33FFC6',
-          dark: '#00B281',
-          contrastText: '#000',
-        },
-        secondary: {
-          ...baseTheme.palette.secondary,
-          main: '#00B8FF',
-          light: '#33C6FF',
-          dark: '#0081B2',
-          contrastText: '#000',
-        },
-        background: {
-          ...baseTheme.palette.background,
-          default: mode === 'dark' ? '#0A0A0A' : '#F5F5F5',
-          paper: mode === 'dark' ? '#1A1A1A' : '#FFFFFF',
-        },
-        text: {
-          ...baseTheme.palette.text,
-          primary: mode === 'dark' ? '#FFFFFF' : '#000000',
-          secondary: mode === 'dark' ? '#B0B0B0' : '#666666',
-        },
-      },
-    }),
-    [mode]
-  );
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('ThemeProvider Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', color: 'red' }}>
+          <h2>Something went wrong in ThemeProvider</h2>
+          <pre>{this.state.error?.toString()}</pre>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [mode, setMode] = useState<'light' | 'dark'>('light');
+
+  const theme = useMemo(() => {
+    try {
+      console.log('Creating theme with mode:', mode);
+      const newTheme = createCustomTheme(mode);
+      console.log('Theme created successfully:', {
+        palette: newTheme.palette,
+        typography: newTheme.typography,
+        transitions: newTheme.transitions,
+        components: Object.keys(newTheme.components || {})
+      });
+      return newTheme;
+    } catch (error) {
+      console.error('Error creating theme:', error);
+      // 返回一个基本的主题作为后备
+      return createCustomTheme('light');
+    }
+  }, [mode]);
 
   const toggleTheme = () => {
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
   };
 
+  const value = useMemo(() => ({ mode, toggleTheme }), [mode]);
+
   return (
-    <ThemeContext.Provider value={{ mode, toggleTheme }}>
-      <MUIThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </MUIThemeProvider>
-    </ThemeContext.Provider>
+    <ErrorBoundary>
+      <ThemeContext.Provider value={value}>
+        <MUIThemeProvider theme={theme}>
+          <CssBaseline />
+          {children}
+        </MUIThemeProvider>
+      </ThemeContext.Provider>
+    </ErrorBoundary>
   );
 };
 

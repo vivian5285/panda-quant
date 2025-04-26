@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 import { RouteObject } from 'react-router-dom';
 
-const TeamPage = lazy(() => import('./pages/TeamPage'));
+const TeamPage = lazy(() => import('./pages/company/team'));
 const CommissionPage = lazy(() => import('./pages/CommissionPage'));
 
 export const routes: RouteObject[] = [

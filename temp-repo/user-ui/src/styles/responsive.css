@@ -1,0 +1,119 @@
+/* 基础样式 */
+.container {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* 手机端样式 (小于600px) */
+@media only screen and (max-width: 600px) {
+  .container {
+    padding: 10px;
+  }
+
+  .header {
+    font-size: 18px;
+    padding: 10px;
+  }
+
+  .main-content {
+    padding: 10px;
+  }
+
+  .card {
+    margin-bottom: 10px;
+  }
+
+  .form-control {
+    margin-bottom: 10px;
+  }
+
+  .button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
+
+/* 平板端样式 (600px - 900px) */
+@media only screen and (min-width: 601px) and (max-width: 900px) {
+  .container {
+    padding: 15px;
+  }
+
+  .header {
+    font-size: 22px;
+    padding: 15px;
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+
+  .card {
+    margin-bottom: 15px;
+  }
+}
+
+/* 桌面端样式 (大于900px) */
+@media only screen and (min-width: 901px) {
+  .container {
+    max-width: 1200px;
+    padding: 20px;
+  }
+
+  .header {
+    font-size: 26px;
+    padding: 20px;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+}
+
+/* 通用响应式图片样式 */
+.responsive-img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 响应式表格样式 */
+.responsive-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* 响应式图表容器 */
+.chart-container {
+  width: 100%;
+  height: auto;
+  min-height: 300px;
+}
+
+/* 响应式网格间距 */
+.grid-spacing {
+  margin: -8px;
+}
+
+/* Responsive styles */
+@media (max-width: 600px) {
+  .container {
+    padding: 0 10px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 960px) {
+  .container {
+    padding: 0 20px;
+  }
+}
+
+@media (min-width: 961px) {
+  .container {
+    padding: 0 40px;
+  }
+}
+
+ 

@@ -1,9 +1,6 @@
 import React from 'react';
 import { Box, Container, Typography, List, ListItem } from '@mui/material';
-import GlobalBackground from '@/components/common/GlobalBackground';
-import Navbar from '@/components/common/Navbar';
-import Footer from '@/components/common/Footer';
-import GradientTitle from '@/components/common/GradientTitle';
+import { GradientTitle } from '@/components/common/GradientTitle';
 import PandaCard from '@/components/common/PandaCard';
 
 const TermsPage: React.FC = () => {
@@ -21,40 +18,23 @@ const TermsPage: React.FC = () => {
       content: '用户应妥善保管账户信息，对账户下的所有操作负责。如发现账户异常，应立即通知平台。',
     },
     {
-      title: '服务使用',
-      content: '用户应合法使用平台服务，不得从事任何违法、违规或损害平台利益的行为。',
+      title: '风险提示',
+      content: '量化交易存在风险，过往业绩不代表未来表现。用户应充分了解风险，审慎决策。',
     },
     {
       title: '知识产权',
-      content: '平台的所有内容，包括但不限于文字、图片、软件、策略等，均受知识产权法保护。',
-    },
-    {
-      title: '免责声明',
-      content: '平台不对用户使用服务的结果承担责任，用户应自行承担投资风险。',
+      content: '平台所有内容，包括但不限于文字、图片、软件、策略等，均受知识产权法保护。',
     },
   ];
 
   return (
-    <Box sx={{ position: 'relative', minHeight: '100vh' }}>
-      <GlobalBackground />
-      <Navbar />
-      
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box sx={{ mb: 6 }}>
-          <GradientTitle>
-            服务条款
-          </GradientTitle>
-          <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
-            使用我们的服务前，请仔细阅读以下条款
-          </Typography>
-        </Box>
-        
+    <Box sx={{ py: 8 }}>
+      <Container maxWidth="lg">
+        <GradientTitle variant="h2" align="center" sx={{ mb: 6 }}>
+          服务条款
+        </GradientTitle>
         <PandaCard>
           <Box sx={{ p: 4 }}>
-            <Typography variant="body1" paragraph>
-              欢迎使用我们的服务。本服务条款是您与平台之间的法律协议，请在使用服务前仔细阅读。
-            </Typography>
-            
             <List>
               {termsPoints.map((point, index) => (
                 <ListItem key={index} sx={{ display: 'block', mb: 3 }}>
@@ -67,15 +47,9 @@ const TermsPage: React.FC = () => {
                 </ListItem>
               ))}
             </List>
-            
-            <Typography variant="body1" sx={{ mt: 4 }}>
-              最后更新日期：2024年3月20日
-            </Typography>
           </Box>
         </PandaCard>
       </Container>
-
-      <Footer />
     </Box>
   );
 };

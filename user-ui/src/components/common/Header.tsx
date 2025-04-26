@@ -1,262 +1,178 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   AppBar,
-  Box,
   Toolbar,
   IconButton,
   Typography,
-  Menu,
-  Container,
   Button,
+  Box,
+  Menu,
   MenuItem,
+  Avatar,
   useTheme,
+  useMediaQuery,
   Drawer,
   List,
   ListItem,
   ListItemText,
-  Divider,
+  Divider
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import LanguageIcon from '@mui/icons-material/Language';
+import {
+  Menu as MenuIcon,
+  AccountCircle,
+  Notifications,
+  Settings,
+  Logout
+} from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { themeUtils } from '../../theme';
+import { useAuth } from '../../hooks/useAuth';
 
 const Header: React.FC = () => {
-  const { t, i18n } = useTranslation();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { t } = useTranslation();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
-  const [anchorElLang, setAnchorElLang] = useState<null | HTMLElement>(null);
+  
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
 
-  const navItems = [
-    { name: '首页', path: '/' },
-    { name: '策略', path: '/strategies' },
-    { name: '收益', path: '/profit' },
-    { name: '邀请', path: '/invite' },
-    { name: '关于', path: '/about' },
-  ];
-
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget);
+  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
   };
 
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
+  const handleClose = () => {
+    setAnchorEl(null);
   };
 
-  const handleOpenLangMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElLang(event.currentTarget);
-  };
-
-  const handleCloseLangMenu = () => {
-    setAnchorElLang(null);
-  };
-
-  const handleLanguageChange = (lang: string) => {
-    i18n.changeLanguage(lang);
-    handleCloseLangMenu();
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    handleClose();
   };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-    handleCloseNavMenu();
-    setMobileOpen(false);
-  };
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const drawer = (
-    <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
-      <Typography variant="h6" sx={{ my: 2 }}>
-        熊猫量化
-      </Typography>
+    <Box>
+      <List>
+        <ListItem button component={RouterLink} to="/dashboard">
+          <ListItemText primary={t('header.dashboard')} />
+        </ListItem>
+        <ListItem button component={RouterLink} to="/profile">
+          <ListItemText primary={t('header.profile')} />
+        </ListItem>
+        <ListItem button component={RouterLink} to="/settings">
+          <ListItemText primary={t('header.settings')} />
+        </ListItem>
+      </List>
       <Divider />
       <List>
-        {navItems.map((item) => (
-          <ListItem
-            key={item.name}
-            onClick={() => handleNavigation(item.path)}
-            sx={{
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              },
-            }}
-          >
-            <ListItemText primary={item.name} />
-          </ListItem>
-        ))}
+        <ListItem button onClick={handleLogout}>
+          <ListItemText primary={t('header.logout')} />
+        </ListItem>
       </List>
     </Box>
   );
 
   return (
-    <AppBar
-      position="fixed"
-      sx={{
-        background: scrolled
-          ? 'rgba(0, 0, 0, 0.8)'
-          : 'linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
-        backdropFilter: 'blur(10px)',
-        boxShadow: 'none',
-        transition: 'all 0.3s ease',
-      }}
-    >
-      <Container maxWidth="lg">
-        <Toolbar disableGutters>
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{
-              mr: 2,
-              display: { xs: 'none', md: 'flex' },
-              fontWeight: 700,
-              letterSpacing: '.3rem',
-              color: 'inherit',
-              textDecoration: 'none',
-              cursor: 'pointer',
-            }}
-            onClick={() => handleNavigation('/')}
-          >
-            熊猫量化
-          </Typography>
+    <AppBar position="static" color="default" elevation={1}>
+      <Toolbar>
+        <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="menu"
+          onClick={handleDrawerToggle}
+          sx={{ mr: 2, display: { md: 'none' } }}
+        >
+          <MenuIcon />
+        </IconButton>
+        
+        <Typography
+          variant="h6"
+          component={RouterLink}
+          to="/"
+          sx={{
+            flexGrow: 1,
+            textDecoration: 'none',
+            color: 'inherit'
+          }}
+        >
+          {t('app.name')}
+        </Typography>
 
-          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <IconButton
-              size="large"
-              aria-label="menu"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleDrawerToggle}
-              color="inherit"
-            >
-              <MenuIcon />
+        {user ? (
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton color="inherit">
+              <Notifications />
             </IconButton>
-          </Box>
-
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{
-              flexGrow: 1,
-              display: { xs: 'flex', md: 'none' },
-              fontWeight: 700,
-              letterSpacing: '.3rem',
-              color: 'inherit',
-              textDecoration: 'none',
-              cursor: 'pointer',
-            }}
-            onClick={() => handleNavigation('/')}
-          >
-            熊猫量化
-          </Typography>
-
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            {navItems.map((item) => (
-              <motion.div
-                key={item.name}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  onClick={() => handleNavigation(item.path)}
-                  sx={{
-                    my: 2,
-                    color: 'white',
-                    display: 'block',
-                    position: 'relative',
-                    '&::after': {
-                      content: '""',
-                      position: 'absolute',
-                      bottom: 0,
-                      left: '50%',
-                      width: '0%',
-                      height: '2px',
-                      backgroundColor: theme.palette.primary.main,
-                      transition: 'all 0.3s ease',
-                      transform: 'translateX(-50%)',
-                    },
-                    '&:hover::after': {
-                      width: '100%',
-                    },
-                  }}
-                >
-                  {item.name}
-                </Button>
-              </motion.div>
-            ))}
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <IconButton
-              size="large"
-              aria-label="language"
-              aria-controls="language-menu"
-              aria-haspopup="true"
-              onClick={handleOpenLangMenu}
+              onClick={handleMenu}
               color="inherit"
+              sx={{ ml: 2 }}
             >
-              <LanguageIcon />
+              {user.avatar ? (
+                <Avatar
+                  alt={user.name}
+                  src={user.avatar}
+                  sx={{ width: 32, height: 32 }}
+                />
+              ) : (
+                <AccountCircle />
+              )}
             </IconButton>
             <Menu
-              id="language-menu"
-              anchorEl={anchorElLang}
-              open={Boolean(anchorElLang)}
-              onClose={handleCloseLangMenu}
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
             >
-              <MenuItem onClick={() => handleLanguageChange('zh')}>中文</MenuItem>
-              <MenuItem onClick={() => handleLanguageChange('en')}>English</MenuItem>
+              <MenuItem component={RouterLink} to="/profile" onClick={handleClose}>
+                <AccountCircle sx={{ mr: 1 }} /> {t('header.profile')}
+              </MenuItem>
+              <MenuItem component={RouterLink} to="/settings" onClick={handleClose}>
+                <Settings sx={{ mr: 1 }} /> {t('header.settings')}
+              </MenuItem>
+              <MenuItem onClick={handleLogout}>
+                <Logout sx={{ mr: 1 }} /> {t('header.logout')}
+              </MenuItem>
             </Menu>
-
+          </Box>
+        ) : (
+          <Box>
+            <Button
+              color="inherit"
+              component={RouterLink}
+              to="/login"
+              sx={{ mr: 1 }}
+            >
+              {t('header.login')}
+            </Button>
             <Button
               variant="contained"
-              onClick={() => handleNavigation('/login')}
-              sx={themeUtils.buttonStyles(theme).contained}
+              color="primary"
+              component={RouterLink}
+              to="/register"
             >
-              登录
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => handleNavigation('/register')}
-              sx={themeUtils.buttonStyles(theme).outlined}
-            >
-              注册
+              {t('header.register')}
             </Button>
           </Box>
-        </Toolbar>
-      </Container>
+        )}
+      </Toolbar>
 
       <Drawer
         variant="temporary"
-        anchor="right"
+        anchor="left"
         open={mobileOpen}
         onClose={handleDrawerToggle}
         ModalProps={{
-          keepMounted: true,
+          keepMounted: true // Better open performance on mobile.
         }}
         sx={{
-          '& .MuiDrawer-paper': {
-            boxSizing: 'border-box',
-            width: 240,
-            background: 'rgba(0, 0, 0, 0.8)',
-            backdropFilter: 'blur(10px)',
-          },
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 240 }
         }}
       >
         {drawer}

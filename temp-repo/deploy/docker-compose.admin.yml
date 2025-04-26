@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # MongoDB 数据库
+  mongodb:
+    image: mongo:latest
+    container_name: panda-quant-mongodb-admin
+    ports:
+      - "27018:27017"  # MongoDB 管理端口
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=PandaQuant@2024
+      - MONGO_INITDB_DATABASE=admin
+    command: ["--auth"]
+    volumes:
+      - mongodb_admin_data:/data/db
+    networks:
+      - panda-quant-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Redis 缓存
+  redis:
+    image: redis:alpine
+    container_name: panda-quant-redis-admin
+    ports:
+      - "6380:6379"    # Redis 管理端口
+    command: redis-server --requirepass PandaQuant@2024
+    volumes:
+      - redis_admin_data:/data
+    networks:
+      - panda-quant-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "PandaQuant@2024", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # 管理前端
+  admin-ui:
+    build:
+      context: ../admin-ui
+      dockerfile: Dockerfile
+    image: deploy-admin-ui
+    container_name: panda-quant-admin-ui
+    ports:
+      - "8080:80"      # Admin UI 访问端口
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=https://admin-api.pandatrade.space
+    networks:
+      - panda-quant-network
+    depends_on:
+      - admin-api
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # 管理后端
+  admin-api:
+    build:
+      context: ../admin-api
+      dockerfile: Dockerfile
+    image: deploy-admin-api
+    container_name: panda-quant-admin-api
+    ports:
+      - "8081:3000"    # Admin API 访问端口
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant-admin?authSource=admin
+      - REDIS_URL=redis://:PandaQuant@2024@redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=3000
+    networks:
+      - panda-quant-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+networks:
+  panda-quant-network:
+    external: true
+
+volumes:
+  mongodb_admin_data:
+  redis_admin_data: 

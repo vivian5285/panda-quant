@@ -9,7 +9,7 @@ const GlobalBackground: React.FC = () => {
 
   const getBackgroundStyle = () => {
     if (backgroundTheme === 'gradient') {
-      return `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`;
+      return 'linear-gradient(135deg, rgba(0, 255, 184, 0.05) 0%, rgba(0, 255, 184, 0.02) 100%)';
     }
     return theme.palette.background.default;
   };
@@ -31,8 +31,8 @@ const GlobalBackground: React.FC = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: `radial-gradient(circle at center, ${theme.palette.primary.main}${Math.round(0.1 * 255).toString(16)} 0%, transparent 70%)`,
-          opacity: theme.palette.mode === 'dark' ? 0.2 : 0.1,
+          background: 'radial-gradient(circle at center, rgba(0, 255, 184, 0.1) 0%, transparent 70%)',
+          opacity: 0.1,
         },
       }}
     />

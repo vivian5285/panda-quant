@@ -23,7 +23,6 @@ import {
   CardContent,
   useTheme
 } from '@mui/material';
-import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { themeUtils } from '../theme';
 import {
@@ -57,7 +56,6 @@ type SortField = 'username' | 'joinDate' | 'level' | 'totalCommission';
 type SortOrder = 'asc' | 'desc';
 
 const TeamPage: React.FC = () => {
-  const { t } = useTranslation();
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -102,7 +100,7 @@ const TeamPage: React.FC = () => {
         setTotalPages(data.pagination.totalPages);
       }
     } catch (error) {
-      console.error('Error fetching team data:', error);
+      console.error('获取团队数据时出错:', error);
     }
   };
 
@@ -158,7 +156,7 @@ const TeamPage: React.FC = () => {
               fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
             }}
           >
-            {t('team.title')}
+            团队介绍
           </Typography>
           <Typography
             variant="body1"
@@ -170,7 +168,7 @@ const TeamPage: React.FC = () => {
               opacity: 0.8,
             }}
           >
-            {t('team.subtitle')}
+            欢迎加入我们的团队，一起创造更美好的未来
           </Typography>
         </motion.div>
 
@@ -202,7 +200,7 @@ const TeamPage: React.FC = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <PeopleIcon sx={{ color: '#00FFB8', mr: 1 }} />
                     <Typography variant="h6" color="text.secondary">
-                      {t('team.totalMembers')}
+                      团队成员总数
                     </Typography>
                   </Box>
                   <Typography variant="h4" sx={{ color: '#00FFB8', fontWeight: 700 }}>
@@ -238,7 +236,7 @@ const TeamPage: React.FC = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <GroupIcon sx={{ color: '#00FFB8', mr: 1 }} />
                     <Typography variant="h6" color="text.secondary">
-                      {t('team.directMembers')}
+                      直接成员数
                     </Typography>
                   </Box>
                   <Typography variant="h4" sx={{ color: '#00FFB8', fontWeight: 700 }}>
@@ -274,7 +272,7 @@ const TeamPage: React.FC = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <AccountBalanceIcon sx={{ color: '#00FFB8', mr: 1 }} />
                     <Typography variant="h6" color="text.secondary">
-                      {t('team.totalCommission')}
+                      总佣金
                     </Typography>
                   </Box>
                   <Typography variant="h4" sx={{ color: '#00FFB8', fontWeight: 700 }}>
@@ -310,7 +308,7 @@ const TeamPage: React.FC = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <PendingActionsIcon sx={{ color: '#00FFB8', mr: 1 }} />
                     <Typography variant="h6" color="text.secondary">
-                      {t('team.pendingCommission')}
+                      待结算佣金
                     </Typography>
                   </Box>
                   <Typography variant="h4" sx={{ color: '#00FFB8', fontWeight: 700 }}>
@@ -351,12 +349,12 @@ const TeamPage: React.FC = () => {
             <Tab
               icon={<PeopleIcon />}
               iconPosition="start"
-              label={t('team.members')}
+              label="团队成员"
             />
             <Tab
               icon={<MoneyIcon />}
               iconPosition="start"
-              label={t('team.commission')}
+              label="佣金记录"
             />
           </Tabs>
         </Paper>
@@ -386,27 +384,27 @@ const TeamPage: React.FC = () => {
             }}
           >
             <FormControl>
-              <InputLabel>{t('team.type')}</InputLabel>
+              <InputLabel>类型</InputLabel>
               <Select
                 value={commissionType}
                 onChange={(e) => setCommissionType(e.target.value)}
-                label={t('team.type')}
+                label="类型"
               >
-                <MenuItem value="all">{t('team.all')}</MenuItem>
-                <MenuItem value="direct">{t('team.direct')}</MenuItem>
-                <MenuItem value="indirect">{t('team.indirect')}</MenuItem>
+                <MenuItem value="all">全部</MenuItem>
+                <MenuItem value="direct">直接</MenuItem>
+                <MenuItem value="indirect">间接</MenuItem>
               </Select>
             </FormControl>
             <FormControl>
-              <InputLabel>{t('team.status')}</InputLabel>
+              <InputLabel>状态</InputLabel>
               <Select
                 value={commissionStatus}
                 onChange={(e) => setCommissionStatus(e.target.value)}
-                label={t('team.status')}
+                label="状态"
               >
-                <MenuItem value="all">{t('team.all')}</MenuItem>
-                <MenuItem value="pending">{t('team.pending')}</MenuItem>
-                <MenuItem value="completed">{t('team.completed')}</MenuItem>
+                <MenuItem value="all">全部</MenuItem>
+                <MenuItem value="pending">待结算</MenuItem>
+                <MenuItem value="completed">已结算</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -458,7 +456,7 @@ const TeamPage: React.FC = () => {
                         },
                       }}
                     >
-                      {t('team.member')}
+                      成员名称
                     </TableSortLabel>
                   </TableCell>
                   <TableCell>
@@ -473,7 +471,7 @@ const TeamPage: React.FC = () => {
                         },
                       }}
                     >
-                      {t('team.joinDate')}
+                      加入日期
                     </TableSortLabel>
                   </TableCell>
                   <TableCell>
@@ -488,7 +486,7 @@ const TeamPage: React.FC = () => {
                         },
                       }}
                     >
-                      {t('team.level')}
+                      等级
                     </TableSortLabel>
                   </TableCell>
                   <TableCell>
@@ -503,7 +501,7 @@ const TeamPage: React.FC = () => {
                         },
                       }}
                     >
-                      {t('team.commission')}
+                      总佣金
                     </TableSortLabel>
                   </TableCell>
                 </TableRow>
@@ -556,11 +554,11 @@ const TeamPage: React.FC = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>{t('team.date')}</TableCell>
-                  <TableCell>{t('team.amount')}</TableCell>
-                  <TableCell>{t('team.type')}</TableCell>
-                  <TableCell>{t('team.source')}</TableCell>
-                  <TableCell>{t('team.status')}</TableCell>
+                  <TableCell>日期</TableCell>
+                  <TableCell>金额</TableCell>
+                  <TableCell>类型</TableCell>
+                  <TableCell>来源用户</TableCell>
+                  <TableCell>状态</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -568,9 +566,9 @@ const TeamPage: React.FC = () => {
                   <TableRow key={record.id}>
                     <TableCell>{record.date}</TableCell>
                     <TableCell>${record.amount}</TableCell>
-                    <TableCell>{t(`team.${record.type}`)}</TableCell>
+                    <TableCell>{record.type === 'direct' ? '直接' : '间接'}</TableCell>
                     <TableCell>{record.sourceUser}</TableCell>
-                    <TableCell>{t(`team.${record.status}`)}</TableCell>
+                    <TableCell>{record.status === 'pending' ? '待结算' : '已结算'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

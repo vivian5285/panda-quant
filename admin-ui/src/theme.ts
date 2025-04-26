@@ -178,4 +178,21 @@ export const theme = createTheme({
       },
     },
   },
-}); 
+});
+
+export const themeUtils = {
+  palette: {
+    primary: {
+      main: '#00FFB8',
+      light: '#33FFC6',
+      dark: '#00CC93',
+    },
+    text: {
+      primary: '#333333',
+      secondary: '#666666',
+    },
+  },
+  gradients: {
+    primary: 'linear-gradient(135deg, #00FFB8 0%, #00CC93 100%)',
+  },
+}; 

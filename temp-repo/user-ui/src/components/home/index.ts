@@ -1,0 +1,12 @@
+export { default as CoreAdvantages } from './CoreAdvantages';
+export { default as Header } from './Header';
+export { default as HeroSection } from './HeroSection';
+export { default as HowItWorks } from './HowItWorks';
+export { default as InviteSection } from './InviteSection';
+export { default as PandaCharacter } from './PandaCharacter';
+export { default as ProfitSection } from './ProfitSection';
+export { default as SecuritySection } from './SecuritySection';
+export { default as StrategySection } from './StrategySection';
+export { default as SupportSection } from './SupportSection';
+export { default as UserReviews } from './UserReviews';
+export { default as Footer } from './Footer'; 

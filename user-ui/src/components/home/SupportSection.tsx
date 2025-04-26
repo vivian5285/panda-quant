@@ -16,7 +16,6 @@ import {
   Forum as ForumIcon,
   HelpCenter as HelpIcon,
 } from '@mui/icons-material';
-import { themeUtils } from '../../theme';
 
 interface Support {
   id: number;
@@ -68,6 +67,10 @@ const SupportSection = () => {
   return (
     <Box
       sx={{
+        minHeight: '100vh',
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
         py: { xs: 8, md: 12 },
         overflow: 'hidden',
         bgcolor: '#FFFFFF',
@@ -88,7 +91,7 @@ const SupportSection = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: themeUtils.animationConfig.duration.medium }}
+          transition={{ duration: 0.5 }}
         >
           <Typography
             variant="h2"
@@ -147,8 +150,8 @@ const SupportSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ 
-                duration: themeUtils.animationConfig.duration.medium,
-                delay: index * themeUtils.animationConfig.delay.small 
+                duration: 0.5,
+                delay: index * 0.1
               }}
               style={{ flex: 1 }}
             >
@@ -248,10 +251,6 @@ const SupportSection = () => {
                       sx={{
                         bgcolor: 'rgba(0, 255, 184, 0.1)',
                         color: '#00FFB8',
-                        fontWeight: 600,
-                        px: 3,
-                        py: 1,
-                        borderRadius: '12px',
                         '&:hover': {
                           bgcolor: 'rgba(0, 255, 184, 0.2)',
                         },

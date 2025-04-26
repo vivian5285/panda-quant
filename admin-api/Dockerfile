@@ -13,8 +13,19 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Create prisma directory if it doesn't exist
+RUN mkdir -p prisma
+
+# Copy Prisma schema if it exists
+COPY prisma/schema.prisma ./prisma/ || echo "No Prisma schema found"
+
 # Generate Prisma client
-RUN npx prisma generate
+RUN if [ -f prisma/schema.prisma ]; then \
+        echo "Prisma schema found, generating client..." && \
+        npx prisma generate; \
+    else \
+        echo "No Prisma schema found, skipping client generation..."; \
+    fi
 
 # Build the app
 RUN npm run build
@@ -35,8 +46,19 @@ RUN npm install --production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
+# Create prisma directory if it doesn't exist
+RUN mkdir -p prisma
+
+# Copy Prisma schema if it exists
+COPY prisma/schema.prisma ./prisma/ || echo "No Prisma schema found"
+
 # Generate Prisma client
-RUN npx prisma generate
+RUN if [ -f prisma/schema.prisma ]; then \
+        echo "Prisma schema found, generating client..." && \
+        npx prisma generate; \
+    else \
+        echo "No Prisma schema found, skipping client generation..."; \
+    fi
 
 # Expose port
 EXPOSE 8081

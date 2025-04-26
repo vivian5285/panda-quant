@@ -41,11 +41,11 @@ const Footer = () => {
       title: '公司',
       links: [
         { text: '关于我们', href: '/about' },
-        { text: '新闻动态', href: '/about/news' },
-        { text: '团队介绍', href: '/about/team' },
-        { text: '加入我们', href: '/about/careers' },
-        { text: '合作伙伴', href: '/about/partners' },
-        { text: '联系我们', href: '/about/contact' },
+        { text: '新闻动态', href: '/news' },
+        { text: '团队介绍', href: '/team' },
+        { text: '加入我们', href: '/company/careers' },
+        { text: '合作伙伴', href: '/partners' },
+        { text: '联系我们', href: '/contact' },
       ],
     },
     {
@@ -98,7 +98,7 @@ const Footer = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: themeUtils.animationConfig.duration.medium }}
+                transition={{ duration: 0.5 }}
               >
                 <Box
                   sx={{
@@ -118,7 +118,7 @@ const Footer = () => {
                       gap: 1,
                     }}
                   >
-                    <span style={{ fontSize: { xs: '1.5rem', sm: '1.8rem' } }}>🐼</span>
+                    <span style={{ fontSize: '1.5rem' }}>🐼</span>
                     <span style={{
                       background: 'linear-gradient(45deg, #00FFB8 30%, #00CC93 90%)',
                       WebkitBackgroundClip: 'text',
@@ -151,7 +151,7 @@ const Footer = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{
-                        duration: themeUtils.animationConfig.duration.medium,
+                        duration: 0.5,
                         delay: index * 0.1,
                       }}
                     >
@@ -186,7 +186,7 @@ const Footer = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
-                    duration: themeUtils.animationConfig.duration.medium,
+                    duration: 0.5,
                     delay: index * 0.1,
                   }}
                 >
@@ -279,7 +279,7 @@ const Footer = () => {
                   }}
                 >
                   <Link
-                    href="/terms"
+                    href="/legal/terms"
                     sx={{
                       color: '#666666',
                       textDecoration: 'none',
@@ -293,7 +293,7 @@ const Footer = () => {
                     服务条款
                   </Link>
                   <Link
-                    href="/privacy"
+                    href="/legal/privacy"
                     sx={{
                       color: '#666666',
                       textDecoration: 'none',
@@ -307,7 +307,7 @@ const Footer = () => {
                     隐私政策
                   </Link>
                   <Link
-                    href="/risk"
+                    href="/legal/risk"
                     sx={{
                       color: '#666666',
                       textDecoration: 'none',

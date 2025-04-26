@@ -27,6 +27,14 @@ const Navbar = () => {
     setMobileOpen(!mobileOpen);
   };
 
+  const navItems = [
+    { label: '产品介绍', path: '/product' },
+    { label: '收益榜', path: '/profit' },
+    { label: '量化策略', path: '/product/strategies' },
+    { label: '安全保障', path: '/security' },
+    { label: '邀请返佣', path: '/invite' },
+  ];
+
   const drawer = (
     <Box
       sx={{
@@ -51,7 +59,7 @@ const Navbar = () => {
             gap: 1,
           }}
         >
-          <span style={{ fontSize: { xs: '1.5rem', sm: '1.8rem' } }}>🐼</span>
+          <span style={{ fontSize: '1.5rem' }}>🐼</span>
           <span style={{
             background: 'linear-gradient(45deg, #00FFB8 30%, #00CC93 90%)',
             WebkitBackgroundClip: 'text',
@@ -62,12 +70,12 @@ const Navbar = () => {
         </Typography>
       </Box>
       <List>
-        {['首页', '产品介绍', '使用流程', '关于我们'].map((text) => (
+        {navItems.map((item) => (
           <ListItem
             button
-            key={text}
+            key={item.label}
             component={Link}
-            to={text === '首页' ? '/' : `/${text}`}
+            to={item.path}
             sx={{
               mb: 1,
               borderRadius: 2,
@@ -79,7 +87,7 @@ const Navbar = () => {
             }}
           >
             <ListItemText
-              primary={text}
+              primary={item.label}
               sx={{
                 color: '#00FFB8',
                 '& .MuiTypography-root': {
@@ -165,7 +173,7 @@ const Navbar = () => {
                 gap: 1,
               }}
             >
-              <span style={{ fontSize: { xs: '1.5rem', sm: '1.8rem' } }}>🐼</span>
+              <span style={{ fontSize: '1.5rem' }}>🐼</span>
               <span style={{
                 background: 'linear-gradient(45deg, #00FFB8 30%, #00CC93 90%)',
                 WebkitBackgroundClip: 'text',
@@ -175,23 +183,24 @@ const Navbar = () => {
               </span>
             </Typography>
           </Box>
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
-            {['首页', '产品介绍', '使用流程', '关于我们'].map((text) => (
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 3, justifyContent: 'center', flex: 1 }}>
+            {navItems.map((item) => (
               <Button
-                key={text}
+                key={item.label}
                 component={Link}
-                to={text === '首页' ? '/' : `/${text}`}
+                to={item.path}
                 sx={{
                   color: '#00FFB8',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   fontSize: '1rem',
+                  textAlign: 'center',
                   '&:hover': {
                     color: '#00CC93',
                     backgroundColor: 'rgba(0, 255, 184, 0.1)',
                   },
                 }}
               >
-                {text}
+                {item.label}
               </Button>
             ))}
           </Box>

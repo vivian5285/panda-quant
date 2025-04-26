@@ -2,16 +2,15 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { Box } from '@mui/material';
 import UserNavbar from './common/UserNavbar';
-import Footer from './home/Footer';
+import Navbar from './common/Navbar';
+import { Footer } from './home';
 import { Outlet } from 'react-router-dom';
 import Breadcrumbs from './Breadcrumbs';
+import { useAuth } from '../contexts/AuthContext';
 
-interface LayoutProps {
-  children?: React.ReactNode;
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC = () => {
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
   const isHomePage = location.pathname === '/';
 
@@ -21,10 +20,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
+        background: isHomePage ? 'transparent' : 'background.default',
       }}
     >
-      {!isAuthPage && <UserNavbar />}
-      {!isHomePage && (
+      {!isAuthPage && (
+        isAuthenticated ? <UserNavbar /> : <Navbar />
+      )}
+      {!isHomePage && !isAuthPage && (
         <Box sx={{ bgcolor: 'background.paper', py: 2 }}>
           <Breadcrumbs />
         </Box>
@@ -39,9 +41,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             justifyContent: 'center',
             alignItems: 'center',
           }),
+          ...(isHomePage && {
+            padding: 0,
+          }),
         }}
       >
-        {children || <Outlet />}
+        <Outlet />
       </Box>
       {!isAuthPage && <Footer />}
     </Box>

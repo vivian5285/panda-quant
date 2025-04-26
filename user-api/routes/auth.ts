@@ -1,5 +1,5 @@
 import express from 'express';
-import { User } from '../models/user.model';
+import { User, IUser } from '../models/user.model';
 import jwt from 'jsonwebtoken';
 import { nanoid } from 'nanoid';
 import bcrypt from 'bcrypt';
@@ -40,7 +40,7 @@ router.post('/register', async (req, res) => {
       role: 'user',
       status: 'active',
       referralCode: nanoid(8) // 生成8位推荐码
-    });
+    }) as IUser;
 
     // 生成 JWT token
     const token = generateToken(user._id.toString(), user.role);
@@ -72,7 +72,7 @@ router.post('/login', async (req, res) => {
     }
 
     // 查找用户
-    let user;
+    let user: IUser | null;
     if (identifier.includes('@')) {
       user = await User.findOne({ email: identifier });
     } else {
@@ -103,11 +103,8 @@ router.post('/login', async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        username: user.username,
         role: user.role,
-        status: user.status,
-        balance: user.balance,
-        accountBalance: user.accountBalance
+        status: user.status
       }
     });
   } catch (error) {

@@ -21,7 +21,9 @@ import {
   InputLabel,
   Select,
   Chip,
-  LinearProgress
+  LinearProgress,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -55,14 +57,26 @@ interface TestStrategy {
   };
 }
 
+interface TestStrategyFormData {
+  name: string;
+  description: string;
+  versionA: string;
+  versionB: string;
+  startDate: string;
+  endDate: string;
+  status: 'active' | 'completed' | 'paused';
+}
+
 const ABTestingPage: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [strategies, setStrategies] = useState<TestStrategy[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<Partial<TestStrategyFormData>>({});
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTestData();
@@ -70,11 +84,19 @@ const ABTestingPage: React.FC = () => {
 
   const fetchTestData = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await fetch('/api/admin/ab-testing/strategies');
+      if (!response.ok) {
+        throw new Error('Failed to fetch test data');
+      }
       const data = await response.json();
       setStrategies(data);
     } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred');
       console.error('Error fetching test data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -94,6 +116,8 @@ const ABTestingPage: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await fetch('/api/admin/ab-testing/strategies', {
         method: 'POST',
         headers: {
@@ -105,31 +129,45 @@ const ABTestingPage: React.FC = () => {
         }),
       });
 
-      if (response.ok) {
-        fetchTestData();
-        handleCloseDialog();
+      if (!response.ok) {
+        throw new Error('Failed to create test strategy');
       }
+
+      fetchTestData();
+      handleCloseDialog();
     } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred');
       console.error('Error submitting form:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await fetch(`/api/admin/ab-testing/strategies/${id}`, {
         method: 'DELETE',
       });
 
-      if (response.ok) {
-        fetchTestData();
+      if (!response.ok) {
+        throw new Error('Failed to delete test strategy');
       }
+
+      fetchTestData();
     } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred');
       console.error('Error deleting strategy:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleStatusChange = async (id: string, status: 'active' | 'completed' | 'paused') => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await fetch(`/api/admin/ab-testing/strategies/${id}/status`, {
         method: 'PUT',
         headers: {
@@ -138,13 +176,34 @@ const ABTestingPage: React.FC = () => {
         body: JSON.stringify({ status }),
       });
 
-      if (response.ok) {
-        fetchTestData();
+      if (!response.ok) {
+        throw new Error('Failed to update test strategy status');
       }
+
+      fetchTestData();
     } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred');
       console.error('Error updating status:', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box

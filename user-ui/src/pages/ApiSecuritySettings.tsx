@@ -1,185 +1,216 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
   Grid,
-  TextField,
-  FormControlLabel,
-  Switch,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Container,
+  Paper,
+  Divider,
 } from '@mui/material';
-import { Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../contexts/AuthContext';
+import { 
+  Security as SecurityIcon, 
+  Lock as LockIcon, 
+  VpnKey as VpnKeyIcon,
+  Shield as ShieldIcon,
+  VerifiedUser as VerifiedUserIcon,
+  SecurityUpdateGood as SecurityUpdateGoodIcon,
+  AccountBalance as AccountBalanceIcon,
+  CloudSync as CloudSyncIcon,
+  Verified as VerifiedIcon,
+  GppGood as GppGoodIcon,
+} from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import PandaCard from '../components/common/PandaCard';
-import PandaButton from '../components/common/PandaButton';
-import { PandaAlert } from '../components/common/PandaAlert';
 import { fadeIn, slideUp, staggerChildren } from '../animations';
+import GlobalBackground from '../components/common/GlobalBackground';
 
-interface ApiSecuritySettings {
-  ipWhitelist: string[];
-  enable2FA: boolean;
-  apiKeyExpiry: number;
-  maxRequestsPerMinute: number;
-}
-
-const ApiSecuritySettings: React.FC = () => {
-  const { t } = useTranslation();
-  const { user } = useAuth();
-  const [settings, setSettings] = useState<ApiSecuritySettings>({
-    ipWhitelist: [],
-    enable2FA: false,
-    apiKeyExpiry: 30,
-    maxRequestsPerMinute: 60,
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [newIp, setNewIp] = useState('');
-  const [openDialog, setOpenDialog] = useState(false);
-
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
-    try {
-      setLoading(true);
-      // TODO: 调用后端API获取设置
-      const response = await fetch('/api/security-settings');
-      const data = await response.json();
-      setSettings(data);
-    } catch (err) {
-      setError(t('apiSecurity.fetchError'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveSettings = async () => {
-    try {
-      setLoading(true);
-      // TODO: 调用后端API保存设置
-      await fetch('/api/security-settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(settings),
-      });
-      setSuccess(t('apiSecurity.saveSuccess'));
-    } catch (err) {
-      setError(t('apiSecurity.saveError'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddIp = () => {
-    if (newIp && !settings.ipWhitelist.includes(newIp)) {
-      setSettings({
-        ...settings,
-        ipWhitelist: [...settings.ipWhitelist, newIp],
-      });
-      setNewIp('');
-      setOpenDialog(false);
-    }
-  };
-
-  const handleRemoveIp = (ip: string) => {
-    setSettings({
-      ...settings,
-      ipWhitelist: settings.ipWhitelist.filter((i) => i !== ip),
-    });
-  };
-
-  const handleToggle2FA = () => {
-    setSettings({
-      ...settings,
-      enable2FA: !settings.enable2FA,
-    });
-  };
-
+const SecurityPage: React.FC = () => {
   return (
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.03) 0%, rgba(0, 0, 0, 0) 100%)',
-        py: 4,
+        position: 'relative',
+        overflow: 'hidden',
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.98) 100%)',
       }}
     >
-      <Container maxWidth="lg">
+      <GlobalBackground />
+      
+      <Container maxWidth="lg" sx={{ py: 8 }}>
         <motion.div
           initial="hidden"
           animate="visible"
           variants={staggerChildren}
         >
           <motion.div variants={fadeIn}>
-            <Typography
-              variant="h2"
-              sx={{
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              mb: 6,
+              gap: 2,
+              position: 'relative',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: -16,
+                left: 0,
+                width: '100%',
+                height: '1px',
+                background: 'linear-gradient(90deg, transparent, rgba(0, 255, 184, 0.3), transparent)',
+              }
+            }}>
+              <SecurityIcon sx={{ 
+                fontSize: '3.5rem', 
                 color: '#00FFB8',
-                fontWeight: 700,
-                mb: 2,
-                fontSize: { xs: '2rem', md: '2.5rem' },
-                fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
-              }}
-            >
-              {t('apiSecurity.title')}
-            </Typography>
+                filter: 'drop-shadow(0 0 15px rgba(0, 255, 184, 0.5))'
+              }} />
+              <Box>
+                <Typography
+                  variant="h2"
+                  sx={{
+                    color: '#00FFB8',
+                    fontWeight: 700,
+                    fontSize: { xs: '2.2rem', md: '2.8rem' },
+                    fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
+                    textShadow: '0 0 15px rgba(0, 255, 184, 0.3)',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  平台安全保障
+                </Typography>
+                <Typography 
+                  variant="subtitle1" 
+                  sx={{ 
+                    color: 'rgba(0, 0, 0, 0.8)',
+                    fontSize: '1.1rem',
+                    mt: 1,
+                    letterSpacing: '0.01em',
+                  }}
+                >
+                  全方位安全防护体系，为您的数字资产保驾护航
+                </Typography>
+              </Box>
+            </Box>
           </motion.div>
 
-          {error && (
-            <PandaAlert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </PandaAlert>
-          )}
-
-          {success && (
-            <PandaAlert severity="success" sx={{ mb: 2 }}>
-              {success}
-            </PandaAlert>
-          )}
-
-          <Grid container spacing={3}>
+          <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
               <motion.div variants={slideUp}>
                 <PandaCard
-                  title={t('apiSecurity.ipWhitelist')}
+                  title={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <ShieldIcon sx={{ color: '#00FFB8' }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#00FFB8' }}>资金安全保障</Typography>
+                    </Box>
+                  }
                   gradient
                   animation
                 >
-                  <List>
-                    {settings.ipWhitelist.map((ip) => (
-                      <ListItem
-                        key={ip}
-                        secondaryAction={
-                          <IconButton edge="end" onClick={() => handleRemoveIp(ip)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        }
-                      >
-                        <ListItemText primary={ip} />
-                      </ListItem>
-                    ))}
-                  </List>
-                  <PandaButton
-                    variant="outlined"
-                    startIcon={<AddIcon />}
-                    onClick={() => setOpenDialog(true)}
-                    sx={{ mt: 2 }}
-                  >
-                    {t('apiSecurity.addIp')}
-                  </PandaButton>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    gap: 2.5,
+                  }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      p: 2.5,
+                      bgcolor: 'rgba(0, 255, 184, 0.05)',
+                      borderRadius: 2,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 255, 184, 0.08)',
+                        transform: 'translateY(-2px)',
+                      }
+                    }}>
+                      <AccountBalanceIcon sx={{ 
+                        color: '#00FFB8',
+                        fontSize: '2rem',
+                      }} />
+                      <Box>
+                        <Typography variant="body1" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.8)',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}>
+                          资金托管
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.6)',
+                          lineHeight: 1.6,
+                        }}>
+                          用户资金由专业第三方托管机构保管，平台无法直接接触用户资金，确保资金安全
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      p: 2.5,
+                      bgcolor: 'rgba(0, 255, 184, 0.05)',
+                      borderRadius: 2,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 255, 184, 0.08)',
+                        transform: 'translateY(-2px)',
+                      }
+                    }}>
+                      <LockIcon sx={{ 
+                        color: '#00FFB8',
+                        fontSize: '2rem',
+                      }} />
+                      <Box>
+                        <Typography variant="body1" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.8)',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}>
+                          冷热钱包分离
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.6)',
+                          lineHeight: 1.6,
+                        }}>
+                          采用冷热钱包分离存储机制，95%资产存储在离线冷钱包，确保资金安全
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      p: 2.5,
+                      bgcolor: 'rgba(0, 255, 184, 0.05)',
+                      borderRadius: 2,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 255, 184, 0.08)',
+                        transform: 'translateY(-2px)',
+                      }
+                    }}>
+                      <VerifiedIcon sx={{ 
+                        color: '#00FFB8',
+                        fontSize: '2rem',
+                      }} />
+                      <Box>
+                        <Typography variant="body1" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.8)',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}>
+                          多重签名机制
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.6)',
+                          lineHeight: 1.6,
+                        }}>
+                          所有资金操作需要多重签名确认，防止单点风险，确保交易安全
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
                 </PandaCard>
               </motion.div>
             </Grid>
@@ -187,85 +218,370 @@ const ApiSecuritySettings: React.FC = () => {
             <Grid item xs={12} md={6}>
               <motion.div variants={slideUp}>
                 <PandaCard
-                  title={t('apiSecurity.securitySettings')}
+                  title={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <VpnKeyIcon sx={{ color: '#00FFB8' }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>交易所API安全</Typography>
+                    </Box>
+                  }
                   gradient
                   animation
                 >
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={settings.enable2FA}
-                        onChange={handleToggle2FA}
-                      />
-                    }
-                    label={t('apiSecurity.enable2FA')}
-                  />
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label={t('apiSecurity.apiKeyExpiry')}
-                    value={settings.apiKeyExpiry}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        apiKeyExpiry: parseInt(e.target.value),
-                      })
-                    }
-                    sx={{ mt: 2 }}
-                  />
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label={t('apiSecurity.maxRequests')}
-                    value={settings.maxRequestsPerMinute}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        maxRequestsPerMinute: parseInt(e.target.value),
-                      })
-                    }
-                    sx={{ mt: 2 }}
-                  />
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    gap: 2.5,
+                  }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      p: 2.5,
+                      bgcolor: 'rgba(0, 255, 184, 0.05)',
+                      borderRadius: 2,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 255, 184, 0.08)',
+                        transform: 'translateY(-2px)',
+                      }
+                    }}>
+                      <CloudSyncIcon sx={{ 
+                        color: '#00FFB8',
+                        fontSize: '2rem',
+                      }} />
+                      <Box>
+                        <Typography variant="body1" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.8)',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}>
+                          API密钥加密存储
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.6)',
+                          lineHeight: 1.6,
+                        }}>
+                          采用银行级AES-256加密技术，确保API密钥安全存储，防止泄露风险
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      p: 2.5,
+                      bgcolor: 'rgba(0, 255, 184, 0.05)',
+                      borderRadius: 2,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 255, 184, 0.08)',
+                        transform: 'translateY(-2px)',
+                      }
+                    }}>
+                      <SecurityUpdateGoodIcon sx={{ 
+                        color: '#00FFB8',
+                        fontSize: '2rem',
+                      }} />
+                      <Box>
+                        <Typography variant="body1" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.8)',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}>
+                          权限最小化
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.6)',
+                          lineHeight: 1.6,
+                        }}>
+                          严格遵循最小权限原则，仅申请必要的API权限，降低安全风险
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      p: 2.5,
+                      bgcolor: 'rgba(0, 255, 184, 0.05)',
+                      borderRadius: 2,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 255, 184, 0.08)',
+                        transform: 'translateY(-2px)',
+                      }
+                    }}>
+                      <VerifiedUserIcon sx={{ 
+                        color: '#00FFB8',
+                        fontSize: '2rem',
+                      }} />
+                      <Box>
+                        <Typography variant="body1" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.8)',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}>
+                          实时监控
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.6)',
+                          lineHeight: 1.6,
+                        }}>
+                          7×24小时实时监控API调用情况，及时发现并处理异常行为
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                </PandaCard>
+              </motion.div>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <motion.div variants={slideUp}>
+                <PandaCard
+                  title={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <GppGoodIcon sx={{ color: '#00FFB8' }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>交易安全</Typography>
+                    </Box>
+                  }
+                  gradient
+                  animation
+                >
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    gap: 2.5,
+                  }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      p: 2.5,
+                      bgcolor: 'rgba(0, 255, 184, 0.05)',
+                      borderRadius: 2,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 255, 184, 0.08)',
+                        transform: 'translateY(-2px)',
+                      }
+                    }}>
+                      <VerifiedUserIcon sx={{ 
+                        color: '#00FFB8',
+                        fontSize: '2rem',
+                      }} />
+                      <Box>
+                        <Typography variant="body1" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.8)',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}>
+                          风控系统
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.6)',
+                          lineHeight: 1.6,
+                        }}>
+                          智能风控系统实时监控交易行为，防范异常交易，保障交易安全
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      p: 2.5,
+                      bgcolor: 'rgba(0, 255, 184, 0.05)',
+                      borderRadius: 2,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 255, 184, 0.08)',
+                        transform: 'translateY(-2px)',
+                      }
+                    }}>
+                      <LockIcon sx={{ 
+                        color: '#00FFB8',
+                        fontSize: '2rem',
+                      }} />
+                      <Box>
+                        <Typography variant="body1" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.8)',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}>
+                          交易限额
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.6)',
+                          lineHeight: 1.6,
+                        }}>
+                          根据用户等级设置交易限额，有效控制风险敞口，保障资金安全
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      p: 2.5,
+                      bgcolor: 'rgba(0, 255, 184, 0.05)',
+                      borderRadius: 2,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 255, 184, 0.08)',
+                        transform: 'translateY(-2px)',
+                      }
+                    }}>
+                      <SecurityIcon sx={{ 
+                        color: '#00FFB8',
+                        fontSize: '2rem',
+                      }} />
+                      <Box>
+                        <Typography variant="body1" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.8)',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}>
+                          交易确认
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.6)',
+                          lineHeight: 1.6,
+                        }}>
+                          大额交易需要二次确认，防止误操作，确保交易安全可靠
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                </PandaCard>
+              </motion.div>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <motion.div variants={slideUp}>
+                <PandaCard
+                  title={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <ShieldIcon sx={{ color: '#00FFB8' }} />
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>系统安全</Typography>
+                    </Box>
+                  }
+                  gradient
+                  animation
+                >
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    gap: 2.5,
+                  }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      p: 2.5,
+                      bgcolor: 'rgba(0, 255, 184, 0.05)',
+                      borderRadius: 2,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 255, 184, 0.08)',
+                        transform: 'translateY(-2px)',
+                      }
+                    }}>
+                      <ShieldIcon sx={{ 
+                        color: '#00FFB8',
+                        fontSize: '2rem',
+                      }} />
+                      <Box>
+                        <Typography variant="body1" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.8)',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}>
+                          数据加密
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.6)',
+                          lineHeight: 1.6,
+                        }}>
+                          采用AES-256加密算法，确保数据传输安全，防止信息泄露
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      p: 2.5,
+                      bgcolor: 'rgba(0, 255, 184, 0.05)',
+                      borderRadius: 2,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 255, 184, 0.08)',
+                        transform: 'translateY(-2px)',
+                      }
+                    }}>
+                      <SecurityUpdateGoodIcon sx={{ 
+                        color: '#00FFB8',
+                        fontSize: '2rem',
+                      }} />
+                      <Box>
+                        <Typography variant="body1" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.8)',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}>
+                          系统防护
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.6)',
+                          lineHeight: 1.6,
+                        }}>
+                          DDoS防护、WAF防火墙等多重防护措施，确保系统安全稳定运行
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      p: 2.5,
+                      bgcolor: 'rgba(0, 255, 184, 0.05)',
+                      borderRadius: 2,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: 'rgba(0, 255, 184, 0.08)',
+                        transform: 'translateY(-2px)',
+                      }
+                    }}>
+                      <VerifiedUserIcon sx={{ 
+                        color: '#00FFB8',
+                        fontSize: '2rem',
+                      }} />
+                      <Box>
+                        <Typography variant="body1" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.8)',
+                          fontWeight: 500,
+                          mb: 0.5,
+                        }}>
+                          安全审计
+                        </Typography>
+                        <Typography variant="body2" sx={{ 
+                          color: 'rgba(0, 0, 0, 0.6)',
+                          lineHeight: 1.6,
+                        }}>
+                          定期进行安全审计和渗透测试，持续提升系统安全性
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
                 </PandaCard>
               </motion.div>
             </Grid>
           </Grid>
-
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-            <PandaButton
-              variant="contained"
-              onClick={handleSaveSettings}
-              disabled={loading}
-            >
-              {t('common.save')}
-            </PandaButton>
-          </Box>
         </motion.div>
       </Container>
-
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{t('apiSecurity.addIp')}</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label={t('apiSecurity.ipAddress')}
-            fullWidth
-            value={newIp}
-            onChange={(e) => setNewIp(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <PandaButton onClick={() => setOpenDialog(false)}>
-            {t('common.cancel')}
-          </PandaButton>
-          <PandaButton onClick={handleAddIp} variant="contained">
-            {t('common.add')}
-          </PandaButton>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };
 
-export default ApiSecuritySettings; 
+export default SecurityPage; 

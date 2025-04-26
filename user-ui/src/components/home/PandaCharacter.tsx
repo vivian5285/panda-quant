@@ -10,7 +10,12 @@ import {
   Avatar,
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { themeUtils } from '../../theme';
+import {
+  TrendingUp as TrendIcon,
+  AutoGraph as AutoIcon,
+  Psychology as PsychologyIcon,
+  Security as SecurityIcon,
+} from '@mui/icons-material';
 
 const PandaCharacter = () => {
   const theme = useTheme();
@@ -36,6 +41,10 @@ const PandaCharacter = () => {
   return (
     <Box
       sx={{
+        minHeight: '100vh',
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
         py: { xs: 8, md: 12 },
         overflow: 'hidden',
         bgcolor: '#FFFFFF',
@@ -47,25 +56,32 @@ const PandaCharacter = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'radial-gradient(circle at 50% 0%, rgba(0, 255, 184, 0.1) 0%, rgba(0, 255, 184, 0) 50%)',
+          background: 'linear-gradient(135deg, rgba(0, 255, 184, 0.05) 0%, rgba(0, 255, 184, 0.02) 100%)',
           zIndex: 0,
         },
       }}
     >
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+      <Container 
+        maxWidth="lg" 
+        sx={{ 
+          position: 'relative', 
+          zIndex: 1,
+          px: { xs: 2, md: 4 }
+        }}
+      >
         <Box
           sx={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             textAlign: 'center',
-            mb: { xs: 6, md: 10 },
+            mb: { xs: 4, md: 6 },
           }}
         >
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: themeUtils.animationConfig.duration.medium }}
+            transition={{ duration: 0.5 }}
           >
             <Box
               sx={{
@@ -77,8 +93,8 @@ const PandaCharacter = () => {
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: '200px',
-                  height: '200px',
+                  width: '300px',
+                  height: '300px',
                   background: 'radial-gradient(circle, rgba(0,255,184,0.2) 0%, rgba(0,255,184,0) 70%)',
                   animation: 'pulse 3s ease-in-out infinite',
                   '@keyframes pulse': {
@@ -102,7 +118,7 @@ const PandaCharacter = () => {
               >
                 <Typography
                   sx={{
-                    fontSize: { xs: '6rem', md: '8rem' },
+                    fontSize: { xs: '8rem', md: '12rem' },
                     lineHeight: 1,
                   }}
                 >
@@ -115,7 +131,7 @@ const PandaCharacter = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: themeUtils.animationConfig.duration.medium }}
+            transition={{ duration: 0.5 }}
           >
             <Typography
               variant="h2"
@@ -169,15 +185,15 @@ const PandaCharacter = () => {
           </motion.div>
         </Box>
 
-        <Grid container spacing={4}>
+        <Grid container spacing={3} sx={{ mt: { xs: 2, md: 4 } }}>
           {features.map((feature, index) => (
-            <Grid item xs={12} md={4} key={index}>
+            <Grid item xs={12} md={4} key={`feature-${index}`}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ 
-                  duration: themeUtils.animationConfig.duration.medium,
-                  delay: index * themeUtils.animationConfig.delay.small 
+                  duration: 0.5,
+                  delay: index * 0.1
                 }}
               >
                 <Card
@@ -212,7 +228,7 @@ const PandaCharacter = () => {
                     },
                   }}
                 >
-                  <CardContent sx={{ p: 4, textAlign: 'center' }}>
+                  <CardContent sx={{ p: 3, textAlign: 'center' }}>
                     <Avatar
                       sx={{
                         width: 80,

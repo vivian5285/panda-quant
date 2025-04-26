@@ -4,7 +4,8 @@
     "performance": "성과",
     "strategies": "전략",
     "security": "보안",
-    "referral": "추천"
+    "referral": "추천",
+    "logout": "로그아웃"
   },
   "login": {
     "title": "환영합니다",

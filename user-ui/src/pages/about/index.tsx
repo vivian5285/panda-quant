@@ -1,16 +1,14 @@
 import React from 'react';
 import { Box, Container, Typography } from '@mui/material';
-import { GlobalBackground } from '@/components/common/GlobalBackground';
-import { Navbar } from '@/components/common/Navbar';
-import { Footer } from '@/components/common/Footer';
+import GlobalBackground from '@/components/common/GlobalBackground';
 import { GradientTitle } from '@/components/common/GradientTitle';
-import { PandaCard } from '@/components/common/PandaCard';
+import PandaCard from '@/components/common/PandaCard';
+import Footer from '@/components/home/Footer';
 
 const AboutPage: React.FC = () => {
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh' }}>
       <GlobalBackground />
-      <Navbar />
       
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <GradientTitle
@@ -19,36 +17,20 @@ const AboutPage: React.FC = () => {
           sx={{ mb: 6 }}
         />
         
-        <Box sx={{ display: 'grid', gap: 4 }}>
-          <PandaCard>
+        <PandaCard>
+          <Box sx={{ p: 4 }}>
             <Typography variant="h5" gutterBottom>
-              我们的使命
+              我们的故事
             </Typography>
-            <Typography variant="body1" color="text.secondary">
-              熊猫量化致力于为投资者提供最先进的量化交易解决方案，通过人工智能和大数据技术，帮助用户实现更智能、更高效的投资决策。
+            <Typography variant="body1" paragraph>
+              熊猫量化成立于2023年，是一家专注于AI量化交易的科技公司。我们的团队由来自顶级金融机构和科技公司的专业人士组成，拥有丰富的量化交易和人工智能经验。
             </Typography>
-          </PandaCard>
-
-          <PandaCard>
-            <Typography variant="h5" gutterBottom>
-              我们的团队
+            <Typography variant="body1" paragraph>
+              我们的使命是通过人工智能技术，让量化交易变得更加简单、高效和可靠。我们相信，通过技术创新，每个人都能享受到量化交易带来的收益。
             </Typography>
-            <Typography variant="body1" color="text.secondary">
-              我们拥有一支由金融专家、数据科学家和软件工程师组成的专业团队，共同致力于打造最优质的量化交易平台。
-            </Typography>
-          </PandaCard>
-
-          <PandaCard>
-            <Typography variant="h5" gutterBottom>
-              我们的愿景
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              成为全球领先的量化交易平台，让每个人都能享受到专业级的量化交易服务。
-            </Typography>
-          </PandaCard>
-        </Box>
+          </Box>
+        </PandaCard>
       </Container>
-
       <Footer />
     </Box>
   );

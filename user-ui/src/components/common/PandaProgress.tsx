@@ -131,4 +131,4 @@ const PandaProgress: React.FC<PandaProgressProps> = ({
   );
 };
 
-export { PandaProgress }; 
+export default PandaProgress; 

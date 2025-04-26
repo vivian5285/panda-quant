@@ -16,7 +16,6 @@ import {
   Psychology as PsychologyIcon,
   Security as SecurityIcon,
 } from '@mui/icons-material';
-import { themeUtils } from '../../theme';
 
 interface Strategy {
   id: number;
@@ -73,6 +72,10 @@ const StrategySection = () => {
   return (
     <Box
       sx={{
+        minHeight: '100vh',
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
         py: { xs: 8, md: 12 },
         overflow: 'hidden',
         bgcolor: '#FFFFFF',
@@ -89,11 +92,18 @@ const StrategySection = () => {
         },
       }}
     >
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+      <Container 
+        maxWidth="lg" 
+        sx={{ 
+          position: 'relative', 
+          zIndex: 1,
+          px: { xs: 2, md: 4 }
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: themeUtils.animationConfig.duration.medium }}
+          transition={{ duration: 0.5 }}
         >
           <Typography
             variant="h2"
@@ -145,8 +155,8 @@ const StrategySection = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ 
-                  duration: themeUtils.animationConfig.duration.medium,
-                  delay: index * themeUtils.animationConfig.delay.small 
+                  duration: 0.5,
+                  delay: index * 0.1
                 }}
               >
                 <Card

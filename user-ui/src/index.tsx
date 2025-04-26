@@ -23,12 +23,24 @@ const container = document.getElementById('root');
 if (!container) throw new Error('Failed to find the root element');
 const root = createRoot(container);
 
-root.render(
-  <React.StrictMode>
+const AppWrapper = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return (
+      <React.StrictMode>
+        <Suspense fallback={<LoadingFallback />}>
+          <App />
+        </Suspense>
+      </React.StrictMode>
+    );
+  }
+  
+  return (
     <Suspense fallback={<LoadingFallback />}>
       <App />
     </Suspense>
-  </React.StrictMode>
-);
+  );
+};
+
+root.render(<AppWrapper />);
 
 reportWebVitals(); 
