@@ -221,12 +221,6 @@ create_directories() {
     mkdir -p admin-ui/prisma
     mkdir -p user-ui/prisma
     mkdir -p backups
-    mkdir -p shared
-    
-    # 创建共享目录结构
-    mkdir -p shared/types
-    mkdir -p shared/models
-    mkdir -p shared/interfaces
     
     # 确保Prisma schema文件存在
     log "检查Prisma schema文件..."
@@ -276,6 +270,11 @@ deploy_admin() {
         # 复制共享目录
         if [ -d "../shared" ]; then
             log "复制共享目录..."
+            # 如果目标目录已存在，先删除
+            if [ -d "shared" ]; then
+                rm -rf shared
+            fi
+            # 复制共享目录
             cp -r "../shared" .
         else
             error "共享目录不存在"

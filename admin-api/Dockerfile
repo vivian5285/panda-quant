@@ -10,9 +10,8 @@ COPY prisma ./prisma/
 # Install dependencies
 RUN npm install && npm install -g typescript
 
-# Copy source code and shared directory
+# Copy source code
 COPY . .
-COPY ../shared ./shared
 
 # Generate Prisma client
 RUN npx prisma generate
