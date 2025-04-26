@@ -57,6 +57,16 @@ check_commands() {
     fi
 }
 
+# 复制shared目录
+copy_shared_directory() {
+    log "复制shared目录..."
+    if [ -d "$WORKSPACE_DIR/shared" ]; then
+        cp -r "$WORKSPACE_DIR/shared" .
+    else
+        error "找不到shared目录: $WORKSPACE_DIR/shared"
+    fi
+}
+
 # 设置默认环境变量
 set_default_env() {
     log "设置默认环境变量..."
