@@ -202,4 +202,24 @@ export const logout = async (req: Request, res: Response) => {
     console.error('Logout error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
+};
+
+export const createAdmin = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const admin = await User.create({
+      email,
+      password: hashedPassword,
+      role: 'admin',
+      status: 'active',
+      isAdmin: true,
+      balance: 0
+    });
+
+    res.status(201).json({ message: 'Admin created successfully', admin });
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating admin', error });
+  }
 }; 

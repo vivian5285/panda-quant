@@ -1,10 +1,13 @@
-import { Request, Response, NextFunction } from 'express';
-import { AuthRequest } from '@shared/types/auth';
-import { Asset, UserAsset } from '@shared/models/asset';
-import { IUser, User } from '@shared/models/user';
-import { Transaction } from '@models/Transaction';
-import { FeeService } from '@services/feeService';
-import { Fee } from '@shared/models/fee';
+import { Request, Response } from 'express';
+import { AuthRequest } from '../../shared/types/auth';
+import { IAsset, IUserAsset } from '../../shared/models/asset';
+import { IUser } from '../../shared/models/user';
+import { Transaction } from '../models/Transaction';
+import { feeService } from '../services/feeService';
+import { IFee } from '../../shared/models/fee';
+import { UserAsset } from '../models/UserAsset';
+import { Asset } from '../models/Asset';
+import { User } from '../models/user.model';
 
 // 获取所有用户资产
 export const getAllAssets = async (req: Request, res: Response) => {
@@ -57,14 +60,8 @@ export const processMonthlyFees = async (req: Request, res: Response) => {
 
       if (monthsSinceLastDeduction >= 1) {
         // 创建托管费记录
-        const fee = new Fee({
-          userId: user._id,
-          amount: 30,
-          type: 'monthly',
-          status: 'pending'
-        });
-        await fee.save();
-
+        const fee = await feeService.createFee(user._id.toString(), 30, 'monthly');
+        
         // 更新用户资产
         userAsset.balance -= 30;
         userAsset.lastFeeDeduction = currentDate;
@@ -142,7 +139,6 @@ export const confirmDeposit = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const feeService = FeeService.getInstance();
     await feeService.confirmDeposit(userId, txHash, amount, chain);
 
     res.json({ message: 'Deposit confirmed successfully' });

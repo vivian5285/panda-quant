@@ -1,13 +1,13 @@
 import { Fee } from '../models/fee.model';
 import { User } from '../models/user.model';
-import { IUser } from '@shared/models/user';
+import { IUser } from '../../shared/models/user';
 import { UserAsset } from '@shared/models/asset';
-import { Transaction } from '@models/Transaction';
+import { Transaction } from '../models/Transaction';
 import { Asset } from '../models/Asset';
 import cron from 'node-cron';
 import { PrismaClient } from '@prisma/client';
-import { IAsset } from '@shared/models/asset';
-import { IFee } from '@shared/models/fee';
+import { IAsset } from '../../shared/models/asset';
+import { IFee } from '../../shared/models/fee';
 
 const prisma = new PrismaClient();
 
@@ -141,21 +141,16 @@ export class FeeService {
   }
 
   async createFee(userId: string, amount: number, type: string): Promise<IFee> {
-    return await prisma.fee.create({
-      data: {
-        userId,
-        amount,
-        type,
-        status: 'pending'
-      }
+    return await Fee.create({
+      userId,
+      amount,
+      type,
+      status: 'pending'
     });
   }
 
   async processFee(feeId: string): Promise<void> {
-    const fee = await prisma.fee.findUnique({
-      where: { id: feeId }
-    });
-
+    const fee = await Fee.findById(feeId);
     if (!fee) {
       throw new Error('Fee not found');
     }
@@ -169,10 +164,7 @@ export class FeeService {
     });
 
     // 更新费用状态
-    await prisma.fee.update({
-      where: { id: feeId },
-      data: { status: 'completed' }
-    });
+    await Fee.findByIdAndUpdate(feeId, { status: 'completed' });
   }
 }
 

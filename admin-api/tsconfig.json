@@ -3,7 +3,7 @@
     "target": "es2018",
     "module": "commonjs",
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -12,9 +12,10 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
+      "@/*": ["./*"],
       "@shared/*": ["../shared/*"]
     }
   },
-  "include": ["**/*"],
+  "include": ["**/*.ts", "../shared/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 } 

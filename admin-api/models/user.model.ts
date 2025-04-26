@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 import bcrypt from 'bcrypt';
-import { IUser } from '@shared/models/user';
+import { IUser } from '../../shared/models/user';
 
 export interface IUser extends Document {
   email: string;
@@ -22,52 +22,19 @@ export interface IUser extends Document {
 }
 
 const userSchema = new Schema<IUser>({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true,
-  },
-  username: {
-    type: String,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  walletAddress: {
-    type: String,
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user',
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ['active', 'suspended', 'inactive'],
-    default: 'active',
-    required: true,
-  },
-  isAdmin: {
-    type: Boolean,
-    default: false,
-  },
-  adminType: {
-    type: String,
-  },
-  permissions: {
-    type: Schema.Types.Mixed,
-  },
-  balance: {
-    type: Number,
-    default: 0,
-  },
-  lastLogin: {
-    type: Date,
-  },
+  email: { type: String, required: true, unique: true },
+  username: { type: String },
+  password: { type: String, required: true },
+  walletAddress: { type: String },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  status: { type: String, enum: ['active', 'suspended', 'inactive'], default: 'active' },
+  isAdmin: { type: Boolean, default: false },
+  adminType: { type: String },
+  permissions: { type: Schema.Types.Mixed, default: {} },
+  balance: { type: Number, default: 0 },
+  lastLogin: { type: Date },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
   referralCode: {
     type: String,
     unique: true,
@@ -76,14 +43,6 @@ const userSchema = new Schema<IUser>({
   referredBy: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
   },
 }, {
   timestamps: true,
@@ -127,4 +86,4 @@ userSchema.statics.createAdmin = async function(email: string, password: string)
   });
 };
 
-export const User = mongoose.model<IUser>('User', userSchema); 
+export const User = model<IUser>('User', userSchema); 

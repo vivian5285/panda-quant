@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { IFee } from '@shared/models/fee';
+import { IFee } from '../../shared/models/fee';
 
 const feeSchema = new Schema<IFee>({
   userId: { type: String, required: true },
