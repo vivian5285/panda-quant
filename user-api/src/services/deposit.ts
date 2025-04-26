@@ -107,14 +107,22 @@ export class DepositService {
       const tx = await provider.getTransaction(transactionHash);
       if (tx) {
         const receipt = await tx.wait();
-        status = receipt.status === 1 ? 'completed' : 'failed';
+        if (receipt) {
+          status = receipt.status === 1 ? 'completed' : 'failed';
+        }
       }
     }
 
-    await prisma.depositRecord.update({
-      where: { transactionHash },
-      data: { status }
+    const record = await prisma.depositRecord.findFirst({
+      where: { transactionHash }
     });
+
+    if (record) {
+      await prisma.depositRecord.update({
+        where: { id: record.id },
+        data: { status }
+      });
+    }
 
     return status;
   }

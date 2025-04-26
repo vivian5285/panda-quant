@@ -83,7 +83,7 @@ export class VerificationService {
   }
 
   async sendPasswordResetEmail(user: IUser): Promise<void> {
-    const token = generateToken(user, this.PASSWORD_RESET_EXPIRY);
+    const token = generateToken(user);
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
     if (process.env.NODE_ENV !== 'test') {

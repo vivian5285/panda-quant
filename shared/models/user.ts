@@ -3,14 +3,15 @@ import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
     _id: string;
-    userId: string;
     email: string;
+    username?: string;
     password: string;
-    name: string;
-    role: 'admin' | 'user';
-    status: 'active' | 'inactive';
-    balance: number;
-    referralCode?: string;
+    walletAddress?: string;
+    role: string;
+    status: string;
+    isAdmin: boolean;
+    adminType?: string;
+    permissions?: any;
     lastLogin?: Date;
     createdAt: Date;
     updatedAt: Date;
