@@ -1,73 +1,84 @@
 import { PrismaClient } from '@prisma/client';
-import { LogLevel, LogSource } from '@prisma/client';
+
+export enum LogLevel {
+    INFO = 'INFO',
+    WARN = 'WARN',
+    ERROR = 'ERROR'
+}
+
+export enum LogSource {
+    API = 'API',
+    STRATEGY = 'STRATEGY',
+    SYSTEM = 'SYSTEM'
+}
+
+export interface LogEntry {
+    level: LogLevel;
+    source: LogSource;
+    message: string;
+    data?: any;
+    timestamp: Date;
+}
 
 const prisma = new PrismaClient();
 
-export class LogService {
-  async getLogs(params: {
-    page: number;
-    pageSize: number;
-    search?: string;
-    level?: LogLevel;
-    source?: LogSource;
-  }) {
-    const { page, pageSize, search, level, source } = params;
-    const skip = (page - 1) * pageSize;
-
-    const where = {
-      ...(search && {
-        OR: [
-          { message: { contains: search } },
-          { details: { contains: search } }
-        ]
-      }),
-      ...(level && { level }),
-      ...(source && { source })
-    };
-
-    const [logs, total] = await Promise.all([
-      prisma.log.findMany({
-        where,
-        orderBy: { timestamp: 'desc' },
-        skip,
-        take: pageSize
-      }),
-      prisma.log.count({ where })
-    ]);
-
-    const stats = await prisma.log.groupBy({
-      by: ['level'],
-      _count: true,
-      where: {
-        timestamp: {
-          gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // 24小时内
+export const logService = {
+    async createLog(level: LogLevel, source: LogSource, message: string, data?: any) {
+        try {
+            await prisma.log.create({
+                data: {
+                    level,
+                    source,
+                    message,
+                    data: data ? JSON.stringify(data) : null,
+                    timestamp: new Date()
+                }
+            });
+        } catch (error) {
+            console.error('Failed to create log:', error);
         }
-      }
-    });
+    },
 
-    return {
-      logs,
-      totalPages: Math.ceil(total / pageSize),
-      stats: {
-        total,
-        info: stats.find(s => s.level === 'INFO')?._count || 0,
-        warning: stats.find(s => s.level === 'WARNING')?._count || 0,
-        error: stats.find(s => s.level === 'ERROR')?._count || 0
-      }
-    };
-  }
+    async getLogs(level?: LogLevel, source?: LogSource, startDate?: Date, endDate?: Date) {
+        const where: any = {};
+        
+        if (level) where.level = level;
+        if (source) where.source = source;
+        if (startDate || endDate) {
+            where.timestamp = {};
+            if (startDate) where.timestamp.gte = startDate;
+            if (endDate) where.timestamp.lte = endDate;
+        }
 
-  async createLog(data: {
-    level: LogLevel;
-    message: string;
-    source: LogSource;
-    details?: string;
-  }) {
-    return prisma.log.create({
-      data: {
-        ...data,
-        timestamp: new Date()
-      }
-    });
-  }
-} 
+        return await prisma.log.findMany({
+            where,
+            orderBy: { timestamp: 'desc' }
+        });
+    },
+
+    async getLogStats() {
+        const [total, byLevel, bySource] = await Promise.all([
+            prisma.log.count(),
+            prisma.log.groupBy({
+                by: ['level'],
+                _count: true
+            }),
+            prisma.log.groupBy({
+                by: ['source'],
+                _count: true
+            })
+        ]);
+
+        return {
+            total,
+            byLevel: byLevel.reduce((acc, curr) => {
+                acc[curr.level] = curr._count;
+                return acc;
+            }, {} as Record<string, number>),
+            bySource: bySource.reduce((acc, curr) => {
+                acc[curr.source] = curr._count;
+                return acc;
+            }, {} as Record<string, number>)
+        };
+    }
+}; 

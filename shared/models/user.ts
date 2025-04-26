@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
 
 export interface IUser {
+    _id?: string;
     email: string;
     password: string;
     name: string;
     role: string;
     status: string;
+    balance?: number;
     lastLogin?: Date;
     createdAt: Date;
     updatedAt: Date;
@@ -17,6 +19,7 @@ const userSchema = new mongoose.Schema<IUser>({
     name: { type: String, required: true },
     role: { type: String, required: true, enum: ['admin', 'user'] },
     status: { type: String, required: true, enum: ['active', 'inactive'], default: 'active' },
+    balance: { type: Number, default: 0 },
     lastLogin: { type: Date },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
