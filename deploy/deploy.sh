@@ -284,18 +284,18 @@ build_images() {
     if [ -d "../admin-api" ]; then
         cd "../admin-api"
         
-        # 复制共享目录
-        if [ -d "../shared" ]; then
-            log "复制共享目录..."
-            # 如果目标目录已存在，先删除
-            if [ -d "shared" ]; then
-                rm -rf shared
-            fi
-            # 复制共享目录
-            cp -r "../shared" .
-        else
+        # 确保shared目录存在
+        if [ ! -d "../shared" ]; then
             error "共享目录不存在"
         fi
+        
+        # 如果shared目录已存在，先删除
+        if [ -d "shared" ]; then
+            rm -rf shared
+        fi
+        
+        # 复制shared目录
+        cp -r "../shared" .
         
         # 安装依赖
         log "安装依赖..."
@@ -331,18 +331,18 @@ build_images() {
     if [ -d "../user-api" ]; then
         cd "../user-api"
         
-        # 复制共享目录
-        if [ -d "../shared" ]; then
-            log "复制共享目录..."
-            # 如果目标目录已存在，先删除
-            if [ -d "shared" ]; then
-                rm -rf shared
-            fi
-            # 复制共享目录
-            cp -r "../shared" .
-        else
+        # 确保shared目录存在
+        if [ ! -d "../shared" ]; then
             error "共享目录不存在"
         fi
+        
+        # 如果shared目录已存在，先删除
+        if [ -d "shared" ]; then
+            rm -rf shared
+        fi
+        
+        # 复制shared目录
+        cp -r "../shared" .
         
         # 安装依赖
         log "安装依赖..."
