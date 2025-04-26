@@ -71,14 +71,14 @@ export const logService = {
 
         return {
             total,
-            byLevel: byLevel.reduce((acc, curr) => {
+            byLevel: byLevel.reduce((acc: Record<string, number>, curr: { level: string; _count: number }) => {
                 acc[curr.level] = curr._count;
                 return acc;
-            }, {} as Record<string, number>),
-            bySource: bySource.reduce((acc, curr) => {
+            }, {}),
+            bySource: bySource.reduce((acc: Record<string, number>, curr: { source: string; _count: number }) => {
                 acc[curr.source] = curr._count;
                 return acc;
-            }, {} as Record<string, number>)
+            }, {})
         };
     }
 }; 

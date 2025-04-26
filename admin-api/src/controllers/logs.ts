@@ -1,33 +1,33 @@
 import { Request, Response } from 'express';
-import { LogService } from '../services/logs';
-import { LogLevel, LogSource } from '@prisma/client';
+import { logService, LogLevel, LogSource } from '../services/logs';
 
-const logService = new LogService();
+export const getLogs = async (req: Request, res: Response) => {
+    try {
+        const { level, source, startDate, endDate } = req.query;
+        
+        const logs = await logService.getLogs(
+            level as LogLevel,
+            source as LogSource,
+            startDate ? new Date(startDate as string) : undefined,
+            endDate ? new Date(endDate as string) : undefined
+        );
+        
+        res.json(logs);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to get logs' });
+    }
+};
+
+export const getLogStats = async (req: Request, res: Response) => {
+    try {
+        const stats = await logService.getLogStats();
+        res.json(stats);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to get log stats' });
+    }
+};
 
 export class LogController {
-  async getLogs(req: Request, res: Response) {
-    try {
-      const page = parseInt(req.query.page as string) || 1;
-      const pageSize = parseInt(req.query.pageSize as string) || 10;
-      const search = req.query.search as string;
-      const level = req.query.level as LogLevel;
-      const source = req.query.source as LogSource;
-
-      const result = await logService.getLogs({
-        page,
-        pageSize,
-        search,
-        level,
-        source
-      });
-
-      res.json(result);
-    } catch (error) {
-      console.error('Error fetching logs:', error);
-      res.status(500).json({ error: 'Failed to fetch logs' });
-    }
-  }
-
   async createLog(req: Request, res: Response) {
     try {
       const { level, message, source, details } = req.body;

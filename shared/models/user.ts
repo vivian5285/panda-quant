@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 export interface IUser {
     _id?: string;
@@ -11,6 +12,10 @@ export interface IUser {
     lastLogin?: Date;
     createdAt: Date;
     updatedAt: Date;
+    comparePassword: (password: string) => Promise<boolean>;
+    $assertPopulated: () => void;
+    $clone: () => any;
+    $getAllSubdocs: () => any[];
 }
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -24,6 +29,11 @@ const userSchema = new mongoose.Schema<IUser>({
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });
+
+// 添加密码比较方法
+userSchema.methods.comparePassword = async function(password: string): Promise<boolean> {
+    return await bcrypt.compare(password, this.password);
+};
 
 // 添加静态方法
 userSchema.statics.createAdmin = async function(email: string, password: string, name: string) {
