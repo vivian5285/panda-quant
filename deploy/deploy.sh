@@ -221,6 +221,12 @@ create_directories() {
     mkdir -p admin-ui/prisma
     mkdir -p user-ui/prisma
     mkdir -p backups
+    mkdir -p shared
+    
+    # 创建共享目录结构
+    mkdir -p shared/types
+    mkdir -p shared/models
+    mkdir -p shared/interfaces
     
     # 确保Prisma schema文件存在
     log "检查Prisma schema文件..."
