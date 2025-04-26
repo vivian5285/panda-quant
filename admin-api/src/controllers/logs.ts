@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
-import { logService, LogLevel, LogSource } from '../services/logs';
+import { LogService, LogLevel, LogSource } from '../services/logs';
+
+const logService = new LogService();
 
 export const getLogs = async (req: Request, res: Response) => {
     try {

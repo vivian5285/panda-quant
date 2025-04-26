@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthRequest } from '@shared/types/auth';
-import { Asset, UserAsset } from '@shared/models/asset';
-import { IUser } from '@shared/models/user';
+import { AuthRequest } from '../../shared/types/auth';
+import { Asset, UserAsset } from '../../shared/models/asset';
+import { IUser } from '../../shared/models/user';
 import { Transaction } from '../models/Transaction';
 import { FeeService } from '../services/feeService';
 

@@ -255,6 +255,29 @@ create_network() {
     fi
 }
 
+# 构建Docker镜像
+build_images() {
+    log "构建Docker镜像..."
+    
+    # 构建admin-api
+    log "构建admin-api镜像..."
+    cd admin-api
+    docker build --build-arg MONGODB_ADMIN_URI=$MONGODB_ADMIN_URI \
+                 --build-arg REDIS_ADMIN_URL=$REDIS_ADMIN_URL \
+                 --build-arg JWT_SECRET=$JWT_SECRET \
+                 -t panda-quant-admin-api .
+    cd ..
+    
+    # 构建user-api
+    log "构建user-api镜像..."
+    cd user-api
+    docker build --build-arg MONGODB_USER_URI=$MONGODB_USER_URI \
+                 --build-arg REDIS_USER_URL=$REDIS_USER_URL \
+                 --build-arg JWT_SECRET=$JWT_SECRET \
+                 -t panda-quant-user-api .
+    cd ..
+}
+
 # 部署管理后台
 deploy_admin() {
     log "部署管理后台..."
@@ -508,6 +531,7 @@ main() {
     create_directories
     create_network
     pull_latest_code
+    build_images
     deploy_admin
     deploy_user
     check_services
