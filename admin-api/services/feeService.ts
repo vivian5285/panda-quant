@@ -5,6 +5,11 @@ import { UserAsset } from '@shared/models/asset';
 import { Transaction } from '@models/Transaction';
 import { Asset } from '../models/Asset';
 import cron from 'node-cron';
+import { PrismaClient } from '@prisma/client';
+import { IAsset } from '@shared/models/asset';
+import { IFee } from '@shared/models/fee';
+
+const prisma = new PrismaClient();
 
 // 每月1号凌晨执行
 const FEE_SCHEDULE = '0 0 1 * *';
@@ -129,4 +134,46 @@ export class FeeService {
       throw error;
     }
   }
-} 
+
+  async calculateFee(user: IUser, asset: IAsset, amount: number): Promise<number> {
+    // 这里实现费用计算逻辑
+    return amount * 0.01; // 示例：1% 的费用
+  }
+
+  async createFee(userId: string, amount: number, type: string): Promise<IFee> {
+    return await prisma.fee.create({
+      data: {
+        userId,
+        amount,
+        type,
+        status: 'pending'
+      }
+    });
+  }
+
+  async processFee(feeId: string): Promise<void> {
+    const fee = await prisma.fee.findUnique({
+      where: { id: feeId }
+    });
+
+    if (!fee) {
+      throw new Error('Fee not found');
+    }
+
+    // 创建交易记录
+    await Transaction.create({
+      userId: fee.userId,
+      type: 'fee',
+      amount: fee.amount,
+      status: 'completed'
+    });
+
+    // 更新费用状态
+    await prisma.fee.update({
+      where: { id: feeId },
+      data: { status: 'completed' }
+    });
+  }
+}
+
+export const feeService = new FeeService(); 

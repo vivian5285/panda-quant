@@ -1,47 +1,22 @@
-import mongoose from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 
-const transactionSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  type: {
-    type: String,
-    enum: ['DEPOSIT', 'FEE'],
-    required: true
-  },
-  amount: {
-    type: Number,
-    required: true
-  },
-  chain: {
-    type: String,
-    enum: ['BSC', 'ARB', 'TRC', 'OP', 'SOL'],
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ['PENDING', 'COMPLETED', 'FAILED'],
-    default: 'PENDING'
-  },
-  txHash: {
-    type: String,
-    required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
+export interface ITransaction extends Document {
+  _id: string;
+  userId: string;
+  type: string;
+  amount: number;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const transactionSchema = new Schema<ITransaction>({
+  userId: { type: String, required: true },
+  type: { type: String, required: true },
+  amount: { type: Number, required: true },
+  status: { type: String, required: true, default: 'pending' },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
-transactionSchema.pre('save', function(next) {
-  this.updatedAt = new Date();
-  next();
-});
-
-export const Transaction = mongoose.model('Transaction', transactionSchema); 
+export const Transaction = model<ITransaction>('Transaction', transactionSchema); 

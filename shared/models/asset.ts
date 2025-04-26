@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
-export interface IAsset {
+export interface IAsset extends Document {
     _id: string;
     name: string;
     symbol: string;
@@ -8,11 +8,12 @@ export interface IAsset {
     chain: string;
     address: string;
     decimals: number;
+    status: string;
     createdAt: Date;
     updatedAt: Date;
 }
 
-export interface IUserAsset {
+export interface IUserAsset extends Document {
     _id: string;
     userId: string;
     assetId: string;
