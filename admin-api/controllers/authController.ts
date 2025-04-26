@@ -179,20 +179,24 @@ export const resetPassword = async (req: Request, res: Response) => {
 
 export const updateUserProfile = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.user as { userId: string };
+    const user = req.user as IUser;
+    if (!user || !user._id) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     const { email, password, status } = req.body;
 
-    const user = await User.findById(userId);
-    if (!user) {
+    const existingUser = await User.findById(user._id);
+    if (!existingUser) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     // 更新可修改的字段
-    if (email) user.email = email;
-    if (password) user.password = password;
-    if (status) user.status = status;
+    if (email) existingUser.email = email;
+    if (password) existingUser.password = password;
+    if (status) existingUser.status = status;
 
-    await user.save();
+    await existingUser.save();
     res.json({ message: 'Profile updated successfully' });
   } catch (error) {
     console.error('Update profile error:', error);
