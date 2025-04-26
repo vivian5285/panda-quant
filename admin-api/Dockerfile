@@ -17,7 +17,13 @@ COPY . .
 RUN mkdir -p prisma
 
 # Copy Prisma schema if it exists
-COPY prisma/schema.prisma ./prisma/ || echo "No Prisma schema found"
+RUN if [ -f prisma/schema.prisma ]; then \
+        echo "Prisma schema found, copying..." && \
+        cp prisma/schema.prisma ./prisma/; \
+    else \
+        echo "No Prisma schema found, creating empty file..." && \
+        touch ./prisma/schema.prisma; \
+    fi
 
 # Generate Prisma client
 RUN if [ -f prisma/schema.prisma ]; then \
@@ -45,20 +51,7 @@ RUN npm install --production
 # Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-
-# Create prisma directory if it doesn't exist
-RUN mkdir -p prisma
-
-# Copy Prisma schema if it exists
-COPY prisma/schema.prisma ./prisma/ || echo "No Prisma schema found"
-
-# Generate Prisma client
-RUN if [ -f prisma/schema.prisma ]; then \
-        echo "Prisma schema found, generating client..." && \
-        npx prisma generate; \
-    else \
-        echo "No Prisma schema found, skipping client generation..."; \
-    fi
+COPY --from=builder /app/prisma ./prisma/
 
 # Expose port
 EXPOSE 8081
