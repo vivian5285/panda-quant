@@ -13,9 +13,6 @@ RUN npm install && npm install -g typescript tsconfig-paths prisma
 # Copy source code
 COPY . .
 
-# Copy shared directory (注意：这个目录需要在构建上下文中)
-COPY shared ./shared
-
 # Generate Prisma client
 RUN prisma generate
 
@@ -32,7 +29,6 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/shared ./shared
 
 # Expose port
 EXPOSE 3000
