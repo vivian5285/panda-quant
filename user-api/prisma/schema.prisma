@@ -11,7 +11,7 @@ datasource db {
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
   email         String   @unique
   username      String?
   password      String
@@ -29,8 +29,8 @@ model User {
 }
 
 model DepositAddress {
-  id        String   @id @default(cuid())
-  userId    String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
   chain     String
   address   String
   createdAt DateTime @default(now())
@@ -42,8 +42,8 @@ model DepositAddress {
 }
 
 model DepositRecord {
-  id              String   @id @default(cuid())
-  userId          String
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
   chain           String
   amount          String
   status          String   @default("pending")
