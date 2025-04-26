@@ -10,8 +10,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source code
+# Copy source code and environment variables
 COPY . .
+COPY ../deploy/.env ./
 
 # Create prisma directory if it doesn't exist
 RUN mkdir -p prisma
@@ -44,6 +45,7 @@ RUN npm install --production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/prisma ./prisma/
+COPY --from=builder /app/.env ./
 
 # Expose port
 EXPOSE 8081
