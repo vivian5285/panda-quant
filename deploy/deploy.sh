@@ -222,35 +222,6 @@ create_directories() {
     mkdir -p user-ui/prisma
     mkdir -p backups
     
-    # 创建共享目录
-    mkdir -p shared/types
-    mkdir -p shared/models
-    
-    # 复制共享类型和模型文件
-    log "复制共享类型和模型文件..."
-    
-    # 复制类型文件
-    if [ -d "../shared/types" ] && [ "$(ls -A ../shared/types 2>/dev/null)" ]; then
-        log "从上级目录复制类型文件..."
-        cp -r ../shared/types/* shared/types/ 2>/dev/null || warn "复制类型文件时出错，将使用空目录"
-    elif [ -d "shared/types" ] && [ "$(ls -A shared/types 2>/dev/null)" ]; then
-        log "从当前目录复制类型文件..."
-        cp -r shared/types/* shared/types/ 2>/dev/null || warn "复制类型文件时出错，将使用空目录"
-    else
-        warn "未找到共享类型文件，将使用空目录"
-    fi
-    
-    # 复制模型文件
-    if [ -d "../shared/models" ] && [ "$(ls -A ../shared/models 2>/dev/null)" ]; then
-        log "从上级目录复制模型文件..."
-        cp -r ../shared/models/* shared/models/ 2>/dev/null || warn "复制模型文件时出错，将使用空目录"
-    elif [ -d "shared/models" ] && [ "$(ls -A shared/models 2>/dev/null)" ]; then
-        log "从当前目录复制模型文件..."
-        cp -r shared/models/* shared/models/ 2>/dev/null || warn "复制模型文件时出错，将使用空目录"
-    else
-        warn "未找到共享模型文件，将使用空目录"
-    fi
-    
     # 确保Prisma schema文件存在
     log "检查Prisma schema文件..."
     if [ ! -f "../admin-api/prisma/schema.prisma" ]; then

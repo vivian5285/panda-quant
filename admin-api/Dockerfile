@@ -16,21 +16,13 @@ COPY . .
 # Create prisma directory if it doesn't exist
 RUN mkdir -p prisma
 
-# Copy Prisma schema if it exists
-RUN if [ -f prisma/schema.prisma ]; then \
-        echo "Prisma schema found, copying..." && \
-        cp prisma/schema.prisma ./prisma/; \
-    else \
-        echo "No Prisma schema found, creating empty file..." && \
-        touch ./prisma/schema.prisma; \
-    fi
-
 # Generate Prisma client
 RUN if [ -f prisma/schema.prisma ]; then \
         echo "Prisma schema found, generating client..." && \
         npx prisma generate; \
     else \
-        echo "No Prisma schema found, skipping client generation..."; \
+        echo "No Prisma schema found, skipping client generation..." && \
+        touch prisma/schema.prisma; \
     fi
 
 # Build the app
