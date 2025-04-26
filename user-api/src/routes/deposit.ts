@@ -1,66 +1,69 @@
 import { Router } from 'express';
 import { authenticateToken } from '../middleware/auth';
-import { DepositService } from '../services/deposit';
-import { validateRequest } from '../middleware/validate';
-import { z } from 'zod';
+import { validateDepositRequest } from '../middleware/validate';
+import { depositService } from '../services/deposit';
+import { Request, Response } from 'express';
+import { IUser } from '@shared/models/user';
 
 const router = Router();
-const depositService = new DepositService();
 
-// 获取充值地址
-const getDepositAddressSchema = z.object({
-  chain: z.enum(['OP', 'MATIC', 'TRX', 'BSC', 'ARB'])
+// 获取存款地址
+router.get('/address', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const user = req.user as IUser;
+    if (!user || !user._id) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { chain } = req.query;
+    if (!chain || typeof chain !== 'string') {
+      return res.status(400).json({ message: 'Invalid chain parameter' });
+    }
+
+    const address = await depositService.getDepositAddress(user._id.toString(), chain);
+    res.json({ address });
+  } catch (error) {
+    console.error('Get deposit address error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
-router.get('/getDepositAddress', 
-  authenticateToken,
-  validateRequest({ query: getDepositAddressSchema }),
-  async (req, res) => {
-    try {
-      const { chain } = req.query;
-      const address = await depositService.getDepositAddress(req.user.id, chain as string);
-      res.json({ address });
-    } catch (error) {
-      res.status(500).json({ error: '获取充值地址失败' });
+// 创建存款记录
+router.post('/record', authenticateToken, validateDepositRequest, async (req: Request, res: Response) => {
+  try {
+    const user = req.user as IUser;
+    if (!user || !user._id) {
+      return res.status(401).json({ message: 'Unauthorized' });
     }
-  }
-);
 
-// 检查充值状态
-const checkDepositStatusSchema = z.object({
-  transactionHash: z.string(),
-  chain: z.enum(['OP', 'MATIC', 'TRX', 'BSC', 'ARB'])
+    const { chain, amount, transactionHash } = req.body;
+    const record = await depositService.createDepositRecord(
+      user._id.toString(),
+      chain,
+      amount,
+      transactionHash
+    );
+    res.status(201).json(record);
+  } catch (error) {
+    console.error('Create deposit record error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
-router.get('/checkDepositStatus',
-  authenticateToken,
-  validateRequest({ query: checkDepositStatusSchema }),
-  async (req, res) => {
-    try {
-      const { transactionHash, chain } = req.query;
-      const status = await depositService.checkDepositStatus(
-        req.user.id,
-        transactionHash as string,
-        chain as string
-      );
-      res.json({ status });
-    } catch (error) {
-      res.status(500).json({ error: '检查充值状态失败' });
+// 获取存款记录
+router.get('/records', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const user = req.user as IUser;
+    if (!user || !user._id) {
+      return res.status(401).json({ message: 'Unauthorized' });
     }
-  }
-);
 
-// 获取充值历史
-router.get('/getDepositHistory',
-  authenticateToken,
-  async (req, res) => {
-    try {
-      const history = await depositService.getDepositHistory(req.user.id);
-      res.json(history);
-    } catch (error) {
-      res.status(500).json({ error: '获取充值历史失败' });
-    }
+    const records = await depositService.getDepositRecords(user._id.toString());
+    res.json(records);
+  } catch (error) {
+    console.error('Get deposit records error:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
-);
+});
 
 export default router; 
