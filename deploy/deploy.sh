@@ -326,7 +326,7 @@ pull_latest_code() {
 create_network() {
     log "创建Docker网络..."
     if ! docker network ls | grep -q "panda-quant-network"; then
-        docker-compose -f docker-compose.network.yml up -d
+        docker network create panda-quant-network
     fi
 }
 
