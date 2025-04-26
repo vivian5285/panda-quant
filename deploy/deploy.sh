@@ -224,20 +224,20 @@ create_directories() {
     
     # 复制docker-compose文件
     log "复制docker-compose配置文件..."
-    if [ -f "../deploy/docker-compose.admin.yml" ]; then
-        cp "../deploy/docker-compose.admin.yml" .
+    if [ -f "docker-compose.admin.yml" ]; then
+        log "docker-compose.admin.yml 已存在"
     else
         error "未找到docker-compose.admin.yml文件"
     fi
     
-    if [ -f "../deploy/docker-compose.user.yml" ]; then
-        cp "../deploy/docker-compose.user.yml" .
+    if [ -f "docker-compose.user.yml" ]; then
+        log "docker-compose.user.yml 已存在"
     else
         error "未找到docker-compose.user.yml文件"
     fi
     
-    if [ -f "../deploy/docker-compose.network.yml" ]; then
-        cp "../deploy/docker-compose.network.yml" .
+    if [ -f "docker-compose.network.yml" ]; then
+        log "docker-compose.network.yml 已存在"
     else
         error "未找到docker-compose.network.yml文件"
     fi
