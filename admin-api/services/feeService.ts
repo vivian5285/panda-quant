@@ -1,6 +1,6 @@
 import { Asset } from '../models/Asset';
 import { Transaction } from '../models/Transaction';
-import { User } from '../models/User';
+import { User } from '../../shared/models/user';
 import cron from 'node-cron';
 
 // 每月1号凌晨执行

@@ -1,12 +1,11 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
-export interface IUser {
-    _id?: string;
+export interface IUser extends mongoose.Document {
     email: string;
     password: string;
     name: string;
-    role: string;
+    role: 'admin' | 'user';
     status: string;
     balance?: number;
     lastLogin?: Date;
@@ -18,11 +17,11 @@ export interface IUser {
     $getAllSubdocs: () => any[];
 }
 
-const userSchema = new mongoose.Schema<IUser>({
+const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     name: { type: String, required: true },
-    role: { type: String, required: true, enum: ['admin', 'user'] },
+    role: { type: String, enum: ['admin', 'user'], default: 'user' },
     status: { type: String, required: true, enum: ['active', 'inactive'], default: 'active' },
     balance: { type: Number, default: 0 },
     lastLogin: { type: Date },
@@ -32,19 +31,13 @@ const userSchema = new mongoose.Schema<IUser>({
 
 // 添加密码比较方法
 userSchema.methods.comparePassword = async function(password: string): Promise<boolean> {
-    return await bcrypt.compare(password, this.password);
+    return bcrypt.compare(password, this.password);
 };
 
 // 添加静态方法
 userSchema.statics.createAdmin = async function(email: string, password: string, name: string) {
-    const admin = new this({
-        email,
-        password,
-        name,
-        role: 'admin',
-        status: 'active'
-    });
-    return await admin.save();
+    const hashedPassword = await bcrypt.hash(password, 10);
+    return this.create({ email, password: hashedPassword, name, role: 'admin' });
 };
 
 export const User = mongoose.model<IUser>('User', userSchema); 

@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { StrategyExecutionRequest, StrategyExecutionResponse } from '../interfaces/api';
+import { Strategy } from '../models/Strategy';
+import { IStrategy } from '../../shared/interfaces/strategy';
 
 const serverClient = axios.create({
   baseURL: process.env.SERVER_URL,
@@ -43,4 +45,20 @@ export const updateStrategyStatus = async (
     console.error('Error updating strategy status:', error);
     throw error;
   }
-}; 
+};
+
+export class StrategyService {
+    private static instance: StrategyService;
+    private constructor() {}
+
+    public static getInstance(): StrategyService {
+        if (!StrategyService.instance) {
+            StrategyService.instance = new StrategyService();
+        }
+        return StrategyService.instance;
+    }
+
+    public async createStrategy(strategy: IStrategy) {
+        // Implementation
+    }
+} 

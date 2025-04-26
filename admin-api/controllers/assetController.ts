@@ -206,7 +206,7 @@ export const calculateTotalValue = async (req: AuthRequest, res: Response) => {
         const assets = await Asset.find();
 
         const totalValue = userAssets.reduce((sum: number, userAsset: any) => {
-            const asset = assets.find(a => a._id.toString() === userAsset.assetId);
+            const asset = assets.find((a: any) => a._id.toString() === userAsset.assetId);
             return sum + (asset ? asset.price * userAsset.amount : 0);
         }, 0);
 
