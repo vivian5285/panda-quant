@@ -8,7 +8,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install dependencies
-RUN npm install && npm install -g typescript
+RUN npm install && npm install -g typescript tsconfig-paths
 
 # Copy source code
 COPY . .
@@ -50,4 +50,4 @@ ENV PORT=3000
 EXPOSE 3000
 
 # Start the application
-CMD ["node", "dist/index.js"] 
+CMD ["node", "-r", "tsconfig-paths/register", "dist/index.js"] 

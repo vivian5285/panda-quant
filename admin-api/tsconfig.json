@@ -11,7 +11,11 @@
     "typeRoots": ["./node_modules/@types", "./types"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/*"]
+      "@shared/*": ["../shared/*"],
+      "@models/*": ["./models/*"],
+      "@controllers/*": ["./controllers/*"],
+      "@services/*": ["./services/*"],
+      "@types/*": ["./types/*"]
     }
   },
   "include": ["**/*.ts", "types/**/*.d.ts"],

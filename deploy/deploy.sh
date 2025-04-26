@@ -297,6 +297,18 @@ build_images() {
             error "共享目录不存在"
         fi
         
+        # 安装依赖
+        log "安装依赖..."
+        if ! npm install && npm install -g typescript tsconfig-paths; then
+            error "依赖安装失败"
+        fi
+        
+        # 生成 Prisma 客户端
+        log "生成 Prisma 客户端..."
+        if ! npx prisma generate; then
+            error "Prisma 客户端生成失败"
+        fi
+        
         # 构建镜像
         if ! docker build \
             --build-arg MONGODB_ADMIN_URI="${MONGODB_ADMIN_URI}" \
@@ -330,6 +342,18 @@ build_images() {
             cp -r "../shared" .
         else
             error "共享目录不存在"
+        fi
+        
+        # 安装依赖
+        log "安装依赖..."
+        if ! npm install && npm install -g typescript tsconfig-paths; then
+            error "依赖安装失败"
+        fi
+        
+        # 生成 Prisma 客户端
+        log "生成 Prisma 客户端..."
+        if ! npx prisma generate; then
+            error "Prisma 客户端生成失败"
         fi
         
         # 构建镜像
