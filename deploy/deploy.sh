@@ -9,6 +9,9 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
+# 设置工作目录
+WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 # 日志函数
 log() {
     echo -e "${GREEN}[$(date '+%Y-%m-%d %H:%M:%S')] $1${NC}"
