@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies including TypeScript globally
+RUN npm install && npm install -g typescript
 
 # Copy source code
 COPY . .
@@ -19,7 +19,7 @@ RUN mkdir -p prisma
 # Generate Prisma client
 RUN if [ -f prisma/schema.prisma ]; then \
         echo "Prisma schema found, generating client..." && \
-        MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI} npx prisma generate; \
+        npx prisma generate; \
     else \
         echo "No Prisma schema found, skipping client generation..." && \
         touch prisma/schema.prisma; \
@@ -46,6 +46,10 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/prisma ./prisma/
 
 # Set environment variables
+ARG MONGODB_ADMIN_URI
+ARG REDIS_ADMIN_URL
+ARG JWT_SECRET
+
 ENV MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI}
 ENV REDIS_ADMIN_URL=${REDIS_ADMIN_URL}
 ENV JWT_SECRET=${JWT_SECRET}

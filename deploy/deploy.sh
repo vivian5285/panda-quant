@@ -271,8 +271,8 @@ deploy_admin() {
         ln -sf "$current_dir/shared" .
         
         if ! docker build \
-            --build-arg MONGODB_ADMIN_URI="mongodb://admin:PandaQuant%402024@mongodb:27017/panda-quant-admin?authSource=admin" \
-            --build-arg REDIS_ADMIN_URL="redis://:PandaQuant%402024@redis:6379" \
+            --build-arg MONGODB_ADMIN_URI="${MONGODB_ADMIN_URI}" \
+            --build-arg REDIS_ADMIN_URL="${REDIS_ADMIN_URL}" \
             --build-arg JWT_SECRET="${JWT_SECRET}" \
             -t panda-quant-admin-api .; then
             error "管理后台API镜像构建失败"
