@@ -6,4 +6,5 @@ export interface AuthRequest extends Request {
         balance?: number;
         [key: string]: any;
     };
+    body?: any;
 } 

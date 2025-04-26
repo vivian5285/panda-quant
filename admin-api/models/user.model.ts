@@ -1,24 +1,9 @@
-import { Schema, model, Document } from 'mongoose';
-import bcrypt from 'bcrypt';
-import { IUser } from '../../shared/models/user';
+import mongoose, { Schema, Document, Types } from 'mongoose';
+import bcrypt from 'bcryptjs';
+import { IUser as SharedIUser } from '../../shared/models/user';
 
-export interface IUser extends Document {
-  email: string;
-  password: string;
-  balance: number;
-  status: 'active' | 'suspended' | 'inactive';
-  role: 'user' | 'admin';
-  referralCode?: string;
-  referredBy?: mongoose.Types.ObjectId;
-  createdAt: Date;
-  updatedAt: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>;
-  username?: string;
-  walletAddress?: string;
-  isAdmin: boolean;
-  adminType?: string;
-  permissions?: mongoose.Types.Mixed;
-  lastLogin?: Date;
+export interface IUser extends SharedIUser {
+  // 添加任何额外的字段
 }
 
 const userSchema = new Schema<IUser>({
@@ -26,8 +11,8 @@ const userSchema = new Schema<IUser>({
   username: { type: String },
   password: { type: String, required: true },
   walletAddress: { type: String },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
-  status: { type: String, enum: ['active', 'suspended', 'inactive'], default: 'active' },
+  role: { type: String, enum: ['admin', 'user'], default: 'user' },
+  status: { type: String, required: true, enum: ['active', 'inactive'], default: 'active' },
   isAdmin: { type: Boolean, default: false },
   adminType: { type: String },
   permissions: { type: Schema.Types.Mixed, default: {} },
@@ -36,9 +21,8 @@ const userSchema = new Schema<IUser>({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
   referralCode: { type: String, unique: true, sparse: true },
-  referredBy: { type: Schema.Types.ObjectId, ref: 'User' }
-}, {
-  timestamps: true,
+  referredBy: { type: Schema.Types.ObjectId, ref: 'User' },
+  name: { type: String, required: true },
 });
 
 // 密码加密中间件
@@ -79,4 +63,4 @@ userSchema.statics.createAdmin = async function(email: string, password: string)
   });
 };
 
-export const User = model<IUser>('User', userSchema); 
+export const User = mongoose.model<IUser>('User', userSchema); 

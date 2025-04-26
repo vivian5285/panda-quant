@@ -1,4 +1,4 @@
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
@@ -16,7 +16,7 @@ export interface IUser extends Document {
     createdAt: Date;
     updatedAt: Date;
     referralCode?: string;
-    referredBy?: string;
+    referredBy?: Types.ObjectId;
     comparePassword: (candidatePassword: string) => Promise<boolean>;
 }
 

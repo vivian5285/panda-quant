@@ -17,6 +17,11 @@ const FEE_SCHEDULE = '0 0 1 * *';
 // 基础托管费
 const BASE_FEE = 100;
 
+// 扩展IAsset接口，添加chain属性
+interface IAssetWithChain extends IAsset {
+    chain: string;
+}
+
 export class FeeService {
   private static instance: FeeService;
 
@@ -75,7 +80,7 @@ export class FeeService {
         });
 
         // 更新用户资产
-        const mainAsset = assets.find(asset => asset.chain === 'BSC');
+        const mainAsset = assets.find(asset => (asset as IAssetWithChain).chain === 'BSC');
         if (mainAsset) {
           mainAsset.balance -= feeAmount;
           await mainAsset.save();
