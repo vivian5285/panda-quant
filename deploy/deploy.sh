@@ -250,11 +250,55 @@ create_directories() {
     if [ ! -f "$WORKSPACE_DIR/admin-api/prisma/schema.prisma" ]; then
         warn "未找到管理后台API的Prisma schema文件，将创建空文件"
         touch "$WORKSPACE_DIR/admin-api/prisma/schema.prisma"
+        # 添加基本的Prisma schema内容
+        cat > "$WORKSPACE_DIR/admin-api/prisma/schema.prisma" << EOF
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_ADMIN_URI")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  status    String   @default("active")
+  balance   Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+EOF
     fi
     
     if [ ! -f "$WORKSPACE_DIR/user-api/prisma/schema.prisma" ]; then
         warn "未找到用户端API的Prisma schema文件，将创建空文件"
         touch "$WORKSPACE_DIR/user-api/prisma/schema.prisma"
+        # 添加基本的Prisma schema内容
+        cat > "$WORKSPACE_DIR/user-api/prisma/schema.prisma" << EOF
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_USER_URI")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  status    String   @default("active")
+  balance   Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+EOF
     fi
     
     log "目录结构创建完成"
@@ -291,11 +335,15 @@ build_images() {
     # 生成 Prisma 客户端
     log "生成 Prisma 客户端..."
     if [ -f "prisma/schema.prisma" ]; then
-        # 尝试使用npx执行prisma命令
+        # 使用npx执行prisma命令
         if ! npx prisma generate; then
             warn "Prisma 客户端生成失败，尝试使用npm执行..."
             if ! npm run prisma:generate; then
-                warn "Prisma 客户端生成失败，尝试直接执行prisma命令..."
+                warn "Prisma 客户端生成失败，尝试使用全局prisma命令..."
+                if ! command -v prisma &> /dev/null; then
+                    warn "未找到全局prisma命令，尝试安装..."
+                    npm install -g prisma
+                fi
                 if ! prisma generate; then
                     error "Prisma 客户端生成失败，请检查权限和依赖"
                 fi
@@ -322,11 +370,15 @@ build_images() {
     # 生成 Prisma 客户端
     log "生成 Prisma 客户端..."
     if [ -f "prisma/schema.prisma" ]; then
-        # 尝试使用npx执行prisma命令
+        # 使用npx执行prisma命令
         if ! npx prisma generate; then
             warn "Prisma 客户端生成失败，尝试使用npm执行..."
             if ! npm run prisma:generate; then
-                warn "Prisma 客户端生成失败，尝试直接执行prisma命令..."
+                warn "Prisma 客户端生成失败，尝试使用全局prisma命令..."
+                if ! command -v prisma &> /dev/null; then
+                    warn "未找到全局prisma命令，尝试安装..."
+                    npm install -g prisma
+                fi
                 if ! prisma generate; then
                     error "Prisma 客户端生成失败，请检查权限和依赖"
                 fi
