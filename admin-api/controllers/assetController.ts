@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthRequest } from '../../shared/types/auth';
-import { Asset } from '../../shared/models/asset';
+import { Asset, UserAsset } from '../../shared/models/asset';
 import { User } from '../../shared/models/user';
 import { Transaction } from '../models/Transaction';
 import { FeeService } from '../services/feeService';
@@ -153,4 +153,65 @@ export const confirmDeposit = async (req: Request, res: Response) => {
     console.error('Error confirming deposit:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
+};
+
+export const getAssets = async (req: Request, res: Response) => {
+    try {
+        const assets = await Asset.find();
+        res.json(assets);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to get assets' });
+    }
+};
+
+export const getUserAssets = async (req: AuthRequest, res: Response) => {
+    try {
+        const userAssets = await UserAsset.find({ userId: req.user?._id });
+        res.json(userAssets);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to get user assets' });
+    }
+};
+
+export const updateUserAsset = async (req: AuthRequest, res: Response) => {
+    try {
+        const { assetId, amount } = req.body;
+        const userId = req.user?._id;
+
+        if (!userId) {
+            return res.status(401).json({ error: 'User not authenticated' });
+        }
+
+        const userAsset = await UserAsset.findOneAndUpdate(
+            { userId, assetId },
+            { amount, lastUpdated: new Date() },
+            { new: true, upsert: true }
+        );
+
+        res.json(userAsset);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update user asset' });
+    }
+};
+
+export const calculateTotalValue = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user?._id;
+
+        if (!userId) {
+            return res.status(401).json({ error: 'User not authenticated' });
+        }
+
+        const userAssets = await UserAsset.find({ userId });
+        const assets = await Asset.find();
+
+        const totalValue = userAssets.reduce((sum: number, userAsset: any) => {
+            const asset = assets.find(a => a._id.toString() === userAsset.assetId);
+            return sum + (asset ? asset.price * userAsset.amount : 0);
+        }, 0);
+
+        res.json({ totalValue });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to calculate total value' });
+    }
 }; 
