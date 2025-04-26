@@ -214,6 +214,8 @@ backup_database() {
 # 创建必要的目录结构
 create_directories() {
     log "创建必要的目录结构..."
+    
+    # 创建基本目录
     mkdir -p admin-api/prisma
     mkdir -p user-api/prisma
     mkdir -p admin-ui/prisma
@@ -226,35 +228,44 @@ create_directories() {
     
     # 复制共享类型和模型文件
     log "复制共享类型和模型文件..."
-    if [ -d "../shared/types" ]; then
-        cp -r ../shared/types/* shared/types/
-    elif [ -d "shared/types" ]; then
-        cp -r shared/types/* shared/types/
+    
+    # 复制类型文件
+    if [ -d "../shared/types" ] && [ "$(ls -A ../shared/types 2>/dev/null)" ]; then
+        log "从上级目录复制类型文件..."
+        cp -r ../shared/types/* shared/types/ 2>/dev/null || warn "复制类型文件时出错，将使用空目录"
+    elif [ -d "shared/types" ] && [ "$(ls -A shared/types 2>/dev/null)" ]; then
+        log "从当前目录复制类型文件..."
+        cp -r shared/types/* shared/types/ 2>/dev/null || warn "复制类型文件时出错，将使用空目录"
     else
-        warn "未找到共享类型目录，将创建空目录"
-        mkdir -p shared/types
+        warn "未找到共享类型文件，将使用空目录"
     fi
     
-    if [ -d "../shared/models" ]; then
-        cp -r ../shared/models/* shared/models/
-    elif [ -d "shared/models" ]; then
-        cp -r shared/models/* shared/models/
+    # 复制模型文件
+    if [ -d "../shared/models" ] && [ "$(ls -A ../shared/models 2>/dev/null)" ]; then
+        log "从上级目录复制模型文件..."
+        cp -r ../shared/models/* shared/models/ 2>/dev/null || warn "复制模型文件时出错，将使用空目录"
+    elif [ -d "shared/models" ] && [ "$(ls -A shared/models 2>/dev/null)" ]; then
+        log "从当前目录复制模型文件..."
+        cp -r shared/models/* shared/models/ 2>/dev/null || warn "复制模型文件时出错，将使用空目录"
     else
-        warn "未找到共享模型目录，将创建空目录"
-        mkdir -p shared/models
+        warn "未找到共享模型文件，将使用空目录"
     fi
     
     # 确保Prisma schema文件存在
     log "检查Prisma schema文件..."
     if [ ! -f "../admin-api/prisma/schema.prisma" ]; then
         warn "未找到管理后台API的Prisma schema文件，将创建空文件"
-        touch ../admin-api/prisma/schema.prisma
+        mkdir -p "../admin-api/prisma"
+        touch "../admin-api/prisma/schema.prisma"
     fi
     
     if [ ! -f "../user-api/prisma/schema.prisma" ]; then
         warn "未找到用户端API的Prisma schema文件，将创建空文件"
-        touch ../user-api/prisma/schema.prisma
+        mkdir -p "../user-api/prisma"
+        touch "../user-api/prisma/schema.prisma"
     fi
+    
+    log "目录结构创建完成"
 }
 
 # 拉取最新代码
