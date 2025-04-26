@@ -12,10 +12,11 @@ export interface IUser extends Document {
     isAdmin: boolean;
     adminType?: string;
     permissions?: any;
+    balance: number;
     lastLogin?: Date;
     createdAt: Date;
     updatedAt: Date;
-    comparePassword: (password: string) => Promise<boolean>;
+    comparePassword: (candidatePassword: string) => Promise<boolean>;
 }
 
 const userSchema = new mongoose.Schema({
@@ -31,8 +32,8 @@ const userSchema = new mongoose.Schema({
 });
 
 // 添加密码比较方法
-userSchema.methods.comparePassword = async function(password: string): Promise<boolean> {
-    return bcrypt.compare(password, this.password);
+userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+    return bcrypt.compare(candidatePassword, this.password);
 };
 
 // 添加静态方法

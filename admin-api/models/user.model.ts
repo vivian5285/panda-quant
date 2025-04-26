@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
+import { IUser } from '@shared/models/user';
 
 export interface IUser extends Document {
   email: string;
@@ -12,6 +13,12 @@ export interface IUser extends Document {
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
+  username?: string;
+  walletAddress?: string;
+  isAdmin: boolean;
+  adminType?: string;
+  permissions?: mongoose.Types.Mixed;
+  lastLogin?: Date;
 }
 
 const userSchema = new Schema<IUser>({
@@ -22,23 +29,44 @@ const userSchema = new Schema<IUser>({
     trim: true,
     lowercase: true,
   },
+  username: {
+    type: String,
+  },
   password: {
     type: String,
     required: true,
   },
-  balance: {
-    type: Number,
-    default: 0,
-  },
-  status: {
+  walletAddress: {
     type: String,
-    enum: ['active', 'suspended', 'inactive'],
-    default: 'active',
   },
   role: {
     type: String,
     enum: ['user', 'admin'],
     default: 'user',
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ['active', 'suspended', 'inactive'],
+    default: 'active',
+    required: true,
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
+  adminType: {
+    type: String,
+  },
+  permissions: {
+    type: Schema.Types.Mixed,
+  },
+  balance: {
+    type: Number,
+    default: 0,
+  },
+  lastLogin: {
+    type: Date,
   },
   referralCode: {
     type: String,
@@ -88,14 +116,15 @@ userSchema.index({ role: 1 });
 
 // 添加创建管理员账号的静态方法
 userSchema.statics.createAdmin = async function(email: string, password: string) {
-  const admin = new this({
+  const hashedPassword = await bcrypt.hash(password, 10);
+  return this.create({
     email,
-    password,
+    password: hashedPassword,
     role: 'admin',
     status: 'active',
+    isAdmin: true,
     balance: 0
   });
-  return await admin.save();
 };
 
 export const User = mongoose.model<IUser>('User', userSchema); 

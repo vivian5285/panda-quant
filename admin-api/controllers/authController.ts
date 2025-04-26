@@ -20,14 +20,7 @@ export const initAdmin = async () => {
     // 检查是否已存在管理员账号
     const existingAdmin = await User.findOne({ role: 'admin' });
     if (!existingAdmin) {
-      const hashedPassword = await bcrypt.hash(adminPassword, 10);
-      await User.create({
-        email: adminEmail,
-        password: hashedPassword,
-        role: 'admin',
-        status: 'active',
-        balance: 0
-      });
+      await User.createAdmin(adminEmail, adminPassword);
       console.log('Admin account created successfully');
     }
   } catch (error) {
@@ -45,29 +38,19 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
-    // 创建新用户，强制设置为普通用户角色
-    const newUser = new User({
+    // 创建新用户
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await User.create({
       email,
-      password,
-      referralCode: generateReferralCode(),
-      balance: 0,
+      password: hashedPassword,
+      role: 'user',
       status: 'active',
-      role: 'user' // 强制设置为普通用户角色
+      balance: 0
     });
-
-    // 如果提供了推荐码，查找推荐人
-    if (referralCode) {
-      const referrer = await User.findOne({ referralCode });
-      if (referrer) {
-        newUser.referredBy = referrer._id;
-      }
-    }
-
-    await newUser.save();
 
     // 生成 JWT token
     const token = jwt.sign(
-      { userId: newUser._id, email: newUser.email, role: newUser.role },
+      { id: newUser._id, email: newUser.email, role: newUser.role },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
@@ -79,8 +62,7 @@ export const register = async (req: Request, res: Response) => {
         email: newUser.email,
         role: newUser.role,
         balance: newUser.balance,
-        status: newUser.status,
-        referralCode: newUser.referralCode
+        status: newUser.status
       }
     });
   } catch (error) {
@@ -107,12 +89,15 @@ export const login = async (req: Request, res: Response) => {
 
     // 生成 JWT token
     const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
+      { id: user._id, email: user.email, role: user.role },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    // 返回用户信息和 token
+    // 更新最后登录时间
+    user.lastLogin = new Date();
+    await user.save();
+
     res.json({
       token,
       user: {
@@ -194,7 +179,10 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 
     // 更新可修改的字段
     if (email) existingUser.email = email;
-    if (password) existingUser.password = password;
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      existingUser.password = hashedPassword;
+    }
     if (status) existingUser.status = status;
 
     await existingUser.save();
