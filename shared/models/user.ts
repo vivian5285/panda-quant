@@ -2,12 +2,15 @@ import mongoose, { Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
+    _id: string;
+    userId: string;
     email: string;
     password: string;
     name: string;
     role: 'admin' | 'user';
     status: 'active' | 'inactive';
     balance: number;
+    referralCode?: string;
     lastLogin?: Date;
     createdAt: Date;
     updatedAt: Date;
