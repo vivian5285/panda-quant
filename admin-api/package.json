@@ -8,7 +8,9 @@
     "dev": "nodemon",
     "build": "npx tsc",
     "test": "jest",
-    "init-admin": "ts-node scripts/initAdmin.ts"
+    "init-admin": "ts-node scripts/initAdmin.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^5.10.0",

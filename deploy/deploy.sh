@@ -291,7 +291,16 @@ build_images() {
     # 生成 Prisma 客户端
     log "生成 Prisma 客户端..."
     if [ -f "prisma/schema.prisma" ]; then
-        npx prisma generate
+        # 尝试使用npx执行prisma命令
+        if ! npx prisma generate; then
+            warn "Prisma 客户端生成失败，尝试使用npm执行..."
+            if ! npm run prisma:generate; then
+                warn "Prisma 客户端生成失败，尝试直接执行prisma命令..."
+                if ! prisma generate; then
+                    error "Prisma 客户端生成失败，请检查权限和依赖"
+                fi
+            fi
+        fi
     else
         warn "未找到 Prisma schema 文件，跳过生成客户端"
     fi
@@ -313,7 +322,16 @@ build_images() {
     # 生成 Prisma 客户端
     log "生成 Prisma 客户端..."
     if [ -f "prisma/schema.prisma" ]; then
-        npx prisma generate
+        # 尝试使用npx执行prisma命令
+        if ! npx prisma generate; then
+            warn "Prisma 客户端生成失败，尝试使用npm执行..."
+            if ! npm run prisma:generate; then
+                warn "Prisma 客户端生成失败，尝试直接执行prisma命令..."
+                if ! prisma generate; then
+                    error "Prisma 客户端生成失败，请检查权限和依赖"
+                fi
+            fi
+        fi
     else
         warn "未找到 Prisma schema 文件，跳过生成客户端"
     fi
