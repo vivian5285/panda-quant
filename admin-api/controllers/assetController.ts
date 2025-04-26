@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthRequest } from '../../shared/types/auth';
-import { Asset, UserAsset } from '../../shared/models/asset';
-import { User } from '../../shared/models/user';
+import { AuthRequest } from '@shared/types/auth';
+import { Asset, UserAsset } from '@shared/models/asset';
+import { IUser } from '@shared/models/user';
 import { Transaction } from '../models/Transaction';
 import { FeeService } from '../services/feeService';
 
@@ -80,24 +80,20 @@ export const processMonthlyFees = async (req: Request, res: Response) => {
 
 export const getAssetSummary = async (req: Request, res: Response) => {
   try {
-    const userId = req.params.userId;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    const summary = await UserAsset.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+          totalValue: { $sum: '$value' }
+        }
+      }
+    ]);
 
-    const assets = await Asset.find({ userId });
-    const totalBalance = assets.reduce((sum, asset) => sum + asset.balance, 0);
-    const nextMonthFee = user.isNewUser ? 0 : 30; // $30 fee for non-new users
-
-    res.json({
-      totalBalance,
-      nextMonthFee,
-      assetCount: assets.length
-    });
+    res.json(summary);
   } catch (error) {
     console.error('Error getting asset summary:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: '获取资产统计失败' });
   }
 };
 

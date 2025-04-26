@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Log } from '@prisma/client';
 
 export enum LogLevel {
     INFO = 'INFO',
@@ -20,24 +20,24 @@ export interface LogEntry {
     timestamp: Date;
 }
 
-const prisma = new PrismaClient();
+export class LogService {
+    private prisma: PrismaClient;
 
-export const logService = {
+    constructor() {
+        this.prisma = new PrismaClient();
+    }
+
     async createLog(level: LogLevel, source: LogSource, message: string, data?: any) {
-        try {
-            await prisma.log.create({
-                data: {
-                    level,
-                    source,
-                    message,
-                    data: data ? JSON.stringify(data) : null,
-                    timestamp: new Date()
-                }
-            });
-        } catch (error) {
-            console.error('Failed to create log:', error);
-        }
-    },
+        return this.prisma.log.create({
+            data: {
+                level,
+                source,
+                message,
+                data: data ? JSON.stringify(data) : null,
+                timestamp: new Date()
+            }
+        });
+    }
 
     async getLogs(level?: LogLevel, source?: LogSource, startDate?: Date, endDate?: Date) {
         const where: any = {};
@@ -50,35 +50,20 @@ export const logService = {
             if (endDate) where.timestamp.lte = endDate;
         }
 
-        return await prisma.log.findMany({
+        return this.prisma.log.findMany({
             where,
-            orderBy: { timestamp: 'desc' }
+            orderBy: {
+                timestamp: 'desc'
+            }
         });
-    },
+    }
 
     async getLogStats() {
-        const [total, byLevel, bySource] = await Promise.all([
-            prisma.log.count(),
-            prisma.log.groupBy({
-                by: ['level'],
-                _count: true
-            }),
-            prisma.log.groupBy({
-                by: ['source'],
-                _count: true
-            })
-        ]);
+        const stats = await this.prisma.log.groupBy({
+            by: ['level', 'source'],
+            _count: true
+        });
 
-        return {
-            total,
-            byLevel: byLevel.reduce((acc: Record<string, number>, curr: { level: string; _count: number }) => {
-                acc[curr.level] = curr._count;
-                return acc;
-            }, {}),
-            bySource: bySource.reduce((acc: Record<string, number>, curr: { source: string; _count: number }) => {
-                acc[curr.source] = curr._count;
-                return acc;
-            }, {})
-        };
+        return stats;
     }
-}; 
+} 

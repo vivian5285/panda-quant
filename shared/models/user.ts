@@ -1,20 +1,17 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-export interface IUser extends mongoose.Document {
+export interface IUser extends Document {
     email: string;
     password: string;
     name: string;
     role: 'admin' | 'user';
     status: string;
-    balance?: number;
+    balance: number;
     lastLogin?: Date;
     createdAt: Date;
     updatedAt: Date;
     comparePassword: (password: string) => Promise<boolean>;
-    $assertPopulated: () => void;
-    $clone: () => any;
-    $getAllSubdocs: () => any[];
 }
 
 const userSchema = new mongoose.Schema({

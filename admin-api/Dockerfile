@@ -34,7 +34,6 @@ RUN npm install --production
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/shared ./shared
 
 # Set environment variables
 ARG MONGODB_ADMIN_URI
@@ -48,7 +47,7 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 # Expose port
-EXPOSE 8081
+EXPOSE 3000
 
-# Start the app
-CMD ["npm", "start"] 
+# Start the application
+CMD ["node", "dist/index.js"] 

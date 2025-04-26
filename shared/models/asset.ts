@@ -1,22 +1,25 @@
 import mongoose from 'mongoose';
 
 export interface IAsset {
+    _id: string;
     name: string;
     symbol: string;
     price: number;
-    marketCap: number;
-    volume24h: number;
-    change24h: number;
-    lastUpdated: Date;
+    chain: string;
+    address: string;
+    decimals: number;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface IUserAsset {
+    _id: string;
     userId: string;
     assetId: string;
     amount: number;
-    averagePrice: number;
-    totalValue: number;
     lastUpdated: Date;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface IFee {
@@ -27,23 +30,24 @@ export interface IFee {
     createdAt: Date;
 }
 
-const assetSchema = new mongoose.Schema<IAsset>({
+const assetSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    symbol: { type: String, required: true, unique: true },
+    symbol: { type: String, required: true },
     price: { type: Number, required: true },
-    marketCap: { type: Number, required: true },
-    volume24h: { type: Number, required: true },
-    change24h: { type: Number, required: true },
-    lastUpdated: { type: Date, default: Date.now }
+    chain: { type: String, required: true },
+    address: { type: String, required: true },
+    decimals: { type: Number, required: true },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 });
 
-const userAssetSchema = new mongoose.Schema<IUserAsset>({
+const userAssetSchema = new mongoose.Schema({
     userId: { type: String, required: true },
     assetId: { type: String, required: true },
     amount: { type: Number, required: true },
-    averagePrice: { type: Number, required: true },
-    totalValue: { type: Number, required: true },
-    lastUpdated: { type: Date, default: Date.now }
+    lastUpdated: { type: Date, default: Date.now },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 });
 
 const feeSchema = new mongoose.Schema<IFee>({
