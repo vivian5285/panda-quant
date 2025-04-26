@@ -10,9 +10,8 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source code and environment variables
+# Copy source code
 COPY . .
-COPY ../deploy/.env ./
 
 # Create prisma directory if it doesn't exist
 RUN mkdir -p prisma
@@ -20,7 +19,7 @@ RUN mkdir -p prisma
 # Generate Prisma client
 RUN if [ -f prisma/schema.prisma ]; then \
         echo "Prisma schema found, generating client..." && \
-        npx prisma generate; \
+        MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI} npx prisma generate; \
     else \
         echo "No Prisma schema found, skipping client generation..." && \
         touch prisma/schema.prisma; \
@@ -45,7 +44,13 @@ RUN npm install --production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/prisma ./prisma/
-COPY --from=builder /app/.env ./
+
+# Set environment variables
+ENV MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI}
+ENV REDIS_ADMIN_URL=${REDIS_ADMIN_URL}
+ENV JWT_SECRET=${JWT_SECRET}
+ENV NODE_ENV=production
+ENV PORT=3000
 
 # Expose port
 EXPOSE 8081
