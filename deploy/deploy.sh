@@ -219,11 +219,11 @@ create_directories() {
     log "创建必要的目录结构..."
     
     # 创建基本目录
-    mkdir -p admin-api/prisma
-    mkdir -p user-api/prisma
-    mkdir -p admin-ui/prisma
-    mkdir -p user-ui/prisma
-    mkdir -p backups
+    mkdir -p "$WORKSPACE_DIR/admin-api/prisma"
+    mkdir -p "$WORKSPACE_DIR/user-api/prisma"
+    mkdir -p "$WORKSPACE_DIR/admin-ui/prisma"
+    mkdir -p "$WORKSPACE_DIR/user-ui/prisma"
+    mkdir -p "$WORKSPACE_DIR/deploy/backups"
     
     # 复制docker-compose文件
     log "复制docker-compose配置文件..."
@@ -247,16 +247,14 @@ create_directories() {
     
     # 确保Prisma schema文件存在
     log "检查Prisma schema文件..."
-    if [ ! -f "../admin-api/prisma/schema.prisma" ]; then
+    if [ ! -f "$WORKSPACE_DIR/admin-api/prisma/schema.prisma" ]; then
         warn "未找到管理后台API的Prisma schema文件，将创建空文件"
-        mkdir -p "../admin-api/prisma"
-        touch "../admin-api/prisma/schema.prisma"
+        touch "$WORKSPACE_DIR/admin-api/prisma/schema.prisma"
     fi
     
-    if [ ! -f "../user-api/prisma/schema.prisma" ]; then
+    if [ ! -f "$WORKSPACE_DIR/user-api/prisma/schema.prisma" ]; then
         warn "未找到用户端API的Prisma schema文件，将创建空文件"
-        mkdir -p "../user-api/prisma"
-        touch "../user-api/prisma/schema.prisma"
+        touch "$WORKSPACE_DIR/user-api/prisma/schema.prisma"
     fi
     
     log "目录结构创建完成"
@@ -292,7 +290,11 @@ build_images() {
     
     # 生成 Prisma 客户端
     log "生成 Prisma 客户端..."
-    npx prisma generate
+    if [ -f "prisma/schema.prisma" ]; then
+        npx prisma generate
+    else
+        warn "未找到 Prisma schema 文件，跳过生成客户端"
+    fi
     
     # 构建 Docker 镜像
     log "构建 Docker 镜像..."
@@ -310,7 +312,11 @@ build_images() {
     
     # 生成 Prisma 客户端
     log "生成 Prisma 客户端..."
-    npx prisma generate
+    if [ -f "prisma/schema.prisma" ]; then
+        npx prisma generate
+    else
+        warn "未找到 Prisma schema 文件，跳过生成客户端"
+    fi
     
     # 构建 Docker 镜像
     log "构建 Docker 镜像..."
@@ -323,20 +329,13 @@ build_images() {
 deploy_admin() {
     log "部署管理后台..."
     
-    # 获取当前目录
-    current_dir=$(pwd)
-    
     # 构建管理后台UI
     log "构建管理后台UI..."
-    if [ -d "../admin-ui" ]; then
-        cd "../admin-ui"
-        if ! docker build -t panda-quant-admin-ui .; then
-            error "管理后台UI镜像构建失败"
-        fi
-        cd "$current_dir"
-    else
-        error "管理后台UI目录不存在"
+    cd "$WORKSPACE_DIR/admin-ui" || exit 1
+    if ! docker build -t admin-ui .; then
+        error "管理后台UI镜像构建失败"
     fi
+    cd "$WORKSPACE_DIR/deploy" || exit 1
     
     # 启动管理后台服务
     log "启动管理后台服务..."
@@ -349,55 +348,13 @@ deploy_admin() {
 deploy_user() {
     log "部署用户端..."
     
-    # 获取当前目录
-    current_dir=$(pwd)
-    
-    # 构建用户端API
-    log "构建用户端API..."
-    if [ -d "../user-api" ]; then
-        cd "../user-api"
-        
-        # 复制共享目录
-        if [ -d "../shared" ]; then
-            log "复制共享目录..."
-            # 如果目标目录已存在，先删除
-            if [ -d "shared" ]; then
-                rm -rf shared
-            fi
-            # 复制共享目录
-            cp -r "../shared" .
-        else
-            error "共享目录不存在"
-        fi
-        
-        # 构建镜像
-        if ! docker build \
-            --build-arg MONGODB_USER_URI="${MONGODB_USER_URI}" \
-            --build-arg REDIS_USER_URL="${REDIS_USER_URL}" \
-            --build-arg JWT_SECRET="${JWT_SECRET}" \
-            -t panda-quant-user-api .; then
-            error "用户端API镜像构建失败"
-        fi
-        
-        # 清理复制的共享目录
-        rm -rf shared
-        
-        cd "$current_dir"
-    else
-        error "用户端API目录不存在"
-    fi
-    
     # 构建用户端UI
     log "构建用户端UI..."
-    if [ -d "../user-ui" ]; then
-        cd "../user-ui"
-        if ! docker build -t panda-quant-user-ui .; then
-            error "用户端UI镜像构建失败"
-        fi
-        cd "$current_dir"
-    else
-        error "用户端UI目录不存在"
+    cd "$WORKSPACE_DIR/user-ui" || exit 1
+    if ! docker build -t user-ui .; then
+        error "用户端UI镜像构建失败"
     fi
+    cd "$WORKSPACE_DIR/deploy" || exit 1
     
     # 启动用户端服务
     log "启动用户端服务..."
