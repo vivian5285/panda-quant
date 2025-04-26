@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { IUser } from '../../shared/models/user';
 
@@ -35,15 +35,8 @@ const userSchema = new Schema<IUser>({
   lastLogin: { type: Date },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  referralCode: {
-    type: String,
-    unique: true,
-    sparse: true,
-  },
-  referredBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-  },
+  referralCode: { type: String, unique: true, sparse: true },
+  referredBy: { type: Schema.Types.ObjectId, ref: 'User' }
 }, {
   timestamps: true,
 });

@@ -1,26 +1,22 @@
 import mongoose, { Document } from 'mongoose';
 
 export interface IAsset extends Document {
-    _id: string;
     name: string;
     symbol: string;
     price: number;
-    chain: string;
-    address: string;
-    decimals: number;
-    status: string;
+    status: 'active' | 'inactive';
+    balance: number;
     createdAt: Date;
     updatedAt: Date;
 }
 
 export interface IUserAsset extends Document {
-    _id: string;
     userId: string;
     assetId: string;
     amount: number;
     balance: number;
-    status: string;
-    lastFeeDeduction: Date;
+    status: 'active' | 'inactive';
+    lastFeeDeduction?: Date;
     lastUpdated: Date;
     createdAt: Date;
     updatedAt: Date;

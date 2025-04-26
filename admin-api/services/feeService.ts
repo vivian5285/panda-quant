@@ -168,4 +168,4 @@ export class FeeService {
   }
 }
 
-export const feeService = new FeeService(); 
+export const feeService = FeeService.getInstance(); 

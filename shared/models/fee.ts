@@ -3,11 +3,10 @@ import { IUser } from './user';
 import { IAsset } from './asset';
 
 export interface IFee extends Document {
-    _id: string;
     userId: string;
     amount: number;
     type: string;
-    status: string;
+    status: 'pending' | 'completed';
     createdAt: Date;
     updatedAt: Date;
     user?: IUser;

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model';
 import bcrypt from 'bcrypt';
-import { IUser } from '@shared/models/user';
+import { IUser } from '../../shared/models/user';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
