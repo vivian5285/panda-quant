@@ -1,54 +1,41 @@
 # Build stage
-FROM node:18-alpine as build
+FROM node:18-alpine as builder
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY prisma ./prisma/
 
 # Install dependencies
-RUN npm install
-
-# Install Vite globally
-RUN npm install -g vite
+RUN npm install && npm install -g typescript tsconfig-paths prisma
 
 # Copy source code
 COPY . .
+
+# Copy shared directory
+COPY ../shared ./shared
+
+# Generate Prisma client
+RUN prisma generate
 
 # Build application
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
-
-# Copy built assets from build stage
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Copy Nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Expose port
-EXPOSE 80 443
-
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
-
 FROM node:18-alpine
 
 WORKDIR /app
 
-# 安装依赖
-COPY package*.json ./
-RUN npm install
+# Copy built files from builder
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/shared ./shared
 
-# 复制源代码
-COPY . .
-
-# 构建应用
-RUN npm run build
-
-# 暴露端口
+# Expose port
 EXPOSE 3000
 
-# 启动应用
+# Start application
 CMD ["npm", "start"] 
