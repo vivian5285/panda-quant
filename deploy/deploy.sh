@@ -374,6 +374,26 @@ build_images() {
     fi
 }
 
+# 构建管理后台API
+build_admin_api() {
+    log "构建管理后台API..."
+    cd admin-api
+    
+    # 创建软链接到shared目录
+    if [ ! -L "shared" ]; then
+        ln -s ../shared shared
+    fi
+    
+    # 构建Docker镜像
+    docker build -t panda-quant-admin-api:latest .
+    
+    if [ $? -ne 0 ]; then
+        error "管理后台API镜像构建失败"
+    fi
+    
+    cd ..
+}
+
 # 部署管理后台
 deploy_admin() {
     log "部署管理后台..."
@@ -652,6 +672,7 @@ main() {
     create_network
     pull_latest_code
     build_images
+    build_admin_api
     deploy_admin
     deploy_user
     check_services
