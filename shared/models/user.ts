@@ -2,16 +2,15 @@ import mongoose, { Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
-    _id: string;
     email: string;
     username?: string;
     password: string;
     walletAddress?: string;
-    role: string;
-    status: string;
+    role: 'user' | 'admin';
+    status: 'active' | 'suspended' | 'inactive';
     isAdmin: boolean;
     adminType?: string;
-    permissions?: any;
+    permissions: Record<string, any>;
     balance: number;
     lastLogin?: Date;
     createdAt: Date;

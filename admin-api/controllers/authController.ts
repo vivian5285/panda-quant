@@ -11,20 +11,24 @@ const generateReferralCode = () => {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 };
 
-// 初始化管理员账号
+// 初始化管理员账户
 export const initAdmin = async () => {
   try {
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-
-    // 检查是否已存在管理员账号
-    const existingAdmin = await User.findOne({ role: 'admin' });
-    if (!existingAdmin) {
-      await User.createAdmin(adminEmail, adminPassword);
-      console.log('Admin account created successfully');
+    const admin = await User.findOne({ isAdmin: true });
+    if (!admin) {
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      await User.create({
+        email: 'admin@example.com',
+        password: hashedPassword,
+        role: 'admin',
+        status: 'active',
+        isAdmin: true,
+        balance: 0
+      });
+      console.log('Admin account created');
     }
   } catch (error) {
-    console.error('Failed to create admin account:', error);
+    console.error('Error creating admin account:', error);
   }
 };
 

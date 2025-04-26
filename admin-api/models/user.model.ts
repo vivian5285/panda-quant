@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose';
+import mongoose, { Schema, model, Document } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { IUser } from '../../shared/models/user';
 
@@ -74,7 +74,7 @@ userSchema.index({ status: 1 });
 userSchema.index({ role: 1 });
 
 // 添加创建管理员账号的静态方法
-userSchema.statics.createAdmin = async function(email: string, password: string) {
+userSchema.statics.createAdmin = async function(email: string, password: string): Promise<IUser> {
   const hashedPassword = await bcrypt.hash(password, 10);
   return this.create({
     email,
