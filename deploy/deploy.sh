@@ -279,99 +279,41 @@ create_network() {
 build_images() {
     log "构建Docker镜像..."
     
-    # 构建admin-api
+    # 构建admin-api镜像
     log "构建admin-api镜像..."
-    if [ -d "../admin-api" ]; then
-        cd "../admin-api"
-        
-        # 确保shared目录存在
-        if [ ! -d "../shared" ]; then
-            error "共享目录不存在"
-        fi
-        
-        # 如果shared目录已存在，先删除
-        if [ -d "shared" ]; then
-            rm -rf shared
-        fi
-        
-        # 复制shared目录
-        cp -r "../shared" .
-        
-        # 安装依赖
-        log "安装依赖..."
-        if ! npm install && npm install -g typescript tsconfig-paths; then
-            error "依赖安装失败"
-        fi
-        
-        # 生成 Prisma 客户端
-        log "生成 Prisma 客户端..."
-        if ! npx prisma generate; then
-            error "Prisma 客户端生成失败"
-        fi
-        
-        # 构建镜像
-        if ! docker build \
-            --build-arg MONGODB_ADMIN_URI="${MONGODB_ADMIN_URI}" \
-            --build-arg REDIS_ADMIN_URL="${REDIS_ADMIN_URL}" \
-            --build-arg JWT_SECRET="${JWT_SECRET}" \
-            -t panda-quant-admin-api .; then
-            error "管理后台API镜像构建失败"
-        fi
-        
-        # 清理复制的共享目录
-        rm -rf shared
-        
-        cd -
-    else
-        error "admin-api目录不存在"
-    fi
+    cd "$WORKSPACE_DIR/admin-api" || exit 1
     
-    # 构建user-api
+    # 安装依赖
+    log "安装依赖..."
+    npm install
+    
+    # 生成 Prisma 客户端
+    log "生成 Prisma 客户端..."
+    npx prisma generate
+    
+    # 构建 Docker 镜像
+    log "构建 Docker 镜像..."
+    docker build -t admin-api .
+    
+    cd "$WORKSPACE_DIR" || exit 1
+    
+    # 构建user-api镜像
     log "构建user-api镜像..."
-    if [ -d "../user-api" ]; then
-        cd "../user-api"
-        
-        # 确保shared目录存在
-        if [ ! -d "../shared" ]; then
-            error "共享目录不存在"
-        fi
-        
-        # 如果shared目录已存在，先删除
-        if [ -d "shared" ]; then
-            rm -rf shared
-        fi
-        
-        # 复制shared目录
-        cp -r "../shared" .
-        
-        # 安装依赖
-        log "安装依赖..."
-        if ! npm install && npm install -g typescript tsconfig-paths; then
-            error "依赖安装失败"
-        fi
-        
-        # 生成 Prisma 客户端
-        log "生成 Prisma 客户端..."
-        if ! npx prisma generate; then
-            error "Prisma 客户端生成失败"
-        fi
-        
-        # 构建镜像
-        if ! docker build \
-            --build-arg MONGODB_USER_URI="${MONGODB_USER_URI}" \
-            --build-arg REDIS_USER_URL="${REDIS_USER_URL}" \
-            --build-arg JWT_SECRET="${JWT_SECRET}" \
-            -t panda-quant-user-api .; then
-            error "用户端API镜像构建失败"
-        fi
-        
-        # 清理复制的共享目录
-        rm -rf shared
-        
-        cd -
-    else
-        error "user-api目录不存在"
-    fi
+    cd "$WORKSPACE_DIR/user-api" || exit 1
+    
+    # 安装依赖
+    log "安装依赖..."
+    npm install
+    
+    # 生成 Prisma 客户端
+    log "生成 Prisma 客户端..."
+    npx prisma generate
+    
+    # 构建 Docker 镜像
+    log "构建 Docker 镜像..."
+    docker build -t user-api .
+    
+    cd "$WORKSPACE_DIR" || exit 1
 }
 
 # 部署管理后台
