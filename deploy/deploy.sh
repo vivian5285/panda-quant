@@ -374,79 +374,12 @@ build_images() {
     fi
 }
 
-# 构建管理后台API
-build_admin_api() {
-    log "构建管理后台API..."
-    cd admin-api
-    
-    # 创建软链接到shared目录
-    if [ ! -L "shared" ]; then
-        ln -s ../shared shared
-    fi
-    
-    # 构建Docker镜像
-    docker build -t panda-quant-admin-api:latest .
-    
-    if [ $? -ne 0 ]; then
-        error "管理后台API镜像构建失败"
-    fi
-    
-    cd ..
-}
-
 # 部署管理后台
 deploy_admin() {
     log "部署管理后台..."
     
     # 获取当前目录
     current_dir=$(pwd)
-    
-    # 构建管理后台API
-    log "构建管理后台API..."
-    if [ -d "../admin-api" ]; then
-        cd "../admin-api"
-        
-        # 复制共享目录
-        if [ -d "../shared" ]; then
-            log "复制共享目录..."
-            # 如果目标目录已存在，先删除
-            if [ -d "shared" ]; then
-                rm -rf shared
-            fi
-            # 复制共享目录
-            cp -r "../shared" .
-        else
-            error "共享目录不存在"
-        fi
-        
-        # 安装依赖
-        log "安装依赖..."
-        if ! npm install; then
-            error "依赖安装失败"
-        fi
-        
-        # 生成 Prisma 客户端
-        log "生成 Prisma 客户端..."
-        if ! npx prisma generate; then
-            error "Prisma 客户端生成失败"
-        fi
-        
-        # 构建镜像
-        if ! docker build \
-            --build-arg MONGODB_ADMIN_URI="${MONGODB_ADMIN_URI}" \
-            --build-arg REDIS_ADMIN_URL="${REDIS_ADMIN_URL}" \
-            --build-arg JWT_SECRET="${JWT_SECRET}" \
-            -t panda-quant-admin-api .; then
-            error "管理后台API镜像构建失败"
-        fi
-        
-        # 清理复制的共享目录
-        rm -rf shared
-        
-        cd "$current_dir"
-    else
-        error "管理后台API目录不存在"
-    fi
     
     # 构建管理后台UI
     log "构建管理后台UI..."
@@ -671,10 +604,15 @@ main() {
     create_directories
     create_network
     pull_latest_code
+    
+    # 构建镜像
     build_images
-    build_admin_api
+    
+    # 部署服务
     deploy_admin
     deploy_user
+    
+    # 检查服务状态
     check_services
     
     # 等待服务启动
