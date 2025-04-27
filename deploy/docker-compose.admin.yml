@@ -63,7 +63,10 @@ services:
 
   # 管理后端
   admin-api:
-    image: admin-api
+    build:
+      context: ${WORKSPACE_DIR}/admin-api
+      dockerfile: Dockerfile
+    image: deploy-admin-api
     container_name: panda-quant-admin-api
     ports:
       - "8081:3000"    # Admin API 访问端口

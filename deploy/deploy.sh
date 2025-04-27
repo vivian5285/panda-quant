@@ -13,6 +13,9 @@ NC='\033[0m'
 WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEPLOY_DIR="$(dirname "${BASH_SOURCE[0]}")"
 
+# 确保在正确的目录下运行
+cd "$WORKSPACE_DIR"
+
 # 日志函数
 log() {
     echo -e "${GREEN}[$(date '+%Y-%m-%d %H:%M:%S')] $1${NC}"
@@ -293,6 +296,7 @@ build_docker_images() {
     # 构建admin相关服务
     log "构建admin相关服务镜像..."
     cd "$WORKSPACE_DIR"
+    export WORKSPACE_DIR="$WORKSPACE_DIR"
     docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" build
     if [ $? -ne 0 ]; then
         error "构建admin服务镜像失败"
@@ -301,6 +305,7 @@ build_docker_images() {
     # 构建user相关服务
     log "构建user相关服务镜像..."
     cd "$WORKSPACE_DIR"
+    export WORKSPACE_DIR="$WORKSPACE_DIR"
     docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" build
     if [ $? -ne 0 ]; then
         error "构建user服务镜像失败"
