@@ -219,6 +219,12 @@ backup_database() {
         return
     fi
     
+    # 检查数据库是否已存在
+    if ! mongosh "$MONGODB_ADMIN_URI" --eval "db.getMongo()" &> /dev/null; then
+        log "数据库不存在，跳过备份"
+        return
+    }
+    
     # 重试次数和间隔
     max_retries=5
     retry_interval=10
