@@ -260,9 +260,8 @@ create_directories() {
     
     # 复制docker-compose配置文件
     log "复制docker-compose配置文件..."
-    cp -f docker-compose.admin.yml docker-compose.admin.yml.bak 2>/dev/null || true
-    cp -f docker-compose.user.yml docker-compose.user.yml.bak 2>/dev/null || true
-    cp -f docker-compose.network.yml docker-compose.network.yml.bak 2>/dev/null || true
+    cp -f "$DEPLOY_DIR/docker-compose.admin.yml" "$WORKSPACE_DIR/docker-compose.admin.yml" 2>/dev/null || true
+    cp -f "$DEPLOY_DIR/docker-compose.user.yml" "$WORKSPACE_DIR/docker-compose.user.yml" 2>/dev/null || true
     
     # 检查Prisma schema文件
     log "检查Prisma schema文件..."
@@ -279,8 +278,9 @@ log "跳过自动拉取代码，请确保代码已手动更新..."
 # 创建Docker网络
 create_docker_network() {
     log "创建Docker网络..."
-    cp -f "$DEPLOY_DIR/docker-compose.network.yml" "$DEPLOY_DIR/docker-compose.network.yml.bak" 2>/dev/null || true
-    docker-compose -f "$DEPLOY_DIR/docker-compose.network.yml" up -d
+    if ! docker network ls | grep -q panda-quant-network; then
+        docker network create panda-quant-network
+    fi
 }
 
 # 构建Docker镜像
@@ -445,8 +445,14 @@ build_images() {
 # 启动服务
 start_services() {
     log "启动服务..."
-    docker-compose -f "$DEPLOY_DIR/docker-compose.network.yml" -f "$DEPLOY_DIR/docker-compose.admin.yml" up -d
-    docker-compose -f "$DEPLOY_DIR/docker-compose.network.yml" -f "$DEPLOY_DIR/docker-compose.user.yml" up -d
+    
+    # 启动admin相关服务
+    log "启动admin相关服务..."
+    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" up -d
+    
+    # 启动user相关服务
+    log "启动user相关服务..."
+    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" up -d
 }
 
 # 检查服务状态
