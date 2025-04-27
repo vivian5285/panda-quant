@@ -15,7 +15,7 @@
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["./node_modules/@shared/*"]
+      "@shared/*": ["./node_modules/@shared/dist/*"]
     }
   },
   "include": ["src/**/*"],
