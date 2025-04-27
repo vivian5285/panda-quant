@@ -22,7 +22,7 @@ COPY admin-api/tsconfig.json ./
 RUN npx prisma generate
 
 # Build TypeScript code
-RUN npm run build
+RUN npx tsc --project tsconfig.json --resolveJsonModule --esModuleInterop
 
 # Production stage
 FROM node:18-alpine

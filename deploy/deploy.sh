@@ -267,19 +267,21 @@ create_network() {
 }
 
 # 构建Docker镜像
-build() {
+build_docker_images() {
     log "构建Docker镜像..."
     
-    # 构建admin-api镜像
+    # 构建admin-api
     log "构建admin-api镜像..."
+    log "复制必要的文件..."
     
     # 创建临时构建目录
     BUILD_DIR="build"
     mkdir -p "$BUILD_DIR"
     
-    # 复制必要的文件
-    log "复制必要的文件..."
+    # 复制shared目录
     cp -r "$WORKSPACE_DIR/shared" "$BUILD_DIR/"
+    
+    # 复制admin-api目录
     cp -r "$WORKSPACE_DIR/admin-api" "$BUILD_DIR/"
     
     # 确保prisma目录存在
@@ -290,13 +292,17 @@ build() {
     
     # 使用正确的构建上下文
     cd "$BUILD_DIR"
-    docker build -t panda-quant-admin-api:latest -f ../Dockerfile . || {
+    docker build -t admin-api -f admin-api/Dockerfile .
+    if [ $? -ne 0 ]; then
         error "构建admin-api镜像失败"
-    }
-    cd ..
+    fi
     
     # 清理临时文件
+    cd "$WORKSPACE_DIR/deploy"
     rm -rf "$BUILD_DIR"
+    
+    # 构建其他服务...
+    # ...
 }
 
 # 启动服务
@@ -325,7 +331,7 @@ main() {
     log "跳过自动拉取代码，请确保代码已手动更新..."
     
     # 构建Docker镜像
-    build
+    build_docker_images
     
     # 启动服务
     start_services
