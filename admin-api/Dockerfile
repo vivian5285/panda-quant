@@ -14,6 +14,7 @@ WORKDIR /app/shared
 RUN chmod -R 777 .
 RUN npm install
 RUN chmod -R 777 node_modules
+RUN npm install typescript
 RUN npm run build
 
 # Copy admin-api files
