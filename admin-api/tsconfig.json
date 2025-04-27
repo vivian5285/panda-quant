@@ -15,11 +15,11 @@
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/dist/*"]
+      "@shared/*": ["./shared/dist/*"]
     }
   },
   "include": ["src/**/*"],
   "references": [
-    { "path": "../shared" }
+    { "path": "./shared" }
   ]
 } 
