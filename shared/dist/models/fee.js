@@ -31,3 +31,4 @@ feeSchema.virtual('asset', {
 feeSchema.set('toJSON', { virtuals: true });
 feeSchema.set('toObject', { virtuals: true });
 exports.Fee = mongoose_1.default.model('Fee', feeSchema);
+//# sourceMappingURL=fee.js.map

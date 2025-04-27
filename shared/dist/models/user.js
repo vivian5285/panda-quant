@@ -27,3 +27,4 @@ userSchema.statics.createAdmin = async function (email, password, name) {
     return this.create({ email, password: hashedPassword, name, role: 'admin' });
 };
 exports.User = mongoose_1.default.model('User', userSchema);
+//# sourceMappingURL=user.js.map

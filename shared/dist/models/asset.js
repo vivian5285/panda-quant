@@ -36,3 +36,4 @@ const feeSchema = new mongoose_1.default.Schema({
 exports.Asset = mongoose_1.default.model('Asset', assetSchema);
 exports.UserAsset = mongoose_1.default.model('UserAsset', userAssetSchema);
 exports.Fee = mongoose_1.default.model('Fee', feeSchema);
+//# sourceMappingURL=asset.js.map
