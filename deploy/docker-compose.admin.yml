@@ -44,7 +44,7 @@ services:
   # 管理前端
   admin-ui:
     build:
-      context: ../admin-ui
+      context: ${WORKSPACE_DIR}/admin-ui
       dockerfile: Dockerfile
     image: deploy-admin-ui
     container_name: panda-quant-admin-ui
@@ -67,7 +67,7 @@ services:
   # 管理后端
   admin-api:
     build:
-      context: ../admin-api
+      context: ${WORKSPACE_DIR}/admin-api
       dockerfile: Dockerfile
     image: deploy-admin-api
     container_name: panda-quant-admin-api
