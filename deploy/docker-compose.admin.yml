@@ -64,8 +64,8 @@ services:
   # 管理后端
   admin-api:
     build:
-      context: .
-      dockerfile: admin-api/Dockerfile
+      context: ../admin-api
+      dockerfile: Dockerfile
     image: deploy-admin-api
     container_name: panda-quant-admin-api
     ports:
@@ -74,7 +74,7 @@ services:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant-admin?authSource=admin
       - REDIS_URL=redis://:PandaQuant@2024@redis:6379
-      - JWT_SECRET=${JWT_SECRET}
+      - JWT_SECRET=Wl528586*
       - PORT=3000
     networks:
       - panda-quant-network

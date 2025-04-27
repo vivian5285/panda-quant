@@ -297,14 +297,14 @@ build_docker_images() {
     # 构建admin相关服务
     log "构建admin相关服务镜像..."
     cd "$WORKSPACE_DIR"
-    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" build
+    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" build --no-cache
     if [ $? -ne 0 ]; then
         error "构建admin服务镜像失败"
     fi
     
     # 构建user相关服务
     log "构建user相关服务镜像..."
-    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" build
+    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" build --no-cache
     if [ $? -ne 0 ]; then
         error "构建user服务镜像失败"
     fi
