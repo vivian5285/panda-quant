@@ -18,10 +18,10 @@ RUN npx tsc --project tsconfig.json
 
 # Build admin-api
 WORKDIR /app/admin-api
-COPY admin-api/package*.json ./
-COPY admin-api/prisma ./prisma/
-COPY admin-api/src ./src/
-COPY admin-api/tsconfig.json ./
+COPY package*.json ./
+COPY prisma ./prisma/
+COPY src ./src/
+COPY tsconfig.json ./
 
 # Install dependencies
 RUN npm install
@@ -35,8 +35,8 @@ FROM node:18-alpine
 WORKDIR /app/admin-api
 
 # Copy package files
-COPY admin-api/package*.json ./
-COPY admin-api/prisma ./prisma/
+COPY package*.json ./
+COPY prisma ./prisma/
 
 # Install production dependencies
 RUN npm install --production
@@ -48,8 +48,10 @@ COPY --from=builder /app/admin-api/node_modules/.prisma ./node_modules/.prisma
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+    CMD curl -f http://localhost:8081/health || exit 1
 
-EXPOSE 3000
+# Expose port
+EXPOSE 8081
 
+# Start the application
 CMD ["node", "dist/index.js"] 
