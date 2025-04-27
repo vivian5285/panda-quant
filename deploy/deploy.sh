@@ -315,7 +315,18 @@ build_docker_images() {
     fi
     log "复制admin-api目录..."
     mkdir -p "$BUILD_DIR/admin-api"
-    cp -r "$WORKSPACE_DIR/admin-api"/* "$BUILD_DIR/admin-api/"
+    
+    # 先删除可能存在的符号链接
+    if [ -L "$BUILD_DIR/admin-api/shared" ]; then
+        rm -f "$BUILD_DIR/admin-api/shared"
+    fi
+    
+    # 复制除shared外的所有文件
+    for item in "$WORKSPACE_DIR/admin-api"/*; do
+        if [ "$item" != "$WORKSPACE_DIR/admin-api/shared" ]; then
+            cp -r "$item" "$BUILD_DIR/admin-api/"
+        fi
+    done
     
     # 检查prisma目录
     if [ ! -d "$BUILD_DIR/admin-api/prisma" ]; then
@@ -332,12 +343,7 @@ build_docker_images() {
         error "找不到tsconfig.json: $BUILD_DIR/admin-api/tsconfig.json"
     fi
     
-    # 删除已存在的符号链接或目录
-    if [ -d "$BUILD_DIR/admin-api/shared" ]; then
-        rm -rf "$BUILD_DIR/admin-api/shared"
-    elif [ -L "$BUILD_DIR/admin-api/shared" ]; then
-        rm -f "$BUILD_DIR/admin-api/shared"
-    fi
+    # 创建shared符号链接
     ln -s "$BUILD_DIR/shared" "$BUILD_DIR/admin-api/shared"
     
     # 检查并复制user-api目录
@@ -346,19 +352,25 @@ build_docker_images() {
     fi
     log "复制user-api目录..."
     mkdir -p "$BUILD_DIR/user-api"
-    cp -r "$WORKSPACE_DIR/user-api"/* "$BUILD_DIR/user-api/"
+    
+    # 先删除可能存在的符号链接
+    if [ -L "$BUILD_DIR/user-api/shared" ]; then
+        rm -f "$BUILD_DIR/user-api/shared"
+    fi
+    
+    # 复制除shared外的所有文件
+    for item in "$WORKSPACE_DIR/user-api"/*; do
+        if [ "$item" != "$WORKSPACE_DIR/user-api/shared" ]; then
+            cp -r "$item" "$BUILD_DIR/user-api/"
+        fi
+    done
     
     # 检查prisma目录
     if [ ! -d "$BUILD_DIR/user-api/prisma" ]; then
         error "找不到prisma目录: $BUILD_DIR/user-api/prisma"
     fi
     
-    # 删除已存在的符号链接或目录
-    if [ -d "$BUILD_DIR/user-api/shared" ]; then
-        rm -rf "$BUILD_DIR/user-api/shared"
-    elif [ -L "$BUILD_DIR/user-api/shared" ]; then
-        rm -f "$BUILD_DIR/user-api/shared"
-    fi
+    # 创建shared符号链接
     ln -s "$BUILD_DIR/shared" "$BUILD_DIR/user-api/shared"
     
     # 检查并复制admin-ui目录
