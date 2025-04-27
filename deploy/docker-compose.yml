@@ -15,61 +15,88 @@ services:
     depends_on:
       - admin-api
       - user-api
+      - admin-ui
+      - user-ui
     restart: unless-stopped
     networks:
       - panda-quant-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   admin-api:
     build:
-      context: ../admin-api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: admin-api/Dockerfile
     container_name: panda-quant-admin-api
     environment:
       - NODE_ENV=production
-      - MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI}
-      - REDIS_ADMIN_URL=${REDIS_ADMIN_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - JWT_SECRET=Wl528586*
+      - ENCRYPTION_KEY=Wl528586*
+      - MONGODB_ADMIN_URI=mongodb://admin:Wl528586*@mongodb:27018/panda-quant-admin?authSource=admin
+      - REDIS_ADMIN_URL=redis://:Wl528586*@redis:6380
     restart: unless-stopped
     networks:
       - panda-quant-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   user-api:
     build:
-      context: ../user-api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: user-api/Dockerfile
     container_name: panda-quant-user-api
     environment:
       - NODE_ENV=production
-      - MONGODB_USER_URI=${MONGODB_USER_URI}
-      - REDIS_USER_URL=${REDIS_USER_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - JWT_SECRET=Wl528586*
+      - ENCRYPTION_KEY=Wl528586*
+      - MONGODB_USER_URI=mongodb://admin:Wl528586*@mongodb:27019/panda-quant-user?authSource=admin
+      - REDIS_USER_URL=redis://:Wl528586*@redis:6381
     restart: unless-stopped
     networks:
       - panda-quant-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   admin-ui:
     build:
-      context: ../admin-ui
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: admin-ui/Dockerfile
     container_name: panda-quant-admin-ui
     volumes:
       - ./admin-ui/dist:/usr/share/nginx/html:ro
     restart: unless-stopped
     networks:
       - panda-quant-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   user-ui:
     build:
-      context: ../user-ui
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: user-ui/Dockerfile
     container_name: panda-quant-user-ui
     volumes:
       - ./user-ui/dist:/usr/share/nginx/html:ro
     restart: unless-stopped
     networks:
       - panda-quant-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   frontend:
     image: panda-quant-frontend
@@ -92,7 +119,7 @@ services:
       - "27017:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=PandaQuant@2024
+      - MONGO_INITDB_ROOT_PASSWORD=Wl528586*
     volumes:
       - mongodb_data:/data/db
     networks:
@@ -115,7 +142,7 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server --requirepass Wl528586*
     volumes:
       - redis_data:/data
     networks:
@@ -129,7 +156,7 @@ services:
           cpus: '0.25'
           memory: 256M
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "Wl528586*", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3

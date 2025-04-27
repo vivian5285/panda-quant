@@ -71,6 +71,11 @@ copy_shared_directory() {
 set_default_env() {
     log "设置默认环境变量..."
     
+    # 设置默认密钥
+    export JWT_SECRET=${JWT_SECRET:-"Wl528586*"}
+    export ENCRYPTION_KEY=${ENCRYPTION_KEY:-"Wl528586*"}
+    export REDIS_PASSWORD=${REDIS_PASSWORD:-"Wl528586*"}
+    
     # 设置默认端口
     export ADMIN_API_PORT=${ADMIN_API_PORT:-8081}
     export USER_API_PORT=${USER_API_PORT:-8083}
@@ -90,37 +95,46 @@ set_default_env() {
     export API_SUBDOMAIN=${API_SUBDOMAIN:-"api"}
     
     # 设置默认数据库连接（转义@符号）
-    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:PandaQuant%402024@mongodb:27017/panda-quant-admin?authSource=admin"}
-    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:PandaQuant%402024@mongodb:27017/panda-quant-user?authSource=admin"}
+    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:Wl528586*@mongodb:27018/panda-quant-admin?authSource=admin"}
+    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:Wl528586*@mongodb:27019/panda-quant-user?authSource=admin"}
     
     # 设置默认Redis连接（转义@符号）
-    export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:PandaQuant%402024@redis:6379"}
-    export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:PandaQuant%402024@redis:6379"}
-    
-    # 设置默认密钥
-    export JWT_SECRET=${JWT_SECRET:-"PandaQuant@2024"}
-    export ENCRYPTION_KEY=${ENCRYPTION_KEY:-"PandaQuant@2024"}
+    export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:Wl528586*@redis:6380"}
+    export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:Wl528586*@redis:6381"}
     
     # 保存环境变量到文件
     cat > .env << EOF
+# 端口配置
 ADMIN_API_PORT=$ADMIN_API_PORT
 USER_API_PORT=$USER_API_PORT
 ADMIN_UI_PORT=$ADMIN_UI_PORT
 USER_UI_PORT=$USER_UI_PORT
+
+# 数据库端口
 MONGODB_ADMIN_PORT=$MONGODB_ADMIN_PORT
 MONGODB_USER_PORT=$MONGODB_USER_PORT
 REDIS_ADMIN_PORT=$REDIS_ADMIN_PORT
 REDIS_USER_PORT=$REDIS_USER_PORT
+
+# 域名配置
 DOMAIN=$DOMAIN
 ADMIN_SUBDOMAIN=$ADMIN_SUBDOMAIN
 ADMIN_API_SUBDOMAIN=$ADMIN_API_SUBDOMAIN
 API_SUBDOMAIN=$API_SUBDOMAIN
+
+# 数据库连接
 MONGODB_ADMIN_URI=$MONGODB_ADMIN_URI
 MONGODB_USER_URI=$MONGODB_USER_URI
 REDIS_ADMIN_URL=$REDIS_ADMIN_URL
 REDIS_USER_URL=$REDIS_USER_URL
+
+# 密钥配置
 JWT_SECRET=$JWT_SECRET
 ENCRYPTION_KEY=$ENCRYPTION_KEY
+REDIS_PASSWORD=$REDIS_PASSWORD
+
+# 环境配置
+NODE_ENV=production
 EOF
     
     log "环境变量已设置并保存到 .env 文件"
@@ -270,7 +284,7 @@ build_docker_images() {
     log "构建admin-api镜像..."
     
     # 创建临时构建目录
-    BUILD_DIR="build"
+    BUILD_DIR="$WORKSPACE_DIR/deploy/build"
     mkdir -p "$BUILD_DIR"
     
     # 复制shared目录
@@ -285,15 +299,14 @@ build_docker_images() {
     cp -r "$WORKSPACE_DIR/admin-api/tsconfig.json" "$BUILD_DIR/admin-api/"
     cp -r "$WORKSPACE_DIR/admin-api/Dockerfile" "$BUILD_DIR/admin-api/"
     
-    # 使用正确的构建上下文
-    cd "$BUILD_DIR"
-    docker build -t admin-api -f admin-api/Dockerfile .
-    if [ $? -ne 0 ]; then
-        error "构建admin-api镜像失败"
-    fi
-    
-    # 构建admin-ui
-    log "构建admin-ui镜像..."
+    # 复制user-api目录
+    mkdir -p "$BUILD_DIR/user-api"
+    cp -r "$WORKSPACE_DIR/user-api/package.json" "$BUILD_DIR/user-api/"
+    cp -r "$WORKSPACE_DIR/user-api/package-lock.json" "$BUILD_DIR/user-api/"
+    cp -r "$WORKSPACE_DIR/user-api/prisma" "$BUILD_DIR/user-api/"
+    cp -r "$WORKSPACE_DIR/user-api/src" "$BUILD_DIR/user-api/"
+    cp -r "$WORKSPACE_DIR/user-api/tsconfig.json" "$BUILD_DIR/user-api/"
+    cp -r "$WORKSPACE_DIR/user-api/Dockerfile" "$BUILD_DIR/user-api/"
     
     # 复制admin-ui目录
     mkdir -p "$BUILD_DIR/admin-ui"
@@ -307,11 +320,47 @@ build_docker_images() {
     cp -r "$WORKSPACE_DIR/admin-ui/Dockerfile" "$BUILD_DIR/admin-ui/"
     cp -r "$WORKSPACE_DIR/admin-ui/nginx.conf" "$BUILD_DIR/admin-ui/"
     
+    # 复制user-ui目录
+    mkdir -p "$BUILD_DIR/user-ui"
+    cp -r "$WORKSPACE_DIR/user-ui/package.json" "$BUILD_DIR/user-ui/"
+    cp -r "$WORKSPACE_DIR/user-ui/package-lock.json" "$BUILD_DIR/user-ui/"
+    cp -r "$WORKSPACE_DIR/user-ui/src" "$BUILD_DIR/user-ui/"
+    cp -r "$WORKSPACE_DIR/user-ui/public" "$BUILD_DIR/user-ui/"
+    cp -r "$WORKSPACE_DIR/user-ui/index.html" "$BUILD_DIR/user-ui/"
+    cp -r "$WORKSPACE_DIR/user-ui/vite.config.ts" "$BUILD_DIR/user-ui/"
+    cp -r "$WORKSPACE_DIR/user-ui/tsconfig.json" "$BUILD_DIR/user-ui/"
+    cp -r "$WORKSPACE_DIR/user-ui/Dockerfile" "$BUILD_DIR/user-ui/"
+    cp -r "$WORKSPACE_DIR/user-ui/nginx.conf" "$BUILD_DIR/user-ui/"
+    
+    # 使用正确的构建上下文
+    cd "$BUILD_DIR"
+    
+    # 构建admin-api镜像
+    log "构建admin-api镜像..."
+    docker build -t admin-api -f admin-api/Dockerfile .
+    if [ $? -ne 0 ]; then
+        error "构建admin-api镜像失败"
+    fi
+    
+    # 构建user-api镜像
+    log "构建user-api镜像..."
+    docker build -t user-api -f user-api/Dockerfile .
+    if [ $? -ne 0 ]; then
+        error "构建user-api镜像失败"
+    fi
+    
     # 构建admin-ui镜像
-    cd "$BUILD_DIR/admin-ui"
-    docker build -t deploy-admin-ui .
+    log "构建admin-ui镜像..."
+    docker build -t admin-ui -f admin-ui/Dockerfile .
     if [ $? -ne 0 ]; then
         error "构建admin-ui镜像失败"
+    fi
+    
+    # 构建user-ui镜像
+    log "构建user-ui镜像..."
+    docker build -t user-ui -f user-ui/Dockerfile .
+    if [ $? -ne 0 ]; then
+        error "构建user-ui镜像失败"
     fi
     
     # 清理临时文件
