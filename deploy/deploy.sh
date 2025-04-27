@@ -310,7 +310,8 @@ build_docker_images() {
     cp -r "$WORKSPACE_DIR/admin-ui/nginx.conf" "$BUILD_DIR/admin-ui/"
     
     # 构建admin-ui镜像
-    docker build -t deploy-admin-ui -f admin-ui/Dockerfile admin-ui
+    cd "$BUILD_DIR/admin-ui"
+    docker build -t deploy-admin-ui .
     if [ $? -ne 0 ]; then
         error "构建admin-ui镜像失败"
     fi
