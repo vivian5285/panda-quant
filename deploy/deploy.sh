@@ -301,16 +301,26 @@ create_docker_network() {
 build_docker_images() {
     log "构建 Docker 镜像..."
     
+    # 构建 shared 模块
+    build_shared
+    
     # 确保 shared 目录已复制
     copy_shared_directory
     
+    # 设置目录权限
+    log "设置目录权限..."
+    chmod -R 777 "$WORKSPACE_DIR/admin-ui"
+    chmod -R 777 "$WORKSPACE_DIR/user-ui"
+    chmod -R 777 "$WORKSPACE_DIR/admin-ui/node_modules"
+    chmod -R 777 "$WORKSPACE_DIR/user-ui/node_modules"
+    
     # 构建 admin 相关服务
     log "构建 admin 相关服务..."
-    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" build --no-cache
+    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" build
     
     # 构建 user 相关服务
     log "构建 user 相关服务..."
-    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" build --no-cache
+    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" build
 }
 
 # 检查DNS记录
@@ -357,15 +367,15 @@ set_env() {
     export ADMIN_API_SUBDOMAIN=${ADMIN_API_SUBDOMAIN:-"admin-api"}
     export API_SUBDOMAIN=${API_SUBDOMAIN:-"api"}
     
-    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:PandaQuant@2024@mongodb:27018/panda-quant-admin?authSource=admin"}
-    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:PandaQuant@2024@mongodb:27019/panda-quant-user?authSource=admin"}
+    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:Wl528586*@mongodb:27018/panda-quant-admin?authSource=admin"}
+    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:Wl528586*@mongodb:27019/panda-quant-user?authSource=admin"}
     
-    export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:PandaQuant@2024@redis:6380"}
-    export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:PandaQuant@2024@redis:6381"}
+    export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:Wl528586*@redis:6380"}
+    export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:Wl528586*@redis:6381"}
     
-    export JWT_SECRET=${JWT_SECRET:-"PandaQuant@2024"}
-    export ENCRYPTION_KEY=${ENCRYPTION_KEY:-"PandaQuant@2024"}
-    export REDIS_PASSWORD=${REDIS_PASSWORD:-"PandaQuant@2024"}
+    export JWT_SECRET=${JWT_SECRET:-"Wl528586*"}
+    export ENCRYPTION_KEY=${ENCRYPTION_KEY:-"Wl528586*"}
+    export REDIS_PASSWORD=${REDIS_PASSWORD:-"Wl528586*"}
     
     # 保存环境变量
     cat > .env << EOF
