@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node -r tsconfig-paths/register dist/index.js",
     "dev": "nodemon",
-    "build": "tsc",
+    "build": "npx tsc",
     "test": "jest",
     "init-admin": "ts-node scripts/initAdmin.ts",
     "prisma:generate": "prisma generate",

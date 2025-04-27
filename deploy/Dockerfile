@@ -12,6 +12,7 @@ RUN npm install && npm run build
 WORKDIR /app
 COPY admin-api/package*.json ./
 COPY admin-api/prisma ./prisma/
+COPY admin-api/tsconfig.json ./
 
 # Install dependencies
 RUN npm install && npm install -g typescript tsconfig-paths prisma
@@ -23,7 +24,7 @@ COPY admin-api .
 RUN prisma generate
 
 # Build application with path aliases support
-RUN npx tsc -p tsconfig.json --resolveJsonModule --esModuleInterop --rootDir /app
+RUN npx tsc
 
 # Production stage
 FROM node:18-alpine
