@@ -287,25 +287,51 @@ create_network() {
 build_docker_images() {
     log "构建Docker镜像..."
     
+    # 显示工作目录信息
+    log "当前工作目录: $(pwd)"
+    log "WORKSPACE_DIR: $WORKSPACE_DIR"
+    log "目录结构:"
+    ls -la "$WORKSPACE_DIR"
+    
     # 创建临时构建目录
     BUILD_DIR="$WORKSPACE_DIR/deploy/build"
     mkdir -p "$BUILD_DIR"
+    log "创建构建目录: $BUILD_DIR"
     
-    # 复制shared目录
+    # 检查并复制shared目录
+    if [ ! -d "$WORKSPACE_DIR/shared" ]; then
+        error "找不到shared目录: $WORKSPACE_DIR/shared"
+    fi
+    log "复制shared目录..."
     cp -r "$WORKSPACE_DIR/shared" "$BUILD_DIR/"
     cd "$BUILD_DIR/shared"
     npm install
     npm run build
     cd "$WORKSPACE_DIR/deploy"
     
-    # 复制admin-api目录
+    # 检查并复制admin-api目录
+    if [ ! -d "$WORKSPACE_DIR/admin-api" ]; then
+        error "找不到admin-api目录: $WORKSPACE_DIR/admin-api"
+    fi
+    log "复制admin-api目录..."
     mkdir -p "$BUILD_DIR/admin-api"
     cp -r "$WORKSPACE_DIR/admin-api"/* "$BUILD_DIR/admin-api/"
-    # 确保 prisma 目录存在
+    
+    # 检查prisma目录
     if [ ! -d "$BUILD_DIR/admin-api/prisma" ]; then
-        mkdir -p "$BUILD_DIR/admin-api/prisma"
-        cp -r "$WORKSPACE_DIR/admin-api/prisma"/* "$BUILD_DIR/admin-api/prisma/"
+        error "找不到prisma目录: $BUILD_DIR/admin-api/prisma"
     fi
+    
+    # 检查src目录
+    if [ ! -d "$BUILD_DIR/admin-api/src" ]; then
+        error "找不到src目录: $BUILD_DIR/admin-api/src"
+    fi
+    
+    # 检查tsconfig.json
+    if [ ! -f "$BUILD_DIR/admin-api/tsconfig.json" ]; then
+        error "找不到tsconfig.json: $BUILD_DIR/admin-api/tsconfig.json"
+    fi
+    
     # 删除已存在的符号链接或目录
     if [ -d "$BUILD_DIR/admin-api/shared" ]; then
         rm -rf "$BUILD_DIR/admin-api/shared"
@@ -314,14 +340,19 @@ build_docker_images() {
     fi
     ln -s "$BUILD_DIR/shared" "$BUILD_DIR/admin-api/shared"
     
-    # 复制user-api目录
+    # 检查并复制user-api目录
+    if [ ! -d "$WORKSPACE_DIR/user-api" ]; then
+        error "找不到user-api目录: $WORKSPACE_DIR/user-api"
+    fi
+    log "复制user-api目录..."
     mkdir -p "$BUILD_DIR/user-api"
     cp -r "$WORKSPACE_DIR/user-api"/* "$BUILD_DIR/user-api/"
-    # 确保 prisma 目录存在
+    
+    # 检查prisma目录
     if [ ! -d "$BUILD_DIR/user-api/prisma" ]; then
-        mkdir -p "$BUILD_DIR/user-api/prisma"
-        cp -r "$WORKSPACE_DIR/user-api/prisma"/* "$BUILD_DIR/user-api/prisma/"
+        error "找不到prisma目录: $BUILD_DIR/user-api/prisma"
     fi
+    
     # 删除已存在的符号链接或目录
     if [ -d "$BUILD_DIR/user-api/shared" ]; then
         rm -rf "$BUILD_DIR/user-api/shared"
@@ -330,41 +361,52 @@ build_docker_images() {
     fi
     ln -s "$BUILD_DIR/shared" "$BUILD_DIR/user-api/shared"
     
-    # 复制admin-ui目录
+    # 检查并复制admin-ui目录
+    if [ ! -d "$WORKSPACE_DIR/admin-ui" ]; then
+        error "找不到admin-ui目录: $WORKSPACE_DIR/admin-ui"
+    fi
+    log "复制admin-ui目录..."
     mkdir -p "$BUILD_DIR/admin-ui"
     cp -r "$WORKSPACE_DIR/admin-ui"/* "$BUILD_DIR/admin-ui/"
     
-    # 复制user-ui目录
+    # 检查并复制user-ui目录
+    if [ ! -d "$WORKSPACE_DIR/user-ui" ]; then
+        error "找不到user-ui目录: $WORKSPACE_DIR/user-ui"
+    fi
+    log "复制user-ui目录..."
     mkdir -p "$BUILD_DIR/user-ui"
     cp -r "$WORKSPACE_DIR/user-ui"/* "$BUILD_DIR/user-ui/"
     
     # 使用正确的构建上下文
     cd "$BUILD_DIR"
+    log "当前构建目录: $(pwd)"
+    log "目录内容:"
+    ls -la
     
     # 构建admin-api镜像
     log "构建admin-api镜像..."
-    docker build -t admin-api -f admin-api/Dockerfile admin-api
+    docker build -t admin-api -f "$WORKSPACE_DIR/admin-api/Dockerfile" "$BUILD_DIR/admin-api"
     if [ $? -ne 0 ]; then
         error "构建admin-api镜像失败"
     fi
     
     # 构建user-api镜像
     log "构建user-api镜像..."
-    docker build -t user-api -f user-api/Dockerfile user-api
+    docker build -t user-api -f "$WORKSPACE_DIR/user-api/Dockerfile" "$BUILD_DIR/user-api"
     if [ $? -ne 0 ]; then
         error "构建user-api镜像失败"
     fi
     
     # 构建admin-ui镜像
     log "构建admin-ui镜像..."
-    docker build -t admin-ui -f admin-ui/Dockerfile admin-ui
+    docker build -t admin-ui -f "$WORKSPACE_DIR/admin-ui/Dockerfile" "$BUILD_DIR/admin-ui"
     if [ $? -ne 0 ]; then
         error "构建admin-ui镜像失败"
     fi
     
     # 构建user-ui镜像
     log "构建user-ui镜像..."
-    docker build -t user-ui -f user-ui/Dockerfile user-ui
+    docker build -t user-ui -f "$WORKSPACE_DIR/user-ui/Dockerfile" "$BUILD_DIR/user-ui"
     if [ $? -ne 0 ]; then
         error "构建user-ui镜像失败"
     fi
