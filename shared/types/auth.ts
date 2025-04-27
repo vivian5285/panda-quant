@@ -7,4 +7,6 @@ export interface AuthRequest extends Request {
         [key: string]: any;
     };
     body?: any;
+    params?: any;
+    query?: any;
 } 

@@ -17,6 +17,7 @@ export interface IUser extends Document {
     updatedAt: Date;
     referralCode?: string;
     referredBy?: Types.ObjectId;
+    name: string;
     comparePassword: (candidatePassword: string) => Promise<boolean>;
 }
 

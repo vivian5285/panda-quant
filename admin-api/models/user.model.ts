@@ -22,11 +22,13 @@ const userSchema = new Schema<IUser>({
   updatedAt: { type: Date, default: Date.now },
   referralCode: { type: String, unique: true, sparse: true },
   referredBy: { type: Schema.Types.ObjectId, ref: 'User' },
-  name: { type: String, required: true },
+  name: { type: String, required: true }
+}, {
+  timestamps: true
 });
 
 // 密码加密中间件
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function(this: IUser & Document, next) {
   if (!this.isModified('password')) {
     return next();
   }
@@ -41,7 +43,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // 密码比较方法
-userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+userSchema.methods.comparePassword = async function(this: IUser & Document, candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
@@ -51,7 +53,7 @@ userSchema.index({ status: 1 });
 userSchema.index({ role: 1 });
 
 // 添加创建管理员账号的静态方法
-userSchema.statics.createAdmin = async function(email: string, password: string): Promise<IUser> {
+userSchema.statics.createAdmin = async function(email: string, password: string): Promise<IUser & Document> {
   const hashedPassword = await bcrypt.hash(password, 10);
   return this.create({
     email,
@@ -59,7 +61,8 @@ userSchema.statics.createAdmin = async function(email: string, password: string)
     role: 'admin',
     status: 'active',
     isAdmin: true,
-    balance: 0
+    balance: 0,
+    name: 'Admin User'
   });
 };
 
