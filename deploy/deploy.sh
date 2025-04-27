@@ -284,6 +284,7 @@ build_docker_images() {
     cp -r "$WORKSPACE_DIR/admin-api/prisma" "$BUILD_DIR/admin-api/"
     cp -r "$WORKSPACE_DIR/admin-api/src" "$BUILD_DIR/admin-api/"
     cp -r "$WORKSPACE_DIR/admin-api/tsconfig.json" "$BUILD_DIR/admin-api/"
+    cp -r "$WORKSPACE_DIR/admin-api/Dockerfile" "$BUILD_DIR/admin-api/"
     
     # 使用正确的构建上下文
     cd "$BUILD_DIR"
