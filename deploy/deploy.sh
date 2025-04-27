@@ -292,6 +292,7 @@ build_docker_images() {
     
     # 构建admin相关服务
     log "构建admin相关服务镜像..."
+    cd "$WORKSPACE_DIR"
     docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" build
     if [ $? -ne 0 ]; then
         error "构建admin服务镜像失败"
@@ -299,10 +300,14 @@ build_docker_images() {
     
     # 构建user相关服务
     log "构建user相关服务镜像..."
+    cd "$WORKSPACE_DIR"
     docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" build
     if [ $? -ne 0 ]; then
         error "构建user服务镜像失败"
     fi
+    
+    # 返回部署目录
+    cd "$DEPLOY_DIR"
 }
 
 # 检查DNS记录
