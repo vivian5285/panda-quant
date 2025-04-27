@@ -9,14 +9,6 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# 设置工作目录
-WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEPLOY_DIR="$(dirname "${BASH_SOURCE[0]}")"
-
-# 确保在正确的目录下运行
-cd "$WORKSPACE_DIR"
-log "当前工作目录: $(pwd)"
-
 # 日志函数
 log() {
     echo -e "${GREEN}[$(date '+%Y-%m-%d %H:%M:%S')] $1${NC}"
@@ -30,6 +22,14 @@ error() {
 warn() {
     echo -e "${YELLOW}[$(date '+%Y-%m-%d %H:%M:%S')] WARNING: $1${NC}"
 }
+
+# 设置工作目录
+WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DEPLOY_DIR="$(dirname "${BASH_SOURCE[0]}")"
+
+# 确保在正确的目录下运行
+cd "$WORKSPACE_DIR"
+log "当前工作目录: $(pwd)"
 
 # 构建 shared 模块
 build_shared() {
@@ -276,9 +276,6 @@ create_directories() {
     
     log "目录结构创建完成"
 }
-
-# 拉取最新代码
-log "跳过自动拉取代码，请确保代码已手动更新..."
 
 # 创建Docker网络
 create_docker_network() {
