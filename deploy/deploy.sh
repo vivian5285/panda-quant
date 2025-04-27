@@ -239,8 +239,8 @@ create_directories() {
     
     # 检查Prisma schema文件
     log "检查Prisma schema文件..."
-    if [ ! -f "admin-api/prisma/schema.prisma" ]; then
-        error "找不到Prisma schema文件: admin-api/prisma/schema.prisma"
+    if [ ! -f "$WORKSPACE_DIR/admin-api/prisma/schema.prisma" ]; then
+        error "找不到Prisma schema文件: $WORKSPACE_DIR/admin-api/prisma/schema.prisma"
     fi
     
     log "目录结构创建完成"
@@ -267,6 +267,13 @@ build_images() {
     # 构建admin-api镜像
     log "构建admin-api镜像..."
     copy_shared_directory
+    
+    # 确保 prisma 目录存在
+    if [ ! -d "prisma" ]; then
+        mkdir -p prisma
+        cp "$WORKSPACE_DIR/admin-api/prisma/schema.prisma" prisma/
+    fi
+    
     docker build -t panda-quant-admin-api:latest -f Dockerfile ../admin-api
 }
 
