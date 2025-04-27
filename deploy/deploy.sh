@@ -11,6 +11,7 @@ NC='\033[0m'
 
 # 设置工作目录
 WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DEPLOY_DIR="$(dirname "${BASH_SOURCE[0]}")"
 
 # 日志函数
 log() {
@@ -276,11 +277,10 @@ create_directories() {
 log "跳过自动拉取代码，请确保代码已手动更新..."
 
 # 创建Docker网络
-create_network() {
+create_docker_network() {
     log "创建Docker网络..."
-    if ! docker network ls | grep -q panda-quant-network; then
-        docker network create panda-quant-network
-    fi
+    cp -f "$DEPLOY_DIR/docker-compose.network.yml" "$DEPLOY_DIR/docker-compose.network.yml.bak" 2>/dev/null || true
+    docker-compose -f "$DEPLOY_DIR/docker-compose.network.yml" up -d
 }
 
 # 构建Docker镜像
@@ -292,14 +292,14 @@ build_docker_images() {
     
     # 构建admin相关服务
     log "构建admin相关服务镜像..."
-    docker-compose -f "$(dirname "${BASH_SOURCE[0]}")/docker-compose.admin.yml" build
+    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" build
     if [ $? -ne 0 ]; then
         error "构建admin服务镜像失败"
     fi
     
     # 构建user相关服务
     log "构建user相关服务镜像..."
-    docker-compose -f "$(dirname "${BASH_SOURCE[0]}")/docker-compose.user.yml" build
+    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" build
     if [ $? -ne 0 ]; then
         error "构建user服务镜像失败"
     fi
@@ -445,7 +445,8 @@ build_images() {
 # 启动服务
 start_services() {
     log "启动服务..."
-    docker-compose -f docker-compose.network.yml -f docker-compose.admin.yml up -d
+    docker-compose -f "$DEPLOY_DIR/docker-compose.network.yml" -f "$DEPLOY_DIR/docker-compose.admin.yml" up -d
+    docker-compose -f "$DEPLOY_DIR/docker-compose.network.yml" -f "$DEPLOY_DIR/docker-compose.user.yml" up -d
 }
 
 # 检查服务状态
@@ -489,7 +490,7 @@ main() {
     create_directories
     
     # 创建Docker网络
-    create_network
+    create_docker_network
     
     # 拉取最新代码
     log "跳过自动拉取代码，请确保代码已手动更新..."
