@@ -98,42 +98,29 @@ set_default_env() {
     export REDIS_USER_URL="redis://:PandaQuant%402024@redis:6379"
     
     # 设置默认密钥
-    export JWT_SECRET=${JWT_SECRET:-"your_jwt_secret_key_here"}
+    export JWT_SECRET=${JWT_SECRET:-"PandaQuant@2024"}
+    export ENCRYPTION_KEY=${ENCRYPTION_KEY:-"PandaQuant@2024"}
     
-    # 创建 .env 文件
+    # 保存环境变量到文件
     cat > .env << EOF
-# 应用配置
-NODE_ENV=production
-
-# 端口配置
-ADMIN_API_PORT=${ADMIN_API_PORT}
-USER_API_PORT=${USER_API_PORT}
-ADMIN_UI_PORT=${ADMIN_UI_PORT}
-USER_UI_PORT=${USER_UI_PORT}
-MONGODB_ADMIN_PORT=${MONGODB_ADMIN_PORT}
-MONGODB_USER_PORT=${MONGODB_USER_PORT}
-REDIS_ADMIN_PORT=${REDIS_ADMIN_PORT}
-REDIS_USER_PORT=${REDIS_USER_PORT}
-
-# 域名配置
-DOMAIN=${DOMAIN}
-ADMIN_SUBDOMAIN=${ADMIN_SUBDOMAIN}
-ADMIN_API_SUBDOMAIN=${ADMIN_API_SUBDOMAIN}
-API_SUBDOMAIN=${API_SUBDOMAIN}
-
-# 数据库配置
-MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI}
-MONGODB_USER_URI=${MONGODB_USER_URI}
-MONGO_INITDB_ROOT_USERNAME=admin
-MONGO_INITDB_ROOT_PASSWORD=PandaQuant@2024
-
-# Redis配置
-REDIS_ADMIN_URL=${REDIS_ADMIN_URL}
-REDIS_USER_URL=${REDIS_USER_URL}
-REDIS_PASSWORD=PandaQuant@2024
-
-# JWT配置
-JWT_SECRET=${JWT_SECRET}
+ADMIN_API_PORT=$ADMIN_API_PORT
+USER_API_PORT=$USER_API_PORT
+ADMIN_UI_PORT=$ADMIN_UI_PORT
+USER_UI_PORT=$USER_UI_PORT
+MONGODB_ADMIN_PORT=$MONGODB_ADMIN_PORT
+MONGODB_USER_PORT=$MONGODB_USER_PORT
+REDIS_ADMIN_PORT=$REDIS_ADMIN_PORT
+REDIS_USER_PORT=$REDIS_USER_PORT
+DOMAIN=$DOMAIN
+ADMIN_SUBDOMAIN=$ADMIN_SUBDOMAIN
+ADMIN_API_SUBDOMAIN=$ADMIN_API_SUBDOMAIN
+API_SUBDOMAIN=$API_SUBDOMAIN
+MONGODB_ADMIN_URI=$MONGODB_ADMIN_URI
+MONGODB_USER_URI=$MONGODB_USER_URI
+REDIS_ADMIN_URL=$REDIS_ADMIN_URL
+REDIS_USER_URL=$REDIS_USER_URL
+JWT_SECRET=$JWT_SECRET
+ENCRYPTION_KEY=$ENCRYPTION_KEY
 EOF
     
     log "环境变量已设置并保存到 .env 文件"
@@ -147,7 +134,7 @@ check_env() {
     set_default_env
     
     # 检查关键环境变量
-    if [ "$JWT_SECRET" = "your_jwt_secret_key_here" ]; then
+    if [ "$JWT_SECRET" = "PandaQuant@2024" ]; then
         warn "JWT_SECRET 使用默认值，建议在生产环境中修改"
     fi
     
@@ -228,87 +215,32 @@ backup_database() {
 create_directories() {
     log "创建必要的目录结构..."
     
-    # 创建基本目录
-    mkdir -p "$WORKSPACE_DIR/admin-api/prisma"
-    mkdir -p "$WORKSPACE_DIR/user-api/prisma"
-    mkdir -p "$WORKSPACE_DIR/admin-ui/prisma"
-    mkdir -p "$WORKSPACE_DIR/user-ui/prisma"
-    mkdir -p "$WORKSPACE_DIR/deploy/backups"
+    # 创建日志目录
+    mkdir -p logs/admin-api
+    mkdir -p logs/user-api
+    mkdir -p logs/admin-ui
+    mkdir -p logs/user-ui
     
-    # 复制docker-compose文件
+    # 创建数据目录
+    mkdir -p data/mongodb/admin
+    mkdir -p data/mongodb/user
+    mkdir -p data/redis/admin
+    mkdir -p data/redis/user
+    
+    # 创建备份目录
+    mkdir -p backup/mongodb
+    mkdir -p backup/redis
+    
+    # 复制docker-compose配置文件
     log "复制docker-compose配置文件..."
-    if [ -f "docker-compose.admin.yml" ]; then
-        log "docker-compose.admin.yml 已存在"
-    else
-        error "未找到docker-compose.admin.yml文件"
-    fi
+    cp -f docker-compose.admin.yml docker-compose.admin.yml.bak 2>/dev/null || true
+    cp -f docker-compose.user.yml docker-compose.user.yml.bak 2>/dev/null || true
+    cp -f docker-compose.network.yml docker-compose.network.yml.bak 2>/dev/null || true
     
-    if [ -f "docker-compose.user.yml" ]; then
-        log "docker-compose.user.yml 已存在"
-    else
-        error "未找到docker-compose.user.yml文件"
-    fi
-    
-    if [ -f "docker-compose.network.yml" ]; then
-        log "docker-compose.network.yml 已存在"
-    else
-        error "未找到docker-compose.network.yml文件"
-    fi
-    
-    # 确保Prisma schema文件存在
+    # 检查Prisma schema文件
     log "检查Prisma schema文件..."
-    if [ ! -f "$WORKSPACE_DIR/admin-api/prisma/schema.prisma" ]; then
-        warn "未找到管理后台API的Prisma schema文件，将创建空文件"
-        touch "$WORKSPACE_DIR/admin-api/prisma/schema.prisma"
-        # 添加基本的Prisma schema内容
-        cat > "$WORKSPACE_DIR/admin-api/prisma/schema.prisma" << EOF
-datasource db {
-  provider = "mongodb"
-  url      = env("MONGODB_ADMIN_URI")
-}
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
-  password  String
-  role      String   @default("user")
-  status    String   @default("active")
-  balance   Float    @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-EOF
-    fi
-    
-    if [ ! -f "$WORKSPACE_DIR/user-api/prisma/schema.prisma" ]; then
-        warn "未找到用户端API的Prisma schema文件，将创建空文件"
-        touch "$WORKSPACE_DIR/user-api/prisma/schema.prisma"
-        # 添加基本的Prisma schema内容
-        cat > "$WORKSPACE_DIR/user-api/prisma/schema.prisma" << EOF
-datasource db {
-  provider = "mongodb"
-  url      = env("MONGODB_USER_URI")
-}
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
-  password  String
-  role      String   @default("user")
-  status    String   @default("active")
-  balance   Float    @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-EOF
+    if [ ! -f "admin-api/prisma/schema.prisma" ]; then
+        error "找不到Prisma schema文件: admin-api/prisma/schema.prisma"
     fi
     
     log "目录结构创建完成"
@@ -317,15 +249,13 @@ EOF
 # 拉取最新代码
 pull_latest_code() {
     log "拉取最新代码..."
-    if ! git pull origin main; then
-        warn "代码拉取失败，继续使用当前代码..."
-    fi
+    git pull origin main
 }
 
-# 创建网络
+# 创建Docker网络
 create_network() {
     log "创建Docker网络..."
-    if ! docker network ls | grep -q "panda-quant-network"; then
+    if ! docker network ls | grep -q panda-quant-network; then
         docker network create panda-quant-network
     fi
 }
@@ -336,286 +266,54 @@ build_images() {
     
     # 构建admin-api镜像
     log "构建admin-api镜像..."
-    cd "$WORKSPACE_DIR/admin-api" || exit 1
-    
-    # 确保shared目录存在
-    if [ ! -d "shared" ]; then
-        log "复制shared目录到admin-api..."
-        cp -r "$WORKSPACE_DIR/shared" .
-    fi
-    
-    # 安装依赖
-    log "安装依赖..."
-    npm install
-    
-    # 生成 Prisma 客户端
-    log "生成 Prisma 客户端..."
-    if [ -f "prisma/schema.prisma" ]; then
-        npx prisma generate
-    else
-        warn "未找到 Prisma schema 文件，跳过生成客户端"
-    fi
-    
-    # 构建 TypeScript
-    log "构建 TypeScript..."
-    npm run build
-    
-    # 构建 Docker 镜像
-    log "构建 Docker 镜像..."
-    docker build -t admin-api .
-    
-    # 清理复制的shared目录
-    if [ -d "shared" ]; then
-        rm -rf shared
-    fi
-    
-    cd "$WORKSPACE_DIR" || exit 1
-    
-    # 构建user-api镜像
-    log "构建user-api镜像..."
-    cd "$WORKSPACE_DIR/user-api" || exit 1
-    
-    # 确保shared目录存在
-    if [ ! -d "shared" ]; then
-        log "复制shared目录到user-api..."
-        cp -r "$WORKSPACE_DIR/shared" .
-    fi
-    
-    # 安装依赖
-    log "安装依赖..."
-    npm install
-    
-    # 生成 Prisma 客户端
-    log "生成 Prisma 客户端..."
-    if [ -f "prisma/schema.prisma" ]; then
-        npx prisma generate
-    else
-        warn "未找到 Prisma schema 文件，跳过生成客户端"
-    fi
-    
-    # 构建 TypeScript
-    log "构建 TypeScript..."
-    npm run build
-    
-    # 构建 Docker 镜像
-    log "构建 Docker 镜像..."
-    docker build -t user-api .
-    
-    # 清理复制的shared目录
-    if [ -d "shared" ]; then
-        rm -rf shared
-    fi
-    
-    cd "$WORKSPACE_DIR" || exit 1
+    copy_shared_directory
+    docker build -t panda-quant-admin-api:latest -f Dockerfile ../admin-api
 }
 
-# 部署管理后台
-deploy_admin() {
-    log "部署管理后台..."
-    
-    # 构建管理后台UI
-    log "构建管理后台UI..."
-    cd "$WORKSPACE_DIR/admin-ui" || exit 1
-    if ! docker build -t admin-ui .; then
-        error "管理后台UI镜像构建失败"
-    fi
-    cd "$WORKSPACE_DIR/deploy" || exit 1
-    
-    # 启动管理后台服务
-    log "启动管理后台服务..."
-    if ! docker-compose -f docker-compose.admin.yml up -d; then
-        error "管理后台服务启动失败"
-    fi
-}
-
-# 部署用户端
-deploy_user() {
-    log "部署用户端..."
-    
-    # 构建用户端UI
-    log "构建用户端UI..."
-    cd "$WORKSPACE_DIR/user-ui" || exit 1
-    if ! docker build -t user-ui .; then
-        error "用户端UI镜像构建失败"
-    fi
-    cd "$WORKSPACE_DIR/deploy" || exit 1
-    
-    # 启动用户端服务
-    log "启动用户端服务..."
-    if ! docker-compose -f docker-compose.user.yml up -d; then
-        error "用户端服务启动失败"
-    fi
-}
-
-# 检查服务状态
-check_services() {
-    log "检查服务状态..."
-    sleep 10
-    
-    # 检查管理后台服务
-    log "检查管理后台服务状态..."
-    if ! docker-compose -f docker-compose.admin.yml ps; then
-        error "管理后台服务状态检查失败"
-    fi
-    
-    # 检查用户端服务
-    log "检查用户端服务状态..."
-    if ! docker-compose -f docker-compose.user.yml ps; then
-        error "用户端服务状态检查失败"
-    fi
-}
-
-# 安装Certbot
-install_certbot() {
-    log "安装Certbot..."
-    if ! command -v certbot &> /dev/null; then
-        if [ -f /etc/debian_version ]; then
-            sudo apt-get update
-            sudo apt-get install -y certbot python3-certbot-nginx
-        elif [ -f /etc/redhat-release ]; then
-            sudo yum install -y certbot python3-certbot-nginx
-        else
-            error "不支持的操作系统"
-        fi
-    fi
-}
-
-# 清理现有证书和配置
-cleanup_existing_certs() {
-    log "清理现有证书和配置..."
-    
-    # 停止Nginx服务
-    if systemctl is-active --quiet nginx; then
-        sudo systemctl stop nginx
-    fi
-    
-    # 删除现有证书
-    if [ -d "/etc/letsencrypt" ]; then
-        sudo rm -rf /etc/letsencrypt/live/*
-        sudo rm -rf /etc/letsencrypt/archive/*
-        sudo rm -rf /etc/letsencrypt/renewal/*
-    fi
-    
-    # 删除Nginx配置
-    if [ -f "/etc/nginx/nginx.conf" ]; then
-        sudo rm -f /etc/nginx/nginx.conf
-    fi
-    if [ -f "/etc/nginx/conf.d/default.conf" ]; then
-        sudo rm -f /etc/nginx/conf.d/default.conf
-    fi
-    
-    # 删除sites-enabled目录下的所有配置
-    if [ -d "/etc/nginx/sites-enabled" ]; then
-        sudo rm -f /etc/nginx/sites-enabled/*
-    fi
-    
-    log "清理完成"
-}
-
-# 获取SSL证书
-get_ssl_certificates() {
-    log "获取SSL证书..."
-    
-    # 停止Nginx服务
-    log "停止Nginx服务..."
-    if systemctl is-active --quiet nginx; then
-        sudo systemctl stop nginx
-    fi
-    
-    # 检查是否已存在有效证书
-    if [ -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ] && [ -f "/etc/letsencrypt/live/${DOMAIN}/privkey.pem" ]; then
-        log "发现已存在的有效证书，跳过证书获取..."
-    else
-        certbot certonly --standalone -d "${DOMAIN}" -d "admin.${DOMAIN}" -d "admin-api.${DOMAIN}" -d "api.${DOMAIN}" --non-interactive --agree-tos --email "${ADMIN_EMAIL}"
-        if [ $? -ne 0 ]; then
-            error "获取SSL证书失败"
-        fi
-        log "SSL证书获取成功"
-    fi
-}
-
-# 配置Nginx SSL
-configure_nginx_ssl() {
-    log "配置Nginx SSL..."
-    
-    # 创建Nginx配置目录
-    sudo mkdir -p /etc/nginx/conf.d
-    
-    # 复制Nginx主配置
-    log "复制Nginx主配置..."
-    sudo cp nginx/nginx.conf /etc/nginx/
-    
-    # 复制虚拟主机配置
-    log "复制虚拟主机配置..."
-    sudo cp nginx/conf.d/default.conf /etc/nginx/conf.d/
-    
-    # 检查Nginx配置
-    log "检查Nginx配置..."
-    if ! sudo nginx -t; then
-        error "Nginx配置检查失败"
-    fi
-    
-    # 重启Nginx
-    log "重启Nginx服务..."
-    if ! sudo systemctl restart nginx; then
-        error "Nginx重启失败"
-    fi
-    
-    log "Nginx SSL配置完成"
-}
-
-# 设置证书自动续期
-setup_certbot_renewal() {
-    log "设置证书自动续期..."
-    
-    # 创建续期脚本
-    cat > /etc/cron.d/certbot-renew << EOF
-0 0 * * * root systemctl stop nginx && certbot renew --quiet --standalone --preferred-challenges http && systemctl start nginx
-EOF
-    
-    # 设置权限
-    chmod 644 /etc/cron.d/certbot-renew
-    
-    log "证书自动续期设置完成"
+# 启动服务
+start_services() {
+    log "启动服务..."
+    docker-compose -f docker-compose.network.yml -f docker-compose.admin.yml up -d
 }
 
 # 主函数
 main() {
     log "开始部署..."
     
-    # 基础部署步骤
+    # 检查必要的命令
     check_commands
-    load_env
-    check_env
+    
+    # 加载环境变量
+    log "加载环境变量..."
+    if [ -f .env ]; then
+        source .env
+    fi
+    
+    # 检查环境变量
+    log "检查环境变量..."
+    if [ -z "$JWT_SECRET" ] || [ -z "$ENCRYPTION_KEY" ]; then
+        warn "缺少必要的环境变量，将使用默认值"
+    fi
+    
+    # 设置默认环境变量
+    set_default_env
+    
+    # 创建必要的目录结构
     create_directories
+    
+    # 创建Docker网络
     create_network
+    
+    # 拉取最新代码
     pull_latest_code
     
-    # 构建镜像
+    # 构建Docker镜像
     build_images
     
-    # 部署服务
-    deploy_admin
-    deploy_user
+    # 启动服务
+    start_services
     
-    # 检查服务状态
-    check_services
-    
-    # 等待服务启动
-    log "等待服务启动..."
-    sleep 30
-    
-    # 备份数据库
-    backup_database
-    
-    # SSL证书配置步骤
-    install_certbot
-    cleanup_existing_certs
-    get_ssl_certificates
-    configure_nginx_ssl
-    setup_certbot_renewal
-    
-    log "部署完成！"
+    log "部署完成"
 }
 
 # 执行主函数

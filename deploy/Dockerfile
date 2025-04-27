@@ -6,6 +6,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY shared ./shared/
 
 # Install dependencies
 RUN npm install && npm install -g typescript tsconfig-paths prisma
@@ -29,9 +30,13 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/shared ./shared
+
+# Install production dependencies
+RUN npm install --production
 
 # Expose port
 EXPOSE 3000
 
-# Start application
-CMD ["npm", "start"] 
+# Start application with tsconfig-paths support
+CMD ["node", "-r", "tsconfig-paths/register", "dist/index.js"] 

@@ -4,7 +4,7 @@
   "description": "Admin API for Panda Quant",
   "main": "index.ts",
   "scripts": {
-    "start": "ts-node index.ts",
+    "start": "node -r tsconfig-paths/register dist/index.js",
     "dev": "nodemon",
     "build": "npx tsc",
     "test": "jest",
@@ -25,6 +25,7 @@
     "node-cron": "^3.0.3",
     "pg": "^8.11.3",
     "redis": "^4.6.13",
+    "tsconfig-paths": "^4.2.0",
     "winston": "^3.11.0"
   },
   "devDependencies": {
