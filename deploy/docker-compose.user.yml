@@ -44,7 +44,7 @@ services:
   # 用户前端
   user-ui:
     build:
-      context: /root/panda-quant/user-ui
+      context: ../user-ui
       dockerfile: Dockerfile
     image: deploy-user-ui
     container_name: panda-quant-user-ui
@@ -67,7 +67,7 @@ services:
   # 用户后端
   user-api:
     build:
-      context: /root/panda-quant/user-api
+      context: ../user-api
       dockerfile: Dockerfile
     image: deploy-user-api
     container_name: panda-quant-user-api
@@ -75,8 +75,8 @@ services:
       - "8083:3000"    # User API 访问端口
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant-user?authSource=admin
-      - REDIS_URL=redis://:PandaQuant@2024@redis:6379
+      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb:27019/panda-quant-user?authSource=admin
+      - REDIS_URL=redis://:PandaQuant@2024@redis:6381
       - JWT_SECRET=Wl528586*
       - PORT=3000
     networks:

@@ -15,6 +15,7 @@ DEPLOY_DIR="$(dirname "${BASH_SOURCE[0]}")"
 
 # 确保在正确的目录下运行
 cd "$WORKSPACE_DIR"
+log "当前工作目录: $(pwd)"
 
 # 日志函数
 log() {
@@ -296,7 +297,6 @@ build_docker_images() {
     
     # 构建admin相关服务
     log "构建admin相关服务镜像..."
-    cd "$WORKSPACE_DIR"
     docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" build --no-cache
     if [ $? -ne 0 ]; then
         error "构建admin服务镜像失败"
@@ -308,9 +308,6 @@ build_docker_images() {
     if [ $? -ne 0 ]; then
         error "构建user服务镜像失败"
     fi
-    
-    # 返回部署目录
-    cd "$DEPLOY_DIR"
 }
 
 # 检查DNS记录
