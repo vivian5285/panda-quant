@@ -46,9 +46,11 @@ WORKDIR /app/admin-api
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY shared ./shared/
+COPY tsconfig.json ./
 
-# Install production dependencies
+# Install production dependencies and TypeScript
 RUN npm install --production
+RUN npm install -g typescript
 RUN npm link ./shared
 
 # Create symlink for shared module
