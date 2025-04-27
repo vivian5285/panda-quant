@@ -511,7 +511,13 @@ build_services() {
     rm -rf node_modules
     rm -rf dist
     npm install
+    # 确保生成类型定义文件
     npm run build
+    
+    # 检查类型定义文件是否存在
+    if [ ! -f "dist/models/user.d.ts" ]; then
+        error "shared 模块的类型定义文件未生成"
+    fi
     
     # 复制 shared 目录
     log "复制 shared 目录..."
@@ -520,6 +526,7 @@ build_services() {
     mkdir -p "$WORKSPACE_DIR/admin-ui/shared"
     mkdir -p "$WORKSPACE_DIR/user-ui/shared"
     
+    # 复制整个 shared 目录，包括类型定义文件
     cp -r "$WORKSPACE_DIR/shared/dist" "$WORKSPACE_DIR/admin-api/shared/"
     cp -r "$WORKSPACE_DIR/shared/dist" "$WORKSPACE_DIR/user-api/shared/"
     cp -r "$WORKSPACE_DIR/shared/dist" "$WORKSPACE_DIR/admin-ui/shared/"
@@ -531,6 +538,14 @@ build_services() {
     rm -rf node_modules
     rm -rf dist
     npm install
+    # 确保 shared 目录存在
+    if [ ! -d "shared" ]; then
+        error "shared 目录不存在，构建失败"
+    fi
+    # 确保类型定义文件存在
+    if [ ! -f "shared/models/user.d.ts" ]; then
+        error "shared 模块的类型定义文件未找到"
+    fi
     npm run build
     
     # 构建 user-api
@@ -539,6 +554,14 @@ build_services() {
     rm -rf node_modules
     rm -rf dist
     npm install
+    # 确保 shared 目录存在
+    if [ ! -d "shared" ]; then
+        error "shared 目录不存在，构建失败"
+    fi
+    # 确保类型定义文件存在
+    if [ ! -f "shared/models/user.d.ts" ]; then
+        error "shared 模块的类型定义文件未找到"
+    fi
     npm run build
     
     # 构建 admin-ui
@@ -547,6 +570,14 @@ build_services() {
     rm -rf node_modules
     rm -rf dist
     npm install
+    # 确保 shared 目录存在
+    if [ ! -d "shared" ]; then
+        error "shared 目录不存在，构建失败"
+    fi
+    # 确保类型定义文件存在
+    if [ ! -f "shared/models/user.d.ts" ]; then
+        error "shared 模块的类型定义文件未找到"
+    fi
     npm run build
     
     # 构建 user-ui
@@ -555,6 +586,14 @@ build_services() {
     rm -rf node_modules
     rm -rf dist
     npm install
+    # 确保 shared 目录存在
+    if [ ! -d "shared" ]; then
+        error "shared 目录不存在，构建失败"
+    fi
+    # 确保类型定义文件存在
+    if [ ! -f "shared/models/user.d.ts" ]; then
+        error "shared 模块的类型定义文件未找到"
+    fi
     npm run build
     
     cd "$WORKSPACE_DIR"
@@ -579,9 +618,20 @@ main() {
     
     # 启动服务
     log "启动服务..."
-    docker-compose -f docker-compose.yml up -d --build
+    
+    # 启动 admin 相关服务
+    log "启动 admin 相关服务..."
+    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" up -d --build
+    
+    # 启动 user 相关服务
+    log "启动 user 相关服务..."
+    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" up -d --build
     
     log "部署完成！"
+    log "访问以下地址："
+    log "- 主站: https://pandatrade.space"
+    log "- 管理后台: https://admin.pandatrade.space"
+    log "- API文档: https://api.pandatrade.space"
 }
 
 # 执行主函数
