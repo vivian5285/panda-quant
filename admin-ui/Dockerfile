@@ -9,12 +9,12 @@ RUN apk add --no-cache python3 make g++
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies with specific Vite version
 RUN npm install
+RUN npm install vite@0.21.5
 
-# Copy source code and shared module
+# Copy source code
 COPY . .
-COPY ../shared ./shared
 
 # Build the app
 RUN npm run build
@@ -30,6 +30,10 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built assets from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
+
+# Set permissions
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
