@@ -7,6 +7,7 @@ WORKDIR /app
 COPY shared ./shared
 WORKDIR /app/shared
 RUN npm install
+RUN npx tsc --project tsconfig.json
 
 # Setup admin-api
 WORKDIR /app/admin-api
@@ -36,7 +37,7 @@ RUN npm install --production
 
 # Copy built files and dependencies
 COPY --from=builder /app/admin-api/dist ./dist
-COPY --from=builder /app/shared ../shared
+COPY --from=builder /app/shared/dist ../shared/dist
 COPY --from=builder /app/admin-api/node_modules/.prisma ./node_modules/.prisma
 
 # Set environment variables

@@ -143,10 +143,6 @@ check_env() {
         warn "JWT_SECRET 使用默认值，建议在生产环境中修改"
     fi
     
-    if [ "$ENCRYPTION_KEY" = "PandaQuant@2024" ]; then
-        warn "ENCRYPTION_KEY 使用默认值，建议在生产环境中修改"
-    fi
-    
     # 检查域名配置
     if [ "$DOMAIN" != "pandatrade.space" ]; then
         warn "DOMAIN 配置与DNS记录不匹配，请使用 pandatrade.space"
