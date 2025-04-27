@@ -1,44 +1,23 @@
 {
   "compilerOptions": {
-    "target": "es2018",
+    "target": "es2020",
     "module": "commonjs",
-    "lib": ["es2018", "esnext.asynciterable"],
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "moduleResolution": "node",
-    "removeComments": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "allowSyntheticDefaultImports": true,
+    "lib": ["es2020"],
+    "strict": true,
     "esModuleInterop": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "..",
     "resolveJsonModule": true,
-    "baseUrl": ".",
+    "declaration": true,
+    "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types"],
+    "baseUrl": "..",
     "paths": {
-      "@shared/*": ["../shared/*"],
-      "../../shared/*": ["../shared/*"]
-    },
-    "rootDir": "../",
-    "typeRoots": [
-      "./node_modules/@types",
-      "../shared/types",
-      "./node_modules/@types/express-rate-limit"
-    ]
+      "@shared/*": ["shared/*"]
+    }
   },
-  "include": [
-    "src/**/*",
-    "../shared/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*", "../shared/**/*"],
+  "exclude": ["node_modules", "dist"]
 } 
