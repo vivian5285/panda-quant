@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { DatabaseError } from '../utils/errors';
+import bcrypt from 'bcryptjs';
 
 export interface IUserInput {
   email: string;
@@ -7,6 +8,11 @@ export interface IUserInput {
   name: string;
   username: string;
   isVerified?: boolean;
+  role?: string;
+  status?: string;
+  isAdmin?: boolean;
+  permissions?: string[];
+  balance?: number;
 }
 
 export interface IUser extends Document {
@@ -15,8 +21,14 @@ export interface IUser extends Document {
   name: string;
   username: string;
   isVerified: boolean;
+  role: string;
+  status: string;
+  isAdmin: boolean;
+  permissions: string[];
+  balance: number;
   createdAt: Date;
   updatedAt: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>({
@@ -46,10 +58,39 @@ const userSchema = new Schema<IUser>({
   isVerified: {
     type: Boolean,
     default: false
+  },
+  role: {
+    type: String,
+    default: 'user'
+  },
+  status: {
+    type: String,
+    default: 'active'
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false
+  },
+  permissions: {
+    type: [String],
+    default: []
+  },
+  balance: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true
 });
+
+// 添加密码比较方法
+userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    throw new DatabaseError('Error comparing passwords');
+  }
+};
 
 // 删除所有索引并重新创建
 userSchema.index({ email: 1 }, { unique: true });

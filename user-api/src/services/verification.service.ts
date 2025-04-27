@@ -104,7 +104,10 @@ export class VerificationService {
   async verifyEmailToken(token: string): Promise<string> {
     try {
       const decoded = verifyToken(token);
-      return decoded.userId;
+      if (!decoded) {
+        throw new ValidationError('Invalid or expired token');
+      }
+      return decoded.id;
     } catch (error) {
       throw new ValidationError('Invalid or expired token');
     }
@@ -113,7 +116,10 @@ export class VerificationService {
   async verifyPasswordResetToken(token: string): Promise<string> {
     try {
       const decoded = verifyToken(token);
-      return decoded.userId;
+      if (!decoded) {
+        throw new ValidationError('Invalid or expired token');
+      }
+      return decoded.id;
     } catch (error) {
       throw new ValidationError('Invalid or expired token');
     }
