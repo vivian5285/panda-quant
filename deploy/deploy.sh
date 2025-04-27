@@ -307,6 +307,7 @@ build_docker_images() {
     cp -r "$WORKSPACE_DIR/admin-ui/vite.config.ts" "$BUILD_DIR/admin-ui/"
     cp -r "$WORKSPACE_DIR/admin-ui/tsconfig.json" "$BUILD_DIR/admin-ui/"
     cp -r "$WORKSPACE_DIR/admin-ui/Dockerfile" "$BUILD_DIR/admin-ui/"
+    cp -r "$WORKSPACE_DIR/admin-ui/nginx.conf" "$BUILD_DIR/admin-ui/"
     
     # 构建admin-ui镜像
     docker build -t deploy-admin-ui -f admin-ui/Dockerfile admin-ui
