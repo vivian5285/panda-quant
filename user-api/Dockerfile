@@ -7,7 +7,7 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++
 
 # Copy shared directory
-COPY shared ./shared
+COPY ../shared ./shared
 
 # Build shared directory
 WORKDIR /app/shared
