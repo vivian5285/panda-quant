@@ -151,14 +151,25 @@ EOF
     log "环境变量已设置并保存到 .env 文件"
 }
 
+# 加载环境变量
+load_env() {
+    log "加载环境变量..."
+    if [ -f .env ]; then
+        # 使用source命令加载环境变量，并忽略错误
+        set +e
+        source .env
+        set -e
+    else
+        warn "未找到 .env 文件，将使用默认值"
+    fi
+}
+
 # 检查环境变量
 check_env() {
     log "检查环境变量..."
     
     # 加载现有的环境变量
-    if [ -f .env ]; then
-        source .env
-    fi
+    load_env
     
     # 设置默认值
     set_default_env
@@ -176,16 +187,6 @@ check_env() {
     # 检查子域名配置
     if [ "$ADMIN_SUBDOMAIN" != "admin" ] || [ "$ADMIN_API_SUBDOMAIN" != "admin-api" ] || [ "$API_SUBDOMAIN" != "api" ]; then
         warn "子域名配置与DNS记录不匹配，请使用 admin, admin-api, api"
-    fi
-}
-
-# 加载环境变量
-load_env() {
-    log "加载环境变量..."
-    if [ -f .env ]; then
-        source .env
-    else
-        warn "未找到 .env 文件，将使用默认值"
     fi
 }
 
@@ -296,7 +297,6 @@ build_docker_images() {
     # 构建admin相关服务
     log "构建admin相关服务镜像..."
     cd "$WORKSPACE_DIR"
-    export WORKSPACE_DIR="$WORKSPACE_DIR"
     docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" build
     if [ $? -ne 0 ]; then
         error "构建admin服务镜像失败"
@@ -304,8 +304,6 @@ build_docker_images() {
     
     # 构建user相关服务
     log "构建user相关服务镜像..."
-    cd "$WORKSPACE_DIR"
-    export WORKSPACE_DIR="$WORKSPACE_DIR"
     docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" build
     if [ $? -ne 0 ]; then
         error "构建user服务镜像失败"
@@ -446,12 +444,6 @@ generate_ssl() {
     done
 }
 
-# 构建Docker镜像
-build_images() {
-    log "构建Docker镜像..."
-    docker-compose build || error "Docker镜像构建失败"
-}
-
 # 启动服务
 start_services() {
     log "启动服务..."
@@ -528,9 +520,6 @@ main() {
     
     # 生成SSL证书
     generate_ssl
-    
-    # 构建镜像
-    build_images
     
     # 启动服务
     start_services
