@@ -3,10 +3,15 @@ FROM node:18-alpine as builder
 
 WORKDIR /app
 
+# Copy shared module first
+COPY shared ./shared/
+WORKDIR /app/shared
+RUN npm install && npm run build
+
 # Copy package files
+WORKDIR /app
 COPY admin-api/package*.json ./
 COPY admin-api/prisma ./prisma/
-COPY shared ./shared/
 
 # Install dependencies
 RUN npm install && npm install -g typescript tsconfig-paths prisma

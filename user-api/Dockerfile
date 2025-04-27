@@ -7,7 +7,7 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++
 
 # Copy shared directory
-COPY ../shared ./shared
+COPY shared ./shared
 
 # Build shared directory
 WORKDIR /app/shared
@@ -16,35 +16,35 @@ RUN npm install -g typescript
 RUN npm install --save-dev @types/bcryptjs @types/express @types/jsonwebtoken @types/node
 RUN npx tsc --project tsconfig.json
 
-# Build admin-api
+# Build user-api
 WORKDIR /app/user-api
-COPY user-api/package*.json ./
-COPY user-api/prisma ./prisma/
-COPY user-api/src ./src/
-COPY user-api/tsconfig.json ./
+COPY package*.json ./
+COPY prisma ./prisma/
+COPY src ./src/
+COPY tsconfig.json ./
 
 # Install dependencies
 RUN npm install
-RUN npm install -g typescript
+RUN npm install -g typescript tsconfig-paths
 RUN npx prisma generate
 RUN npx tsc --project tsconfig.json --resolveJsonModule --esModuleInterop
 
 # Production stage
 FROM node:18-alpine
 
-WORKDIR /app/user-api
+WORKDIR /app
 
 # Copy package files
-COPY user-api/package*.json ./
-COPY user-api/prisma ./prisma/
+COPY user-api/package*.json ./user-api/
+COPY user-api/prisma ./user-api/prisma/
 
 # Install production dependencies
-RUN npm install --production
+RUN cd user-api && npm install --production
 
 # Copy built files from builder
-COPY --from=builder /app/user-api/dist ./dist
-COPY --from=builder /app/shared/dist ../shared/dist
-COPY --from=builder /app/user-api/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/user-api/dist ./user-api/dist
+COPY --from=builder /app/shared/dist ./shared/dist
+COPY --from=builder /app/user-api/node_modules/.prisma ./user-api/node_modules/.prisma
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
@@ -52,4 +52,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 EXPOSE 3000
 
-CMD ["node", "dist/index.js"] 
+WORKDIR /app/user-api
+CMD ["node", "-r", "tsconfig-paths/register", "dist/index.js"] 

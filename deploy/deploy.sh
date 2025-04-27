@@ -26,6 +26,15 @@ warn() {
     echo -e "${YELLOW}[$(date '+%Y-%m-%d %H:%M:%S')] WARNING: $1${NC}"
 }
 
+# 构建 shared 模块
+build_shared() {
+    log "构建 shared 模块..."
+    cd "$WORKSPACE_DIR/shared"
+    npm install
+    npm run build
+    cd "$WORKSPACE_DIR"
+}
+
 # 检查必要的命令
 check_commands() {
     log "检查必要的命令..."
@@ -48,11 +57,9 @@ check_commands() {
             
             # 更新包列表并安装工具
             sudo apt-get update
-            sudo apt-get install -y mongodb-database-tools
-        elif [ -f /etc/redhat-release ]; then
-            sudo yum install -y mongodb-org-tools
+            sudo apt-get install -y mongodb-org-tools
         else
-            warn "不支持的操作系统，跳过MongoDB工具安装"
+            error "不支持的操作系统，请手动安装 MongoDB 工具"
         fi
     fi
 }
@@ -286,6 +293,10 @@ build_docker_images() {
     
     # 复制shared目录
     cp -r "$WORKSPACE_DIR/shared" "$BUILD_DIR/"
+    cd "$BUILD_DIR/shared"
+    npm install
+    npm run build
+    cd "$WORKSPACE_DIR/deploy"
     
     # 复制admin-api目录
     mkdir -p "$BUILD_DIR/admin-api"
@@ -589,4 +600,4 @@ main() {
 }
 
 # 执行主函数
-main 
+main "$@" 
