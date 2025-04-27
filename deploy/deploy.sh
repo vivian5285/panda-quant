@@ -90,12 +90,12 @@ set_default_env() {
     export API_SUBDOMAIN=${API_SUBDOMAIN:-"api"}
     
     # 设置默认数据库连接（转义@符号）
-    export MONGODB_ADMIN_URI="mongodb://admin:PandaQuant%402024@mongodb:27017/panda-quant-admin?authSource=admin"
-    export MONGODB_USER_URI="mongodb://admin:PandaQuant%402024@mongodb:27017/panda-quant-user?authSource=admin"
+    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:PandaQuant%402024@mongodb:27017/panda-quant-admin?authSource=admin"}
+    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:PandaQuant%402024@mongodb:27017/panda-quant-user?authSource=admin"}
     
     # 设置默认Redis连接（转义@符号）
-    export REDIS_ADMIN_URL="redis://:PandaQuant%402024@redis:6379"
-    export REDIS_USER_URL="redis://:PandaQuant%402024@redis:6379"
+    export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:PandaQuant%402024@redis:6379"}
+    export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:PandaQuant%402024@redis:6379"}
     
     # 设置默认密钥
     export JWT_SECRET=${JWT_SECRET:-"PandaQuant@2024"}
@@ -130,12 +130,21 @@ EOF
 check_env() {
     log "检查环境变量..."
     
+    # 加载现有的环境变量
+    if [ -f .env ]; then
+        source .env
+    fi
+    
     # 设置默认值
     set_default_env
     
     # 检查关键环境变量
     if [ "$JWT_SECRET" = "PandaQuant@2024" ]; then
         warn "JWT_SECRET 使用默认值，建议在生产环境中修改"
+    fi
+    
+    if [ "$ENCRYPTION_KEY" = "PandaQuant@2024" ]; then
+        warn "ENCRYPTION_KEY 使用默认值，建议在生产环境中修改"
     fi
     
     # 检查域名配置
@@ -266,22 +275,31 @@ build() {
     
     # 构建admin-api镜像
     log "构建admin-api镜像..."
-    log "复制shared目录..."
-    cp -r "$WORKSPACE_DIR/shared" .
+    
+    # 创建临时构建目录
+    BUILD_DIR="build"
+    mkdir -p "$BUILD_DIR"
+    
+    # 复制必要的文件
+    log "复制必要的文件..."
+    cp -r "$WORKSPACE_DIR/shared" "$BUILD_DIR/"
+    cp -r "$WORKSPACE_DIR/admin-api" "$BUILD_DIR/"
     
     # 确保prisma目录存在
-    if [ ! -d "prisma" ]; then
-        mkdir -p prisma
-        cp "$WORKSPACE_DIR/admin-api/prisma/schema.prisma" prisma/
+    if [ ! -d "$BUILD_DIR/admin-api/prisma" ]; then
+        mkdir -p "$BUILD_DIR/admin-api/prisma"
+        cp "$WORKSPACE_DIR/admin-api/prisma/schema.prisma" "$BUILD_DIR/admin-api/prisma/"
     fi
     
     # 使用正确的构建上下文
-    docker build -t panda-quant-admin-api:latest -f Dockerfile "$WORKSPACE_DIR" || {
+    cd "$BUILD_DIR"
+    docker build -t panda-quant-admin-api:latest -f ../Dockerfile . || {
         error "构建admin-api镜像失败"
     }
+    cd ..
     
     # 清理临时文件
-    rm -rf shared prisma
+    rm -rf "$BUILD_DIR"
 }
 
 # 启动服务
@@ -297,20 +315,8 @@ main() {
     # 检查必要的命令
     check_commands
     
-    # 加载环境变量
-    log "加载环境变量..."
-    if [ -f .env ]; then
-        source .env
-    fi
-    
     # 检查环境变量
-    log "检查环境变量..."
-    if [ -z "$JWT_SECRET" ] || [ -z "$ENCRYPTION_KEY" ]; then
-        warn "缺少必要的环境变量，将使用默认值"
-    fi
-    
-    # 设置默认环境变量
-    set_default_env
+    check_env
     
     # 创建必要的目录结构
     create_directories

@@ -17,8 +17,8 @@ COPY admin-api .
 # Generate Prisma client
 RUN prisma generate
 
-# Build application
-RUN npm run build
+# Build application with path aliases support
+RUN npx tsc -p tsconfig.json --resolveJsonModule --esModuleInterop --rootDir /app
 
 # Production stage
 FROM node:18-alpine
