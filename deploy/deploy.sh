@@ -256,10 +256,7 @@ create_directories() {
 }
 
 # 拉取最新代码
-pull_latest_code() {
-    log "拉取最新代码..."
-    git pull origin main
-}
+log "跳过自动拉取代码，请确保代码已手动更新..."
 
 # 创建Docker网络
 create_network() {
@@ -325,7 +322,7 @@ main() {
     create_network
     
     # 拉取最新代码
-    pull_latest_code
+    log "跳过自动拉取代码，请确保代码已手动更新..."
     
     # 构建Docker镜像
     build
