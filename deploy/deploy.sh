@@ -306,11 +306,11 @@ build_docker_images() {
     
     # 构建 admin 相关服务
     log "构建 admin 相关服务..."
-    docker-compose -f docker-compose.admin.yml build
+    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" build --no-cache
     
     # 构建 user 相关服务
     log "构建 user 相关服务..."
-    docker-compose -f docker-compose.user.yml build
+    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" build --no-cache
 }
 
 # 检查DNS记录
