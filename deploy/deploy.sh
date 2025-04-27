@@ -35,6 +35,7 @@ log "当前工作目录: $(pwd)"
 build_shared() {
     log "构建 shared 模块..."
     cd "$WORKSPACE_DIR/shared"
+    chmod -R 777 .
     npm install
     npm run build
     cd "$WORKSPACE_DIR"
