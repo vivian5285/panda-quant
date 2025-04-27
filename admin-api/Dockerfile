@@ -6,29 +6,32 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
-COPY src ./src/
-COPY tsconfig.json ./
-
-# Copy shared module
+# Copy shared module first
 COPY shared ./shared
 
-# Install dependencies
-RUN npm install
-RUN npm install -g typescript
-RUN npx prisma generate
-
-# Build shared module first
+# Build shared module
 WORKDIR /app/shared
 RUN chmod -R 777 .
 RUN npm install
 RUN chmod -R 777 node_modules
 RUN npm run build
 
-# Build admin-api
+# Copy admin-api files
 WORKDIR /app
+COPY package*.json ./
+COPY prisma ./prisma/
+COPY src ./src/
+COPY tsconfig.json ./
+
+# Install dependencies
+RUN npm install
+RUN npm install -g typescript
+RUN npx prisma generate
+
+# Link shared module
+RUN npm link ./shared
+
+# Build admin-api
 RUN npx tsc --project tsconfig.json --resolveJsonModule --esModuleInterop
 
 # Production stage
@@ -43,10 +46,12 @@ COPY shared ./shared/
 
 # Install production dependencies
 RUN npm install --production
+RUN npm link ./shared
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/shared/dist ./shared/dist
 
 # Set permissions
 RUN chown -R node:node /app/admin-api && \

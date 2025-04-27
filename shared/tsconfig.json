@@ -12,7 +12,11 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "moduleResolution": "node",
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"],
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./dist/*"]
+    }
   },
   "include": ["./**/*"],
   "exclude": ["node_modules", "dist"]
