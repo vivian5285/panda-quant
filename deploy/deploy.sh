@@ -292,14 +292,14 @@ build_docker_images() {
     
     # 构建admin相关服务
     log "构建admin相关服务镜像..."
-    docker-compose -f docker-compose.admin.yml build
+    docker-compose -f "$(dirname "${BASH_SOURCE[0]}")/docker-compose.admin.yml" build
     if [ $? -ne 0 ]; then
         error "构建admin服务镜像失败"
     fi
     
     # 构建user相关服务
     log "构建user相关服务镜像..."
-    docker-compose -f docker-compose.user.yml build
+    docker-compose -f "$(dirname "${BASH_SOURCE[0]}")/docker-compose.user.yml" build
     if [ $? -ne 0 ]; then
         error "构建user服务镜像失败"
     fi
