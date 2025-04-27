@@ -527,10 +527,29 @@ build_services() {
     mkdir -p "$WORKSPACE_DIR/user-ui/shared"
     
     # 复制整个 shared 目录，包括类型定义文件
-    cp -r "$WORKSPACE_DIR/shared/dist" "$WORKSPACE_DIR/admin-api/shared/"
-    cp -r "$WORKSPACE_DIR/shared/dist" "$WORKSPACE_DIR/user-api/shared/"
-    cp -r "$WORKSPACE_DIR/shared/dist" "$WORKSPACE_DIR/admin-ui/shared/"
-    cp -r "$WORKSPACE_DIR/shared/dist" "$WORKSPACE_DIR/user-ui/shared/"
+    cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/admin-api/shared/"
+    cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/user-api/shared/"
+    cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/admin-ui/shared/"
+    cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/user-ui/shared/"
+    
+    # 创建 package.json 文件
+    cat > "$WORKSPACE_DIR/admin-api/shared/package.json" << EOF
+{
+  "name": "@shared",
+  "version": "1.0.0",
+  "main": "index.js",
+  "types": "index.d.ts"
+}
+EOF
+    
+    cat > "$WORKSPACE_DIR/user-api/shared/package.json" << EOF
+{
+  "name": "@shared",
+  "version": "1.0.0",
+  "main": "index.js",
+  "types": "index.d.ts"
+}
+EOF
     
     # 构建 admin-api
     log "构建 admin-api..."
