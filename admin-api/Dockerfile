@@ -22,6 +22,7 @@ RUN npx prisma generate
 
 # Build shared module first
 WORKDIR /app/shared
+RUN chmod -R 777 .
 RUN npm install
 RUN npm run build
 
@@ -45,6 +46,10 @@ RUN npm install --production
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Set permissions
+RUN chown -R node:node /app/admin-api && \
+    chmod -R 777 /app/admin-api
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
