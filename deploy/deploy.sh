@@ -223,7 +223,7 @@ backup_database() {
     if ! mongosh "$MONGODB_ADMIN_URI" --eval "db.getMongo()" &> /dev/null; then
         log "数据库不存在，跳过备份"
         return
-    }
+    fi
     
     # 重试次数和间隔
     max_retries=5
