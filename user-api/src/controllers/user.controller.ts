@@ -7,14 +7,18 @@ import { sendVerificationEmail } from '../utils/email';
 import { validateEmail, validatePassword } from '../utils/validation';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { UserRole } from '../models/User';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
+interface AuthUser {
+  id: string;
+  email: string;
+  role: UserRole;
+}
+
 interface RequestWithUser extends Request {
-  user?: {
-    id: string;
-    email: string;
-  };
+  user?: AuthUser;
 }
 
 interface UserRequestBody {
@@ -24,7 +28,7 @@ interface UserRequestBody {
   code?: string;
 }
 
-const generateToken = (payload: { id: string; email: string }): string => {
+const generateToken = (payload: AuthUser): string => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
 };
 
@@ -140,7 +144,11 @@ export class UserController {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
 
-      const token = generateToken({ id: user.id, email: user.email });
+      const token = generateToken({ 
+        id: user.id, 
+        email: user.email, 
+        role: user.role as UserRole 
+      });
 
       res.json({
         message: 'Login successful',

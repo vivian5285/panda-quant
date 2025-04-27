@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { UserModel } from '../models/User';
+import { UserModel, UserRole, UserStatus } from '../models/User';
 import { VerificationService } from '../services/verification.service';
 import { DatabaseError, ValidationError } from '../utils/errors';
 import { generateToken } from '../utils/jwt';
@@ -34,7 +34,9 @@ export class AuthController {
         password: hashedPassword,
         username,
         name,
-        isVerified: true  // 验证码验证通过后直接设置为已验证
+        isVerified: true,  // 验证码验证通过后直接设置为已验证
+        role: 'user' as UserRole,
+        status: 'active' as UserStatus
       });
 
       const token = generateToken(user);
@@ -47,6 +49,8 @@ export class AuthController {
           username: user.username,
           name: user.name,
           isVerified: user.isVerified,
+          role: user.role,
+          status: user.status,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
         }

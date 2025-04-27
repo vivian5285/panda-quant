@@ -3,6 +3,7 @@ import { DatabaseError } from '../utils/errors';
 import bcrypt from 'bcryptjs';
 
 export type UserRole = 'user' | 'admin';
+export type UserStatus = 'active' | 'suspended' | 'inactive';
 
 export interface IUserInput {
   email: string;
@@ -11,7 +12,7 @@ export interface IUserInput {
   username: string;
   isVerified?: boolean;
   role?: UserRole;
-  status?: string;
+  status?: UserStatus;
   isAdmin?: boolean;
   permissions?: string[];
   balance?: number;
@@ -24,7 +25,7 @@ export interface IUser extends Document {
   username: string;
   isVerified: boolean;
   role: UserRole;
-  status: string;
+  status: UserStatus;
   isAdmin: boolean;
   permissions: string[];
   balance: number;
@@ -68,6 +69,7 @@ const userSchema = new Schema<IUser>({
   },
   status: {
     type: String,
+    enum: ['active', 'suspended', 'inactive'],
     default: 'active'
   },
   isAdmin: {
