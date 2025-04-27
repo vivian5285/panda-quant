@@ -28,12 +28,10 @@ RUN npm install
 RUN npm install -g typescript
 RUN npx prisma generate
 
-# Link shared module
+# Link shared module and copy its build output
 RUN npm link ./shared
-
-# Create symlink for shared module
 RUN mkdir -p node_modules/@shared
-RUN ln -s /app/shared/dist node_modules/@shared/dist
+RUN cp -r /app/shared/dist node_modules/@shared/
 
 # Build admin-api
 RUN npx tsc --project tsconfig.json --resolveJsonModule --esModuleInterop
@@ -54,7 +52,7 @@ RUN npm link ./shared
 
 # Create symlink for shared module
 RUN mkdir -p node_modules/@shared
-RUN ln -s /app/admin-api/shared/dist node_modules/@shared/dist
+RUN cp -r /app/admin-api/shared/dist node_modules/@shared/
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist

@@ -15,7 +15,7 @@
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["./dist/*"]
+      "@shared/*": ["./*"]
     }
   },
   "include": ["./**/*"],
