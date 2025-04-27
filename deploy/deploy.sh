@@ -287,6 +287,9 @@ create_network() {
 build_docker_images() {
     log "构建Docker镜像..."
     
+    # 先构建 shared 模块
+    build_shared
+    
     # 构建admin相关服务
     log "构建admin相关服务镜像..."
     docker-compose -f docker-compose.admin.yml build

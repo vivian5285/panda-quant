@@ -6,7 +6,16 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
+# Copy shared module
+COPY shared ./shared
+
+# Build shared module
+WORKDIR /app/shared
+RUN npm install
+RUN npm run build
+
 # Copy package files
+WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY src ./src/
@@ -33,6 +42,7 @@ RUN npm install --production
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/shared ./shared
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
