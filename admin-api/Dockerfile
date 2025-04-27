@@ -8,6 +8,7 @@ COPY shared ./shared
 WORKDIR /app/shared
 RUN npm install
 RUN npm install -g typescript
+RUN npm install --save-dev @types/bcryptjs @types/express @types/jsonwebtoken @types/node
 RUN npx tsc --project tsconfig.json
 
 # Setup admin-api
