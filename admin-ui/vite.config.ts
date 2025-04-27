@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import svgr from 'vite-plugin-svgr'
+import { splitVendorChunkPlugin } from 'vite'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -21,7 +22,8 @@ export default defineConfig({
         ]
       }
     }),
-    svgr()
+    svgr(),
+    splitVendorChunkPlugin()
   ],
   resolve: {
     alias: {
@@ -44,9 +46,20 @@ export default defineConfig({
             if (id.includes('i18next')) {
               return 'i18n-vendor'
             }
+            if (id.includes('lodash') || id.includes('date-fns')) {
+              return 'utils-vendor'
+            }
             return 'vendor'
           }
         }
+      }
+    },
+    chunkSizeWarningLimit: 1000,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
       }
     }
   },
