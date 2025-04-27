@@ -29,7 +29,8 @@
     "rootDir": "../",
     "typeRoots": [
       "./node_modules/@types",
-      "../shared/types"
+      "../shared/types",
+      "./node_modules/@types/express-rate-limit"
     ]
   },
   "include": [
