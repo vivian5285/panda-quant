@@ -43,13 +43,16 @@ services:
 
   # 管理前端
   admin-ui:
+    build:
+      context: /root/panda-quant/admin-ui
+      dockerfile: Dockerfile
     image: deploy-admin-ui
     container_name: panda-quant-admin-ui
     ports:
       - "8080:80"      # Admin UI 访问端口
     environment:
       - NODE_ENV=production
-      - VITE_API_URL=https://admin-api.pandatrade.space
+      - VITE_API_URL=https://api.pandatrade.space
     networks:
       - panda-quant-network
     depends_on:
@@ -64,7 +67,7 @@ services:
   # 管理后端
   admin-api:
     build:
-      context: ../admin-api
+      context: /root/panda-quant/admin-api
       dockerfile: Dockerfile
     image: deploy-admin-api
     container_name: panda-quant-admin-api
