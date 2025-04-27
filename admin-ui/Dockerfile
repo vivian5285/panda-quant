@@ -11,7 +11,6 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm install
-RUN npm install vite@6.3.3 @vitejs/plugin-react@4.4.1
 
 # Copy source code
 COPY . .
