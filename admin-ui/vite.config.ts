@@ -50,6 +50,11 @@ export default defineConfig({
       }
     }
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'es2020'
+    }
+  },
   server: {
     port: 3002,
     host: true,

@@ -11,6 +11,7 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm install
+RUN npm install esbuild@0.21.5
 
 # Copy source code
 COPY . .
