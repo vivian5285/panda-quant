@@ -1,23 +1,20 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "es2018",
     "module": "commonjs",
     "declaration": true,
-    "declarationMap": true,
-    "composite": true,
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "./",
+    "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "moduleResolution": "node",
-    "typeRoots": ["./node_modules/@types"],
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["./dist/*"]
+      "@shared/*": ["./*"]
     }
   },
-  "include": ["./**/*"],
+  "include": ["**/*"],
   "exclude": ["node_modules", "dist"]
 } 

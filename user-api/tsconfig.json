@@ -12,14 +12,14 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "types": ["node", "jest"],
-    "typeRoots": ["./node_modules/@types"],
+    "typeRoots": ["./node_modules/@types", "./shared"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/*"]
+      "@shared/*": ["./shared/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "shared/**/*"],
   "exclude": ["node_modules", "dist"]
 } 

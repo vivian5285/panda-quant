@@ -2,6 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt';
 import { IUser } from '@shared/models/user';
 
+declare global {
+  namespace Express {
+    interface Request {
+      user?: IUser;
+    }
+  }
+}
+
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
@@ -12,6 +20,10 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     }
 
     const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(403).json({ message: 'Invalid token' });
+    }
+    
     req.user = decoded as IUser;
     next();
   } catch (error) {

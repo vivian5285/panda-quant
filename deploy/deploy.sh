@@ -495,9 +495,69 @@ check_services() {
     done
 }
 
+# 构建所有服务
+build_services() {
+    log "开始构建所有服务..."
+    
+    # 构建 shared 模块
+    log "构建 shared 模块..."
+    cd "$WORKSPACE_DIR/shared"
+    rm -rf node_modules
+    rm -rf dist
+    npm install
+    npm run build
+    
+    # 复制 shared 目录
+    log "复制 shared 目录..."
+    mkdir -p "$WORKSPACE_DIR/admin-api/shared"
+    mkdir -p "$WORKSPACE_DIR/user-api/shared"
+    mkdir -p "$WORKSPACE_DIR/admin-ui/shared"
+    mkdir -p "$WORKSPACE_DIR/user-ui/shared"
+    
+    cp -r "$WORKSPACE_DIR/shared/dist" "$WORKSPACE_DIR/admin-api/shared/"
+    cp -r "$WORKSPACE_DIR/shared/dist" "$WORKSPACE_DIR/user-api/shared/"
+    cp -r "$WORKSPACE_DIR/shared/dist" "$WORKSPACE_DIR/admin-ui/shared/"
+    cp -r "$WORKSPACE_DIR/shared/dist" "$WORKSPACE_DIR/user-ui/shared/"
+    
+    # 构建 admin-api
+    log "构建 admin-api..."
+    cd "$WORKSPACE_DIR/admin-api"
+    rm -rf node_modules
+    rm -rf dist
+    npm install
+    npm run build
+    
+    # 构建 user-api
+    log "构建 user-api..."
+    cd "$WORKSPACE_DIR/user-api"
+    rm -rf node_modules
+    rm -rf dist
+    npm install
+    npm run build
+    
+    # 构建 admin-ui
+    log "构建 admin-ui..."
+    cd "$WORKSPACE_DIR/admin-ui"
+    rm -rf node_modules
+    rm -rf dist
+    npm install
+    npm run build
+    
+    # 构建 user-ui
+    log "构建 user-ui..."
+    cd "$WORKSPACE_DIR/user-ui"
+    rm -rf node_modules
+    rm -rf dist
+    npm install
+    npm run build
+    
+    cd "$WORKSPACE_DIR"
+    log "所有服务构建完成"
+}
+
 # 主函数
 main() {
-    log "开始部署..."
+    log "开始部署流程..."
     
     # 检查必要的命令
     check_commands
@@ -505,44 +565,17 @@ main() {
     # 检查环境变量
     check_env
     
-    # 创建必要的目录结构
-    create_directories
+    # 备份数据库
+    backup_database
     
-    # 创建Docker网络
-    create_docker_network
-    
-    # 拉取最新代码
-    log "跳过自动拉取代码，请确保代码已手动更新..."
-    
-    # 构建Docker镜像
-    build_docker_images
-    
-    # 检查DNS记录
-    check_dns
-    
-    # 设置环境变量
-    set_env
-    
-    # 创建目录
-    create_dirs
-    
-    # 备份配置
-    backup_config
-    
-    # 生成SSL证书
-    generate_ssl
+    # 构建所有服务
+    build_services
     
     # 启动服务
-    start_services
-    
-    # 检查服务状态
-    check_services
+    log "启动服务..."
+    docker-compose -f docker-compose.yml up -d --build
     
     log "部署完成！"
-    log "访问以下地址："
-    log "- 主站: https://pandatrade.space"
-    log "- 管理后台: https://admin.pandatrade.space"
-    log "- API文档: https://api.pandatrade.space"
 }
 
 # 执行主函数

@@ -12,30 +12,30 @@ declare module 'tronweb' {
 const prisma = new PrismaClient();
 
 interface ChainConfig {
-  rpcUrl: string | undefined;
-  contractAddress: string | undefined;
+  rpcUrl: string;
+  contractAddress: string;
 }
 
 const chainConfigs: Record<string, ChainConfig> = {
   OP: {
-    rpcUrl: process.env.OP_RPC_URL,
-    contractAddress: process.env.OP_CONTRACT_ADDRESS
+    rpcUrl: process.env.OP_RPC_URL || '',
+    contractAddress: process.env.OP_CONTRACT_ADDRESS || ''
   },
   MATIC: {
-    rpcUrl: process.env.MATIC_RPC_URL,
-    contractAddress: process.env.MATIC_CONTRACT_ADDRESS
+    rpcUrl: process.env.MATIC_RPC_URL || '',
+    contractAddress: process.env.MATIC_CONTRACT_ADDRESS || ''
   },
   BSC: {
-    rpcUrl: process.env.BSC_RPC_URL,
-    contractAddress: process.env.BSC_CONTRACT_ADDRESS
+    rpcUrl: process.env.BSC_RPC_URL || '',
+    contractAddress: process.env.BSC_CONTRACT_ADDRESS || ''
   },
   ARB: {
-    rpcUrl: process.env.ARB_RPC_URL,
-    contractAddress: process.env.ARB_CONTRACT_ADDRESS
+    rpcUrl: process.env.ARB_RPC_URL || '',
+    contractAddress: process.env.ARB_CONTRACT_ADDRESS || ''
   },
   TRX: {
-    rpcUrl: process.env.TRX_RPC_URL,
-    contractAddress: process.env.TRX_CONTRACT_ADDRESS
+    rpcUrl: process.env.TRX_RPC_URL || '',
+    contractAddress: process.env.TRX_CONTRACT_ADDRESS || ''
   }
 };
 
@@ -46,11 +46,15 @@ export class DepositService {
       throw new Error('Invalid chain');
     }
 
+    if (!config.rpcUrl) {
+      throw new Error(`RPC URL not configured for chain ${chain}`);
+    }
+
     let address: string;
     if (chain === 'TRX') {
       const tronWeb = new TronWeb({
         fullHost: config.rpcUrl,
-        headers: { 'TRON-PRO-API-KEY': process.env.TRON_API_KEY }
+        headers: { 'TRON-PRO-API-KEY': process.env.TRON_API_KEY || '' }
       });
       address = await tronWeb.createAccount().then((account: any) => account.address.base58);
     } else {
@@ -94,14 +98,20 @@ export class DepositService {
       throw new Error('Invalid chain');
     }
 
+    if (!config.rpcUrl) {
+      throw new Error(`RPC URL not configured for chain ${chain}`);
+    }
+
     let status = 'pending';
     if (chain === 'TRX') {
       const tronWeb = new TronWeb({
         fullHost: config.rpcUrl,
-        headers: { 'TRON-PRO-API-KEY': process.env.TRON_API_KEY }
+        headers: { 'TRON-PRO-API-KEY': process.env.TRON_API_KEY || '' }
       });
       const tx = await tronWeb.trx.getTransaction(transactionHash);
-      status = tx.ret[0].contractRet === 'SUCCESS' ? 'completed' : 'failed';
+      if (tx && tx.ret && tx.ret[0]) {
+        status = tx.ret[0].contractRet === 'SUCCESS' ? 'completed' : 'failed';
+      }
     } else {
       const provider = new ethers.JsonRpcProvider(config.rpcUrl);
       const tx = await provider.getTransaction(transactionHash);
