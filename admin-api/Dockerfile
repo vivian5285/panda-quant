@@ -7,6 +7,7 @@ WORKDIR /app
 COPY shared ./shared
 WORKDIR /app/shared
 RUN npm install
+RUN npm install -g typescript
 RUN npx tsc --project tsconfig.json
 
 # Setup admin-api
@@ -14,6 +15,7 @@ WORKDIR /app/admin-api
 COPY admin-api/package*.json ./
 COPY admin-api/prisma ./prisma/
 RUN npm install
+RUN npm install -g typescript
 
 # Copy source code
 COPY admin-api/src ./src/
