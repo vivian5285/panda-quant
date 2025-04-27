@@ -12,8 +12,9 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source code
+# Copy source code and shared module
 COPY . .
+COPY ../shared ./shared
 
 # Build the app
 RUN npm run build

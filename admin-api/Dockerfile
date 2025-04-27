@@ -11,6 +11,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 COPY src ./src/
 COPY tsconfig.json ./
+COPY shared ./shared/
 
 # Install dependencies
 RUN npm install
@@ -26,6 +27,7 @@ WORKDIR /app/admin-api
 # Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY shared ./shared/
 
 # Install production dependencies
 RUN npm install --production
