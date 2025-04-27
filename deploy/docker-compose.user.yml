@@ -44,7 +44,7 @@ services:
   # 用户前端
   user-ui:
     build:
-      context: $WORKSPACE_DIR/user-ui
+      context: ../user-ui
       dockerfile: Dockerfile
     image: deploy-user-ui
     container_name: panda-quant-user-ui
@@ -67,7 +67,7 @@ services:
   # 用户后端
   user-api:
     build:
-      context: $WORKSPACE_DIR/user-api
+      context: ../user-api
       dockerfile: Dockerfile
     image: deploy-user-api
     container_name: panda-quant-user-api
