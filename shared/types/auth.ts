@@ -3,10 +3,11 @@ import { IUser } from '../models/user';
 
 export interface AuthRequest extends Request {
     user?: IUser & {
-        balance?: number;
+        balance: number;
+        name: string;
         [key: string]: any;
     };
-    body?: any;
-    params?: any;
-    query?: any;
+    body: any;
+    params: any;
+    query: any;
 } 
