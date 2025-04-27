@@ -34,12 +34,6 @@
     "test": "vitest",
     "coverage": "vitest run --coverage"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -57,7 +51,6 @@
     "@types/recharts": "^1.8.29",
     "@vitejs/plugin-react": "^4.4.1",
     "vite": "^6.3.3",
-    "vite-plugin-eslint": "^1.8.1",
     "vite-plugin-svgr": "^4.3.0",
     "vitest": "^0.31.1"
   }

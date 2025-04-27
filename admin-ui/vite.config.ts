@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import svgr from 'vite-plugin-svgr'
-import eslint from 'vite-plugin-eslint'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -22,12 +21,7 @@ export default defineConfig({
         ]
       }
     }),
-    svgr(),
-    eslint({
-      include: ['src/**/*.ts', 'src/**/*.tsx'],
-      exclude: ['node_modules', 'dist'],
-      cache: false
-    })
+    svgr()
   ],
   resolve: {
     alias: {
