@@ -43,9 +43,6 @@ services:
 
   # 管理前端
   admin-ui:
-    build:
-      context: ../admin-ui
-      dockerfile: Dockerfile
     image: deploy-admin-ui
     container_name: panda-quant-admin-ui
     ports:
@@ -66,10 +63,7 @@ services:
 
   # 管理后端
   admin-api:
-    build:
-      context: ../admin-api
-      dockerfile: Dockerfile
-    image: deploy-admin-api
+    image: admin-api
     container_name: panda-quant-admin-api
     ports:
       - "8081:3000"    # Admin API 访问端口
