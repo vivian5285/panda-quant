@@ -6,7 +6,7 @@ WORKDIR /app
 # Copy shared module first
 COPY shared ./shared/
 WORKDIR /app/shared
-RUN npm install && npm run build
+RUN npm install && npm install typescript && npx tsc
 
 # Copy package files
 WORKDIR /app
