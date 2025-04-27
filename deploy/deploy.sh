@@ -292,23 +292,45 @@ build_docker_images() {
     # 先构建 shared 模块
     build_shared
     
-    # 设置工作目录环境变量
-    export WORKSPACE_DIR="$WORKSPACE_DIR"
-    
     # 构建admin相关服务
     log "构建admin相关服务镜像..."
-    cd "$DEPLOY_DIR"
-    docker-compose -f docker-compose.admin.yml build --no-cache
+    
+    # 构建 admin-api
+    log "构建 admin-api 镜像..."
+    cd "$WORKSPACE_DIR/admin-api"
+    docker build -t deploy-admin-api .
     if [ $? -ne 0 ]; then
-        error "构建admin服务镜像失败"
+        error "构建 admin-api 镜像失败"
+    fi
+    
+    # 构建 admin-ui
+    log "构建 admin-ui 镜像..."
+    cd "$WORKSPACE_DIR/admin-ui"
+    docker build -t deploy-admin-ui .
+    if [ $? -ne 0 ]; then
+        error "构建 admin-ui 镜像失败"
     fi
     
     # 构建user相关服务
     log "构建user相关服务镜像..."
-    docker-compose -f docker-compose.user.yml build --no-cache
+    
+    # 构建 user-api
+    log "构建 user-api 镜像..."
+    cd "$WORKSPACE_DIR/user-api"
+    docker build -t deploy-user-api .
     if [ $? -ne 0 ]; then
-        error "构建user服务镜像失败"
+        error "构建 user-api 镜像失败"
     fi
+    
+    # 构建 user-ui
+    log "构建 user-ui 镜像..."
+    cd "$WORKSPACE_DIR/user-ui"
+    docker build -t deploy-user-ui .
+    if [ $? -ne 0 ]; then
+        error "构建 user-ui 镜像失败"
+    fi
+    
+    # 返回工作目录
     cd "$WORKSPACE_DIR"
 }
 
@@ -450,11 +472,11 @@ start_services() {
     
     # 启动admin相关服务
     log "启动admin相关服务..."
-    docker-compose -f docker-compose.admin.yml up -d
+    docker-compose -f docker-compose.admin.yml up -d --no-build
     
     # 启动user相关服务
     log "启动user相关服务..."
-    docker-compose -f docker-compose.user.yml up -d
+    docker-compose -f docker-compose.user.yml up -d --no-build
     
     cd "$WORKSPACE_DIR"
 }

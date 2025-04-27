@@ -41,18 +41,15 @@ services:
       retries: 5
       start_period: 40s
 
-  # 管理前端
+  # 管理后台前端
   admin-ui:
-    build:
-      context: ${WORKSPACE_DIR}/admin-ui
-      dockerfile: Dockerfile
     image: deploy-admin-ui
     container_name: panda-quant-admin-ui
     ports:
       - "8080:80"      # Admin UI 访问端口
     environment:
       - NODE_ENV=production
-      - VITE_API_URL=https://api.pandatrade.space
+      - VITE_API_URL=https://admin-api.pandatrade.space
     networks:
       - panda-quant-network
     depends_on:
@@ -64,11 +61,8 @@ services:
       retries: 5
       start_period: 40s
 
-  # 管理后端
+  # 管理后台后端
   admin-api:
-    build:
-      context: ${WORKSPACE_DIR}/admin-api
-      dockerfile: Dockerfile
     image: deploy-admin-api
     container_name: panda-quant-admin-api
     ports:
@@ -99,4 +93,6 @@ networks:
 
 volumes:
   mongodb_admin_data:
-  redis_admin_data: 
+  redis_admin_data:
+  nginx_letsencrypt:
+  nginx_www: 
