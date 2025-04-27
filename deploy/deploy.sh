@@ -447,17 +447,14 @@ generate_ssl() {
 # 启动服务
 start_services() {
     log "启动服务..."
-    cd "$DEPLOY_DIR"
     
     # 启动admin相关服务
     log "启动admin相关服务..."
-    docker-compose -f docker-compose.admin.yml up -d --no-build
+    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" up -d --no-build
     
     # 启动user相关服务
     log "启动user相关服务..."
-    docker-compose -f docker-compose.user.yml up -d --no-build
-    
-    cd "$WORKSPACE_DIR"
+    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" up -d --no-build
 }
 
 # 检查服务状态
