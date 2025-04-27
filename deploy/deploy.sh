@@ -293,12 +293,30 @@ build_docker_images() {
         error "构建admin-api镜像失败"
     fi
     
+    # 构建admin-ui
+    log "构建admin-ui镜像..."
+    log "复制必要的文件..."
+    
+    # 复制admin-ui目录
+    mkdir -p "$BUILD_DIR/admin-ui"
+    cp -r "$WORKSPACE_DIR/admin-ui/package.json" "$BUILD_DIR/admin-ui/"
+    cp -r "$WORKSPACE_DIR/admin-ui/package-lock.json" "$BUILD_DIR/admin-ui/"
+    cp -r "$WORKSPACE_DIR/admin-ui/src" "$BUILD_DIR/admin-ui/"
+    cp -r "$WORKSPACE_DIR/admin-ui/public" "$BUILD_DIR/admin-ui/"
+    cp -r "$WORKSPACE_DIR/admin-ui/index.html" "$BUILD_DIR/admin-ui/"
+    cp -r "$WORKSPACE_DIR/admin-ui/vite.config.ts" "$BUILD_DIR/admin-ui/"
+    cp -r "$WORKSPACE_DIR/admin-ui/tsconfig.json" "$BUILD_DIR/admin-ui/"
+    cp -r "$WORKSPACE_DIR/admin-ui/Dockerfile" "$BUILD_DIR/admin-ui/"
+    
+    # 构建admin-ui镜像
+    docker build -t deploy-admin-ui -f admin-ui/Dockerfile admin-ui
+    if [ $? -ne 0 ]; then
+        error "构建admin-ui镜像失败"
+    fi
+    
     # 清理临时文件
     cd "$WORKSPACE_DIR/deploy"
     rm -rf "$BUILD_DIR"
-    
-    # 构建其他服务...
-    # ...
 }
 
 # 启动服务
