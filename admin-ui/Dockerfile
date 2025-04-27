@@ -1,5 +1,5 @@
 # Build stage
-FROM registry.cn-hangzhou.aliyuncs.com/library/node:18-alpine AS build
+FROM ccr.ccs.tencentyun.com/library/node:18-alpine AS build
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ COPY ../shared ./shared
 RUN npm run build
 
 # Production stage
-FROM registry.cn-hangzhou.aliyuncs.com/library/nginx:alpine
+FROM ccr.ccs.tencentyun.com/library/nginx:alpine
 
 # Install wget for healthcheck
 RUN apk add --no-cache wget

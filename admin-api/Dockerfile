@@ -1,5 +1,5 @@
 # Build stage
-FROM registry.cn-hangzhou.aliyuncs.com/library/node:18-alpine AS builder
+FROM ccr.ccs.tencentyun.com/library/node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ RUN npx prisma generate
 RUN npx tsc --project tsconfig.json --resolveJsonModule --esModuleInterop
 
 # Production stage
-FROM registry.cn-hangzhou.aliyuncs.com/library/node:18-alpine
+FROM ccr.ccs.tencentyun.com/library/node:18-alpine
 
 WORKDIR /app/admin-api
 
