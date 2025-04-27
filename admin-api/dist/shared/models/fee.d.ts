@@ -11,7 +11,7 @@ export interface IFee extends Document {
     user?: IUser;
     asset?: IAsset;
 }
-export declare const Fee: mongoose.Model<IFee, {}, {}, {}, mongoose.Document<unknown, {}, IFee> & IFee & Required<{
+export declare const Fee: mongoose.Model<IFee, {}, {}, {}, mongoose.Document<unknown, {}, IFee, {}> & IFee & Required<{
     _id: unknown;
 }> & {
     __v: number;

@@ -26,17 +26,17 @@ export interface IFee {
     status: string;
     createdAt: Date;
 }
-export declare const Asset: mongoose.Model<IAsset, {}, {}, {}, mongoose.Document<unknown, {}, IAsset> & IAsset & Required<{
+export declare const Asset: mongoose.Model<IAsset, {}, {}, {}, mongoose.Document<unknown, {}, IAsset, {}> & IAsset & Required<{
     _id: unknown;
 }> & {
     __v: number;
 }, any>;
-export declare const UserAsset: mongoose.Model<IUserAsset, {}, {}, {}, mongoose.Document<unknown, {}, IUserAsset> & IUserAsset & Required<{
+export declare const UserAsset: mongoose.Model<IUserAsset, {}, {}, {}, mongoose.Document<unknown, {}, IUserAsset, {}> & IUserAsset & Required<{
     _id: unknown;
 }> & {
     __v: number;
 }, any>;
-export declare const Fee: mongoose.Model<IFee, {}, {}, {}, mongoose.Document<unknown, {}, IFee> & IFee & {
+export declare const Fee: mongoose.Model<IFee, {}, {}, {}, mongoose.Document<unknown, {}, IFee, {}> & IFee & {
     _id: mongoose.Types.ObjectId;
 } & {
     __v: number;
