@@ -9,9 +9,9 @@ RUN apk add --no-cache python3 make g++
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with specific Vite version
+# Install dependencies
 RUN npm install
-RUN npm install vite@0.21.5
+RUN npm install vite@6.3.3 @vitejs/plugin-react@4.4.1
 
 # Copy source code
 COPY . .
