@@ -29,6 +29,9 @@ RUN npm install
 RUN npm install -g typescript
 RUN npx prisma generate
 
+# Verify TypeScript installation
+RUN tsc --version
+
 # Link shared module and copy its build output
 RUN npm link ./shared
 RUN mkdir -p node_modules/@shared
