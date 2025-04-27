@@ -268,7 +268,6 @@ build_docker_images() {
     
     # 构建admin-api
     log "构建admin-api镜像..."
-    log "复制必要的文件..."
     
     # 创建临时构建目录
     BUILD_DIR="build"
@@ -295,7 +294,6 @@ build_docker_images() {
     
     # 构建admin-ui
     log "构建admin-ui镜像..."
-    log "复制必要的文件..."
     
     # 复制admin-ui目录
     mkdir -p "$BUILD_DIR/admin-ui"
