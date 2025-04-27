@@ -18,10 +18,10 @@ RUN npx tsc --project tsconfig.json
 
 # Build admin-api
 WORKDIR /app/admin-api
-COPY package*.json ./
-COPY prisma ./prisma/
-COPY src ./src/
-COPY tsconfig.json ./
+COPY admin-api/package*.json ./
+COPY admin-api/prisma ./prisma/
+COPY admin-api/src ./src/
+COPY admin-api/tsconfig.json ./
 
 # Install dependencies
 RUN npm install
@@ -35,8 +35,8 @@ FROM node:18-alpine
 WORKDIR /app/admin-api
 
 # Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
+COPY admin-api/package*.json ./
+COPY admin-api/prisma ./prisma/
 
 # Install production dependencies
 RUN npm install --production
