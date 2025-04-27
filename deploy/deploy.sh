@@ -300,73 +300,49 @@ build_docker_images() {
     
     # 复制admin-api目录
     mkdir -p "$BUILD_DIR/admin-api"
-    cp -r "$WORKSPACE_DIR/admin-api/package.json" "$BUILD_DIR/admin-api/"
-    cp -r "$WORKSPACE_DIR/admin-api/package-lock.json" "$BUILD_DIR/admin-api/"
-    cp -r "$WORKSPACE_DIR/admin-api/prisma" "$BUILD_DIR/admin-api/"
-    cp -r "$WORKSPACE_DIR/admin-api/src" "$BUILD_DIR/admin-api/"
-    cp -r "$WORKSPACE_DIR/admin-api/tsconfig.json" "$BUILD_DIR/admin-api/"
-    cp -r "$WORKSPACE_DIR/admin-api/Dockerfile" "$BUILD_DIR/admin-api/"
+    cp -r "$WORKSPACE_DIR/admin-api"/* "$BUILD_DIR/admin-api/"
+    ln -s "$BUILD_DIR/shared" "$BUILD_DIR/admin-api/shared"
     
     # 复制user-api目录
     mkdir -p "$BUILD_DIR/user-api"
-    cp -r "$WORKSPACE_DIR/user-api/package.json" "$BUILD_DIR/user-api/"
-    cp -r "$WORKSPACE_DIR/user-api/package-lock.json" "$BUILD_DIR/user-api/"
-    cp -r "$WORKSPACE_DIR/user-api/prisma" "$BUILD_DIR/user-api/"
-    cp -r "$WORKSPACE_DIR/user-api/src" "$BUILD_DIR/user-api/"
-    cp -r "$WORKSPACE_DIR/user-api/tsconfig.json" "$BUILD_DIR/user-api/"
-    cp -r "$WORKSPACE_DIR/user-api/Dockerfile" "$BUILD_DIR/user-api/"
+    cp -r "$WORKSPACE_DIR/user-api"/* "$BUILD_DIR/user-api/"
+    ln -s "$BUILD_DIR/shared" "$BUILD_DIR/user-api/shared"
     
     # 复制admin-ui目录
     mkdir -p "$BUILD_DIR/admin-ui"
-    cp -r "$WORKSPACE_DIR/admin-ui/package.json" "$BUILD_DIR/admin-ui/"
-    cp -r "$WORKSPACE_DIR/admin-ui/package-lock.json" "$BUILD_DIR/admin-ui/"
-    cp -r "$WORKSPACE_DIR/admin-ui/src" "$BUILD_DIR/admin-ui/"
-    cp -r "$WORKSPACE_DIR/admin-ui/public" "$BUILD_DIR/admin-ui/"
-    cp -r "$WORKSPACE_DIR/admin-ui/index.html" "$BUILD_DIR/admin-ui/"
-    cp -r "$WORKSPACE_DIR/admin-ui/vite.config.ts" "$BUILD_DIR/admin-ui/"
-    cp -r "$WORKSPACE_DIR/admin-ui/tsconfig.json" "$BUILD_DIR/admin-ui/"
-    cp -r "$WORKSPACE_DIR/admin-ui/Dockerfile" "$BUILD_DIR/admin-ui/"
-    cp -r "$WORKSPACE_DIR/admin-ui/nginx.conf" "$BUILD_DIR/admin-ui/"
+    cp -r "$WORKSPACE_DIR/admin-ui"/* "$BUILD_DIR/admin-ui/"
     
     # 复制user-ui目录
     mkdir -p "$BUILD_DIR/user-ui"
-    cp -r "$WORKSPACE_DIR/user-ui/package.json" "$BUILD_DIR/user-ui/"
-    cp -r "$WORKSPACE_DIR/user-ui/package-lock.json" "$BUILD_DIR/user-ui/"
-    cp -r "$WORKSPACE_DIR/user-ui/src" "$BUILD_DIR/user-ui/"
-    cp -r "$WORKSPACE_DIR/user-ui/public" "$BUILD_DIR/user-ui/"
-    cp -r "$WORKSPACE_DIR/user-ui/index.html" "$BUILD_DIR/user-ui/"
-    cp -r "$WORKSPACE_DIR/user-ui/vite.config.ts" "$BUILD_DIR/user-ui/"
-    cp -r "$WORKSPACE_DIR/user-ui/tsconfig.json" "$BUILD_DIR/user-ui/"
-    cp -r "$WORKSPACE_DIR/user-ui/Dockerfile" "$BUILD_DIR/user-ui/"
-    cp -r "$WORKSPACE_DIR/user-ui/nginx.conf" "$BUILD_DIR/user-ui/"
+    cp -r "$WORKSPACE_DIR/user-ui"/* "$BUILD_DIR/user-ui/"
     
     # 使用正确的构建上下文
     cd "$BUILD_DIR"
     
     # 构建admin-api镜像
     log "构建admin-api镜像..."
-    docker build -t admin-api -f admin-api/Dockerfile .
+    docker build -t admin-api -f admin-api/Dockerfile admin-api
     if [ $? -ne 0 ]; then
         error "构建admin-api镜像失败"
     fi
     
     # 构建user-api镜像
     log "构建user-api镜像..."
-    docker build -t user-api -f user-api/Dockerfile .
+    docker build -t user-api -f user-api/Dockerfile user-api
     if [ $? -ne 0 ]; then
         error "构建user-api镜像失败"
     fi
     
     # 构建admin-ui镜像
     log "构建admin-ui镜像..."
-    docker build -t admin-ui -f admin-ui/Dockerfile .
+    docker build -t admin-ui -f admin-ui/Dockerfile admin-ui
     if [ $? -ne 0 ]; then
         error "构建admin-ui镜像失败"
     fi
     
     # 构建user-ui镜像
     log "构建user-ui镜像..."
-    docker build -t user-ui -f user-ui/Dockerfile .
+    docker build -t user-ui -f user-ui/Dockerfile user-ui
     if [ $? -ne 0 ]; then
         error "构建user-ui镜像失败"
     fi

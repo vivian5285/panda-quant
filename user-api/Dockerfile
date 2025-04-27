@@ -7,7 +7,7 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++
 
 # Copy shared directory
-COPY shared ./shared
+COPY ../shared ./shared
 
 # Build shared directory
 WORKDIR /app/shared
@@ -18,10 +18,7 @@ RUN npx tsc --project tsconfig.json
 
 # Build user-api
 WORKDIR /app/user-api
-COPY package*.json ./
-COPY prisma ./prisma/
-COPY src ./src/
-COPY tsconfig.json ./
+COPY . .
 
 # Install dependencies
 RUN npm install
