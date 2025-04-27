@@ -301,11 +301,21 @@ build_docker_images() {
     # 复制admin-api目录
     mkdir -p "$BUILD_DIR/admin-api"
     cp -r "$WORKSPACE_DIR/admin-api"/* "$BUILD_DIR/admin-api/"
+    # 确保 prisma 目录存在
+    if [ ! -d "$BUILD_DIR/admin-api/prisma" ]; then
+        mkdir -p "$BUILD_DIR/admin-api/prisma"
+        cp -r "$WORKSPACE_DIR/admin-api/prisma"/* "$BUILD_DIR/admin-api/prisma/"
+    fi
     ln -s "$BUILD_DIR/shared" "$BUILD_DIR/admin-api/shared"
     
     # 复制user-api目录
     mkdir -p "$BUILD_DIR/user-api"
     cp -r "$WORKSPACE_DIR/user-api"/* "$BUILD_DIR/user-api/"
+    # 确保 prisma 目录存在
+    if [ ! -d "$BUILD_DIR/user-api/prisma" ]; then
+        mkdir -p "$BUILD_DIR/user-api/prisma"
+        cp -r "$WORKSPACE_DIR/user-api/prisma"/* "$BUILD_DIR/user-api/prisma/"
+    fi
     ln -s "$BUILD_DIR/shared" "$BUILD_DIR/user-api/shared"
     
     # 复制admin-ui目录
