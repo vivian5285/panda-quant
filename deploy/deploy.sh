@@ -73,7 +73,19 @@ check_commands() {
 copy_shared_directory() {
     log "复制shared目录..."
     if [ -d "$WORKSPACE_DIR/shared" ]; then
-        cp -r "$WORKSPACE_DIR/shared" .
+        # 确保目标目录存在
+        mkdir -p "$WORKSPACE_DIR/admin-api/shared"
+        mkdir -p "$WORKSPACE_DIR/user-api/shared"
+        mkdir -p "$WORKSPACE_DIR/admin-ui/shared"
+        mkdir -p "$WORKSPACE_DIR/user-ui/shared"
+        
+        # 复制 shared 目录到各个服务目录
+        cp -r "$WORKSPACE_DIR/shared"/* "$WORKSPACE_DIR/admin-api/shared/"
+        cp -r "$WORKSPACE_DIR/shared"/* "$WORKSPACE_DIR/user-api/shared/"
+        cp -r "$WORKSPACE_DIR/shared"/* "$WORKSPACE_DIR/admin-ui/shared/"
+        cp -r "$WORKSPACE_DIR/shared"/* "$WORKSPACE_DIR/user-ui/shared/"
+        
+        log "shared目录复制完成"
     else
         error "找不到shared目录: $WORKSPACE_DIR/shared"
     fi
@@ -287,51 +299,18 @@ create_docker_network() {
 
 # 构建Docker镜像
 build_docker_images() {
-    log "构建Docker镜像..."
+    log "构建 Docker 镜像..."
     
-    # 先构建 shared 模块
-    build_shared
+    # 确保 shared 目录已复制
+    copy_shared_directory
     
-    # 构建admin相关服务
-    log "构建admin相关服务镜像..."
+    # 构建 admin 相关服务
+    log "构建 admin 相关服务..."
+    docker-compose -f docker-compose.admin.yml build
     
-    # 构建 admin-api
-    log "构建 admin-api 镜像..."
-    cd "$WORKSPACE_DIR/admin-api"
-    docker build -t deploy-admin-api .
-    if [ $? -ne 0 ]; then
-        error "构建 admin-api 镜像失败"
-    fi
-    
-    # 构建 admin-ui
-    log "构建 admin-ui 镜像..."
-    cd "$WORKSPACE_DIR/admin-ui"
-    docker build -t deploy-admin-ui .
-    if [ $? -ne 0 ]; then
-        error "构建 admin-ui 镜像失败"
-    fi
-    
-    # 构建user相关服务
-    log "构建user相关服务镜像..."
-    
-    # 构建 user-api
-    log "构建 user-api 镜像..."
-    cd "$WORKSPACE_DIR/user-api"
-    docker build -t deploy-user-api .
-    if [ $? -ne 0 ]; then
-        error "构建 user-api 镜像失败"
-    fi
-    
-    # 构建 user-ui
-    log "构建 user-ui 镜像..."
-    cd "$WORKSPACE_DIR/user-ui"
-    docker build -t deploy-user-ui .
-    if [ $? -ne 0 ]; then
-        error "构建 user-ui 镜像失败"
-    fi
-    
-    # 返回工作目录
-    cd "$WORKSPACE_DIR"
+    # 构建 user 相关服务
+    log "构建 user 相关服务..."
+    docker-compose -f docker-compose.user.yml build
 }
 
 # 检查DNS记录

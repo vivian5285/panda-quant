@@ -11,12 +11,22 @@ COPY package*.json ./
 COPY prisma ./prisma/
 COPY src ./src/
 COPY tsconfig.json ./
-COPY shared ./shared/
+
+# Copy shared module (注意：shared 目录应该已经在构建上下文中)
+COPY shared ./shared
 
 # Install dependencies
 RUN npm install
 RUN npm install -g typescript
 RUN npx prisma generate
+
+# Build shared module first
+WORKDIR /app/shared
+RUN npm install
+RUN npm run build
+
+# Build admin-api
+WORKDIR /app
 RUN npx tsc --project tsconfig.json --resolveJsonModule --esModuleInterop
 
 # Production stage
