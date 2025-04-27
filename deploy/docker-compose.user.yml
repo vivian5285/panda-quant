@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # MongoDB 数据库
   mongodb:
-    image: mongo:latest
+    image: registry.cn-hangzhou.aliyuncs.com/library/mongo:latest
     container_name: panda-quant-mongodb-user
     ports:
       - "27019:27017"  # MongoDB 用户端口
@@ -25,7 +25,7 @@ services:
 
   # Redis 缓存
   redis:
-    image: redis:alpine
+    image: registry.cn-hangzhou.aliyuncs.com/library/redis:alpine
     container_name: panda-quant-redis-user
     ports:
       - "6381:6379"    # Redis 用户端口
