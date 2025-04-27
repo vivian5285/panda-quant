@@ -287,47 +287,19 @@ create_network() {
 build_docker_images() {
     log "构建Docker镜像..."
     
-    # 构建shared模块
-    log "构建shared模块..."
-    cd "$WORKSPACE_DIR/shared"
-    npm install
-    npm run build
-    cd "$WORKSPACE_DIR"
-    
-    # 构建admin-api镜像
-    log "构建admin-api镜像..."
-    cd "$WORKSPACE_DIR/admin-api"
-    docker build -t admin-api .
+    # 构建admin相关服务
+    log "构建admin相关服务镜像..."
+    docker-compose -f docker-compose.admin.yml build
     if [ $? -ne 0 ]; then
-        error "构建admin-api镜像失败"
+        error "构建admin服务镜像失败"
     fi
     
-    # 构建user-api镜像
-    log "构建user-api镜像..."
-    cd "$WORKSPACE_DIR/user-api"
-    docker build -t user-api .
+    # 构建user相关服务
+    log "构建user相关服务镜像..."
+    docker-compose -f docker-compose.user.yml build
     if [ $? -ne 0 ]; then
-        error "构建user-api镜像失败"
+        error "构建user服务镜像失败"
     fi
-    
-    # 构建admin-ui镜像
-    log "构建admin-ui镜像..."
-    cd "$WORKSPACE_DIR/admin-ui"
-    docker build -t admin-ui .
-    if [ $? -ne 0 ]; then
-        error "构建admin-ui镜像失败"
-    fi
-    
-    # 构建user-ui镜像
-    log "构建user-ui镜像..."
-    cd "$WORKSPACE_DIR/user-ui"
-    docker build -t user-ui .
-    if [ $? -ne 0 ]; then
-        error "构建user-ui镜像失败"
-    fi
-    
-    # 返回部署目录
-    cd "$WORKSPACE_DIR/deploy"
 }
 
 # 检查DNS记录

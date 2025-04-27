@@ -6,18 +6,7 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
-# Copy shared directory
-COPY ../shared ./shared
-
-# Build shared directory
-WORKDIR /app/shared
-RUN npm install
-RUN npm install -g typescript
-RUN npm install --save-dev @types/bcryptjs @types/express @types/jsonwebtoken @types/node
-RUN npx tsc --project tsconfig.json
-
-# Build user-api
-WORKDIR /app/user-api
+# Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY src ./src/
@@ -42,9 +31,8 @@ COPY prisma ./prisma/
 RUN npm install --production
 
 # Copy built files from builder
-COPY --from=builder /app/user-api/dist ./dist
-COPY --from=builder /app/shared/dist ../shared/dist
-COPY --from=builder /app/user-api/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
