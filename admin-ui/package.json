@@ -58,8 +58,6 @@
     "@vitejs/plugin-react": "^4.4.1",
     "vite": "^6.3.3",
     "vite-plugin-eslint": "^1.8.1",
-    "vite-plugin-pwa": "^1.0.0",
-    "vite-plugin-static-copy": "^2.3.1",
     "vite-plugin-svgr": "^4.3.0",
     "vitest": "^0.31.1"
   }

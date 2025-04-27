@@ -2,11 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
-import { splitVendorChunkPlugin } from 'vite'
-import { VitePWA } from 'vite-plugin-pwa'
 import svgr from 'vite-plugin-svgr'
 import eslint from 'vite-plugin-eslint'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -23,43 +20,6 @@ export default defineConfig({
             importSource: 'react'
           }]
         ]
-      }
-    }),
-    splitVendorChunkPlugin(),
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'src/locales/*',
-          dest: 'locales'
-        }
-      ]
-    }),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'robots.txt'],
-      manifest: {
-        name: 'Panda Quant Admin',
-        short_name: 'PandaQuantAdmin',
-        description: 'Panda Quant Trading Platform Admin',
-        theme_color: '#ffffff',
-        icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-        ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        navigateFallback: null,
-        cleanupOutdatedCaches: true,
-        sourcemap: true
       }
     }),
     svgr(),
@@ -79,10 +39,19 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'mui-vendor': ['@mui/material', '@mui/icons-material'],
-          'i18n-vendor': ['i18next', 'react-i18next']
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) {
+              return 'react-vendor'
+            }
+            if (id.includes('@mui')) {
+              return 'mui-vendor'
+            }
+            if (id.includes('i18next')) {
+              return 'i18n-vendor'
+            }
+            return 'vendor'
+          }
         }
       }
     }
