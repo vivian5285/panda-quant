@@ -1,5 +1,5 @@
 # Build stage
-FROM hub.c.163.com/library/node:18-alpine AS builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ RUN npx prisma generate
 RUN npx tsc --project tsconfig.json --resolveJsonModule --esModuleInterop
 
 # Production stage
-FROM hub.c.163.com/library/node:18-alpine
+FROM node:18-alpine
 
 WORKDIR /app/admin-api
 
