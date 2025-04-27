@@ -278,13 +278,12 @@ build_docker_images() {
     cp -r "$WORKSPACE_DIR/shared" "$BUILD_DIR/"
     
     # 复制admin-api目录
-    cp -r "$WORKSPACE_DIR/admin-api" "$BUILD_DIR/"
-    
-    # 确保prisma目录存在
-    if [ ! -d "$BUILD_DIR/admin-api/prisma" ]; then
-        mkdir -p "$BUILD_DIR/admin-api/prisma"
-        cp "$WORKSPACE_DIR/admin-api/prisma/schema.prisma" "$BUILD_DIR/admin-api/prisma/"
-    fi
+    mkdir -p "$BUILD_DIR/admin-api"
+    cp -r "$WORKSPACE_DIR/admin-api/package.json" "$BUILD_DIR/admin-api/"
+    cp -r "$WORKSPACE_DIR/admin-api/package-lock.json" "$BUILD_DIR/admin-api/"
+    cp -r "$WORKSPACE_DIR/admin-api/prisma" "$BUILD_DIR/admin-api/"
+    cp -r "$WORKSPACE_DIR/admin-api/src" "$BUILD_DIR/admin-api/"
+    cp -r "$WORKSPACE_DIR/admin-api/tsconfig.json" "$BUILD_DIR/admin-api/"
     
     # 使用正确的构建上下文
     cd "$BUILD_DIR"

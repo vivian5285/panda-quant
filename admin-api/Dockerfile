@@ -15,12 +15,10 @@ RUN npx tsc --project tsconfig.json
 WORKDIR /app/admin-api
 COPY admin-api/package*.json ./
 COPY admin-api/prisma ./prisma/
-RUN npm install
-RUN npm install -g typescript
-
-# Copy source code
 COPY admin-api/src ./src/
 COPY admin-api/tsconfig.json ./
+RUN npm install
+RUN npm install -g typescript
 
 # Generate Prisma client
 RUN npx prisma generate
