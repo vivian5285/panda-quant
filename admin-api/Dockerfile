@@ -3,39 +3,41 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
+# Copy shared directory first
+COPY shared ./shared
+WORKDIR /app/shared
+RUN npm install
 
-# Install dependencies
-RUN npm install && npm install -g typescript tsconfig-paths prisma
+# Setup admin-api
+WORKDIR /app/admin-api
+COPY admin-api/package*.json ./
+COPY admin-api/prisma ./prisma/
+RUN npm install
 
-# Copy source code and shared directory
-COPY . .
-COPY ../shared ./shared
+# Copy source code
+COPY admin-api/src ./src/
+COPY admin-api/tsconfig.json ./
 
 # Generate Prisma client
-RUN prisma generate
+RUN npx prisma generate
 
-# Build the app
+# Build TypeScript code
 RUN npm run build
 
 # Production stage
 FROM node:18-alpine
 
-WORKDIR /app
+WORKDIR /app/admin-api
 
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
-
-# Install production dependencies
+# Copy package files and install production dependencies
+COPY admin-api/package*.json ./
+COPY admin-api/prisma ./prisma/
 RUN npm install --production
 
-# Copy built files from builder
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/shared ./shared
+# Copy built files and dependencies
+COPY --from=builder /app/admin-api/dist ./dist
+COPY --from=builder /app/shared ../shared
+COPY --from=builder /app/admin-api/node_modules/.prisma ./node_modules/.prisma
 
 # Set environment variables
 ARG MONGODB_ADMIN_URI
@@ -51,5 +53,5 @@ ENV PORT=3000
 # Expose port
 EXPOSE 3000
 
-# Start the app
+# Start the application
 CMD ["npm", "start"] 
