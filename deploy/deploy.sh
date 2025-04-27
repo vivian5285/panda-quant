@@ -29,7 +29,7 @@ warn() {
 # 检查必要的命令
 check_commands() {
     log "检查必要的命令..."
-    for cmd in docker docker-compose git; do
+    for cmd in docker docker-compose git openssl curl dig; do
         if ! command -v $cmd &> /dev/null; then
             error "需要安装 $cmd"
         fi
@@ -321,10 +321,174 @@ build_docker_images() {
     rm -rf "$BUILD_DIR"
 }
 
+# 检查DNS记录
+check_dns() {
+    log "检查DNS记录..."
+    local domains=(
+        "pandatrade.space"
+        "admin.pandatrade.space"
+        "admin-api.pandatrade.space"
+        "api.pandatrade.space"
+    )
+    
+    for domain in "${domains[@]}"; do
+        local ip=$(dig +short $domain)
+        if [ "$ip" != "194.164.149.214" ]; then
+            error "$domain 的DNS记录未正确指向 194.164.149.214"
+        fi
+        log "$domain -> $ip ✓"
+    done
+}
+
+# 设置环境变量
+set_env() {
+    log "设置环境变量..."
+    
+    # 加载现有的环境变量
+    if [ -f .env ]; then
+        source .env
+    fi
+    
+    # 设置默认值
+    export ADMIN_API_PORT=${ADMIN_API_PORT:-8081}
+    export USER_API_PORT=${USER_API_PORT:-8083}
+    export ADMIN_UI_PORT=${ADMIN_UI_PORT:-8080}
+    export USER_UI_PORT=${USER_UI_PORT:-8082}
+    
+    export MONGODB_ADMIN_PORT=${MONGODB_ADMIN_PORT:-27018}
+    export MONGODB_USER_PORT=${MONGODB_USER_PORT:-27019}
+    export REDIS_ADMIN_PORT=${REDIS_ADMIN_PORT:-6380}
+    export REDIS_USER_PORT=${REDIS_USER_PORT:-6381}
+    
+    export DOMAIN=${DOMAIN:-"pandatrade.space"}
+    export ADMIN_SUBDOMAIN=${ADMIN_SUBDOMAIN:-"admin"}
+    export ADMIN_API_SUBDOMAIN=${ADMIN_API_SUBDOMAIN:-"admin-api"}
+    export API_SUBDOMAIN=${API_SUBDOMAIN:-"api"}
+    
+    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:PandaQuant@2024@mongodb:27018/panda-quant-admin?authSource=admin"}
+    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:PandaQuant@2024@mongodb:27019/panda-quant-user?authSource=admin"}
+    
+    export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:PandaQuant@2024@redis:6380"}
+    export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:PandaQuant@2024@redis:6381"}
+    
+    export JWT_SECRET=${JWT_SECRET:-"PandaQuant@2024"}
+    export ENCRYPTION_KEY=${ENCRYPTION_KEY:-"PandaQuant@2024"}
+    export REDIS_PASSWORD=${REDIS_PASSWORD:-"PandaQuant@2024"}
+    
+    # 保存环境变量
+    cat > .env << EOF
+# 端口配置
+ADMIN_API_PORT=$ADMIN_API_PORT
+USER_API_PORT=$USER_API_PORT
+ADMIN_UI_PORT=$ADMIN_UI_PORT
+USER_UI_PORT=$USER_UI_PORT
+
+# 数据库端口
+MONGODB_ADMIN_PORT=$MONGODB_ADMIN_PORT
+MONGODB_USER_PORT=$MONGODB_USER_PORT
+REDIS_ADMIN_PORT=$REDIS_ADMIN_PORT
+REDIS_USER_PORT=$REDIS_USER_PORT
+
+# 域名配置
+DOMAIN=$DOMAIN
+ADMIN_SUBDOMAIN=$ADMIN_SUBDOMAIN
+ADMIN_API_SUBDOMAIN=$ADMIN_API_SUBDOMAIN
+API_SUBDOMAIN=$API_SUBDOMAIN
+
+# 数据库连接
+MONGODB_ADMIN_URI=$MONGODB_ADMIN_URI
+MONGODB_USER_URI=$MONGODB_USER_URI
+REDIS_ADMIN_URL=$REDIS_ADMIN_URL
+REDIS_USER_URL=$REDIS_USER_URL
+
+# 密钥配置
+JWT_SECRET=$JWT_SECRET
+ENCRYPTION_KEY=$ENCRYPTION_KEY
+REDIS_PASSWORD=$REDIS_PASSWORD
+
+# 环境配置
+NODE_ENV=production
+EOF
+}
+
+# 创建目录
+create_dirs() {
+    log "创建必要的目录..."
+    mkdir -p ssl
+    mkdir -p admin-ui/dist
+    mkdir -p user-ui/dist
+    mkdir -p backup
+}
+
+# 备份现有配置
+backup_config() {
+    log "备份现有配置..."
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    tar -czf "backup/config_$timestamp.tar.gz" \
+        nginx.conf \
+        docker-compose.yml \
+        .env \
+        ssl/
+}
+
+# 生成SSL证书
+generate_ssl() {
+    log "生成SSL证书..."
+    local domains=(
+        "pandatrade.space"
+        "admin.pandatrade.space"
+        "admin-api.pandatrade.space"
+        "api.pandatrade.space"
+    )
+    
+    for domain in "${domains[@]}"; do
+        if [ ! -f "ssl/$domain.key" ] || [ ! -f "ssl/$domain.crt" ]; then
+            log "为 $domain 生成SSL证书..."
+            openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+                -keyout "ssl/$domain.key" \
+                -out "ssl/$domain.crt" \
+                -subj "/CN=$domain"
+        fi
+    done
+}
+
+# 构建Docker镜像
+build_images() {
+    log "构建Docker镜像..."
+    docker-compose build || error "Docker镜像构建失败"
+}
+
 # 启动服务
 start_services() {
     log "启动服务..."
     docker-compose -f docker-compose.network.yml -f docker-compose.admin.yml up -d
+}
+
+# 检查服务状态
+check_services() {
+    log "检查服务状态..."
+    sleep 10
+    
+    # 检查容器状态
+    if ! docker-compose ps | grep -q "Up"; then
+        error "部分服务未正常运行"
+    fi
+    
+    # 检查服务健康状态
+    local services=(
+        "https://admin.pandatrade.space/health"
+        "https://admin-api.pandatrade.space/health"
+        "https://pandatrade.space/health"
+        "https://api.pandatrade.space/health"
+    )
+    
+    for url in "${services[@]}"; do
+        if ! curl -k -s -f $url > /dev/null; then
+            warn "$url 健康检查失败"
+        else
+            log "$url 健康检查通过 ✓"
+        fi
+    done
 }
 
 # 主函数
@@ -349,10 +513,35 @@ main() {
     # 构建Docker镜像
     build_docker_images
     
+    # 检查DNS记录
+    check_dns
+    
+    # 设置环境变量
+    set_env
+    
+    # 创建目录
+    create_dirs
+    
+    # 备份配置
+    backup_config
+    
+    # 生成SSL证书
+    generate_ssl
+    
+    # 构建镜像
+    build_images
+    
     # 启动服务
     start_services
     
-    log "部署完成"
+    # 检查服务状态
+    check_services
+    
+    log "部署完成！"
+    log "访问以下地址："
+    log "- 主站: https://pandatrade.space"
+    log "- 管理后台: https://admin.pandatrade.space"
+    log "- API文档: https://api.pandatrade.space"
 }
 
 # 执行主函数

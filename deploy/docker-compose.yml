@@ -1,65 +1,75 @@
 version: '3.8'
 
 services:
-  admin-api:
-    image: panda-quant-admin-api
+  nginx:
+    image: nginx:alpine
+    container_name: panda-quant-nginx
     ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant?authSource=admin
-      - JWT_SECRET=${JWT_SECRET}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/letsencrypt:ro
+      - ./admin-ui/dist:/usr/share/nginx/html/admin:ro
+      - ./user-ui/dist:/usr/share/nginx/html:ro
     depends_on:
-      - mongodb
-      - redis
+      - admin-api
+      - user-api
+    restart: unless-stopped
     networks:
       - panda-quant-network
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+
+  admin-api:
+    build:
+      context: ../admin-api
+      dockerfile: Dockerfile
+    container_name: panda-quant-admin-api
+    environment:
+      - NODE_ENV=production
+      - MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI}
+      - REDIS_ADMIN_URL=${REDIS_ADMIN_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    restart: unless-stopped
+    networks:
+      - panda-quant-network
 
   user-api:
-    image: panda-quant-user-api
-    ports:
-      - "3001:3001"
+    build:
+      context: ../user-api
+      dockerfile: Dockerfile
+    container_name: panda-quant-user-api
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb:27017/panda-quant?authSource=admin
+      - MONGODB_USER_URI=${MONGODB_USER_URI}
+      - REDIS_USER_URL=${REDIS_USER_URL}
       - JWT_SECRET=${JWT_SECRET}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    depends_on:
-      - mongodb
-      - redis
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    restart: unless-stopped
     networks:
       - panda-quant-network
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+
+  admin-ui:
+    build:
+      context: ../admin-ui
+      dockerfile: Dockerfile
+    container_name: panda-quant-admin-ui
+    volumes:
+      - ./admin-ui/dist:/usr/share/nginx/html:ro
+    restart: unless-stopped
+    networks:
+      - panda-quant-network
+
+  user-ui:
+    build:
+      context: ../user-ui
+      dockerfile: Dockerfile
+    container_name: panda-quant-user-ui
+    volumes:
+      - ./user-ui/dist:/usr/share/nginx/html:ro
+    restart: unless-stopped
+    networks:
+      - panda-quant-network
 
   frontend:
     image: panda-quant-frontend
@@ -120,34 +130,6 @@ services:
           memory: 256M
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - /etc/letsencrypt:/etc/letsencrypt
-    depends_on:
-      - admin-api
-      - user-api
-      - frontend
-    networks:
-      - panda-quant-network
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
       interval: 30s
       timeout: 10s
       retries: 3

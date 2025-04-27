@@ -3,51 +3,53 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+# Copy shared directory
+COPY ../shared ./shared
+
+# Build shared directory
+WORKDIR /app/shared
+RUN npm install
+RUN npm install -g typescript
+RUN npm install --save-dev @types/bcryptjs @types/express @types/jsonwebtoken @types/node
+RUN npx tsc --project tsconfig.json
+
+# Build admin-api
+WORKDIR /app/user-api
+COPY user-api/package*.json ./
+COPY user-api/prisma ./prisma/
+COPY user-api/src ./src/
+COPY user-api/tsconfig.json ./
 
 # Install dependencies
-RUN npm install && npm install -g typescript tsconfig-paths prisma
-
-# Copy source code
-COPY . .
-
-# Generate Prisma client
-RUN prisma generate
-
-# Build the app
-RUN npm run build
+RUN npm install
+RUN npm install -g typescript
+RUN npx prisma generate
+RUN npx tsc --project tsconfig.json --resolveJsonModule --esModuleInterop
 
 # Production stage
 FROM node:18-alpine
 
-WORKDIR /app
+WORKDIR /app/user-api
 
 # Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
+COPY user-api/package*.json ./
+COPY user-api/prisma ./prisma/
 
 # Install production dependencies
 RUN npm install --production
 
 # Copy built files from builder
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/user-api/dist ./dist
+COPY --from=builder /app/shared/dist ../shared/dist
+COPY --from=builder /app/user-api/node_modules/.prisma ./node_modules/.prisma
 
-# Set environment variables
-ARG MONGODB_USER_URI
-ARG REDIS_USER_URL
-ARG JWT_SECRET
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-ENV MONGODB_USER_URI=${MONGODB_USER_URI}
-ENV REDIS_USER_URL=${REDIS_USER_URL}
-ENV JWT_SECRET=${JWT_SECRET}
-ENV NODE_ENV=production
-ENV PORT=3000
-
-# Expose port
 EXPOSE 3000
 
-# Start the app
-CMD ["npm", "start"] 
+CMD ["node", "dist/index.js"] 
