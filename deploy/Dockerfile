@@ -4,15 +4,15 @@ FROM node:18-alpine as builder
 WORKDIR /app
 
 # Copy package files
-COPY ../admin-api/package*.json ./
-COPY ../admin-api/prisma ./prisma/
-COPY ../shared ./shared/
+COPY admin-api/package*.json ./
+COPY admin-api/prisma ./prisma/
+COPY shared ./shared/
 
 # Install dependencies
 RUN npm install && npm install -g typescript tsconfig-paths prisma
 
 # Copy source code
-COPY ../admin-api .
+COPY admin-api .
 
 # Generate Prisma client
 RUN prisma generate
