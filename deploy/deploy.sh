@@ -280,9 +280,6 @@ create_network() {
 build_docker_images() {
     log "构建Docker镜像..."
     
-    # 构建admin-api
-    log "构建admin-api镜像..."
-    
     # 创建临时构建目录
     BUILD_DIR="$WORKSPACE_DIR/deploy/build"
     mkdir -p "$BUILD_DIR"
