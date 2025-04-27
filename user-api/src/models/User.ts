@@ -2,13 +2,15 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { DatabaseError } from '../utils/errors';
 import bcrypt from 'bcryptjs';
 
+export type UserRole = 'user' | 'admin';
+
 export interface IUserInput {
   email: string;
   password: string;
   name: string;
   username: string;
   isVerified?: boolean;
-  role?: string;
+  role?: UserRole;
   status?: string;
   isAdmin?: boolean;
   permissions?: string[];
@@ -21,7 +23,7 @@ export interface IUser extends Document {
   name: string;
   username: string;
   isVerified: boolean;
-  role: string;
+  role: UserRole;
   status: string;
   isAdmin: boolean;
   permissions: string[];
@@ -61,6 +63,7 @@ const userSchema = new Schema<IUser>({
   },
   role: {
     type: String,
+    enum: ['user', 'admin'],
     default: 'user'
   },
   status: {

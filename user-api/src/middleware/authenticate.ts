@@ -4,13 +4,16 @@ import { ValidationError } from '../utils/errors';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
+interface AuthUser {
+  id: string;
+  email: string;
+  role: 'user' | 'admin';
+}
+
 declare global {
   namespace Express {
     interface Request {
-      user?: {
-        id: string;
-        email: string;
-      };
+      user?: AuthUser;
     }
   }
 }
@@ -27,7 +30,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
       throw new ValidationError('No token provided');
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
     req.user = decoded;
     next();
   } catch (error) {

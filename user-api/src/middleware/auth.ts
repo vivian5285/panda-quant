@@ -1,11 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt';
-import { IUser } from '@shared/models/user';
+import { IUser } from '../models/User';
+
+interface AuthUser {
+  id: string;
+  email: string;
+  role: 'user' | 'admin';
+}
 
 declare global {
   namespace Express {
     interface Request {
-      user?: IUser;
+      user?: AuthUser;
     }
   }
 }
@@ -24,7 +30,11 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       return res.status(403).json({ message: 'Invalid token' });
     }
     
-    req.user = decoded as IUser;
+    req.user = {
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role as 'user' | 'admin'
+    };
     next();
   } catch (error) {
     return res.status(403).json({ message: 'Invalid token' });

@@ -135,10 +135,11 @@ describe('AuthController', () => {
     });
 
     it('should not login unverified user', async () => {
-      await userModel.updateUser(
-        (await userModel.findUserByEmail('test@example.com'))?._id.toString() || '',
-        { isVerified: false }
-      );
+      const user = await userModel.findUserByEmail('test@example.com');
+      if (!user || !user._id) {
+        throw new Error('User not found');
+      }
+      await userModel.updateUser(user._id.toString(), { isVerified: false });
 
       const req = {
         body: {
