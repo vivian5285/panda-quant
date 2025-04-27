@@ -306,6 +306,8 @@ build_docker_images() {
         mkdir -p "$BUILD_DIR/admin-api/prisma"
         cp -r "$WORKSPACE_DIR/admin-api/prisma"/* "$BUILD_DIR/admin-api/prisma/"
     fi
+    # 删除已存在的符号链接
+    rm -f "$BUILD_DIR/admin-api/shared"
     ln -s "$BUILD_DIR/shared" "$BUILD_DIR/admin-api/shared"
     
     # 复制user-api目录
@@ -316,6 +318,8 @@ build_docker_images() {
         mkdir -p "$BUILD_DIR/user-api/prisma"
         cp -r "$WORKSPACE_DIR/user-api/prisma"/* "$BUILD_DIR/user-api/prisma/"
     fi
+    # 删除已存在的符号链接
+    rm -f "$BUILD_DIR/user-api/shared"
     ln -s "$BUILD_DIR/shared" "$BUILD_DIR/user-api/shared"
     
     # 复制admin-ui目录
