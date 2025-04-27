@@ -34,7 +34,7 @@ RUN mkdir -p node_modules/@shared
 RUN cp -r /app/shared/dist/* node_modules/@shared/
 
 # Build admin-api
-RUN npx tsc --project tsconfig.json --resolveJsonModule --esModuleInterop
+RUN npm run build
 
 # Production stage
 FROM node:18-alpine
