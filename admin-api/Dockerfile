@@ -20,6 +20,9 @@ RUN npm install && \
 # Copy source code
 COPY . .
 
+# Set environment variables for Prisma
+ENV MONGODB_ADMIN_URI=mongodb://admin:PandaQuant@2024@mongodb-admin:27017/panda-quant-admin?authSource=admin
+
 # Generate Prisma client
 RUN npx prisma generate
 
@@ -50,6 +53,10 @@ COPY --from=build /app/prisma ./prisma
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=8081
+ENV MONGODB_ADMIN_URI=mongodb://admin:PandaQuant@2024@mongodb-admin:27017/panda-quant-admin?authSource=admin
+ENV REDIS_URL=redis://:PandaQuant@2024@redis-admin:6379
+ENV JWT_SECRET=PandaQuant@2024
+ENV ENCRYPTION_KEY=PandaQuant@2024
 
 # Expose port
 EXPOSE 8081
