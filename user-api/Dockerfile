@@ -25,7 +25,6 @@ RUN npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg
 
 # Copy source files and build
 COPY . .
-RUN ls -la /app/src
 
 # Generate Prisma client and build
 RUN npm install prisma --save-dev
@@ -36,14 +35,12 @@ RUN npx tsc
 RUN echo "=== Builder stage files ===" && \
     ls -la /app && \
     echo "=== Builder stage dist files ===" && \
-    ls -la /app/dist && \
-    echo "=== Builder stage dist contents ===" && \
-    cat /app/dist/index.js
+    ls -la /app/dist
 
 # Production stage
 FROM node:18-alpine
 
-WORKDIR /app/user-api
+WORKDIR /app
 
 # Copy package files and install production dependencies
 COPY package*.json ./
@@ -59,18 +56,16 @@ COPY --from=builder /app/shared ./shared
 
 # Debug: List files after copy
 RUN echo "=== Production stage files ===" && \
-    ls -la /app/user-api && \
+    ls -la /app && \
     echo "=== Production stage dist files ===" && \
-    ls -la /app/user-api/dist && \
-    echo "=== Production stage dist contents ===" && \
-    cat /app/user-api/dist/index.js
+    ls -la /app/dist
 
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3002
 
 # Expose port
-EXPOSE 3000
+EXPOSE 3002
 
 # Start the application
 CMD ["node", "dist/index.js"] 

@@ -17,17 +17,8 @@ RUN npm install && \
     npm install --save-dev @types/node && \
     npm install prisma --save-dev
 
-# Set permissions
-RUN chown -R node:node /app
-
-# Switch to node user
-USER node
-
 # Copy source code
-COPY --chown=node:node . .
-
-# Set environment variables for Prisma
-ENV MONGODB_ADMIN_URI=mongodb://admin:PandaQuant@2024@mongodb-admin:27017/panda-quant-admin?authSource=admin
+COPY . .
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -35,13 +26,16 @@ RUN npx prisma generate
 # Build admin-api
 RUN npm run build
 
+# Debug: List files after build
+RUN echo "=== Builder stage files ===" && \
+    ls -la /app && \
+    echo "=== Builder stage dist files ===" && \
+    ls -la /app/dist
+
 # Production stage
 FROM node:18-alpine
 
 WORKDIR /app
-
-# Install production dependencies
-RUN apk add --no-cache python3 make g++
 
 # Copy package files
 COPY package*.json ./
@@ -54,18 +48,13 @@ RUN npm install --production && \
 # Copy built files from build stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/prisma ./prisma
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=8081
-ENV MONGODB_ADMIN_URI=mongodb://admin:PandaQuant@2024@mongodb-admin:27017/panda-quant-admin?authSource=admin
-ENV REDIS_URL=redis://:PandaQuant@2024@redis-admin:6379
-ENV JWT_SECRET=PandaQuant@2024
-ENV ENCRYPTION_KEY=PandaQuant@2024
+ENV PORT=3001
 
 # Expose port
-EXPOSE 8081
+EXPOSE 3001
 
 # Start the application
-CMD ["npm", "start"] 
+CMD ["node", "dist/index.js"] 

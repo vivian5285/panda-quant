@@ -64,8 +64,6 @@ services:
   mongodb:
     image: mongo:latest
     container_name: panda-quant-mongodb
-    ports:
-      - "27017:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=Wl528586*
@@ -85,8 +83,6 @@ services:
   redis:
     image: redis:alpine
     container_name: panda-quant-redis
-    ports:
-      - "6379:6379"
     command: redis-server --requirepass Wl528586*
     volumes:
       - redis_data:/data
