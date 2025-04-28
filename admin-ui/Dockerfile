@@ -6,9 +6,6 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
-# Copy shared module
-COPY --from=panda-quant-shared /app /app/shared
-
 # Copy package files
 COPY package*.json ./
 

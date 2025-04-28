@@ -51,72 +51,62 @@ services:
     image: redis:alpine
     container_name: panda-quant-redis-admin
     ports:
-      - "6380:6379"    # Redis 管理端口
-    command: redis-server --requirepass PandaQuant@2024
+      - "6380:6379"  # Redis 管理端口
+    command: ["redis-server", "--requirepass", "PandaQuant@2024"]
     volumes:
       - redis_admin_data:/data
     networks:
       - panda-quant-network
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "PandaQuant@2024", "ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 40s
 
-  # 管理后台前端
-  admin-ui:
-    build:
-      context: ../admin-ui
-      dockerfile: Dockerfile
-    image: deploy-admin-ui
-    container_name: panda-quant-admin-ui
-    ports:
-      - "8080:80"      # Admin UI 访问端口
-    environment:
-      - NODE_ENV=production
-      - VITE_API_URL=https://admin-api.pandatrade.space
-      - VITE_DOMAIN=pandatrade.space
-      - VITE_ADMIN_SUBDOMAIN=admin
-      - VITE_ADMIN_API_SUBDOMAIN=admin-api
-    networks:
-      - panda-quant-network
-    depends_on:
-      - admin-api
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
-
-  # 管理后台后端
+  # Admin API 服务
   admin-api:
     build:
-      context: ../admin-api
-      dockerfile: Dockerfile
-    image: deploy-admin-api
+      context: .
+      dockerfile: admin-api/Dockerfile
     container_name: panda-quant-admin-api
     ports:
-      - "8081:3000"    # Admin API 访问端口
+      - "8081:8081"
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb-admin:27017/panda-quant-admin?authSource=admin
       - REDIS_URL=redis://:PandaQuant@2024@redis-admin:6379
-      - JWT_SECRET=Wl528586*
-      - PORT=3000
-      - DOMAIN=pandatrade.space
-      - ADMIN_SUBDOMAIN=admin
-      - ADMIN_API_SUBDOMAIN=admin-api
+      - JWT_SECRET=PandaQuant@2024
+      - ENCRYPTION_KEY=PandaQuant@2024
+    depends_on:
+      - mongodb-admin
+      - redis-admin
     networks:
       - panda-quant-network
-    depends_on:
-      mongodb-admin:
-        condition: service_healthy
-      redis-admin:
-        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Admin UI 服务
+  admin-ui:
+    build:
+      context: .
+      dockerfile: admin-ui/Dockerfile
+    container_name: panda-quant-admin-ui
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=https://admin-api.pandatrade.space
+    depends_on:
+      - admin-api
+    networks:
+      - panda-quant-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -124,7 +114,7 @@ services:
 
 networks:
   panda-quant-network:
-    external: true
+    driver: bridge
 
 volumes:
   mongodb_admin_data:

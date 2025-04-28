@@ -508,11 +508,12 @@ start_services() {
     
     # 启动admin相关服务
     log "启动admin相关服务..."
-    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" up -d --no-build
+    cd "$WORKSPACE_DIR"
+    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" up -d --build
     
     # 启动user相关服务
     log "启动user相关服务..."
-    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" up -d --no-build
+    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" up -d --build
 }
 
 # 检查服务状态
@@ -660,9 +661,21 @@ EOF
     log "所有服务构建完成"
 }
 
-# 主函数
-main() {
-    log "开始部署流程..."
+# 部署管理端
+deploy_admin() {
+    log "开始部署管理端..."
+    
+    # 检查DNS记录
+    check_dns
+    
+    # 备份现有配置
+    backup_config
+    
+    # 创建必要的目录
+    create_dirs
+    
+    # 生成SSL证书
+    generate_ssl
     
     # 检查必要的命令
     check_commands
@@ -673,11 +686,24 @@ main() {
     # 备份数据库
     backup_database
     
-    # 安装所有依赖
-    install_dependencies
+    # 安装管理端依赖
+    log "安装管理端依赖..."
+    cd "$WORKSPACE_DIR/shared"
+    chmod -R 777 .
+    npm install
     
-    # 构建所有服务
-    log "开始构建所有服务..."
+    cd "$WORKSPACE_DIR/admin-api"
+    chmod -R 777 .
+    npm install
+    
+    cd "$WORKSPACE_DIR/admin-ui"
+    chmod -R 777 .
+    npm install
+    
+    cd "$WORKSPACE_DIR"
+    
+    # 构建管理端服务
+    log "开始构建管理端服务..."
     
     # 构建 shared 模块
     build_shared
@@ -685,22 +711,115 @@ main() {
     # 复制 shared 目录
     copy_shared_directory
     
-    # 启动服务
-    log "启动服务..."
+    # 创建必要的目录结构
+    create_directories
     
-    # 启动 admin 相关服务
-    log "启动 admin 相关服务..."
+    # 创建Docker网络
+    create_docker_network
+    
+    # 启动管理端服务
+    log "启动管理端服务..."
+    cd "$WORKSPACE_DIR"
     docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" up -d --build
     
-    # 启动 user 相关服务
-    log "启动 user 相关服务..."
+    # 检查服务状态
+    check_services
+    
+    log "管理端部署完成！"
+    log "访问以下地址："
+    log "- 管理后台: https://admin.pandatrade.space"
+    log "- API文档: https://admin-api.pandatrade.space"
+}
+
+# 部署用户端
+deploy_user() {
+    log "开始部署用户端..."
+    
+    # 检查DNS记录
+    check_dns
+    
+    # 备份现有配置
+    backup_config
+    
+    # 创建必要的目录
+    create_dirs
+    
+    # 生成SSL证书
+    generate_ssl
+    
+    # 检查必要的命令
+    check_commands
+    
+    # 检查环境变量
+    check_env
+    
+    # 备份数据库
+    backup_database
+    
+    # 安装用户端依赖
+    log "安装用户端依赖..."
+    cd "$WORKSPACE_DIR/shared"
+    chmod -R 777 .
+    npm install
+    
+    cd "$WORKSPACE_DIR/user-api"
+    chmod -R 777 .
+    npm install
+    
+    cd "$WORKSPACE_DIR/user-ui"
+    chmod -R 777 .
+    npm install
+    
+    cd "$WORKSPACE_DIR"
+    
+    # 构建用户端服务
+    log "开始构建用户端服务..."
+    
+    # 构建 shared 模块
+    build_shared
+    
+    # 复制 shared 目录
+    copy_shared_directory
+    
+    # 创建必要的目录结构
+    create_directories
+    
+    # 创建Docker网络
+    create_docker_network
+    
+    # 启动用户端服务
+    log "启动用户端服务..."
+    cd "$WORKSPACE_DIR"
     docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" up -d --build
     
-    log "部署完成！"
+    # 检查服务状态
+    check_services
+    
+    log "用户端部署完成！"
     log "访问以下地址："
     log "- 主站: https://pandatrade.space"
-    log "- 管理后台: https://admin.pandatrade.space"
     log "- API文档: https://api.pandatrade.space"
+}
+
+# 主函数
+main() {
+    local deploy_type=$1
+    
+    case $deploy_type in
+        "admin")
+            deploy_admin
+            ;;
+        "user")
+            deploy_user
+            ;;
+        "all")
+            deploy_admin
+            deploy_user
+            ;;
+        *)
+            error "请指定部署类型: admin, user 或 all"
+            ;;
+    esac
 }
 
 # 执行主函数
