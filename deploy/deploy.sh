@@ -73,24 +73,37 @@ build_shared() {
     log "构建 shared 模块..."
     cd "$WORKSPACE_DIR/shared"
     
+    # 清理之前的构建
+    rm -rf dist
+    
     # 确保源代码在正确的位置
     if [ ! -d "src" ]; then
         mkdir -p src/types src/models
     fi
     
     # 如果源代码不在 src 目录下，则移动它们
-    if [ -d "types" ] && [ ! -d "src/types" ]; then
-        mv types/* src/types/ 2>/dev/null || true
+    if [ -d "types" ]; then
+        if [ ! -d "src/types" ]; then
+            mkdir -p src/types
+        fi
+        # 只移动 .ts 文件
+        find types -name "*.ts" -exec mv {} src/types/ \;
         rm -rf types
     fi
     
-    if [ -d "models" ] && [ ! -d "src/models" ]; then
-        mv models/* src/models/ 2>/dev/null || true
+    if [ -d "models" ]; then
+        if [ ! -d "src/models" ]; then
+            mkdir -p src/models
+        fi
+        # 只移动 .ts 文件
+        find models -name "*.ts" -exec mv {} src/models/ \;
         rm -rf models
     fi
     
-    # 清理之前的构建
-    rm -rf dist
+    # 确保所有必要的源文件都存在
+    if [ ! -f "src/types/auth.ts" ] || [ ! -f "src/models/user.ts" ] || [ ! -f "src/models/asset.ts" ] || [ ! -f "src/models/fee.ts" ]; then
+        error "缺少必要的源文件"
+    fi
     
     # 构建项目
     npm run build
