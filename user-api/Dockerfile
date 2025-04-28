@@ -28,6 +28,7 @@ COPY . .
 RUN ls -la /app/src
 
 # Generate Prisma client and build
+RUN npm install prisma --save-dev
 RUN npx prisma generate
 RUN npx tsc
 
