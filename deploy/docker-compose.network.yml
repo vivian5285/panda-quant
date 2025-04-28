@@ -1,5 +1,12 @@
 version: '3.8'
 
+services:
+  network-setup:
+    image: busybox
+    command: tail -f /dev/null
+    networks:
+      - panda-quant-network
+
 networks:
   panda-quant-network:
     name: panda-quant-network
