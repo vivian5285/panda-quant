@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
@@ -7,9 +7,9 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++
 
 # Copy shared module
-COPY --from=panda-quant-shared /app /app/shared
+COPY --from=panda-quant-shared /app/dist /app/shared/dist
 
-# Copy admin-api files
+# Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY tsconfig.json ./
@@ -17,10 +17,8 @@ COPY tsconfig.json ./
 # Install dependencies
 RUN npm install && \
     npm install -g typescript && \
-    npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg && \
-    npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg redis winston && \
-    npm install -g prisma && \
-    npm install prisma --save-dev
+    npm install --save-dev @types/node && \
+    chmod -R 755 /app
 
 # Copy source code
 COPY . .
@@ -36,32 +34,31 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files and install production dependencies
+# Install production dependencies
+RUN apk add --no-cache python3 make g++
+
+# Copy shared module
+COPY --from=panda-quant-shared /app/dist /app/shared/dist
+
+# Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install production dependencies
 RUN npm install --production
 
-# Copy built files from builder
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/shared/dist ./shared/dist
-
-# Set permissions
-RUN chown -R node:node /app && \
-    chmod -R 755 /app
-
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:${ADMIN_API_PORT:-8081}/health || exit 1
+# Copy built files from build stage
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=${ADMIN_API_PORT:-8081}
+ENV ADMIN_API_PORT=3000
 
-# Expose port
-EXPOSE ${ADMIN_API_PORT:-8081}
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Start the application
+EXPOSE 3000
+
 CMD ["node", "dist/index.js"] 

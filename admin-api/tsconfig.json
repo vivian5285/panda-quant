@@ -15,7 +15,7 @@
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/dist/*"]
+      "@shared/*": ["./shared/dist/*"]
     }
   },
   "include": [
@@ -32,6 +32,6 @@
     "app.ts"
   ],
   "references": [
-    { "path": "../shared" }
+    { "path": "./shared" }
   ]
 } 
