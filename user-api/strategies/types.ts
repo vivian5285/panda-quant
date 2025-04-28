@@ -1,4 +1,4 @@
-import { StrategyStats } from '../../../strategy-engine/types';
+import { StrategyStats } from '@strategy-engine/types';
 
 /**
  * 策略参数接口
