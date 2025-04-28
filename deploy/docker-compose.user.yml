@@ -5,7 +5,6 @@ services:
     image: nginx:alpine
     container_name: panda-quant-nginx-user
     ports:
-      - "81:80"
       - "444:443"
     volumes:
       - ./nginx/user.conf:/etc/nginx/nginx.conf:ro
@@ -32,10 +31,10 @@ services:
     container_name: panda-quant-user-api
     environment:
       - NODE_ENV=production
-      - JWT_SECRET=${JWT_SECRET}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - MONGODB_URI=mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@mongodb:27017/${MONGODB_DATABASE}
-      - REDIS_URI=redis://:${REDIS_PASSWORD}@redis:6379
+      - JWT_SECRET=Wl528586*
+      - ENCRYPTION_KEY=Wl528586*
+      - MONGODB_URI=mongodb://admin:Wl528586*@194.164.149.214:27017/panda_quant
+      - REDIS_URI=redis://:Wl528586*@194.164.149.214:6379
     restart: unless-stopped
     networks:
       - panda-quant-network
@@ -59,8 +58,4 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-
-networks:
-  panda-quant-network:
-    external: true 
+      retries: 3 

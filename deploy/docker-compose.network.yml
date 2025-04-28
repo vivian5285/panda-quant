@@ -12,4 +12,9 @@ networks:
     name: panda-quant-network
     driver: bridge
     labels:
-      com.docker.compose.network: panda-quant-network 
+      com.docker.compose.network: panda-quant-network
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1 
