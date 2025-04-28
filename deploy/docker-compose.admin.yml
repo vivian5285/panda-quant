@@ -107,5 +107,4 @@ volumes:
 
 networks:
   panda-quant-network:
-    name: panda-quant-network
-    external: true 
+    name: panda-quant-network 
