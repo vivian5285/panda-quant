@@ -18,7 +18,19 @@
       "@shared/*": ["../shared/dist/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*",
+    "models/**/*",
+    "types/**/*",
+    "interfaces/**/*",
+    "utils/**/*",
+    "services/**/*",
+    "middleware/**/*",
+    "routes/**/*",
+    "controllers/**/*",
+    "index.ts",
+    "app.ts"
+  ],
   "references": [
     { "path": "../shared" }
   ]
