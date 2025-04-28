@@ -5,10 +5,9 @@ services:
     image: nginx:alpine
     container_name: panda-quant-nginx-user
     ports:
-      - "444:443"
+      - "444:80"
     volumes:
       - ./nginx/user.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/letsencrypt:ro
       - ./user-ui/dist:/usr/share/nginx/html:ro
     depends_on:
       - user-api

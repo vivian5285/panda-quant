@@ -5,10 +5,9 @@ services:
     image: nginx:alpine
     container_name: panda-quant-nginx-admin
     ports:
-      - "443:443"
+      - "80:80"
     volumes:
       - ./nginx/admin.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/letsencrypt:ro
       - ./admin-ui/dist:/usr/share/nginx/html:ro
     depends_on:
       - admin-api
@@ -68,19 +67,11 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=Wl528586*
-      - MONGO_INITDB_DATABASE=panda_quant
     volumes:
       - mongodb_data:/data/db
+    restart: unless-stopped
     networks:
       - panda-quant-network
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 1G
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 30s
@@ -95,6 +86,7 @@ services:
     command: redis-server --requirepass Wl528586*
     volumes:
       - redis_data:/data
+    restart: unless-stopped
     networks:
       - panda-quant-network
     healthcheck:
@@ -103,6 +95,10 @@ services:
       timeout: 10s
       retries: 3
 
+volumes:
+  mongodb_data:
+  redis_data:
+
 networks:
   panda-quant-network:
     driver: bridge
@@ -110,8 +106,4 @@ networks:
       driver: default
       config:
         - subnet: 172.20.0.0/16
-          gateway: 172.20.0.1
-
-volumes:
-  mongodb_data:
-  redis_data: 
+          gateway: 172.20.0.1 
