@@ -108,13 +108,6 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
-// 添加索引以提高查询性能
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
-userSchema.index({ inviteCode: 1 });
-userSchema.index({ referralCode: 1 });
-userSchema.index({ status: 1 });
-
 // 静态方法
 userSchema.statics.findByEmail = function(email: string) {
   return this.findOne({ email });
