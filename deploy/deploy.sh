@@ -165,8 +165,9 @@ deploy_admin_api() {
     log "构建管理端 API..."
     docker build -t panda-quant-admin-api \
         --build-arg PORT=3001 \
-        -f "$WORKSPACE_DIR/deploy/Dockerfile.api" \
-        "$WORKSPACE_DIR/admin-api" || error "管理端 API 构建失败"
+        --build-arg API_DIR=admin-api \
+        -f "$WORKSPACE_DIR/deploy/Dockerfile" \
+        "$WORKSPACE_DIR" || error "管理端 API 构建失败"
     
     log "启动管理端 API 服务..."
     docker-compose -f "$WORKSPACE_DIR/deploy/docker-compose.admin.yml" up -d admin-api
@@ -197,8 +198,9 @@ deploy_user_api() {
     log "构建用户端 API..."
     docker build -t panda-quant-user-api \
         --build-arg PORT=3002 \
-        -f "$WORKSPACE_DIR/deploy/Dockerfile.api" \
-        "$WORKSPACE_DIR/user-api" || error "用户端 API 构建失败"
+        --build-arg API_DIR=user-api \
+        -f "$WORKSPACE_DIR/deploy/Dockerfile" \
+        "$WORKSPACE_DIR" || error "用户端 API 构建失败"
     
     log "启动用户端 API 服务..."
     docker-compose -f "$WORKSPACE_DIR/deploy/docker-compose.user.yml" up -d user-api

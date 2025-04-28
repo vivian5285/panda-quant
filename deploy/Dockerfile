@@ -7,8 +7,8 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++
 
 # Copy package files first
-COPY admin-api/package*.json ./
-COPY admin-api/tsconfig.json ./
+COPY ${API_DIR}/package*.json ./
+COPY ${API_DIR}/tsconfig.json ./
 
 # Install all dependencies first
 RUN npm install && \
@@ -26,14 +26,14 @@ RUN npm install && npm install typescript && npx tsc
 # Back to main directory
 WORKDIR /app
 
-# Copy prisma schema
-COPY admin-api/prisma ./prisma/
+# Copy prisma schema if exists
+COPY ${API_DIR}/prisma/ ./prisma/ 2>/dev/null || :
 
-# Generate Prisma client
-RUN npx prisma generate
+# Generate Prisma client if prisma directory exists
+RUN [ -d "prisma" ] && npx prisma generate || :
 
 # Copy source code
-COPY admin-api .
+COPY ${API_DIR}/ ./
 
 # Build application
 RUN npm run build
@@ -47,14 +47,14 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma/ ./prisma/ 2>/dev/null || :
 COPY --from=builder /app/shared ./shared
 
 # Install production dependencies
 RUN npm install --production
 
 # Expose port
-EXPOSE 3000
+EXPOSE ${PORT}
 
 # Start application with tsconfig-paths support
 CMD ["node", "-r", "tsconfig-paths/register", "dist/index.js"] 
