@@ -55,6 +55,50 @@ build_shared() {
         cp models/fee.ts src/models/
     fi
     
+    # 创建 package.json
+    cat > package.json << 'EOL'
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "description": "Shared types and models",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "typescript": "^4.9.5"
+  }
+}
+EOL
+    
+    # 创建 tsconfig.json
+    cat > tsconfig.json << 'EOL'
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "lib": ["es2020"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}
+EOL
+    
     # 安装依赖并构建
     npm install
     npm run build
@@ -63,6 +107,24 @@ build_shared() {
     if [ ! -d "dist" ]; then
         error "shared 模块构建失败"
     fi
+    
+    cd "$WORKSPACE_DIR"
+}
+
+# 更新导入路径
+update_imports() {
+    local target_dir=$1
+    
+    log "更新导入路径..."
+    cd "$target_dir"
+    
+    # 替换所有可能的相对路径导入
+    find . -type f -name "*.ts" -exec sed -i \
+        -e 's|from "../../shared/|from "@shared/|g' \
+        -e 's|from "../shared/|from "@shared/|g' \
+        -e 's|from "./shared/|from "@shared/|g' \
+        -e 's|from "shared/|from "@shared/|g' \
+        {} \;
     
     cd "$WORKSPACE_DIR"
 }
@@ -103,7 +165,7 @@ deploy_admin() {
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["./shared/src/*"]
+      "@shared/*": ["./shared/dist/*"]
     }
   },
   "include": [
@@ -116,7 +178,7 @@ deploy_admin() {
     "middleware/**/*",
     "routes/**/*",
     "controllers/**/*",
-    "shared/src/**/*",
+    "shared/dist/**/*",
     "index.ts",
     "app.ts"
   ]
@@ -124,8 +186,7 @@ deploy_admin() {
 EOL
     
     # 更新导入路径
-    log "更新导入路径..."
-    find . -type f -name "*.ts" -exec sed -i 's|from "../../shared/|from "@shared/|g' {} \;
+    update_imports "$WORKSPACE_DIR/admin-api"
     
     # 安装管理端依赖
     log "安装管理端依赖..."
@@ -189,7 +250,7 @@ deploy_user() {
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["./shared/src/*"]
+      "@shared/*": ["./shared/dist/*"]
     }
   },
   "include": [
@@ -202,7 +263,7 @@ deploy_user() {
     "middleware/**/*",
     "routes/**/*",
     "controllers/**/*",
-    "shared/src/**/*",
+    "shared/dist/**/*",
     "index.ts",
     "app.ts"
   ]
@@ -210,8 +271,7 @@ deploy_user() {
 EOL
     
     # 更新导入路径
-    log "更新导入路径..."
-    find . -type f -name "*.ts" -exec sed -i 's|from "../../shared/|from "@shared/|g' {} \;
+    update_imports "$WORKSPACE_DIR/user-api"
     
     # 安装用户端依赖
     log "安装用户端依赖..."
