@@ -4,16 +4,16 @@ import { VerificationService } from '../services/verification.service';
 import { DatabaseError, ValidationError } from '../utils/errors';
 import { generateToken } from '../../middlewares/auth';
 import { hashPassword, comparePassword } from '../utils/password';
-import { User } from '../../models/user.model';
+import { User, IUser } from '../../models/user.model';
 import { AuthRequest, AuthUser } from '../../types/auth';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-const convertToAuthUser = (user: User): AuthUser => {
+const convertToAuthUser = (user: IUser): AuthUser => {
   return {
     id: user._id.toString(),
     email: user.email,
-    role: user.role as 'user' | 'admin'
+    role: user.role
   };
 };
 
@@ -46,26 +46,17 @@ export class AuthController {
         password: hashedPassword,
         username,
         name,
-        isVerified: true,  // 验证码验证通过后直接设置为已验证
+        isVerified: true,
         role: 'user' as UserRole,
         status: 'active' as UserStatus
       });
 
-      const token = generateToken(user);
+      const authUser = convertToAuthUser(user);
+      const token = generateToken(authUser.id, authUser.role);
 
       res.status(201).json({
         token,
-        user: {
-          id: user._id,
-          email: user.email,
-          username: user.username,
-          name: user.name,
-          isVerified: user.isVerified,
-          role: user.role,
-          status: user.status,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt
-        }
+        user: authUser
       });
     } catch (error) {
       if (error instanceof ValidationError) {
@@ -93,7 +84,7 @@ export class AuthController {
       }
       
       const authUser = convertToAuthUser(user);
-      const token = jwt.sign(authUser, process.env.JWT_SECRET || 'your-secret-key');
+      const token = generateToken(authUser.id, authUser.role);
       
       res.json({
         token,
@@ -155,7 +146,7 @@ export class AuthController {
     }
   };
 
-  getProfile = async (req: Request, res: Response) => {
+  getProfile = async (req: AuthRequest, res: Response) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -170,7 +161,7 @@ export class AuthController {
 
       res.json({
         user: {
-          id: user.id,
+          id: user._id.toString(),
           email: user.email,
           name: user.name
         }
@@ -184,7 +175,7 @@ export class AuthController {
     }
   };
 
-  updateProfile = async (req: Request, res: Response) => {
+  updateProfile = async (req: AuthRequest, res: Response) => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -201,7 +192,7 @@ export class AuthController {
 
       res.json({
         user: {
-          id: user.id,
+          id: user._id.toString(),
           email: user.email,
           name: user.name
         }

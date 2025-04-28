@@ -1,6 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+interface DepositAddress {
+  chain: string;
+  address: string;
+}
+
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
   email: string;
@@ -20,6 +25,10 @@ export interface IUser extends Document {
   role: 'user' | 'admin';
   createdAt: Date;
   updatedAt: Date;
+  isVerified: boolean;
+  totalDeposits: number;
+  depositAddresses: DepositAddress[];
+  walletAddress?: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -90,7 +99,20 @@ const userSchema = new Schema({
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
-  }
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  totalDeposits: {
+    type: Number,
+    default: 0
+  },
+  depositAddresses: [{
+    chain: String,
+    address: String
+  }],
+  walletAddress: String
 }, {
   timestamps: true
 });
@@ -102,10 +124,17 @@ userSchema.methods.comparePassword = async function(candidatePassword: string): 
 
 // 保存前加密密码
 userSchema.pre('save', async function(next) {
-  if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10);
+  if (!this.isModified('password')) {
+    return next();
   }
-  next();
+  
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error as Error);
+  }
 });
 
 // 静态方法
