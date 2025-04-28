@@ -1,5 +1,3 @@
-import { StrategyStats } from '../../strategy-engine/types';
-
 /**
  * 策略参数接口
  * 定义了交易策略的基本参数类型
@@ -82,4 +80,19 @@ export interface OHLCV {
   close: number;
   /** 成交量 */
   volume: number;
+}
+
+export interface StrategyStats {
+  /** 总收益率 */
+  totalReturn: number;
+  /** 年化收益率 */
+  annualizedReturn: number;
+  /** 最大回撤 */
+  maxDrawdown: number;
+  /** 夏普比率 */
+  sharpeRatio: number;
+  /** 交易次数 */
+  trades: number;
+  /** 胜率 */
+  winRate: number;
 } 

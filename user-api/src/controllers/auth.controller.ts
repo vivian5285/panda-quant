@@ -2,18 +2,18 @@ import { Request, Response } from 'express';
 import { UserModel, UserRole, UserStatus } from '../models/User';
 import { VerificationService } from '../services/verification.service';
 import { DatabaseError, ValidationError } from '../utils/errors';
-import { generateToken } from '../utils/jwt';
+import { generateToken } from '../../middlewares/auth';
 import { hashPassword, comparePassword } from '../utils/password';
-import { User, IUser } from '../models/user.model';
-import { AuthUser } from '../types/auth';
+import { User } from '../../models/user.model';
+import { AuthRequest, AuthUser } from '../../types/auth';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-const convertToAuthUser = (user: IUser): AuthUser => {
+const convertToAuthUser = (user: User): AuthUser => {
   return {
     id: user._id.toString(),
     email: user.email,
-    role: user.role
+    role: user.role as 'user' | 'admin'
   };
 };
 

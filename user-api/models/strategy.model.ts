@@ -10,6 +10,7 @@ export interface IStrategy extends Document {
   status: string;  // 策略状态
   startTime: Date;  // 策略开始时间
   parameters: Record<string, any>;  // 策略参数
+  profit?: number;  // 策略收益
   createdAt: Date;
   updatedAt: Date;
 }

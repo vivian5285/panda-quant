@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import TronWeb from 'tronweb';
 import { IUser, User } from '../../models/user.model';
 import { Request } from 'express';
-import { AuthUser } from '../types/auth';
+import { AuthUser } from '../../types/auth';
 
 declare module 'tronweb' {
   interface TronWeb {

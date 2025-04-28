@@ -104,12 +104,14 @@ router.post('/notifications', async (req: AuthRequest, res) => {
     return res.status(401).json({ message: '未授权' });
   }
   
-  const notification: INotification = {
+  const notification = {
     userId: new mongoose.Types.ObjectId(req.user.id),
     type: req.body.type,
     title: req.body.title,
     message: req.body.message,
-    read: false
+    read: false,
+    createdAt: new Date(),
+    updatedAt: new Date()
   };
   
   const savedNotification = await Notification.create(notification);
