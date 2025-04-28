@@ -26,12 +26,14 @@ services:
       context: ../admin-api
       dockerfile: Dockerfile
     container_name: panda-quant-admin-api
+    ports:
+      - "3001:3001"
     environment:
       - NODE_ENV=production
       - JWT_SECRET=Wl528586*
       - ENCRYPTION_KEY=Wl528586*
-      - MONGODB_URI=mongodb://admin:Wl528586*@194.164.149.214:27017/panda_quant
-      - REDIS_URI=redis://:Wl528586*@194.164.149.214:6379
+      - MONGODB_URI=mongodb://admin:Wl528586*@mongodb:27017/panda_quant
+      - REDIS_URI=redis://:Wl528586*@redis:6379
     restart: unless-stopped
     networks:
       panda-quant-network:
@@ -48,6 +50,8 @@ services:
       context: ../admin-ui
       dockerfile: Dockerfile
     container_name: panda-quant-admin-ui
+    ports:
+      - "3000:3000"
     volumes:
       - ../admin-ui/dist:/usr/share/nginx/html:ro
     restart: unless-stopped
@@ -56,7 +60,7 @@ services:
         aliases:
           - admin-ui
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -64,6 +68,8 @@ services:
   mongodb:
     image: mongo:latest
     container_name: panda-quant-mongodb
+    ports:
+      - "27017:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=Wl528586*
@@ -83,6 +89,8 @@ services:
   redis:
     image: redis:alpine
     container_name: panda-quant-redis
+    ports:
+      - "6379:6379"
     command: redis-server --requirepass Wl528586*
     volumes:
       - redis_data:/data

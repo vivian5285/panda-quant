@@ -21,14 +21,7 @@ RUN npm install prisma --save-dev && \
     npm install -g prisma
 RUN prisma generate
 
-# 修改 tsconfig.json 以移除 shared 引用和类型定义
-RUN sed -i 's/"references": \[.*\]/"references": \[\]/' tsconfig.json && \
-    sed -i 's/"paths": {.*}/"paths": {}/' tsconfig.json && \
-    sed -i 's/"baseUrl": ".*"/"baseUrl": "."/' tsconfig.json && \
-    sed -i 's/"include": \[.*\]/"include": \["src\/\*\*\/\*", "\*.ts"\]/' tsconfig.json && \
-    sed -i 's/"typeRoots": \[.*\]/"typeRoots": \[\]/' tsconfig.json && \
-    sed -i 's/"types": \[.*\]/"types": \[\]/' tsconfig.json
-
+# Build TypeScript
 RUN npx tsc --skipLibCheck
 
 # Debug: List files after build
