@@ -61,6 +61,7 @@ services:
 
 networks:
   panda-quant-network:
+    name: panda-quant-network
     driver: bridge
     ipam:
       driver: default

@@ -1,0 +1,25 @@
+FROM node:18-alpine
+
+WORKDIR /app/admin-api
+
+# 复制package.json和package-lock.json
+COPY admin-api/package*.json ./
+
+# 安装依赖
+RUN npm install
+
+# 复制源代码
+COPY admin-api/ .
+
+# 编译TypeScript代码
+RUN npm run build
+
+# 设置环境变量
+ENV NODE_ENV=production
+ENV PORT=3001
+
+# 暴露端口
+EXPOSE 3001
+
+# 启动命令
+CMD ["node", "dist/index.js"] 
