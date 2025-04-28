@@ -818,15 +818,6 @@ deploy_admin() {
     # 创建必要的目录和文件
     create_required_files
     
-    # 检查DNS记录
-    check_dns
-    
-    # 备份现有配置
-    backup_config
-    
-    # 生成SSL证书
-    generate_ssl
-    
     # 检查必要的命令
     check_commands
     
@@ -875,6 +866,31 @@ deploy_admin() {
     # 检查服务状态
     check_services
     
+    # 等待服务启动
+    log "等待服务启动..."
+    sleep 10
+    
+    # 检查服务是否正常运行
+    if ! check_services; then
+        log "服务启动失败，请检查日志"
+        exit 1
+    fi
+    
+    # 服务启动成功后，再申请证书和配置反向代理
+    log "服务启动成功，开始申请证书和配置反向代理..."
+    
+    # 检查DNS记录
+    check_dns
+    
+    # 生成SSL证书
+    generate_ssl
+    
+    # 配置Nginx
+    log "配置Nginx反向代理..."
+    cp "$DEPLOY_DIR/nginx.conf" /etc/nginx/nginx.conf
+    nginx -t
+    systemctl restart nginx
+    
     log "管理端部署完成！"
     log "访问以下地址："
     log "- 管理后台: https://admin.pandatrade.space"
@@ -887,15 +903,6 @@ deploy_user() {
     
     # 创建必要的目录和文件
     create_required_files
-    
-    # 检查DNS记录
-    check_dns
-    
-    # 备份现有配置
-    backup_config
-    
-    # 生成SSL证书
-    generate_ssl
     
     # 检查必要的命令
     check_commands
@@ -945,10 +952,132 @@ deploy_user() {
     # 检查服务状态
     check_services
     
+    # 等待服务启动
+    log "等待服务启动..."
+    sleep 10
+    
+    # 检查服务是否正常运行
+    if ! check_services; then
+        log "服务启动失败，请检查日志"
+        exit 1
+    fi
+    
+    # 服务启动成功后，再申请证书和配置反向代理
+    log "服务启动成功，开始申请证书和配置反向代理..."
+    
+    # 检查DNS记录
+    check_dns
+    
+    # 生成SSL证书
+    generate_ssl
+    
+    # 配置Nginx
+    log "配置Nginx反向代理..."
+    cp "$DEPLOY_DIR/nginx.conf" /etc/nginx/nginx.conf
+    nginx -t
+    systemctl restart nginx
+    
     log "用户端部署完成！"
     log "访问以下地址："
     log "- 主站: https://pandatrade.space"
     log "- API文档: https://api.pandatrade.space"
+}
+
+# 部署管理端和用户端
+deploy_all() {
+    log "开始部署管理端和用户端..."
+    
+    # 创建必要的目录和文件
+    create_required_files
+    
+    # 检查必要的命令
+    check_commands
+    
+    # 检查环境变量
+    check_env
+    
+    # 备份数据库
+    backup_database
+    
+    # 安装所有依赖
+    log "安装所有依赖..."
+    cd "$WORKSPACE_DIR/shared"
+    chmod -R 777 .
+    npm install
+    
+    cd "$WORKSPACE_DIR/admin-api"
+    chmod -R 777 .
+    npm install
+    
+    cd "$WORKSPACE_DIR/user-api"
+    chmod -R 777 .
+    npm install
+    
+    cd "$WORKSPACE_DIR/admin-ui"
+    chmod -R 777 .
+    npm install
+    
+    cd "$WORKSPACE_DIR/user-ui"
+    chmod -R 777 .
+    npm install
+    
+    cd "$WORKSPACE_DIR"
+    
+    # 构建所有服务
+    log "开始构建所有服务..."
+    
+    # 构建 shared 模块
+    build_shared
+    
+    # 复制 shared 目录
+    copy_shared_directory
+    
+    # 创建必要的目录结构
+    create_directories
+    
+    # 创建Docker网络
+    create_docker_network
+    
+    # 启动所有服务
+    log "启动所有服务..."
+    cd "$WORKSPACE_DIR"
+    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" up -d --build
+    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" up -d --build
+    
+    # 检查服务状态
+    check_services
+    
+    # 等待服务启动
+    log "等待服务启动..."
+    sleep 10
+    
+    # 检查服务是否正常运行
+    if ! check_services; then
+        log "服务启动失败，请检查日志"
+        exit 1
+    fi
+    
+    # 服务启动成功后，再申请证书和配置反向代理
+    log "服务启动成功，开始申请证书和配置反向代理..."
+    
+    # 检查DNS记录
+    check_dns
+    
+    # 生成SSL证书
+    generate_ssl
+    
+    # 配置Nginx
+    log "配置Nginx反向代理..."
+    cp "$DEPLOY_DIR/nginx.conf" /etc/nginx/nginx.conf
+    nginx -t
+    systemctl restart nginx
+    
+    log "所有服务部署完成！"
+    log "访问以下地址："
+    log "- 管理后台: https://admin.pandatrade.space"
+    log "- 管理API: https://admin-api.pandatrade.space"
+    log "- 主站: https://pandatrade.space"
+    log "- 用户API: https://api.pandatrade.space"
 }
 
 # 主函数
@@ -963,8 +1092,7 @@ main() {
             deploy_user
             ;;
         "all")
-            deploy_admin
-            deploy_user
+            deploy_all
             ;;
         *)
             error "请指定部署类型: admin, user 或 all"
