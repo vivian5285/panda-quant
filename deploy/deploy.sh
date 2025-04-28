@@ -79,19 +79,22 @@ build_shared() {
     # 确保源代码在正确的位置
     if [ ! -d "src" ]; then
         mkdir -p src/types src/models
+    else
+        # 确保子目录存在
+        mkdir -p src/types src/models
     fi
     
     # 如果源代码不在 src 目录下，则移动它们
     if [ -d "types" ]; then
         # 确保目标目录存在
-        mkdir -p src/types 2>/dev/null || true
+        mkdir -p src/types
         # 只移动 .ts 文件
         find types -name "*.ts" -exec cp {} src/types/ \; 2>/dev/null || true
     fi
     
     if [ -d "models" ]; then
         # 确保目标目录存在
-        mkdir -p src/models 2>/dev/null || true
+        mkdir -p src/models
         # 只移动 .ts 文件
         find models -name "*.ts" -exec cp {} src/models/ \; 2>/dev/null || true
     fi
