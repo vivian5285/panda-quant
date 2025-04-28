@@ -19,9 +19,10 @@ COPY . .
 # Generate Prisma client and build
 RUN npm install prisma --save-dev && \
     chmod -R 755 /app/node_modules/.bin && \
-    chmod -R 755 /app/node_modules/prisma
+    chmod -R 755 /app/node_modules/prisma && \
+    chmod -R 755 /app/node_modules/@prisma
 RUN npx prisma generate
-RUN npx tsc
+RUN npx tsc --skipLibCheck
 
 # Debug: List files after build
 RUN echo "=== Builder stage files ===" && \
