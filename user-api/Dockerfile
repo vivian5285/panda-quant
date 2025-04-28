@@ -10,8 +10,8 @@ RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 RUN npm install
 RUN npm install -g typescript
-RUN npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg
-RUN npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg
+RUN npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg @types/bcrypt @types/morgan @types/node-schedule @types/nodemailer @types/swagger-ui-express
+RUN npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg bcrypt helmet morgan express-rate-limit zod class-validator class-transformer ethers axios nodemailer winston node-schedule nanoid swagger-ui-express
 
 # Copy source files and build
 COPY . .

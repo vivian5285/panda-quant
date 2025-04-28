@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 import { DatabaseError } from '../utils/errors';
 import bcrypt from 'bcryptjs';
 
@@ -19,6 +19,7 @@ export interface IUserInput {
 }
 
 export interface IUser extends Document {
+  _id: Types.ObjectId;
   email: string;
   password: string;
   name: string;
@@ -55,8 +56,7 @@ const userSchema = new Schema<IUser>({
     type: String,
     required: true,
     unique: true,
-    trim: true,
-    lowercase: true
+    trim: true
   },
   isVerified: {
     type: Boolean,
@@ -97,11 +97,15 @@ userSchema.methods.comparePassword = async function(candidatePassword: string): 
   }
 };
 
-// 删除所有索引并重新创建
+// 创建索引
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ username: 1 }, { unique: true });
 
+// 创建模型
 const User = mongoose.model<IUser>('User', userSchema);
+
+// 导出模型
+export default User;
 
 export class UserModel {
   async createUser(userData: IUserInput): Promise<IUser> {
