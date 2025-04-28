@@ -4,6 +4,7 @@ import { IUser, User } from '../../models/user.model';
 import { AuthUser } from '../../types/auth';
 import { Deposit } from '../models/deposit';
 import mongoose from 'mongoose';
+import { Transaction } from '../models/transaction.model';
 
 declare module 'tronweb' {
   interface TronWeb {
@@ -288,6 +289,32 @@ export class DepositService {
       } finally {
         session.endSession();
       }
+    }
+  }
+
+  async processDeposit(userId: string, amount: number) {
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // 更新用户余额
+      user.accountBalance += amount;
+      await user.save();
+
+      // 创建交易记录
+      await Transaction.create({
+        userId,
+        type: 'deposit',
+        amount,
+        status: 'completed'
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error processing deposit:', error);
+      throw error;
     }
   }
 }

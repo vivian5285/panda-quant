@@ -3,6 +3,11 @@ import User from '../models/User';
 import { ValidationError } from '../utils/errors';
 import { generateToken, verifyToken } from '../utils/jwt';
 import { sendEmail, sendVerificationEmail } from '../utils/email';
+import { User as UserModel } from '../models/user.model';
+import { Verification } from '../models/verification.model';
+
+const VERIFICATION_CODE_LENGTH = 6;
+const MAX_ATTEMPTS = 3;
 
 export class VerificationService {
   private readonly EMAIL_VERIFICATION_EXPIRY = '24h';
@@ -12,47 +17,39 @@ export class VerificationService {
 
   async generateCode(type: 'register' | 'login' | 'reset', email: string): Promise<string> {
     try {
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiry = Date.now() + this.CODE_EXPIRY * 1000;
-      
-      // 存储验证码到内存缓存
-      this.codeCache.set(`${type}:${email}`, { code, expiry });
-      
-      // 清理过期验证码
-      this.cleanupExpiredCodes();
-      
-      // 发送验证码邮件
-      await sendVerificationEmail(email, code);
-      
+      const code = Math.random().toString().slice(2, 2 + VERIFICATION_CODE_LENGTH);
+      await Verification.create({
+        userId: email,
+        code,
+        type,
+        attempts: 0
+      });
       return code;
     } catch (error) {
-      // 如果发送邮件失败，从缓存中删除验证码
-      this.codeCache.delete(`${type}:${email}`);
-      throw new ValidationError('Failed to send verification code: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      console.error('Error generating verification code:', error);
+      throw error;
     }
   }
 
-  async verifyCode(email: string, code: string, type: 'register' | 'reset-password'): Promise<boolean> {
-    const key = `${type}:${email}`;
-    const stored = this.codeCache.get(key);
-    
-    if (!stored) {
-      return false;
-    }
-    
-    // 检查是否过期
-    if (Date.now() > stored.expiry) {
-      this.codeCache.delete(key);
-      return false;
-    }
-    
-    // 验证码正确，删除验证码
-    if (stored.code === code) {
-      this.codeCache.delete(key);
+  async verifyCode(email: string, code: string, type: 'email' | 'password'): Promise<boolean> {
+    try {
+      const verification = await Verification.findOne({
+        userId: email,
+        code,
+        type,
+        attempts: { $lt: MAX_ATTEMPTS }
+      });
+
+      if (!verification) {
+        throw new Error('Invalid or expired verification code');
+      }
+
+      await verification.deleteOne();
       return true;
+    } catch (error) {
+      console.error('Error verifying code:', error);
+      throw error;
     }
-    
-    return false;
   }
 
   private cleanupExpiredCodes() {

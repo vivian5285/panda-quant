@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 import { Deposit } from '../models/deposit';
-import { User } from '../../models/user.model';
+import { User } from '../models/user.model';
 import axios from 'axios';
+import { Transaction } from '../models/transaction.model';
 
 export class SyncService {
   private depositStream: any;
@@ -162,4 +163,22 @@ export class SyncService {
   }
 }
 
-export const syncService = new SyncService(); 
+export const syncService = new SyncService();
+
+export async function syncUserData(userId: string) {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const transactions = await Transaction.find({ userId });
+    return {
+      user,
+      transactions
+    };
+  } catch (error) {
+    console.error('Error syncing user data:', error);
+    throw error;
+  }
+} 

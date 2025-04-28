@@ -80,9 +80,14 @@ export class UserService {
 
   async getUserById(id: string): Promise<User | null> {
     try {
-      return await this.userModel.findById(id);
+      const user = await this.userModel.findById(id);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      return user;
     } catch (error) {
-      throw new DatabaseError('Failed to get user', error);
+      console.error('Error getting user:', error);
+      throw error;
     }
   }
 

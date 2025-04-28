@@ -8,16 +8,8 @@ declare global {
         email: string;
         role: 'user' | 'admin';
       };
-      body?: any;
-      params?: any;
-      query?: any;
-      headers?: any;
-      method?: string;
-      url?: string;
     }
-    interface Response extends ExpressResponse {
-      json: (body: any) => Response;
-    }
+    interface Response extends ExpressResponse {}
     interface NextFunction extends ExpressNextFunction {}
     interface Router extends ExpressRouter {}
   }
