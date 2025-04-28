@@ -86,8 +86,8 @@ check_commands() {
     done
     
     # 检查MongoDB工具
-    if ! command -v mongodump &> /dev/null; then
-        log "安装MongoDB工具..."
+    if ! command -v mongosh &> /dev/null; then
+        log "安装MongoDB客户端工具..."
         if [ -f /etc/debian_version ]; then
             # 添加MongoDB GPG密钥
             sudo apt-get install -y gnupg
@@ -98,9 +98,19 @@ check_commands() {
             
             # 更新包列表并安装工具
             sudo apt-get update
+            sudo apt-get install -y mongodb-mongosh
+        else
+            error "不支持的操作系统，请手动安装 MongoDB 客户端工具"
+        fi
+    fi
+    
+    # 检查MongoDB工具包
+    if ! command -v mongodump &> /dev/null; then
+        log "安装MongoDB工具包..."
+        if [ -f /etc/debian_version ]; then
             sudo apt-get install -y mongodb-org-tools
         else
-            error "不支持的操作系统，请手动安装 MongoDB 工具"
+            error "不支持的操作系统，请手动安装 MongoDB 工具包"
         fi
     fi
 }
@@ -818,6 +828,13 @@ init_database() {
     # 检查MongoDB是否可用
     if ! command -v mongosh &> /dev/null; then
         error "mongosh 命令不可用，请安装 MongoDB 客户端工具"
+    fi
+    
+    # 检查MongoDB服务是否运行
+    if ! systemctl is-active --quiet mongod; then
+        log "启动MongoDB服务..."
+        sudo systemctl start mongod
+        sudo systemctl enable mongod
     fi
     
     # 创建管理端数据库
