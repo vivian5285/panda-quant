@@ -48,13 +48,25 @@ check_dependencies() {
     log "系统依赖检查完成"
 }
 
-# 检查端口占用
+# 检查端口是否被占用
 check_port() {
     local port=$1
     local service=$2
     if lsof -i :$port > /dev/null 2>&1; then
-        error "$service 所需的端口 $port 已被占用"
+        log "WARN: $service 所需的端口 $port 已被占用，尝试释放..."
+        local pid=$(lsof -t -i :$port)
+        if [ ! -z "$pid" ]; then
+            kill -9 $pid
+            sleep 2
+            if ! lsof -i :$port > /dev/null 2>&1; then
+                log "端口 $port 已释放"
+                return 0
+            fi
+        fi
+        log "ERROR: 无法释放端口 $port"
+        return 1
     fi
+    return 0
 }
 
 # 检查容器状态
@@ -217,10 +229,8 @@ deploy_user_ui() {
 # 部署 Nginx
 deploy_nginx() {
     log "部署 Nginx..."
-    
-    # 检查端口
-    check_port 80 "Nginx"
-    check_port 443 "Nginx"
+    check_port 443 "Nginx" || return 1
+    check_port 80 "Nginx" || return 1
     check_port 81 "Nginx"
     check_port 444 "Nginx"
     
@@ -238,10 +248,8 @@ deploy_nginx() {
 # 部署数据库
 deploy_database() {
     log "部署数据库服务..."
-    
-    # 检查端口
-    check_port 27017 "MongoDB"
-    check_port 6379 "Redis"
+    check_port 27017 "MongoDB" || return 1
+    check_port 6379 "Redis" || return 1
     
     # 设置数据卷
     setup_volumes
