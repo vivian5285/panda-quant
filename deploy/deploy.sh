@@ -299,6 +299,11 @@ main() {
     # 设置网络
     create_network
     
+    # 设置数据卷（只在需要时创建）
+    if [ "$deploy_type" = "database" ] || [ "$deploy_type" = "all" ]; then
+        setup_volumes
+    fi
+    
     case $deploy_type in
         "shared")
             deploy_shared
