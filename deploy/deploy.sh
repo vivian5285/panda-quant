@@ -3,40 +3,42 @@
 # 设置错误处理
 set -e
 
-# 定义日志函数
+# 日志函数
 log() {
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
-# 停止并删除所有容器和网络
+# 设置 Docker 构建参数
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+export BUILDKIT_INLINE_CACHE=1
+
+# 设置构建超时时间（秒）
+export COMPOSE_HTTP_TIMEOUT=300
+
+# 停止并清理现有容器
 log "停止并清理现有容器..."
-docker compose -f docker-compose.admin.yml down || true
-docker compose -f docker-compose.user.yml down || true
-docker compose -f docker-compose.network.yml down || true
-docker network prune -f
+docker-compose down || true
 
 # 清理旧的构建产物
 log "清理旧的构建产物..."
-rm -rf dist/ || true
-rm -rf node_modules/ || true
+rm -rf admin-ui/dist admin-api/dist || true
 
 # 重新安装依赖
 log "安装依赖..."
-npm install
+cd admin-ui && npm install --legacy-peer-deps && cd ..
+cd admin-api && npm install --legacy-peer-deps && cd ..
 
 # 重新构建镜像
 log "构建镜像..."
-docker compose -f docker-compose.admin.yml build --no-cache
-docker compose -f docker-compose.user.yml build --no-cache
+docker-compose build --no-cache --memory 4g --timeout 300
 
 # 创建网络并启动服务
 log "启动服务..."
-docker compose -f docker-compose.network.yml up -d
-docker compose -f docker-compose.admin.yml up -d
-docker compose -f docker-compose.user.yml up -d
+docker-compose up -d
 
 # 检查服务状态
 log "检查服务状态..."
-docker ps
+docker-compose ps
 
 log "部署完成！" 

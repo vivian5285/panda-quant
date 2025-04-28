@@ -23,4 +23,18 @@ declare global {
   }
 }
 
-export {}; 
+export interface AuthRequest extends ExpressRequest {
+  user?: {
+    id: string;
+    email: string;
+    role: 'user' | 'admin';
+  };
+}
+
+export interface AuthResponse extends ExpressResponse {}
+
+export interface AuthNextFunction extends ExpressNextFunction {}
+
+export interface AuthRouter extends ExpressRouter {}
+
+export { ExpressRequest, ExpressResponse, ExpressNextFunction, ExpressRouter }; 
