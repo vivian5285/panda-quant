@@ -811,6 +811,116 @@ EOF
     log "必要的目录和文件创建完成"
 }
 
+# 初始化数据库
+init_database() {
+    log "初始化数据库..."
+    
+    # 检查MongoDB是否可用
+    if ! command -v mongosh &> /dev/null; then
+        error "mongosh 命令不可用，请安装 MongoDB 客户端工具"
+    fi
+    
+    # 创建管理端数据库
+    log "创建管理端数据库..."
+    if ! mongosh "$MONGODB_ADMIN_URI" --eval "db.getMongo()" &> /dev/null; then
+        mongosh "$MONGODB_ADMIN_URI" --eval "db.createCollection('users')"
+        mongosh "$MONGODB_ADMIN_URI" --eval "db.createCollection('settings')"
+        log "管理端数据库创建成功"
+    else
+        log "管理端数据库已存在"
+    fi
+    
+    # 创建用户端数据库
+    log "创建用户端数据库..."
+    if ! mongosh "$MONGODB_USER_URI" --eval "db.getMongo()" &> /dev/null; then
+        mongosh "$MONGODB_USER_URI" --eval "db.createCollection('users')"
+        mongosh "$MONGODB_USER_URI" --eval "db.createCollection('orders')"
+        mongosh "$MONGODB_USER_URI" --eval "db.createCollection('transactions')"
+        log "用户端数据库创建成功"
+    else
+        log "用户端数据库已存在"
+    fi
+}
+
+# 创建Dockerfile
+create_dockerfiles() {
+    log "创建Dockerfile..."
+    
+    # 创建admin-api的Dockerfile
+    cat > "$WORKSPACE_DIR/admin-api/Dockerfile" << EOF
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+EXPOSE 8081
+
+CMD ["npm", "start"]
+EOF
+
+    # 创建user-api的Dockerfile
+    cat > "$WORKSPACE_DIR/user-api/Dockerfile" << EOF
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+EXPOSE 8083
+
+CMD ["npm", "start"]
+EOF
+
+    # 创建admin-ui的Dockerfile
+    cat > "$WORKSPACE_DIR/admin-ui/Dockerfile" << EOF
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+EXPOSE 8080
+
+CMD ["npm", "start"]
+EOF
+
+    # 创建user-ui的Dockerfile
+    cat > "$WORKSPACE_DIR/user-ui/Dockerfile" << EOF
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+EXPOSE 8082
+
+CMD ["npm", "start"]
+EOF
+
+    log "Dockerfile创建完成"
+}
+
 # 部署管理端
 deploy_admin() {
     log "开始部署管理端..."
@@ -996,6 +1106,9 @@ deploy_all() {
     # 检查环境变量
     check_env
     
+    # 初始化数据库
+    init_database
+    
     # 备份数据库
     backup_database
     
@@ -1034,6 +1147,9 @@ deploy_all() {
     
     # 创建必要的目录结构
     create_directories
+    
+    # 创建Dockerfile
+    create_dockerfiles
     
     # 创建Docker网络
     create_docker_network
