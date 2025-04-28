@@ -14,8 +14,10 @@ COPY admin-api/package*.json ./
 COPY admin-api/prisma ./prisma/
 COPY admin-api/tsconfig.json ./
 
-# Install dependencies
-RUN npm install && npm install -g typescript tsconfig-paths prisma
+# Install dependencies including dev dependencies for type declarations
+RUN npm install && \
+    npm install -g typescript tsconfig-paths prisma && \
+    npm install --save-dev @types/mongoose @types/bcryptjs @types/express
 
 # Copy source code
 COPY admin-api .
