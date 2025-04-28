@@ -1,12 +1,17 @@
-import express from 'express';
+import express, { Router } from 'express';
 import { authenticateToken } from '../middleware/auth';
 import Referral from '../models/referral.model';
-import User from '../models/user.model';
+import { User } from '../models/user.model';
+import { AuthRequest } from '../types/auth';
 
-const router = express.Router();
+const router = Router();
 
 // 获取用户的推荐奖励总结
-router.get('/summary', authenticateToken, async (req, res) => {
+router.get('/summary', authenticateToken, async (req: AuthRequest, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: '未授权' });
+  }
+
   try {
     const userId = req.user.id;
 
@@ -63,7 +68,11 @@ router.get('/summary', authenticateToken, async (req, res) => {
 });
 
 // 创建新的推荐记录
-router.post('/create', authenticateToken, async (req, res) => {
+router.post('/create', authenticateToken, async (req: AuthRequest, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: '未授权' });
+  }
+
   try {
     const { referredId, level } = req.body;
     const referrerId = req.user.id;
@@ -110,7 +119,11 @@ router.post('/create', authenticateToken, async (req, res) => {
 });
 
 // 更新推荐记录状态
-router.put('/:id/status', authenticateToken, async (req, res) => {
+router.put('/:id/status', authenticateToken, async (req: AuthRequest, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: '未授权' });
+  }
+
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -140,7 +153,11 @@ router.put('/:id/status', authenticateToken, async (req, res) => {
 });
 
 // 获取推荐记录详情
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: '未授权' });
+  }
+
   try {
     const { id } = req.params;
 
@@ -162,6 +179,16 @@ router.get('/:id', authenticateToken, async (req, res) => {
     console.error('Error fetching referral details:', error);
     res.status(500).json({ message: '获取推荐记录详情失败' });
   }
+});
+
+// 添加参数类型
+router.get('/users', async (req: AuthRequest, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: '未授权' });
+  }
+  
+  const users = await User.find({ referredBy: req.user.id });
+  res.json(users);
 });
 
 export default router; 

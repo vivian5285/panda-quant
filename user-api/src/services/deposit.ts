@@ -1,10 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { ethers } from 'ethers';
 import TronWeb from 'tronweb';
-import { IUser } from '../models/user';
+import { IUser, User } from '../../models/user.model';
 import { Request } from 'express';
 import { AuthUser } from '../middleware/auth';
-import User from '../models/User';
 
 declare module 'tronweb' {
   interface TronWeb {
@@ -41,6 +40,10 @@ const chainConfigs: Record<string, ChainConfig> = {
     contractAddress: process.env.TRX_CONTRACT_ADDRESS || ''
   }
 };
+
+interface IUserWithWallet extends IUser {
+  walletAddress?: string;
+}
 
 export class DepositService {
   async getDepositAddress(userId: string, chain: string): Promise<string> {

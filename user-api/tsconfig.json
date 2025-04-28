@@ -11,8 +11,8 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "types": [],
-    "typeRoots": [],
+    "types": ["jest", "node"],
+    "typeRoots": ["./node_modules/@types"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "baseUrl": ".",
@@ -20,7 +20,7 @@
       "@strategy-engine/*": ["../strategy-engine/*"]
     }
   },
-  "include": ["src/**/*", "*.ts", "../strategy-engine/**/*"],
+  "include": ["src/**/*", "*.ts", "../strategy-engine/**/*", "**/*.test.ts"],
   "exclude": ["node_modules", "dist"],
   "references": []
 } 

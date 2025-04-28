@@ -1,14 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { IUser } from '../models/user.model';
-
-export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: 'user' | 'admin';
-  };
-}
+import { AuthRequest, AuthUser } from '../types/auth';
 
 export const authenticateToken = (
   req: AuthRequest,
@@ -26,11 +18,7 @@ export const authenticateToken = (
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as {
-      id: string;
-      email: string;
-      role: 'user' | 'admin';
-    };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as AuthUser;
     req.user = decoded;
     next();
   } catch (error) {

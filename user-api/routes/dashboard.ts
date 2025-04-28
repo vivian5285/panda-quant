@@ -1,11 +1,12 @@
-import express from 'express';
+import express, { Router } from 'express';
 import { User } from '../models/user.model';
 import { Strategy } from '../models/strategy.model';
 import { Transaction } from '../models/transaction.model';
-import { Notification } from '../models/notification.model';
+import { Notification, INotification } from '../models/notification.model';
 import { authenticateToken } from '../middlewares/auth';
+import { AuthRequest } from '../types/auth';
 
-const router = express.Router();
+const router = Router();
 
 // 获取仪表盘数据
 router.get('/', authenticateToken, async (req, res) => {
@@ -63,6 +64,51 @@ router.get('/', authenticateToken, async (req, res) => {
     console.error('获取仪表盘数据失败:', error);
     res.status(500).json({ message: '服务器错误' });
   }
+});
+
+// 添加类型检查
+router.get('/notifications', async (req: AuthRequest, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: '未授权' });
+  }
+  
+  const notifications = await Notification.find({ userId: req.user.id });
+  res.json(notifications);
+});
+
+// 添加参数类型
+router.get('/strategy/:id', async (req: AuthRequest, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: '未授权' });
+  }
+  
+  const strategy = await Strategy.findById(req.params.id);
+  if (!strategy) {
+    return res.status(404).json({ message: '策略未找到' });
+  }
+  
+  res.json({
+    ...strategy.toObject(),
+    profit: strategy.profit || 0
+  });
+});
+
+// 添加通知处理函数
+router.post('/notifications', async (req: AuthRequest, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: '未授权' });
+  }
+  
+  const notification: INotification = {
+    userId: req.user.id,
+    type: req.body.type,
+    title: req.body.title,
+    message: req.body.message,
+    read: false
+  };
+  
+  const savedNotification = await Notification.create(notification);
+  res.json(savedNotification);
 });
 
 export default router; 
