@@ -17,12 +17,12 @@
     "emitDecoratorMetadata": true,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/dist/*"]
+      "@shared/*": ["./shared/dist/*"]
     }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],
   "references": [
-    { "path": "../shared" }
+    { "path": "./shared" }
   ]
 } 
