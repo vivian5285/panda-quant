@@ -51,8 +51,9 @@ export class FeeService {
     
     for (const user of users) {
       try {
+        const userId = (user._id as string).toString();
         // 获取用户所有资产
-        const assets = await Asset.find({ userId: user._id });
+        const assets = await Asset.find({ userId });
         
         if (assets.length === 0) continue;
 
@@ -60,27 +61,30 @@ export class FeeService {
         const totalBalance = assets.reduce((sum, asset) => sum + asset.balance, 0);
         
         // 计算托管费（新用户首月有30美元折扣）
-        const isNewUser = await this.isNewUser(user._id);
+        const isNewUser = await this.isNewUser(userId);
         const feeAmount = isNewUser ? Math.max(0, BASE_FEE - 30) : BASE_FEE;
 
         // 检查用户余额是否足够
         if (totalBalance < feeAmount) {
-          console.log(`Insufficient balance for user ${user._id}`);
+          console.log(`Insufficient balance for user ${userId}`);
           continue;
         }
 
         // 创建托管费交易记录
         await Transaction.create({
-          userId: user._id,
+          userId,
           type: 'FEE',
           amount: feeAmount,
           chain: 'BSC', // 默认从BSC链扣除
           status: 'PENDING',
-          txHash: `FEE-${Date.now()}-${user._id}`
+          txHash: `FEE-${Date.now()}-${userId}`
         });
 
         // 更新用户资产
-        const mainAsset = assets.find(asset => (asset as IAssetWithChain).chain === 'BSC');
+        const mainAsset = assets.find(asset => {
+          const assetWithChain = asset as unknown as IAssetWithChain;
+          return assetWithChain.chain === 'BSC';
+        });
         if (mainAsset) {
           mainAsset.balance -= feeAmount;
           await mainAsset.save();
@@ -92,12 +96,17 @@ export class FeeService {
     }
   }
 
-  private async isNewUser(userId: string): Promise<boolean> {
-    const feeTransactions = await Transaction.find({
-      userId,
-      type: 'FEE'
+  private async isNewUser(userId: unknown): Promise<boolean> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const recentFees = await Fee.find({
+      userId: (userId as string).toString(),
+      type: 'monthly',
+      createdAt: { $gte: thirtyDaysAgo }
     });
-    return feeTransactions.length === 0;
+    
+    return recentFees.length === 0;
   }
 
   // 处理充值确认
@@ -157,7 +166,7 @@ export class FeeService {
     }
 
     // 确保 userAsset 有 chain 属性
-    const assetWithChain = userAsset as IAssetWithChain;
+    const assetWithChain = userAsset as unknown as IAssetWithChain;
     if (!assetWithChain.chain) {
       throw new Error('Asset chain information is missing');
     }
@@ -189,6 +198,21 @@ export class FeeService {
 
     // 更新费用状态
     await Fee.findByIdAndUpdate(feeId, { status: 'completed' });
+  }
+
+  async getMainAsset(userId: string): Promise<IAssetWithChain | null> {
+    const assets = await Asset.find({ userId });
+    if (!assets || assets.length === 0) {
+      return null;
+    }
+
+    // 查找 BSC 链上的资产
+    const mainAsset = assets.find(asset => {
+      const assetWithChain = asset as unknown as IAssetWithChain;
+      return assetWithChain.chain === 'BSC';
+    });
+
+    return mainAsset as unknown as IAssetWithChain;
   }
 }
 
