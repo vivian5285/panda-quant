@@ -25,7 +25,8 @@ RUN prisma generate
 RUN sed -i 's/"references": \[.*\]/"references": \[\]/' tsconfig.json && \
     sed -i 's/"paths": {.*}/"paths": {}/' tsconfig.json && \
     sed -i 's/"baseUrl": ".*"/"baseUrl": "."/' tsconfig.json && \
-    sed -i 's/"include": \[.*\]/"include": \["src\/\*\*\/\*", "\*.ts"\]/' tsconfig.json
+    sed -i 's/"include": \[.*\]/"include": \["src\/\*\*\/\*", "\*.ts"\]/' tsconfig.json && \
+    sed -i 's/"typeRoots": \[.*\]/"typeRoots": \[\]/' tsconfig.json
 
 RUN npx tsc --skipLibCheck
 

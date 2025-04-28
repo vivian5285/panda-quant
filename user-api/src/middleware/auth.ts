@@ -1,42 +1,25 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../utils/jwt';
-import { IUser } from '../models/User';
+import jwt from 'jsonwebtoken';
+import { User } from '../models/User';
 
-interface AuthUser {
-  id: string;
-  email: string;
-  role: 'user' | 'admin';
-}
-
-declare global {
-  namespace Express {
-    interface Request {
-      user?: AuthUser;
+export const auth = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const token = req.header('Authorization')?.replace('Bearer ', '');
+        
+        if (!token) {
+            return res.status(401).json({ error: 'No token provided' });
+        }
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
+        const user = await User.findById(decoded.id);
+        
+        if (!user) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+        
+        (req as any).user = user;
+        next();
+    } catch (error) {
+        res.status(401).json({ error: 'Invalid token' });
     }
-  }
-}
-
-export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
-    }
-
-    const decoded = verifyToken(token);
-    if (!decoded) {
-      return res.status(403).json({ message: 'Invalid token' });
-    }
-    
-    req.user = {
-      id: decoded.id,
-      email: decoded.email,
-      role: decoded.role as 'user' | 'admin'
-    };
-    next();
-  } catch (error) {
-    return res.status(403).json({ message: 'Invalid token' });
-  }
 }; 

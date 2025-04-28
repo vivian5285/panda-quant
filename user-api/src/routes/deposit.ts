@@ -3,7 +3,9 @@ import { authenticateToken } from '../middleware/auth';
 import { validateDepositRequest } from '../middleware/validate';
 import { depositService } from '../services/deposit';
 import { Request, Response } from 'express';
-import { IUser } from '@shared/models/user';
+import { IUser } from '../models/User';
+import { auth } from '../middleware/auth';
+import { createDeposit } from '../services/deposit';
 
 const router = Router();
 
@@ -64,6 +66,16 @@ router.get('/records', authenticateToken, async (req: Request, res: Response) =>
     console.error('Get deposit records error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
+});
+
+router.post('/', auth, async (req, res) => {
+    try {
+        const user = (req as any).user as IUser;
+        const result = await createDeposit(req, user);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 export default router; 

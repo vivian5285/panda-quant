@@ -1,7 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { ethers } from 'ethers';
 import TronWeb from 'tronweb';
-import { IUser } from '@shared/models/user';
+import { IUser } from '../models/user';
+import { Request } from 'express';
 
 declare module 'tronweb' {
   interface TronWeb {
@@ -138,4 +139,9 @@ export class DepositService {
   }
 }
 
-export const depositService = new DepositService(); 
+export const depositService = new DepositService();
+
+export const createDeposit = async (req: Request, user: IUser) => {
+    // 实现存款逻辑
+    return { success: true };
+}; 
