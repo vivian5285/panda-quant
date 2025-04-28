@@ -6,39 +6,39 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
-# Copy shared module
-COPY shared ./shared
+# Copy package files first
+COPY package*.json ./
 
-# Build shared module
+# Install dependencies
+RUN npm install
+RUN npm install -g typescript tsconfig-paths
+
+# Copy shared module and build
+COPY shared ./shared
 WORKDIR /app/shared
 RUN npm install
 RUN npm run build
 
-# Copy package files
+# Copy source files and build
 WORKDIR /app
-COPY package*.json ./
 COPY prisma ./prisma/
 COPY src ./src/
 COPY tsconfig.json ./
 COPY index.ts ./
 COPY app.ts ./
 
-# Install dependencies
-RUN npm install
-RUN npm install -g typescript tsconfig-paths
+# Generate Prisma client and build
 RUN npx prisma generate
-RUN npm run build
+RUN npx tsc
 
 # Production stage
 FROM node:18-alpine
 
 WORKDIR /app/user-api
 
-# Copy package files
+# Copy package files and install production dependencies
 COPY package*.json ./
 COPY prisma ./prisma/
-
-# Install production dependencies
 RUN npm install --production
 
 # Copy built files from builder
