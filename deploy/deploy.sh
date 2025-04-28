@@ -473,12 +473,51 @@ create_dirs() {
 # 备份现有配置
 backup_config() {
     log "备份现有配置..."
-    local timestamp=$(date +%Y%m%d_%H%M%S)
-    tar -czf "backup/config_$timestamp.tar.gz" \
-        nginx.conf \
-        docker-compose.yml \
-        .env \
-        ssl/
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    backup_dir="backup/config_$timestamp"
+    mkdir -p "$backup_dir"
+    
+    # 备份 nginx 配置
+    if [ -f "nginx.conf" ]; then
+        cp nginx.conf "$backup_dir/"
+    else
+        warn "nginx.conf 不存在，跳过备份"
+    fi
+    
+    # 备份 docker-compose 配置
+    if [ -f "docker-compose.admin.yml" ]; then
+        cp docker-compose.admin.yml "$backup_dir/"
+    else
+        warn "docker-compose.admin.yml 不存在，跳过备份"
+    fi
+    
+    if [ -f "docker-compose.user.yml" ]; then
+        cp docker-compose.user.yml "$backup_dir/"
+    else
+        warn "docker-compose.user.yml 不存在，跳过备份"
+    fi
+    
+    # 备份 SSL 证书
+    if [ -d "ssl" ]; then
+        cp -r ssl "$backup_dir/"
+    else
+        warn "ssl 目录不存在，跳过备份"
+    fi
+    
+    # 备份环境变量
+    if [ -f ".env" ]; then
+        cp .env "$backup_dir/"
+    else
+        warn ".env 文件不存在，跳过备份"
+    fi
+    
+    # 压缩备份文件
+    cd "$backup_dir/.."
+    tar -czf "config_$timestamp.tar.gz" "config_$timestamp"
+    rm -rf "config_$timestamp"
+    cd - > /dev/null
+    
+    log "配置备份完成: $backup_dir/../config_$timestamp.tar.gz"
 }
 
 # 生成SSL证书
@@ -661,18 +700,129 @@ EOF
     log "所有服务构建完成"
 }
 
+# 创建必要的目录和文件
+create_required_files() {
+    log "创建必要的目录和文件..."
+    
+    # 创建基础目录
+    mkdir -p backup
+    mkdir -p ssl
+    mkdir -p logs
+    mkdir -p data
+    mkdir -p logs/admin-api
+    mkdir -p logs/user-api
+    mkdir -p logs/admin-ui
+    mkdir -p logs/user-ui
+    mkdir -p data/mongodb/admin
+    mkdir -p data/mongodb/user
+    mkdir -p data/redis/admin
+    mkdir -p data/redis/user
+    
+    # 创建 nginx.conf 文件（如果不存在）
+    if [ ! -f "nginx.conf" ]; then
+        cat > nginx.conf << EOF
+server {
+    listen 80;
+    server_name pandatrade.space;
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name pandatrade.space;
+    
+    ssl_certificate /etc/nginx/ssl/pandatrade.space.crt;
+    ssl_certificate_key /etc/nginx/ssl/pandatrade.space.key;
+    
+    location / {
+        proxy_pass http://user-ui:80;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+
+server {
+    listen 80;
+    server_name admin.pandatrade.space;
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name admin.pandatrade.space;
+    
+    ssl_certificate /etc/nginx/ssl/admin.pandatrade.space.crt;
+    ssl_certificate_key /etc/nginx/ssl/admin.pandatrade.space.key;
+    
+    location / {
+        proxy_pass http://admin-ui:80;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+
+server {
+    listen 80;
+    server_name admin-api.pandatrade.space;
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name admin-api.pandatrade.space;
+    
+    ssl_certificate /etc/nginx/ssl/admin-api.pandatrade.space.crt;
+    ssl_certificate_key /etc/nginx/ssl/admin-api.pandatrade.space.key;
+    
+    location / {
+        proxy_pass http://admin-api:8081;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+
+server {
+    listen 80;
+    server_name api.pandatrade.space;
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name api.pandatrade.space;
+    
+    ssl_certificate /etc/nginx/ssl/api.pandatrade.space.crt;
+    ssl_certificate_key /etc/nginx/ssl/api.pandatrade.space.key;
+    
+    location / {
+        proxy_pass http://user-api:8083;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+EOF
+    fi
+    
+    # 创建 .env 文件（如果不存在）
+    if [ ! -f ".env" ]; then
+        set_default_env
+    fi
+    
+    log "必要的目录和文件创建完成"
+}
+
 # 部署管理端
 deploy_admin() {
     log "开始部署管理端..."
+    
+    # 创建必要的目录和文件
+    create_required_files
     
     # 检查DNS记录
     check_dns
     
     # 备份现有配置
     backup_config
-    
-    # 创建必要的目录
-    create_dirs
     
     # 生成SSL证书
     generate_ssl
@@ -735,14 +885,14 @@ deploy_admin() {
 deploy_user() {
     log "开始部署用户端..."
     
+    # 创建必要的目录和文件
+    create_required_files
+    
     # 检查DNS记录
     check_dns
     
     # 备份现有配置
     backup_config
-    
-    # 创建必要的目录
-    create_dirs
     
     # 生成SSL证书
     generate_ssl
