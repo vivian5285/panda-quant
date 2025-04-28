@@ -5,7 +5,7 @@ services:
     image: nginx:alpine
     container_name: panda-quant-nginx-user
     ports:
-      - "444:80"
+      - "8080:80"
     volumes:
       - ./nginx/user.conf:/etc/nginx/nginx.conf:ro
       - ./user-ui/dist:/usr/share/nginx/html:ro
@@ -14,7 +14,9 @@ services:
       - user-ui
     restart: unless-stopped
     networks:
-      - panda-quant-network
+      panda-quant-network:
+        aliases:
+          - nginx-user
     healthcheck:
       test: ["CMD", "nginx", "-t"]
       interval: 30s
@@ -34,7 +36,9 @@ services:
       - REDIS_URI=redis://:Wl528586*@194.164.149.214:6379
     restart: unless-stopped
     networks:
-      - panda-quant-network
+      panda-quant-network:
+        aliases:
+          - user-api
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
       interval: 30s
@@ -50,7 +54,9 @@ services:
       - ../user-ui/dist:/usr/share/nginx/html:ro
     restart: unless-stopped
     networks:
-      - panda-quant-network
+      panda-quant-network:
+        aliases:
+          - user-ui
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s

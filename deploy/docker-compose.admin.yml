@@ -5,7 +5,7 @@ services:
     image: nginx:alpine
     container_name: panda-quant-nginx-admin
     ports:
-      - "80:80"
+      - "8081:80"
     volumes:
       - ./nginx/admin.conf:/etc/nginx/nginx.conf:ro
       - ./admin-ui/dist:/usr/share/nginx/html:ro
@@ -14,7 +14,9 @@ services:
       - admin-ui
     restart: unless-stopped
     networks:
-      - panda-quant-network
+      panda-quant-network:
+        aliases:
+          - nginx-admin
     healthcheck:
       test: ["CMD", "nginx", "-t"]
       interval: 30s
@@ -34,7 +36,9 @@ services:
       - REDIS_URI=redis://:Wl528586*@194.164.149.214:6379
     restart: unless-stopped
     networks:
-      - panda-quant-network
+      panda-quant-network:
+        aliases:
+          - admin-api
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 30s
@@ -50,7 +54,9 @@ services:
       - ../admin-ui/dist:/usr/share/nginx/html:ro
     restart: unless-stopped
     networks:
-      - panda-quant-network
+      panda-quant-network:
+        aliases:
+          - admin-ui
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
@@ -69,7 +75,9 @@ services:
       - mongodb_data:/data/db
     restart: unless-stopped
     networks:
-      - panda-quant-network
+      panda-quant-network:
+        aliases:
+          - mongodb
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 30s
@@ -86,7 +94,9 @@ services:
       - redis_data:/data
     restart: unless-stopped
     networks:
-      - panda-quant-network
+      panda-quant-network:
+        aliases:
+          - redis
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
