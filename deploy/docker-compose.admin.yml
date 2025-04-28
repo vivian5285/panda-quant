@@ -67,8 +67,8 @@ services:
   # Admin API 服务
   admin-api:
     build:
-      context: .
-      dockerfile: admin-api/Dockerfile
+      context: ../admin-api
+      dockerfile: Dockerfile
     container_name: panda-quant-admin-api
     ports:
       - "8081:8081"
@@ -93,8 +93,8 @@ services:
   # Admin UI 服务
   admin-ui:
     build:
-      context: .
-      dockerfile: admin-ui/Dockerfile
+      context: ../admin-ui
+      dockerfile: Dockerfile
     container_name: panda-quant-admin-ui
     ports:
       - "8080:80"
