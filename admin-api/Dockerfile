@@ -28,10 +28,15 @@ COPY tsconfig.json ./
 RUN npm install
 RUN npm install -g typescript
 RUN npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg
+RUN npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg redis winston
 RUN npx prisma generate
 
-# Verify TypeScript installation
+# Verify TypeScript installation and dependencies
 RUN tsc --version
+RUN ls -la node_modules/@types
+RUN ls -la node_modules/mongoose
+RUN ls -la node_modules/bcryptjs
+RUN ls -la node_modules/express
 
 # Copy shared module build output
 RUN mkdir -p node_modules/shared
@@ -54,6 +59,7 @@ COPY tsconfig.json ./
 # Install production dependencies and TypeScript
 RUN npm install --production
 RUN npm install -g typescript
+RUN npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg redis winston
 
 # Copy shared module build output
 RUN mkdir -p node_modules/shared
