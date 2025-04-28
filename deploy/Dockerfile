@@ -17,6 +17,7 @@ COPY admin-api/tsconfig.json ./
 # Install dependencies including dev dependencies for type declarations
 RUN npm install && \
     npm install -g typescript tsconfig-paths && \
+    npm install mongoose bcryptjs express cors jsonwebtoken && \
     npm install --save-dev @types/mongoose @types/bcryptjs @types/express && \
     npm install -g prisma --unsafe-perm && \
     npm install prisma --save-dev --unsafe-perm
