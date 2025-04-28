@@ -15,7 +15,7 @@
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/*"]
+      "@shared/*": ["./shared/*"]
     }
   },
   "include": [
@@ -28,11 +28,11 @@
     "middleware/**/*",
     "routes/**/*",
     "controllers/**/*",
-    "../shared/**/*",
+    "shared/**/*",
     "index.ts",
     "app.ts"
   ],
   "references": [
-    { "path": "../shared" }
+    { "path": "./shared" }
   ]
 } 

@@ -975,6 +975,14 @@ EOF
 deploy_admin() {
     log "开始部署管理端..."
     
+    # 检查是否已经在部署中
+    if [ -f "$WORKSPACE_DIR/.deploying" ]; then
+        error "部署已经在进行中，请等待完成"
+    fi
+    
+    # 创建部署标记文件
+    touch "$WORKSPACE_DIR/.deploying"
+    
     # 创建必要的目录和文件
     create_required_files
     
@@ -1033,6 +1041,7 @@ deploy_admin() {
     # 检查服务是否正常运行
     if ! check_services; then
         log "服务启动失败，请检查日志"
+        rm -f "$WORKSPACE_DIR/.deploying"
         exit 1
     fi
     
@@ -1051,6 +1060,9 @@ deploy_admin() {
     nginx -t
     systemctl restart nginx
     
+    # 删除部署标记文件
+    rm -f "$WORKSPACE_DIR/.deploying"
+    
     log "管理端部署完成！"
     log "访问以下地址："
     log "- 管理后台: https://admin.pandatrade.space"
@@ -1060,6 +1072,14 @@ deploy_admin() {
 # 部署用户端
 deploy_user() {
     log "开始部署用户端..."
+    
+    # 检查是否已经在部署中
+    if [ -f "$WORKSPACE_DIR/.deploying" ]; then
+        error "部署已经在进行中，请等待完成"
+    fi
+    
+    # 创建部署标记文件
+    touch "$WORKSPACE_DIR/.deploying"
     
     # 创建必要的目录和文件
     create_required_files
@@ -1119,6 +1139,7 @@ deploy_user() {
     # 检查服务是否正常运行
     if ! check_services; then
         log "服务启动失败，请检查日志"
+        rm -f "$WORKSPACE_DIR/.deploying"
         exit 1
     fi
     
@@ -1136,6 +1157,9 @@ deploy_user() {
     cp "$DEPLOY_DIR/nginx.conf" /etc/nginx/nginx.conf
     nginx -t
     systemctl restart nginx
+    
+    # 删除部署标记文件
+    rm -f "$WORKSPACE_DIR/.deploying"
     
     log "用户端部署完成！"
     log "访问以下地址："
