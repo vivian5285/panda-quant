@@ -6,18 +6,22 @@ declare global {
       user?: any;
       headers: any;
       body: any;
+      params: any;
     }
-    interface Response extends ExpressResponse {}
+    interface Response extends ExpressResponse {
+      status: (code: number) => Response;
+      json: (body: any) => Response;
+    }
     interface NextFunction extends ExpressNextFunction {}
   }
 }
 
 export interface AuthRequest extends Express.Request {
   user?: any;
-  headers: any;
-  body: any;
 }
 
 export interface AuthResponse extends Express.Response {}
 
-export interface AuthNextFunction extends Express.NextFunction {} 
+export interface AuthNextFunction extends Express.NextFunction {}
+
+export type AuthRouter = Express.Router; 
