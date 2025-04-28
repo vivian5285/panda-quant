@@ -25,47 +25,104 @@ warn() {
 
 # 设置工作目录
 WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEPLOY_DIR="$(dirname "${BASH_SOURCE[0]}")"
 
 # 确保在正确的目录下运行
 cd "$WORKSPACE_DIR"
 log "当前工作目录: $(pwd)"
 
-# 安装所有依赖
-install_dependencies() {
-    log "安装所有模块的依赖..."
-    
-    # 安装 shared 模块依赖
-    log "安装 shared 模块依赖..."
-    cd "$WORKSPACE_DIR/shared"
-    chmod -R 777 .
-    npm install
-    
-    # 安装 admin-api 依赖
-    log "安装 admin-api 依赖..."
-    cd "$WORKSPACE_DIR/admin-api"
-    chmod -R 777 .
-    npm install
-    
-    # 安装 user-api 依赖
-    log "安装 user-api 依赖..."
-    cd "$WORKSPACE_DIR/user-api"
-    chmod -R 777 .
-    npm install
-    
-    # 安装 admin-ui 依赖
-    log "安装 admin-ui 依赖..."
-    cd "$WORKSPACE_DIR/admin-ui"
-    chmod -R 777 .
-    npm install
-    
-    # 安装 user-ui 依赖
-    log "安装 user-ui 依赖..."
-    cd "$WORKSPACE_DIR/user-ui"
-    chmod -R 777 .
-    npm install
-    
-    cd "$WORKSPACE_DIR"
+# 创建日志目录
+mkdir -p "$WORKSPACE_DIR/logs"
+LOG_FILE="$WORKSPACE_DIR/logs/deploy_$(date +%Y%m%d_%H%M%S).log"
+
+# 设置日志输出
+exec 1> >(tee -a "$LOG_FILE")
+exec 2>&1
+
+# 检查依赖
+check_dependencies() {
+    log "检查系统依赖..."
+    command -v docker >/dev/null 2>&1 || { error "需要安装 Docker"; }
+    command -v node >/dev/null 2>&1 || { error "需要安装 Node.js"; }
+    command -v npm >/dev/null 2>&1 || { error "需要安装 npm"; }
+    log "系统依赖检查完成"
+}
+
+# 检查端口占用
+check_port() {
+    local port=$1
+    local service=$2
+    if lsof -i :$port > /dev/null 2>&1; then
+        error "$service 所需的端口 $port 已被占用"
+    fi
+}
+
+# 检查容器状态
+check_container_status() {
+    local container_name=$1
+    if [ "$(docker ps -q -f name=$container_name)" ]; then
+        log "$container_name 容器运行正常"
+        return 0
+    else
+        warn "$container_name 容器未运行"
+        return 1
+    fi
+}
+
+# 创建 Docker 网络
+setup_network() {
+    log "设置 Docker 网络..."
+    if ! docker network ls | grep -q panda-quant-network; then
+        docker network create panda-quant-network
+        log "创建 panda-quant-network 网络"
+    else
+        log "panda-quant-network 网络已存在"
+    fi
+}
+
+# 创建数据卷
+setup_volumes() {
+    log "设置数据卷..."
+    docker volume create mongodb_data || true
+    docker volume create redis_data || true
+    log "数据卷设置完成"
+}
+
+# 加载环境变量
+load_env() {
+    log "加载环境变量..."
+    if [ -f "$WORKSPACE_DIR/.env" ]; then
+        source "$WORKSPACE_DIR/.env"
+    else
+        # 创建默认环境变量文件
+        cat > "$WORKSPACE_DIR/.env" << 'EOL'
+MONGODB_USERNAME=admin
+MONGODB_PASSWORD=Wl528586*
+MONGODB_DATABASE=admin
+REDIS_PASSWORD=Wl528586*
+ADMIN_API_PORT=3001
+USER_API_PORT=3002
+ADMIN_UI_PORT=80
+USER_UI_PORT=81
+SHARED_PORT=3000
+
+# 域名配置
+DOMAIN=pandatrade.space
+ADMIN_SUBDOMAIN=admin
+ADMIN_API_SUBDOMAIN=admin-api
+API_SUBDOMAIN=api
+EOL
+        source "$WORKSPACE_DIR/.env"
+        log "创建默认环境变量文件"
+    fi
+}
+
+# 清理旧容器和镜像
+cleanup() {
+    log "清理旧容器和镜像..."
+    docker stop $(docker ps -a -q) 2>/dev/null || true
+    docker rm $(docker ps -a -q) 2>/dev/null || true
+    docker rmi $(docker images -q) 2>/dev/null || true
+    log "清理完成"
 }
 
 # 构建 shared 模块
@@ -73,1279 +130,819 @@ build_shared() {
     log "构建 shared 模块..."
     cd "$WORKSPACE_DIR/shared"
     
-    # 清理之前的构建
+    # 清理之前的构建和源文件
     rm -rf dist
+    rm -rf src
     
-    # 确保源代码在正确的位置
-    if [ ! -d "src" ]; then
-        mkdir -p src/types src/models
-    else
-        # 确保子目录存在
-        mkdir -p src/types src/models
-    fi
+    # 创建新的目录结构
+    mkdir -p src/types src/models
     
-    # 如果源代码不在 src 目录下，则复制它们
-    if [ -d "types" ]; then
-        # 确保目标目录存在
-        mkdir -p src/types
-        # 只复制 .ts 文件
-        find types -name "*.ts" -exec cp {} src/types/ \; 2>/dev/null || true
-    fi
-    
-    if [ -d "models" ]; then
-        # 确保目标目录存在
-        mkdir -p src/models
-        # 只复制 .ts 文件
-        find models -name "*.ts" -exec cp {} src/models/ \; 2>/dev/null || true
-    fi
-    
-    # 如果 src 目录下没有必要的文件，则从其他目录复制
-    if [ ! -f "src/types/auth.ts" ] && [ -f "types/auth.ts" ]; then
+    # 复制源文件
+    if [ -f "types/auth.ts" ]; then
         cp types/auth.ts src/types/
     fi
     
-    if [ ! -f "src/models/user.ts" ] && [ -f "models/user.ts" ]; then
+    if [ -f "models/user.ts" ]; then
         cp models/user.ts src/models/
     fi
     
-    if [ ! -f "src/models/asset.ts" ] && [ -f "models/asset.ts" ]; then
+    if [ -f "models/asset.ts" ]; then
         cp models/asset.ts src/models/
     fi
     
-    if [ ! -f "src/models/fee.ts" ] && [ -f "models/fee.ts" ]; then
+    if [ -f "models/fee.ts" ]; then
         cp models/fee.ts src/models/
     fi
     
-    # 确保所有必要的源文件都存在
-    if [ ! -f "src/types/auth.ts" ] || [ ! -f "src/models/user.ts" ] || [ ! -f "src/models/asset.ts" ] || [ ! -f "src/models/fee.ts" ]; then
-        error "缺少必要的源文件"
-    fi
+    # 创建 package.json
+    cat > package.json << 'EOL'
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "description": "Shared types and models",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "typescript": "^4.9.5"
+  }
+}
+EOL
     
-    # 构建项目
+    # 创建 tsconfig.json
+    cat > tsconfig.json << 'EOL'
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "lib": ["es2020"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}
+EOL
+    
+    # 安装依赖并构建
+    npm install
     npm run build
     
-    # 确保构建成功并生成类型定义文件
+    # 确保构建成功
     if [ ! -d "dist" ]; then
         error "shared 模块构建失败"
     fi
     
-    # 检查必要的类型定义文件是否存在
-    if [ ! -f "dist/types/auth.d.ts" ] || [ ! -f "dist/models/user.d.ts" ] || [ ! -f "dist/models/asset.d.ts" ] || [ ! -f "dist/models/fee.d.ts" ]; then
-        error "shared 模块的类型定义文件未正确生成"
-    fi
+    cd "$WORKSPACE_DIR"
+}
+
+# 更新导入路径
+update_imports() {
+    local target_dir=$1
+    
+    log "更新导入路径..."
+    cd "$target_dir"
+    
+    # 替换所有可能的相对路径导入
+    find . -type f -name "*.ts" -exec sed -i \
+        -e 's|from "../../shared/|from "@shared/|g' \
+        -e 's|from "../shared/|from "@shared/|g' \
+        -e 's|from "./shared/|from "@shared/|g' \
+        -e 's|from "shared/|from "@shared/|g' \
+        {} \;
     
     cd "$WORKSPACE_DIR"
 }
 
-# 检查必要的命令
-check_commands() {
-    log "检查必要的命令..."
-    for cmd in docker docker-compose git openssl curl dig; do
-        if ! command -v $cmd &> /dev/null; then
-            error "需要安装 $cmd"
-        fi
-    done
+# 部署 shared 模块
+deploy_shared() {
+    log "开始部署 shared 模块..."
     
-    # 检查MongoDB工具
-    if ! command -v mongosh &> /dev/null; then
-        log "安装MongoDB客户端工具..."
-        if [ -f /etc/debian_version ]; then
-            # 添加MongoDB GPG密钥
-            sudo apt-get install -y gnupg
-            wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
-            
-            # 添加MongoDB仓库
-            echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-            
-            # 更新包列表并安装工具
-            sudo apt-get update
-            sudo apt-get install -y mongodb-mongosh
-        else
-            error "不支持的操作系统，请手动安装 MongoDB 客户端工具"
-        fi
-    fi
-    
-    # 检查MongoDB服务
-    if ! docker ps | grep -q mongodb; then
-        log "启动MongoDB服务..."
-        # 创建MongoDB数据目录
-        mkdir -p "$WORKSPACE_DIR/data/mongodb"
-        chmod -R 777 "$WORKSPACE_DIR/data/mongodb"
-        
-        # 启动MongoDB容器
-        docker run -d \
-            --name mongodb \
-            --network panda-quant-network \
-            -p 27017:27017 \
-            -v "$WORKSPACE_DIR/data/mongodb:/data/db" \
-            -e MONGO_INITDB_ROOT_USERNAME=admin \
-            -e MONGO_INITDB_ROOT_PASSWORD=Wl528586* \
-            mongo:6.0
-        
-        # 等待服务启动
-        sleep 10
-        
-        log "MongoDB服务启动完成"
-    fi
-    
-    # 检查MongoDB工具包
-    if ! command -v mongodump &> /dev/null; then
-        log "安装MongoDB工具包..."
-        if [ -f /etc/debian_version ]; then
-            sudo apt-get install -y mongodb-org-tools
-        else
-            error "不支持的操作系统，请手动安装 MongoDB 工具包"
-        fi
-    fi
-}
-
-# 复制shared目录
-copy_shared_directory() {
-    log "复制shared目录..."
-    if [ -d "$WORKSPACE_DIR/shared/dist" ]; then
-        # 确保目标目录存在
-        mkdir -p "$WORKSPACE_DIR/admin-api/shared"
-        mkdir -p "$WORKSPACE_DIR/user-api/shared"
-        mkdir -p "$WORKSPACE_DIR/admin-ui/shared"
-        mkdir -p "$WORKSPACE_DIR/user-ui/shared"
-        
-        # 复制构建后的文件到各个服务目录
-        cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/admin-api/shared/"
-        cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/user-api/shared/"
-        cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/admin-ui/shared/"
-        cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/user-ui/shared/"
-        
-        # 复制 package.json 以确保依赖关系正确
-        cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/admin-api/shared/"
-        cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/user-api/shared/"
-        cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/admin-ui/shared/"
-        cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/user-ui/shared/"
-        
-        # 验证类型定义文件是否已正确复制
-        for service in admin-api user-api admin-ui user-ui; do
-            if [ ! -f "$WORKSPACE_DIR/$service/shared/types/auth.d.ts" ] || \
-               [ ! -f "$WORKSPACE_DIR/$service/shared/models/user.d.ts" ] || \
-               [ ! -f "$WORKSPACE_DIR/$service/shared/models/asset.d.ts" ] || \
-               [ ! -f "$WORKSPACE_DIR/$service/shared/models/fee.d.ts" ]; then
-                error "类型定义文件未正确复制到 $service"
-            fi
-        done
-        
-        log "shared目录复制完成"
-    else
-        error "找不到shared构建目录: $WORKSPACE_DIR/shared/dist"
-    fi
-}
-
-# 设置默认环境变量
-set_default_env() {
-    log "设置默认环境变量..."
-    
-    # 设置默认密钥
-    export JWT_SECRET=${JWT_SECRET:-"Wl528586*"}
-    export ENCRYPTION_KEY=${ENCRYPTION_KEY:-"Wl528586*"}
-    export REDIS_PASSWORD=${REDIS_PASSWORD:-"Wl528586*"}
-    
-    # 设置默认端口
-    export ADMIN_API_PORT=${ADMIN_API_PORT:-8081}
-    export USER_API_PORT=${USER_API_PORT:-8083}
-    export ADMIN_UI_PORT=${ADMIN_UI_PORT:-8080}
-    export USER_UI_PORT=${USER_UI_PORT:-8082}
-    
-    # 设置默认数据库端口
-    export MONGODB_ADMIN_PORT=${MONGODB_ADMIN_PORT:-27018}
-    export MONGODB_USER_PORT=${MONGODB_USER_PORT:-27019}
-    export REDIS_ADMIN_PORT=${REDIS_ADMIN_PORT:-6380}
-    export REDIS_USER_PORT=${REDIS_USER_PORT:-6381}
-    
-    # 设置默认域名
-    export DOMAIN=${DOMAIN:-"pandatrade.space"}
-    export ADMIN_SUBDOMAIN=${ADMIN_SUBDOMAIN:-"admin"}
-    export ADMIN_API_SUBDOMAIN=${ADMIN_API_SUBDOMAIN:-"admin-api"}
-    export API_SUBDOMAIN=${API_SUBDOMAIN:-"api"}
-    
-    # 设置默认数据库连接（转义@符号）
-    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:Wl528586*@localhost:27017/panda-quant-admin?authSource=admin"}
-    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:Wl528586*@localhost:27017/panda-quant-user?authSource=admin"}
-    
-    # 设置默认Redis连接（转义@符号）
-    export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:Wl528586*@localhost:6380"}
-    export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:Wl528586*@localhost:6381"}
-    
-    # 保存环境变量到文件
-    cat > .env << EOF
-# 端口配置
-ADMIN_API_PORT=$ADMIN_API_PORT
-USER_API_PORT=$USER_API_PORT
-ADMIN_UI_PORT=$ADMIN_UI_PORT
-USER_UI_PORT=$USER_UI_PORT
-
-# 数据库端口
-MONGODB_ADMIN_PORT=$MONGODB_ADMIN_PORT
-MONGODB_USER_PORT=$MONGODB_USER_PORT
-REDIS_ADMIN_PORT=$REDIS_ADMIN_PORT
-REDIS_USER_PORT=$REDIS_USER_PORT
-
-# 域名配置
-DOMAIN=$DOMAIN
-ADMIN_SUBDOMAIN=$ADMIN_SUBDOMAIN
-ADMIN_API_SUBDOMAIN=$ADMIN_API_SUBDOMAIN
-API_SUBDOMAIN=$API_SUBDOMAIN
-
-# 数据库连接
-MONGODB_ADMIN_URI=$MONGODB_ADMIN_URI
-MONGODB_USER_URI=$MONGODB_USER_URI
-REDIS_ADMIN_URL=$REDIS_ADMIN_URL
-REDIS_USER_URL=$REDIS_USER_URL
-
-# 密钥配置
-JWT_SECRET=$JWT_SECRET
-ENCRYPTION_KEY=$ENCRYPTION_KEY
-REDIS_PASSWORD=$REDIS_PASSWORD
-
-# 环境配置
-NODE_ENV=production
-EOF
-    
-    log "环境变量已设置并保存到 .env 文件"
-}
-
-# 加载环境变量
-load_env() {
-    log "加载环境变量..."
-    if [ -f .env ]; then
-        # 使用source命令加载环境变量，并忽略错误
-        set +e
-        source .env
-        set -e
-    else
-        warn "未找到 .env 文件，将使用默认值"
-    fi
-}
-
-# 检查环境变量
-check_env() {
-    log "检查环境变量..."
-    
-    # 加载现有的环境变量
-    load_env
-    
-    # 设置默认值
-    set_default_env
-    
-    # 检查关键环境变量
-    if [ "$JWT_SECRET" = "PandaQuant@2024" ]; then
-        warn "JWT_SECRET 使用默认值，建议在生产环境中修改"
-    fi
-    
-    # 检查域名配置
-    if [ "$DOMAIN" != "pandatrade.space" ]; then
-        warn "DOMAIN 配置与DNS记录不匹配，请使用 pandatrade.space"
-    fi
-    
-    # 检查子域名配置
-    if [ "$ADMIN_SUBDOMAIN" != "admin" ] || [ "$ADMIN_API_SUBDOMAIN" != "admin-api" ] || [ "$API_SUBDOMAIN" != "api" ]; then
-        warn "子域名配置与DNS记录不匹配，请使用 admin, admin-api, api"
-    fi
-}
-
-# 备份数据库
-backup_database() {
-    log "开始备份数据库..."
-    timestamp=$(date +%Y%m%d_%H%M%S)
-    backup_dir="backups"
-    backup_file="$backup_dir/mongodb_backup_$timestamp"
-    
-    mkdir -p $backup_dir
-    
-    # 检查 mongodump 是否可用
-    if ! command -v mongodump &> /dev/null; then
-        warn "mongodump 命令不可用，跳过数据库备份"
-        return
-    fi
-    
-    # 检查数据库是否已存在
-    if ! mongosh "$MONGODB_ADMIN_URI" --eval "db.getMongo()" &> /dev/null; then
-        log "数据库不存在，跳过备份"
-        return
-    fi
-    
-    # 重试次数和间隔
-    max_retries=5
-    retry_interval=10
-    
-    # 备份管理后台数据库
-    log "备份管理后台数据库..."
-    for i in $(seq 1 $max_retries); do
-        if mongodump --uri="$MONGODB_ADMIN_URI" --out="$backup_file/admin"; then
-            log "管理后台数据库备份成功: $backup_file/admin"
-            break
-        else
-            if [ $i -eq $max_retries ]; then
-                warn "管理后台数据库备份失败，已达到最大重试次数，继续部署..."
-            else
-                warn "管理后台数据库备份失败，将在 ${retry_interval} 秒后重试 (${i}/${max_retries})..."
-                sleep $retry_interval
-            fi
-        fi
-    done
-    
-    # 备份用户端数据库
-    log "备份用户端数据库..."
-    for i in $(seq 1 $max_retries); do
-        if mongodump --uri="$MONGODB_USER_URI" --out="$backup_file/user"; then
-            log "用户端数据库备份成功: $backup_file/user"
-            break
-        else
-            if [ $i -eq $max_retries ]; then
-                warn "用户端数据库备份失败，已达到最大重试次数，继续部署..."
-            else
-                warn "用户端数据库备份失败，将在 ${retry_interval} 秒后重试 (${i}/${max_retries})..."
-                sleep $retry_interval
-            fi
-        fi
-    done
-}
-
-# 创建必要的目录结构
-create_directories() {
-    log "创建必要的目录结构..."
-    
-    # 创建日志目录
-    mkdir -p logs/admin-api
-    mkdir -p logs/user-api
-    mkdir -p logs/admin-ui
-    mkdir -p logs/user-ui
-    
-    # 创建数据目录
-    mkdir -p data/mongodb/admin
-    mkdir -p data/mongodb/user
-    mkdir -p data/redis/admin
-    mkdir -p data/redis/user
-    
-    # 创建备份目录
-    mkdir -p backup/mongodb
-    mkdir -p backup/redis
-    
-    # 复制docker-compose配置文件
-    log "复制docker-compose配置文件..."
-    cp -f "$DEPLOY_DIR/docker-compose.admin.yml" "$WORKSPACE_DIR/docker-compose.admin.yml" 2>/dev/null || true
-    cp -f "$DEPLOY_DIR/docker-compose.user.yml" "$WORKSPACE_DIR/docker-compose.user.yml" 2>/dev/null || true
-    
-    # 检查Prisma schema文件
-    log "检查Prisma schema文件..."
-    if [ ! -f "$WORKSPACE_DIR/admin-api/prisma/schema.prisma" ]; then
-        error "找不到Prisma schema文件: $WORKSPACE_DIR/admin-api/prisma/schema.prisma"
-    fi
-    
-    log "目录结构创建完成"
-}
-
-# 创建Docker网络
-create_docker_network() {
-    log "创建Docker网络..."
-    if ! docker network ls | grep -q panda-quant-network; then
-        docker network create panda-quant-network
-    fi
-}
-
-# 构建Docker镜像
-build_docker_images() {
-    log "构建 Docker 镜像..."
+    # 检查端口
+    check_port $SHARED_PORT "Shared 模块"
     
     # 构建 shared 模块
     build_shared
     
-    # 确保 shared 目录已复制
-    copy_shared_directory
-    
-    # 设置目录权限
-    log "设置目录权限..."
-    chmod -R 777 "$WORKSPACE_DIR/admin-ui"
-    chmod -R 777 "$WORKSPACE_DIR/user-ui"
-    chmod -R 777 "$WORKSPACE_DIR/admin-ui/node_modules"
-    chmod -R 777 "$WORKSPACE_DIR/user-ui/node_modules"
-    
-    # 构建 admin 相关服务
-    log "构建 admin 相关服务..."
-    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" build
-    
-    # 构建 user 相关服务
-    log "构建 user 相关服务..."
-    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" build
-}
+    # 创建 Dockerfile
+    cat > Dockerfile << 'EOL'
+FROM node:18-alpine
 
-# 检查DNS记录
-check_dns() {
-    log "检查DNS记录..."
-    local domains=(
-        "pandatrade.space"
-        "admin.pandatrade.space"
-        "admin-api.pandatrade.space"
-        "api.pandatrade.space"
-    )
-    
-    for domain in "${domains[@]}"; do
-        local ip=$(dig +short $domain)
-        if [ "$ip" != "194.164.149.214" ]; then
-            error "$domain 的DNS记录未正确指向 194.164.149.214"
-        fi
-        log "$domain -> $ip ✓"
-    done
-}
+WORKDIR /app
 
-# 设置环境变量
-set_env() {
-    log "设置环境变量..."
-    
-    # 加载现有的环境变量
-    if [ -f .env ]; then
-        source .env
-    fi
-    
-    # 设置默认值
-    export ADMIN_API_PORT=${ADMIN_API_PORT:-8081}
-    export USER_API_PORT=${USER_API_PORT:-8083}
-    export ADMIN_UI_PORT=${ADMIN_UI_PORT:-8080}
-    export USER_UI_PORT=${USER_UI_PORT:-8082}
-    
-    export MONGODB_ADMIN_PORT=${MONGODB_ADMIN_PORT:-27018}
-    export MONGODB_USER_PORT=${MONGODB_USER_PORT:-27019}
-    export REDIS_ADMIN_PORT=${REDIS_ADMIN_PORT:-6380}
-    export REDIS_USER_PORT=${REDIS_USER_PORT:-6381}
-    
-    export DOMAIN=${DOMAIN:-"pandatrade.space"}
-    export ADMIN_SUBDOMAIN=${ADMIN_SUBDOMAIN:-"admin"}
-    export ADMIN_API_SUBDOMAIN=${ADMIN_API_SUBDOMAIN:-"admin-api"}
-    export API_SUBDOMAIN=${API_SUBDOMAIN:-"api"}
-    
-    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:Wl528586*@localhost:27017/panda-quant-admin?authSource=admin"}
-    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:Wl528586*@localhost:27017/panda-quant-user?authSource=admin"}
-    
-    export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:Wl528586*@localhost:6380"}
-    export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:Wl528586*@localhost:6381"}
-    
-    export JWT_SECRET=${JWT_SECRET:-"Wl528586*"}
-    export ENCRYPTION_KEY=${ENCRYPTION_KEY:-"Wl528586*"}
-    export REDIS_PASSWORD=${REDIS_PASSWORD:-"Wl528586*"}
-    
-    # 保存环境变量
-    cat > .env << EOF
-# 端口配置
-ADMIN_API_PORT=$ADMIN_API_PORT
-USER_API_PORT=$USER_API_PORT
-ADMIN_UI_PORT=$ADMIN_UI_PORT
-USER_UI_PORT=$USER_UI_PORT
+COPY package*.json ./
+RUN npm install
 
-# 数据库端口
-MONGODB_ADMIN_PORT=$MONGODB_ADMIN_PORT
-MONGODB_USER_PORT=$MONGODB_USER_PORT
-REDIS_ADMIN_PORT=$REDIS_ADMIN_PORT
-REDIS_USER_PORT=$REDIS_USER_PORT
+COPY . .
 
-# 域名配置
-DOMAIN=$DOMAIN
-ADMIN_SUBDOMAIN=$ADMIN_SUBDOMAIN
-ADMIN_API_SUBDOMAIN=$ADMIN_API_SUBDOMAIN
-API_SUBDOMAIN=$API_SUBDOMAIN
+EXPOSE 3000
 
-# 数据库连接
-MONGODB_ADMIN_URI=$MONGODB_ADMIN_URI
-MONGODB_USER_URI=$MONGODB_USER_URI
-REDIS_ADMIN_URL=$REDIS_ADMIN_URL
-REDIS_USER_URL=$REDIS_USER_URL
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
 
-# 密钥配置
-JWT_SECRET=$JWT_SECRET
-ENCRYPTION_KEY=$ENCRYPTION_KEY
-REDIS_PASSWORD=$REDIS_PASSWORD
-
-# 环境配置
-NODE_ENV=production
-EOF
-}
-
-# 创建目录
-create_dirs() {
-    log "创建必要的目录..."
-    mkdir -p ssl
-    mkdir -p admin-ui/dist
-    mkdir -p user-ui/dist
-    mkdir -p backup
-}
-
-# 备份现有配置
-backup_config() {
-    log "备份现有配置..."
-    timestamp=$(date +%Y%m%d_%H%M%S)
-    backup_dir="backup/config_$timestamp"
-    mkdir -p "$backup_dir"
+CMD ["npm", "start"]
+EOL
     
-    # 备份 nginx 配置
-    if [ -f "nginx.conf" ]; then
-        cp nginx.conf "$backup_dir/"
-    else
-        warn "nginx.conf 不存在，跳过备份"
-    fi
-    
-    # 备份 docker-compose 配置
-    if [ -f "docker-compose.admin.yml" ]; then
-        cp docker-compose.admin.yml "$backup_dir/"
-    else
-        warn "docker-compose.admin.yml 不存在，跳过备份"
-    fi
-    
-    if [ -f "docker-compose.user.yml" ]; then
-        cp docker-compose.user.yml "$backup_dir/"
-    else
-        warn "docker-compose.user.yml 不存在，跳过备份"
-    fi
-    
-    # 备份 SSL 证书
-    if [ -d "ssl" ]; then
-        cp -r ssl "$backup_dir/"
-    else
-        warn "ssl 目录不存在，跳过备份"
-    fi
-    
-    # 备份环境变量
-    if [ -f ".env" ]; then
-        cp .env "$backup_dir/"
-    else
-        warn ".env 文件不存在，跳过备份"
-    fi
-    
-    # 压缩备份文件
-    cd "$backup_dir/.."
-    tar -czf "config_$timestamp.tar.gz" "config_$timestamp"
-    rm -rf "config_$timestamp"
-    cd - > /dev/null
-    
-    log "配置备份完成: $backup_dir/../config_$timestamp.tar.gz"
-}
-
-# 生成SSL证书
-generate_ssl() {
-    log "生成SSL证书..."
-    local domains=(
-        "pandatrade.space"
-        "admin.pandatrade.space"
-        "admin-api.pandatrade.space"
-        "api.pandatrade.space"
-    )
-    
-    for domain in "${domains[@]}"; do
-        if [ ! -f "ssl/$domain.key" ] || [ ! -f "ssl/$domain.crt" ]; then
-            log "为 $domain 生成SSL证书..."
-            openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-                -keyout "ssl/$domain.key" \
-                -out "ssl/$domain.crt" \
-                -subj "/CN=$domain"
-        fi
-    done
-}
-
-# 启动服务
-start_services() {
-    log "启动服务..."
-    
-    # 启动admin相关服务
-    log "启动admin相关服务..."
-    cd "$WORKSPACE_DIR"
-    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" up -d --build
-    
-    # 启动user相关服务
-    log "启动user相关服务..."
-    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" up -d --build
-}
-
-# 检查服务状态
-check_services() {
-    log "检查服务状态..."
-    sleep 10
+    # 构建并启动 Docker 容器
+    log "构建并启动 shared 模块容器..."
+    docker build -t panda-quant-shared .
+    docker run -d \
+        --name panda-quant-shared \
+        --network panda-quant-network \
+        -p $SHARED_PORT:3000 \
+        panda-quant-shared
     
     # 检查容器状态
-    if ! docker-compose ps | grep -q "Up"; then
-        error "部分服务未正常运行"
-    fi
+    check_container_status panda-quant-shared
     
-    # 检查服务健康状态
-    local services=(
-        "https://admin.pandatrade.space/health"
-        "https://admin-api.pandatrade.space/health"
-        "https://pandatrade.space/health"
-        "https://api.pandatrade.space/health"
-    )
-    
-    for url in "${services[@]}"; do
-        if ! curl -k -s -f $url > /dev/null; then
-            warn "$url 健康检查失败"
-        else
-            log "$url 健康检查通过 ✓"
-        fi
-    done
+    log "shared 模块部署完成！"
 }
 
-# 构建所有服务
-build_services() {
-    log "开始构建所有服务..."
+# 部署管理端 API
+deploy_admin_api() {
+    log "开始部署管理端 API..."
     
-    # 构建 shared 模块
-    log "构建 shared 模块..."
-    cd "$WORKSPACE_DIR/shared"
-    rm -rf node_modules
-    rm -rf dist
-    npm install
-    
-    # 确保源代码在正确的位置
-    if [ ! -d "src" ]; then
-        mkdir -p src/types src/models
-    fi
-    
-    # 如果源代码不在 src 目录下，则移动它们
-    if [ -d "types" ] && [ ! -d "src/types" ]; then
-        mv types/* src/types/ 2>/dev/null || true
-        rm -rf types
-    fi
-    
-    if [ -d "models" ] && [ ! -d "src/models" ]; then
-        mv models/* src/models/ 2>/dev/null || true
-        rm -rf models
-    fi
-    
-    # 构建项目
-    npm run build
-    
-    # 确保构建成功并生成类型定义文件
-    if [ ! -d "dist" ]; then
-        error "shared 模块构建失败"
-    fi
-    
-    # 检查必要的类型定义文件是否存在
-    if [ ! -f "dist/types/auth.d.ts" ] || [ ! -f "dist/models/user.d.ts" ] || [ ! -f "dist/models/asset.d.ts" ] || [ ! -f "dist/models/fee.d.ts" ]; then
-        error "shared 模块的类型定义文件未正确生成"
-    fi
-    
-    cd "$WORKSPACE_DIR"
-    
-    # 复制 shared 目录
-    log "复制 shared 目录..."
-    mkdir -p "$WORKSPACE_DIR/admin-api/shared"
-    mkdir -p "$WORKSPACE_DIR/user-api/shared"
-    mkdir -p "$WORKSPACE_DIR/admin-ui/shared"
-    mkdir -p "$WORKSPACE_DIR/user-ui/shared"
-    
-    # 复制构建后的文件到各个服务目录
-    cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/admin-api/shared/"
-    cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/user-api/shared/"
-    cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/admin-ui/shared/"
-    cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/user-ui/shared/"
-    
-    # 复制 package.json 以确保依赖关系正确
-    cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/admin-api/shared/"
-    cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/user-api/shared/"
-    cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/admin-ui/shared/"
-    cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/user-ui/shared/"
-    
-    # 验证类型定义文件是否已正确复制
-    for service in admin-api user-api admin-ui user-ui; do
-        if [ ! -f "$WORKSPACE_DIR/$service/shared/types/auth.d.ts" ] || \
-           [ ! -f "$WORKSPACE_DIR/$service/shared/models/user.d.ts" ] || \
-           [ ! -f "$WORKSPACE_DIR/$service/shared/models/asset.d.ts" ] || \
-           [ ! -f "$WORKSPACE_DIR/$service/shared/models/fee.d.ts" ]; then
-            error "类型定义文件未正确复制到 $service"
-        fi
-    done
-    
-    # 构建 admin-api
-    log "构建 admin-api..."
-    cd "$WORKSPACE_DIR/admin-api"
-    rm -rf node_modules
-    rm -rf dist
-    npm install
-    npm run build
-    
-    # 构建 user-api
-    log "构建 user-api..."
-    cd "$WORKSPACE_DIR/user-api"
-    rm -rf node_modules
-    rm -rf dist
-    npm install
-    npm run build
-    
-    # 构建 admin-ui
-    log "构建 admin-ui..."
-    cd "$WORKSPACE_DIR/admin-ui"
-    rm -rf node_modules
-    rm -rf dist
-    npm install
-    npm run build
-    
-    # 构建 user-ui
-    log "构建 user-ui..."
-    cd "$WORKSPACE_DIR/user-ui"
-    rm -rf node_modules
-    rm -rf dist
-    npm install
-    npm run build
-    
-    cd "$WORKSPACE_DIR"
-    log "所有服务构建完成"
-}
-
-# 创建必要的目录和文件
-create_required_files() {
-    log "创建必要的目录和文件..."
-    
-    # 创建基础目录
-    mkdir -p backup
-    mkdir -p ssl
-    mkdir -p logs
-    mkdir -p data
-    mkdir -p logs/admin-api
-    mkdir -p logs/user-api
-    mkdir -p logs/admin-ui
-    mkdir -p logs/user-ui
-    mkdir -p data/mongodb/admin
-    mkdir -p data/mongodb/user
-    mkdir -p data/redis/admin
-    mkdir -p data/redis/user
-    
-    # 创建 nginx.conf 文件（如果不存在）
-    if [ ! -f "nginx.conf" ]; then
-        cat > nginx.conf << EOF
-server {
-    listen 80;
-    server_name pandatrade.space;
-    return 301 https://\$host\$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    server_name pandatrade.space;
-    
-    ssl_certificate /etc/nginx/ssl/pandatrade.space.crt;
-    ssl_certificate_key /etc/nginx/ssl/pandatrade.space.key;
-    
-    location / {
-        proxy_pass http://user-ui:80;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-    }
-}
-
-server {
-    listen 80;
-    server_name admin.pandatrade.space;
-    return 301 https://\$host\$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    server_name admin.pandatrade.space;
-    
-    ssl_certificate /etc/nginx/ssl/admin.pandatrade.space.crt;
-    ssl_certificate_key /etc/nginx/ssl/admin.pandatrade.space.key;
-    
-    location / {
-        proxy_pass http://admin-ui:80;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-    }
-}
-
-server {
-    listen 80;
-    server_name admin-api.pandatrade.space;
-    return 301 https://\$host\$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    server_name admin-api.pandatrade.space;
-    
-    ssl_certificate /etc/nginx/ssl/admin-api.pandatrade.space.crt;
-    ssl_certificate_key /etc/nginx/ssl/admin-api.pandatrade.space.key;
-    
-    location / {
-        proxy_pass http://admin-api:8081;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-    }
-}
-
-server {
-    listen 80;
-    server_name api.pandatrade.space;
-    return 301 https://\$host\$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    server_name api.pandatrade.space;
-    
-    ssl_certificate /etc/nginx/ssl/api.pandatrade.space.crt;
-    ssl_certificate_key /etc/nginx/ssl/api.pandatrade.space.key;
-    
-    location / {
-        proxy_pass http://user-api:8083;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-    }
-}
-EOF
-    fi
-    
-    # 创建 .env 文件（如果不存在）
-    if [ ! -f ".env" ]; then
-        set_default_env
-    fi
-    
-    log "必要的目录和文件创建完成"
-}
-
-# 初始化数据库
-init_database() {
-    log "初始化数据库..."
-    
-    # 检查MongoDB是否可用
-    if ! command -v mongosh &> /dev/null; then
-        error "mongosh 命令不可用，请安装 MongoDB 客户端工具"
-    fi
-    
-    # 等待服务启动
-    log "等待MongoDB服务启动..."
-    sleep 10
-    
-    # 检查MongoDB连接
-    log "检查MongoDB连接..."
-    if ! mongosh "mongodb://admin:Wl528586*@localhost:27017/admin" --eval "db.getMongo()" &> /dev/null; then
-        error "无法连接到MongoDB，请检查服务是否正常运行"
-    fi
-    
-    # 创建管理端数据库
-    log "创建管理端数据库..."
-    if ! mongosh "mongodb://admin:Wl528586*@localhost:27017/admin" --eval "db.getMongo()" &> /dev/null; then
-        error "无法连接到MongoDB管理数据库"
-    fi
-    
-    # 创建数据库和集合
-    log "创建数据库和集合..."
-    mongosh "mongodb://admin:Wl528586*@localhost:27017/admin" --eval "
-        db = db.getSiblingDB('panda-quant-admin');
-        db.createCollection('users');
-        db.createCollection('settings');
-        db = db.getSiblingDB('panda-quant-user');
-        db.createCollection('users');
-        db.createCollection('orders');
-        db.createCollection('transactions');
-    "
-    
-    if [ $? -ne 0 ]; then
-        error "创建数据库和集合失败"
-    fi
-    
-    log "数据库初始化完成"
-}
-
-# 创建Dockerfile
-create_dockerfiles() {
-    log "创建Dockerfile..."
-    
-    # 创建admin-api的Dockerfile
-    mkdir -p "$WORKSPACE_DIR/admin-api"
-    cat > "$WORKSPACE_DIR/admin-api/Dockerfile" << EOF
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-
-RUN npm run build
-
-EXPOSE 8081
-
-CMD ["npm", "start"]
-EOF
-
-    # 创建user-api的Dockerfile
-    mkdir -p "$WORKSPACE_DIR/user-api"
-    cat > "$WORKSPACE_DIR/user-api/Dockerfile" << EOF
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-
-RUN npm run build
-
-EXPOSE 8083
-
-CMD ["npm", "start"]
-EOF
-
-    # 创建admin-ui的Dockerfile
-    mkdir -p "$WORKSPACE_DIR/admin-ui"
-    cat > "$WORKSPACE_DIR/admin-ui/Dockerfile" << EOF
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-
-RUN npm run build
-
-EXPOSE 8080
-
-CMD ["npm", "start"]
-EOF
-
-    # 创建user-ui的Dockerfile
-    mkdir -p "$WORKSPACE_DIR/user-ui"
-    cat > "$WORKSPACE_DIR/user-ui/Dockerfile" << EOF
-FROM node:18-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-
-RUN npm run build
-
-EXPOSE 8082
-
-CMD ["npm", "start"]
-EOF
-
-    log "Dockerfile创建完成"
-}
-
-# 部署管理端
-deploy_admin() {
-    log "开始部署管理端..."
-    
-    # 检查是否已经在部署中
-    if [ -f "$WORKSPACE_DIR/.deploying" ]; then
-        error "部署已经在进行中，请等待完成"
-    fi
-    
-    # 创建部署标记文件
-    touch "$WORKSPACE_DIR/.deploying"
-    
-    # 创建必要的目录和文件
-    create_required_files
-    
-    # 检查必要的命令
-    check_commands
-    
-    # 检查环境变量
-    check_env
-    
-    # 备份数据库
-    backup_database
-    
-    # 安装管理端依赖
-    log "安装管理端依赖..."
-    cd "$WORKSPACE_DIR/shared"
-    chmod -R 777 .
-    npm install
-    
-    cd "$WORKSPACE_DIR/admin-api"
-    chmod -R 777 .
-    npm install
-    
-    cd "$WORKSPACE_DIR/admin-ui"
-    chmod -R 777 .
-    npm install
-    
-    cd "$WORKSPACE_DIR"
-    
-    # 构建管理端服务
-    log "开始构建管理端服务..."
+    # 检查端口
+    check_port $ADMIN_API_PORT "管理端 API"
     
     # 构建 shared 模块
     build_shared
     
-    # 复制 shared 目录
-    copy_shared_directory
-    
-    # 创建必要的目录结构
-    create_directories
-    
-    # 创建Docker网络
-    create_docker_network
-    
-    # 启动管理端服务
-    log "启动管理端服务..."
+    # 复制 shared 模块到 admin-api
+    log "复制 shared 模块到 admin-api..."
     cd "$WORKSPACE_DIR"
-    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" up -d --build
+    rm -rf admin-api/shared
+    cp -r shared admin-api/
     
-    # 检查服务状态
-    check_services
-    
-    # 等待服务启动
-    log "等待服务启动..."
-    sleep 10
-    
-    # 检查服务是否正常运行
-    if ! check_services; then
-        log "服务启动失败，请检查日志"
-        rm -f "$WORKSPACE_DIR/.deploying"
-        exit 1
-    fi
-    
-    # 服务启动成功后，再申请证书和配置反向代理
-    log "服务启动成功，开始申请证书和配置反向代理..."
-    
-    # 检查DNS记录
-    check_dns
-    
-    # 生成SSL证书
-    generate_ssl
-    
-    # 配置Nginx
-    log "配置Nginx反向代理..."
-    cp "$DEPLOY_DIR/nginx.conf" /etc/nginx/nginx.conf
-    nginx -t
-    systemctl restart nginx
-    
-    # 删除部署标记文件
-    rm -f "$WORKSPACE_DIR/.deploying"
-    
-    log "管理端部署完成！"
-    log "访问以下地址："
-    log "- 管理后台: https://admin.pandatrade.space"
-    log "- API文档: https://admin-api.pandatrade.space"
-}
-
-# 部署用户端
-deploy_user() {
-    log "开始部署用户端..."
-    
-    # 检查是否已经在部署中
-    if [ -f "$WORKSPACE_DIR/.deploying" ]; then
-        error "部署已经在进行中，请等待完成"
-    fi
-    
-    # 创建部署标记文件
-    touch "$WORKSPACE_DIR/.deploying"
-    
-    # 创建必要的目录和文件
-    create_required_files
-    
-    # 检查必要的命令
-    check_commands
-    
-    # 检查环境变量
-    check_env
-    
-    # 备份数据库
-    backup_database
-    
-    # 安装用户端依赖
-    log "安装用户端依赖..."
-    cd "$WORKSPACE_DIR/shared"
-    chmod -R 777 .
-    npm install
-    
-    cd "$WORKSPACE_DIR/user-api"
-    chmod -R 777 .
-    npm install
-    
-    cd "$WORKSPACE_DIR/user-ui"
-    chmod -R 777 .
-    npm install
-    
-    cd "$WORKSPACE_DIR"
-    
-    # 构建用户端服务
-    log "开始构建用户端服务..."
-    
-    # 构建 shared 模块
-    build_shared
-    
-    # 复制 shared 目录
-    copy_shared_directory
-    
-    # 创建必要的目录结构
-    create_directories
-    
-    # 创建Docker网络
-    create_docker_network
-    
-    # 启动用户端服务
-    log "启动用户端服务..."
-    cd "$WORKSPACE_DIR"
-    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" up -d --build
-    
-    # 检查服务状态
-    check_services
-    
-    # 等待服务启动
-    log "等待服务启动..."
-    sleep 10
-    
-    # 检查服务是否正常运行
-    if ! check_services; then
-        log "服务启动失败，请检查日志"
-        rm -f "$WORKSPACE_DIR/.deploying"
-        exit 1
-    fi
-    
-    # 服务启动成功后，再申请证书和配置反向代理
-    log "服务启动成功，开始申请证书和配置反向代理..."
-    
-    # 检查DNS记录
-    check_dns
-    
-    # 生成SSL证书
-    generate_ssl
-    
-    # 配置Nginx
-    log "配置Nginx反向代理..."
-    cp "$DEPLOY_DIR/nginx.conf" /etc/nginx/nginx.conf
-    nginx -t
-    systemctl restart nginx
-    
-    # 删除部署标记文件
-    rm -f "$WORKSPACE_DIR/.deploying"
-    
-    log "用户端部署完成！"
-    log "访问以下地址："
-    log "- 主站: https://pandatrade.space"
-    log "- API文档: https://api.pandatrade.space"
-}
-
-# 部署管理端和用户端
-deploy_all() {
-    log "开始部署管理端和用户端..."
-    
-    # 创建必要的目录和文件
-    create_required_files
-    
-    # 检查必要的命令
-    check_commands
-    
-    # 检查环境变量
-    check_env
-    
-    # 初始化数据库
-    init_database
-    
-    # 备份数据库
-    backup_database
-    
-    # 安装所有依赖
-    log "安装所有依赖..."
-    cd "$WORKSPACE_DIR/shared"
-    chmod -R 777 .
-    npm install
-    
+    # 更新 tsconfig.json
+    log "更新 tsconfig.json..."
     cd "$WORKSPACE_DIR/admin-api"
-    chmod -R 777 .
+    
+    # 创建新的 tsconfig.json
+    cat > tsconfig.json << 'EOL'
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "lib": ["es2020"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types"],
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./shared/dist/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "models/**/*",
+    "types/**/*",
+    "interfaces/**/*",
+    "utils/**/*",
+    "services/**/*",
+    "middleware/**/*",
+    "routes/**/*",
+    "controllers/**/*",
+    "shared/dist/**/*",
+    "index.ts",
+    "app.ts"
+  ]
+}
+EOL
+    
+    # 更新导入路径
+    update_imports "$WORKSPACE_DIR/admin-api"
+    
+    # 安装依赖
+    log "安装管理端 API 依赖..."
     npm install
     
-    cd "$WORKSPACE_DIR/user-api"
-    chmod -R 777 .
-    npm install
+    # 创建 Dockerfile
+    cat > Dockerfile << 'EOL'
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3001/health || exit 1
+
+CMD ["npm", "start"]
+EOL
+    
+    # 构建并启动 Docker 容器
+    log "构建并启动管理端 API 容器..."
+    docker build -t panda-quant-admin-api .
+    docker run -d \
+        --name panda-quant-admin-api \
+        --network panda-quant-network \
+        -p $ADMIN_API_PORT:3001 \
+        -e MONGODB_URI=mongodb://$MONGODB_USERNAME:$MONGODB_PASSWORD@mongodb:27017/$MONGODB_DATABASE \
+        -e REDIS_URI=redis://redis:6379 \
+        panda-quant-admin-api
+    
+    # 检查容器状态
+    check_container_status panda-quant-admin-api
+    
+    log "管理端 API 部署完成！"
+}
+
+# 部署管理端 UI
+deploy_admin_ui() {
+    log "开始部署管理端 UI..."
+    
+    # 检查端口
+    check_port $ADMIN_UI_PORT "管理端 UI"
     
     cd "$WORKSPACE_DIR/admin-ui"
-    chmod -R 777 .
+    
+    # 安装依赖
+    log "安装管理端 UI 依赖..."
     npm install
     
-    cd "$WORKSPACE_DIR/user-ui"
-    chmod -R 777 .
-    npm install
+    # 创建 Dockerfile
+    cat > Dockerfile << 'EOL'
+FROM node:18-alpine as build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost/health || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]
+EOL
     
-    cd "$WORKSPACE_DIR"
+    # 创建 nginx 配置
+    cat > nginx.conf << 'EOL'
+server {
+    listen 80;
+    server_name localhost;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api {
+        proxy_pass http://panda-quant-admin-api:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /health {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 'healthy\n';
+    }
+}
+EOL
     
-    # 构建所有服务
-    log "开始构建所有服务..."
+    # 构建并启动 Docker 容器
+    log "构建并启动管理端 UI 容器..."
+    docker build -t panda-quant-admin-ui .
+    docker run -d \
+        --name panda-quant-admin-ui \
+        --network panda-quant-network \
+        -p $ADMIN_UI_PORT:80 \
+        panda-quant-admin-ui
+    
+    # 检查容器状态
+    check_container_status panda-quant-admin-ui
+    
+    log "管理端 UI 部署完成！"
+}
+
+# 部署用户端 API
+deploy_user_api() {
+    log "开始部署用户端 API..."
+    
+    # 检查端口
+    check_port $USER_API_PORT "用户端 API"
     
     # 构建 shared 模块
     build_shared
     
-    # 复制 shared 目录
-    copy_shared_directory
-    
-    # 创建必要的目录结构
-    create_directories
-    
-    # 创建Dockerfile
-    create_dockerfiles
-    
-    # 创建Docker网络
-    create_docker_network
-    
-    # 启动所有服务
-    log "启动所有服务..."
+    # 复制 shared 模块到 user-api
+    log "复制 shared 模块到 user-api..."
     cd "$WORKSPACE_DIR"
-    docker-compose -f "$DEPLOY_DIR/docker-compose.admin.yml" up -d --build
-    docker-compose -f "$DEPLOY_DIR/docker-compose.user.yml" up -d --build
+    rm -rf user-api/shared
+    cp -r shared user-api/
     
-    # 检查服务状态
-    check_services
+    # 更新 tsconfig.json
+    log "更新 tsconfig.json..."
+    cd "$WORKSPACE_DIR/user-api"
     
-    # 等待服务启动
-    log "等待服务启动..."
-    sleep 10
+    # 创建新的 tsconfig.json
+    cat > tsconfig.json << 'EOL'
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "lib": ["es2020"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types"],
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./shared/dist/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "models/**/*",
+    "types/**/*",
+    "interfaces/**/*",
+    "utils/**/*",
+    "services/**/*",
+    "middleware/**/*",
+    "routes/**/*",
+    "controllers/**/*",
+    "shared/dist/**/*",
+    "index.ts",
+    "app.ts"
+  ]
+}
+EOL
     
-    # 检查服务是否正常运行
-    if ! check_services; then
-        log "服务启动失败，请检查日志"
-        exit 1
-    fi
+    # 更新导入路径
+    update_imports "$WORKSPACE_DIR/user-api"
     
-    # 服务启动成功后，再申请证书和配置反向代理
-    log "服务启动成功，开始申请证书和配置反向代理..."
+    # 安装依赖
+    log "安装用户端 API 依赖..."
+    npm install
     
-    # 检查DNS记录
-    check_dns
+    # 创建 Dockerfile
+    cat > Dockerfile << 'EOL'
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 3002
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3002/health || exit 1
+
+CMD ["npm", "start"]
+EOL
     
-    # 生成SSL证书
-    generate_ssl
+    # 构建并启动 Docker 容器
+    log "构建并启动用户端 API 容器..."
+    docker build -t panda-quant-user-api .
+    docker run -d \
+        --name panda-quant-user-api \
+        --network panda-quant-network \
+        -p $USER_API_PORT:3002 \
+        -e MONGODB_URI=mongodb://$MONGODB_USERNAME:$MONGODB_PASSWORD@mongodb:27017/$MONGODB_DATABASE \
+        -e REDIS_URI=redis://redis:6379 \
+        panda-quant-user-api
     
-    # 配置Nginx
-    log "配置Nginx反向代理..."
-    cp "$DEPLOY_DIR/nginx.conf" /etc/nginx/nginx.conf
-    nginx -t
-    systemctl restart nginx
+    # 检查容器状态
+    check_container_status panda-quant-user-api
     
-    log "所有服务部署完成！"
-    log "访问以下地址："
-    log "- 管理后台: https://admin.pandatrade.space"
-    log "- 管理API: https://admin-api.pandatrade.space"
-    log "- 主站: https://pandatrade.space"
-    log "- 用户API: https://api.pandatrade.space"
+    log "用户端 API 部署完成！"
+}
+
+# 部署用户端 UI
+deploy_user_ui() {
+    log "开始部署用户端 UI..."
+    
+    # 检查端口
+    check_port $USER_UI_PORT "用户端 UI"
+    
+    cd "$WORKSPACE_DIR/user-ui"
+    
+    # 安装依赖
+    log "安装用户端 UI 依赖..."
+    npm install
+    
+    # 创建 Dockerfile
+    cat > Dockerfile << 'EOL'
+FROM node:18-alpine as build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 81
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:81/health || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]
+EOL
+    
+    # 创建 nginx 配置
+    cat > nginx.conf << 'EOL'
+server {
+    listen 81;
+    server_name localhost;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api {
+        proxy_pass http://panda-quant-user-api:3002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /health {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 'healthy\n';
+    }
+}
+EOL
+    
+    # 构建并启动 Docker 容器
+    log "构建并启动用户端 UI 容器..."
+    docker build -t panda-quant-user-ui .
+    docker run -d \
+        --name panda-quant-user-ui \
+        --network panda-quant-network \
+        -p $USER_UI_PORT:81 \
+        panda-quant-user-ui
+    
+    # 检查容器状态
+    check_container_status panda-quant-user-ui
+    
+    log "用户端 UI 部署完成！"
+}
+
+# 部署数据库
+deploy_database() {
+    log "开始部署数据库..."
+    
+    # 检查端口
+    check_port 27017 "MongoDB"
+    check_port 6379 "Redis"
+    
+    # 创建 MongoDB 容器
+    log "创建 MongoDB 容器..."
+    docker run -d \
+        --name panda-quant-mongodb \
+        --network panda-quant-network \
+        -p 27017:27017 \
+        -v mongodb_data:/data/db \
+        -e MONGO_INITDB_ROOT_USERNAME=$MONGODB_USERNAME \
+        -e MONGO_INITDB_ROOT_PASSWORD=$MONGODB_PASSWORD \
+        -e MONGO_INITDB_DATABASE=$MONGODB_DATABASE \
+        mongo:latest
+    
+    # 创建 Redis 容器
+    log "创建 Redis 容器..."
+    docker run -d \
+        --name panda-quant-redis \
+        --network panda-quant-network \
+        -p 6379:6379 \
+        -v redis_data:/data \
+        -e REDIS_PASSWORD=$REDIS_PASSWORD \
+        redis:alpine redis-server --requirepass $REDIS_PASSWORD
+    
+    # 检查容器状态
+    check_container_status panda-quant-mongodb
+    check_container_status panda-quant-redis
+    
+    log "数据库部署完成！"
+}
+
+# 部署 Nginx 反向代理
+deploy_nginx() {
+    log "开始部署 Nginx 反向代理..."
+    
+    # 检查端口
+    check_port 80 "Nginx HTTP"
+    check_port 443 "Nginx HTTPS"
+    
+    # 创建 nginx 配置目录
+    mkdir -p "$WORKSPACE_DIR/nginx/conf.d"
+    mkdir -p "$WORKSPACE_DIR/nginx/ssl"
+    
+    # 生成自签名证书
+    log "生成临时自签名证书..."
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout "$WORKSPACE_DIR/nginx/ssl/temp.key" \
+        -out "$WORKSPACE_DIR/nginx/ssl/temp.crt" \
+        -subj "/CN=*.pandatrade.space" 2>/dev/null || true
+    
+    # 创建主配置文件
+    cat > "$WORKSPACE_DIR/nginx/nginx.conf" << 'EOL'
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log warn;
+pid /var/run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+    
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+    
+    access_log /var/log/nginx/access.log main;
+    
+    sendfile on;
+    keepalive_timeout 65;
+    
+    # 启用 gzip 压缩
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+    
+    # 包含所有虚拟主机配置
+    include /etc/nginx/conf.d/*.conf;
+}
+EOL
+    
+    # 创建管理端配置
+    cat > "$WORKSPACE_DIR/nginx/conf.d/admin.conf" << 'EOL'
+server {
+    listen 80;
+    server_name $ADMIN_SUBDOMAIN.$DOMAIN;
+    
+    # 重定向 HTTP 到 HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name $ADMIN_SUBDOMAIN.$DOMAIN;
+    
+    # SSL 配置
+    ssl_certificate /etc/nginx/ssl/temp.crt;
+    ssl_certificate_key /etc/nginx/ssl/temp.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    
+    # 安全头
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    
+    # 前端静态文件
+    location / {
+        proxy_pass http://panda-quant-admin-ui:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # 健康检查
+    location /health {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 'healthy\n';
+    }
+}
+EOL
+    
+    # 创建管理端 API 配置
+    cat > "$WORKSPACE_DIR/nginx/conf.d/admin-api.conf" << 'EOL'
+server {
+    listen 80;
+    server_name $ADMIN_API_SUBDOMAIN.$DOMAIN;
+    
+    # 重定向 HTTP 到 HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name $ADMIN_API_SUBDOMAIN.$DOMAIN;
+    
+    # SSL 配置
+    ssl_certificate /etc/nginx/ssl/temp.crt;
+    ssl_certificate_key /etc/nginx/ssl/temp.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    
+    # 安全头
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    
+    # API 代理
+    location / {
+        proxy_pass http://panda-quant-admin-api:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # 健康检查
+    location /health {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 'healthy\n';
+    }
+}
+EOL
+    
+    # 创建用户端 API 配置
+    cat > "$WORKSPACE_DIR/nginx/conf.d/api.conf" << 'EOL'
+server {
+    listen 80;
+    server_name $API_SUBDOMAIN.$DOMAIN;
+    
+    # 重定向 HTTP 到 HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name $API_SUBDOMAIN.$DOMAIN;
+    
+    # SSL 配置
+    ssl_certificate /etc/nginx/ssl/temp.crt;
+    ssl_certificate_key /etc/nginx/ssl/temp.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    
+    # 安全头
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    
+    # API 代理
+    location / {
+        proxy_pass http://panda-quant-user-api:3002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+    
+    # 健康检查
+    location /health {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 'healthy\n';
+    }
+}
+EOL
+    
+    # 创建 Dockerfile
+    cat > "$WORKSPACE_DIR/nginx/Dockerfile" << 'EOL'
+FROM nginx:alpine
+
+# 复制配置文件
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY conf.d/*.conf /etc/nginx/conf.d/
+
+# 创建 SSL 证书目录
+RUN mkdir -p /etc/nginx/ssl
+
+# 暴露端口
+EXPOSE 80 443
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost/health || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]
+EOL
+    
+    # 构建并启动 Nginx 容器
+    log "构建并启动 Nginx 容器..."
+    cd "$WORKSPACE_DIR/nginx"
+    docker build -t panda-quant-nginx .
+    docker run -d \
+        --name panda-quant-nginx \
+        --network panda-quant-network \
+        -p 80:80 \
+        -p 443:443 \
+        -v "$WORKSPACE_DIR/nginx/conf.d:/etc/nginx/conf.d" \
+        -v "$WORKSPACE_DIR/nginx/ssl:/etc/nginx/ssl" \
+        panda-quant-nginx
+    
+    # 检查容器状态
+    check_container_status panda-quant-nginx
+    
+    log "Nginx 反向代理部署完成！"
+    log "注意：当前使用的是临时自签名证书，请按照以下步骤更新为正式证书："
+    log "1. 申请 SSL 证书（可以使用 Let's Encrypt 或其他证书颁发机构）"
+    log "2. 将证书文件复制到以下位置："
+    log "   - 证书文件：$WORKSPACE_DIR/nginx/ssl/pandatrade.space.crt"
+    log "   - 私钥文件：$WORKSPACE_DIR/nginx/ssl/pandatrade.space.key"
+    log "3. 重启 Nginx 容器：docker restart panda-quant-nginx"
 }
 
 # 主函数
 main() {
     local deploy_type=$1
     
+    # 检查依赖
+    check_dependencies
+    
+    # 加载环境变量
+    load_env
+    
+    # 设置网络和数据卷
+    setup_network
+    setup_volumes
+    
     case $deploy_type in
         "admin")
-            deploy_admin
+            deploy_shared
+            deploy_admin_api
+            deploy_admin_ui
+            deploy_database
+            deploy_nginx
             ;;
         "user")
-            deploy_user
+            deploy_shared
+            deploy_user_api
+            deploy_user_ui
+            deploy_database
+            deploy_nginx
             ;;
         "all")
-            deploy_all
+            deploy_shared
+            deploy_admin_api
+            deploy_admin_ui
+            deploy_user_api
+            deploy_user_ui
+            deploy_database
+            deploy_nginx
+            ;;
+        "cleanup")
+            cleanup
             ;;
         *)
-            error "请指定部署类型: admin, user 或 all"
+            error "请指定部署类型: admin, user, all 或 cleanup"
             ;;
     esac
 }
