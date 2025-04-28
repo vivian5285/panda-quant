@@ -11,7 +11,7 @@ COPY prisma ./prisma/
 
 # Install dependencies including Prisma
 RUN npm install --legacy-peer-deps
-RUN npm install -D prisma
+RUN npm install prisma --save-dev
 RUN npm install @prisma/client
 
 # Generate Prisma client
@@ -36,7 +36,7 @@ COPY --from=builder /app/prisma ./prisma
 
 # Install production dependencies including Prisma
 RUN npm install --production --legacy-peer-deps
-RUN npm install -D prisma
+RUN npm install prisma --save-dev
 RUN npm install @prisma/client
 
 # Generate Prisma client for production

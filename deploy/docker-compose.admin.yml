@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   nginx-admin:
     image: nginx:alpine
@@ -23,22 +25,25 @@ services:
 
   admin-api:
     build:
-      context: ../admin-api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.admin-api
+      args:
+        - NODE_ENV=production
     container_name: panda-quant-admin-api
     ports:
       - "3001:3001"
     environment:
       - NODE_ENV=production
-      - JWT_SECRET=Wl528586*
-      - ENCRYPTION_KEY=Wl528586*
-      - MONGODB_URI=mongodb://admin:Wl528586*@mongodb:27017/panda_quant
-      - REDIS_URI=redis://:Wl528586*@redis:6379
+      - PORT=3001
     restart: unless-stopped
     networks:
       panda-quant-network:
         aliases:
           - admin-api
+    deploy:
+      resources:
+        limits:
+          memory: 4G
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 30s
@@ -47,8 +52,10 @@ services:
 
   admin-ui:
     build:
-      context: ../admin-ui
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.admin-ui
+      args:
+        - NODE_ENV=production
     container_name: panda-quant-admin-ui
     ports:
       - "3000:3000"
@@ -59,6 +66,10 @@ services:
       panda-quant-network:
         aliases:
           - admin-ui
+    deploy:
+      resources:
+        limits:
+          memory: 4G
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
@@ -111,4 +122,5 @@ volumes:
 
 networks:
   panda-quant-network:
-    name: panda-quant-network 
+    name: panda-quant-network
+    external: true 
