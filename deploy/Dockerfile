@@ -14,11 +14,11 @@ COPY admin-api/package*.json ./
 COPY admin-api/prisma ./prisma/
 COPY admin-api/tsconfig.json ./
 
-# Install dependencies including dev dependencies for type declarations
+# Install all dependencies
 RUN npm install && \
     npm install -g typescript tsconfig-paths && \
     npm install mongoose bcryptjs express cors jsonwebtoken && \
-    npm install --save-dev @types/mongoose @types/bcryptjs @types/express && \
+    npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/cors @types/jsonwebtoken && \
     npm install -g prisma --unsafe-perm && \
     npm install prisma --save-dev --unsafe-perm
 
@@ -29,7 +29,7 @@ COPY admin-api .
 RUN npx prisma generate
 
 # Build application with path aliases support
-RUN npx tsc
+RUN npm install && npx tsc
 
 # Production stage
 FROM node:18-alpine
