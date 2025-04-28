@@ -1,5 +1,5 @@
 # Build stage
-FROM hub.c.163.com/library/node:18-alpine AS build
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ COPY ../shared ./shared
 RUN npm run build
 
 # Production stage
-FROM hub.c.163.com/library/nginx:alpine
+FROM nginx:alpine
 
 # Install wget for healthcheck
 RUN apk add --no-cache wget
