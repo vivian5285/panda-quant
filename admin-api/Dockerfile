@@ -14,16 +14,19 @@ COPY package*.json ./
 COPY prisma ./prisma/
 COPY tsconfig.json ./
 
-# Install dependencies
+# Install dependencies and set permissions
 RUN npm install && \
     npm install -g typescript && \
     npm install --save-dev @types/node && \
-    chmod -R 755 /app
+    npm install -g prisma && \
+    chmod -R 755 /app && \
+    chown -R node:node /app
 
 # Copy source code
 COPY . .
 
 # Generate Prisma client
+USER node
 RUN npx prisma generate
 
 # Build admin-api
@@ -45,7 +48,9 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install production dependencies
-RUN npm install --production
+RUN npm install --production && \
+    chmod -R 755 /app && \
+    chown -R node:node /app
 
 # Copy built files from build stage
 COPY --from=build /app/dist ./dist
@@ -61,4 +66,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 EXPOSE 3000
 
+USER node
 CMD ["node", "dist/index.js"] 
