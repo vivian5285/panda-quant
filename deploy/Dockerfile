@@ -3,33 +3,40 @@ FROM node:18-alpine as builder
 
 WORKDIR /app
 
-# Copy shared module first
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+# Copy package files first
+COPY admin-api/package*.json ./
+COPY admin-api/tsconfig.json ./
+
+# Install all dependencies first
+RUN npm install && \
+    npm install -g typescript tsconfig-paths && \
+    npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/cors @types/jsonwebtoken @types/node && \
+    npm install mongoose bcryptjs express cors jsonwebtoken && \
+    npm install -g prisma --unsafe-perm && \
+    npm install prisma --save-dev --unsafe-perm
+
+# Copy shared module
 COPY shared ./shared/
 WORKDIR /app/shared
 RUN npm install && npm install typescript && npx tsc
 
-# Copy package files
+# Back to main directory
 WORKDIR /app
-COPY admin-api/package*.json ./
+
+# Copy prisma schema
 COPY admin-api/prisma ./prisma/
-COPY admin-api/tsconfig.json ./
-
-# Install all dependencies
-RUN npm install && \
-    npm install -g typescript tsconfig-paths && \
-    npm install mongoose bcryptjs express cors jsonwebtoken && \
-    npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/cors @types/jsonwebtoken && \
-    npm install -g prisma --unsafe-perm && \
-    npm install prisma --save-dev --unsafe-perm
-
-# Copy source code
-COPY admin-api .
 
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build application with path aliases support
-RUN npm install && npx tsc
+# Copy source code
+COPY admin-api .
+
+# Build application
+RUN npm run build
 
 # Production stage
 FROM node:18-alpine
