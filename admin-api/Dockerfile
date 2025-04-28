@@ -16,16 +16,13 @@ RUN npm install && \
     npm install -g typescript && \
     npm install --save-dev @types/node && \
     npm install prisma --save-dev && \
-    chmod -R 755 /app/node_modules/.bin && \
-    chmod -R 755 /app/node_modules/prisma && \
-    chmod -R 755 /app/node_modules/@prisma && \
-    chmod -R 755 /app/node_modules/.prisma
+    npm install -g prisma
 
 # Copy source code
 COPY . .
 
 # Generate Prisma client
-RUN npx prisma generate
+RUN prisma generate
 
 # Build admin-api
 RUN npm run build
@@ -48,10 +45,7 @@ COPY prisma ./prisma/
 # Install production dependencies
 RUN npm install --production && \
     npm install prisma --save-dev && \
-    chmod -R 755 /app/node_modules/.bin && \
-    chmod -R 755 /app/node_modules/prisma && \
-    chmod -R 755 /app/node_modules/@prisma && \
-    chmod -R 755 /app/node_modules/.prisma
+    npm install -g prisma
 
 # Copy built files from build stage
 COPY --from=builder /app/dist ./dist

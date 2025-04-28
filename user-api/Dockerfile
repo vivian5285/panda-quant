@@ -18,13 +18,13 @@ COPY . .
 
 # Generate Prisma client and build
 RUN npm install prisma --save-dev && \
-    chmod -R 755 /app/node_modules/.bin && \
-    chmod -R 755 /app/node_modules/prisma && \
-    chmod -R 755 /app/node_modules/@prisma
-RUN npx prisma generate
+    npm install -g prisma
+RUN prisma generate
 
 # 修改 tsconfig.json 以移除 shared 引用
-RUN sed -i 's/"references": \[.*\]/"references": \[\]/' tsconfig.json
+RUN sed -i 's/"references": \[.*\]/"references": \[\]/' tsconfig.json && \
+    sed -i 's/"paths": {.*}/"paths": {}/' tsconfig.json && \
+    sed -i 's/"baseUrl": ".*"/"baseUrl": "."/' tsconfig.json
 
 RUN npx tsc --skipLibCheck
 
