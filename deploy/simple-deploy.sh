@@ -83,8 +83,45 @@ deploy_admin() {
     # 更新 tsconfig.json
     log "更新 tsconfig.json..."
     cd "$WORKSPACE_DIR/admin-api"
-    sed -i 's/"shared\/\*\*\/\*",//g' tsconfig.json
-    sed -i '/"references": \[/,/\]/d' tsconfig.json
+    
+    # 创建新的 tsconfig.json
+    cat > tsconfig.json << 'EOL'
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "lib": ["es2020"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types"],
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./shared/src/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "models/**/*",
+    "types/**/*",
+    "interfaces/**/*",
+    "utils/**/*",
+    "services/**/*",
+    "middleware/**/*",
+    "routes/**/*",
+    "controllers/**/*",
+    "shared/src/**/*",
+    "index.ts",
+    "app.ts"
+  ]
+}
+EOL
     
     # 更新导入路径
     log "更新导入路径..."
@@ -132,8 +169,45 @@ deploy_user() {
     # 更新 tsconfig.json
     log "更新 tsconfig.json..."
     cd "$WORKSPACE_DIR/user-api"
-    sed -i 's/"shared\/\*\*\/\*",//g' tsconfig.json
-    sed -i '/"references": \[/,/\]/d' tsconfig.json
+    
+    # 创建新的 tsconfig.json
+    cat > tsconfig.json << 'EOL'
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "lib": ["es2020"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types"],
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./shared/src/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "models/**/*",
+    "types/**/*",
+    "interfaces/**/*",
+    "utils/**/*",
+    "services/**/*",
+    "middleware/**/*",
+    "routes/**/*",
+    "controllers/**/*",
+    "shared/src/**/*",
+    "index.ts",
+    "app.ts"
+  ]
+}
+EOL
     
     # 更新导入路径
     log "更新导入路径..."
