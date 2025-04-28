@@ -53,10 +53,10 @@ COPY --from=builder /app/shared ./shared
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8083/health || exit 1
+    CMD curl -f http://localhost:3000/health || exit 1
 
 # Expose port
-EXPOSE 8083
+EXPOSE 3000
 
 # Start the application
 CMD ["node", "dist/index.js"] 
