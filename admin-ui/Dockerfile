@@ -11,10 +11,10 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm install
-RUN npm install esbuild@0.21.5
 
-# Copy source code
+# Copy source code and shared module
 COPY . .
+COPY ../shared ./shared
 
 # Build the app
 RUN npm run build
