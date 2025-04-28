@@ -24,9 +24,10 @@ COPY prisma ./prisma/
 COPY src ./src/
 COPY tsconfig.json ./
 
-# Install dependencies
+# Install dependencies and type definitions
 RUN npm install
 RUN npm install -g typescript
+RUN npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node
 RUN npx prisma generate
 
 # Verify TypeScript installation
