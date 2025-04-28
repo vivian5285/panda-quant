@@ -11,12 +11,11 @@ COPY package*.json ./
 COPY prisma ./prisma/
 COPY tsconfig.json ./
 
-# Install dependencies
-RUN npm install && \
+# Install only necessary dependencies
+RUN npm install --legacy-peer-deps && \
     npm install -g typescript && \
     npm install --save-dev @types/node && \
-    npm install prisma --save-dev && \
-    npm install -g prisma
+    npm install prisma --save-dev
 
 # Copy source code
 COPY . .
@@ -42,10 +41,9 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install production dependencies
-RUN npm install --production && \
-    npm install prisma --save-dev && \
-    npm install -g prisma
+# Install only production dependencies
+RUN npm install --production --legacy-peer-deps && \
+    npm install prisma --save-dev
 
 # Copy built files from build stage
 COPY --from=builder /app/dist ./dist

@@ -10,11 +10,10 @@ RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps
 
-# Copy source code and shared module
+# Copy source code
 COPY . .
-COPY ../shared ./shared
 
 # Build the app
 RUN npm run build
@@ -43,4 +42,10 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 EXPOSE 80
 
 # Start nginx
-CMD ["nginx", "-g", "daemon off;"] 
+CMD ["nginx", "-g", "daemon off;"]
+
+# 暴露端口
+EXPOSE 3000
+
+# 启动应用
+CMD ["npm", "start"] 
