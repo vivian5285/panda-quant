@@ -53,6 +53,9 @@ services:
     environment:
       - NODE_ENV=production
       - VITE_API_URL=https://admin-api.pandatrade.space
+      - VITE_DOMAIN=pandatrade.space
+      - VITE_ADMIN_SUBDOMAIN=admin
+      - VITE_ADMIN_API_SUBDOMAIN=admin-api
     networks:
       - panda-quant-network
     depends_on:
@@ -79,6 +82,9 @@ services:
       - REDIS_URL=redis://:PandaQuant@2024@redis:6380
       - JWT_SECRET=Wl528586*
       - PORT=3000
+      - DOMAIN=pandatrade.space
+      - ADMIN_SUBDOMAIN=admin
+      - ADMIN_API_SUBDOMAIN=admin-api
     networks:
       - panda-quant-network
     depends_on:

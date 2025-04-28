@@ -53,6 +53,8 @@ services:
     environment:
       - NODE_ENV=production
       - VITE_API_URL=https://api.pandatrade.space
+      - VITE_DOMAIN=pandatrade.space
+      - VITE_API_SUBDOMAIN=api
     networks:
       - panda-quant-network
     depends_on:
@@ -79,6 +81,8 @@ services:
       - REDIS_URL=redis://:PandaQuant@2024@redis:6381
       - JWT_SECRET=Wl528586*
       - PORT=3000
+      - DOMAIN=pandatrade.space
+      - API_SUBDOMAIN=api
     networks:
       - panda-quant-network
     depends_on:
