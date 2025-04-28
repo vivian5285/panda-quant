@@ -124,7 +124,7 @@ export class DepositService {
         amount: parseFloat(amount),
         currency: chain,
         transactionHash,
-        status: 'pending'
+        status: 'pending' as const
       });
 
       await deposit.save({ session });
@@ -146,8 +146,25 @@ export class DepositService {
     }
   }
 
-  async getDepositRecords(userId: string) {
+  async getDepositsByUserId(userId: string) {
     return await Deposit.find({ userId }).sort({ createdAt: -1 });
+  }
+
+  async getDepositById(id: string) {
+    return await Deposit.findById(id);
+  }
+
+  async updateDeposit(id: string, data: Partial<{
+    status: 'pending' | 'completed' | 'failed';
+    amount: number;
+    currency: string;
+    transactionHash: string;
+  }>) {
+    return await Deposit.findByIdAndUpdate(id, data, { new: true });
+  }
+
+  async deleteDeposit(id: string) {
+    return await Deposit.findByIdAndDelete(id);
   }
 
   async checkDepositStatus(userId: string, transactionHash: string, chain: string) {
@@ -160,7 +177,7 @@ export class DepositService {
       throw new Error(`RPC URL not configured for chain ${chain}`);
     }
 
-    let status = 'pending';
+    let status: 'pending' | 'completed' | 'failed' = 'pending';
     try {
       status = await retry(async () => {
         if (chain === 'TRX') {
