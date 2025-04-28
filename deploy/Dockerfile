@@ -27,10 +27,10 @@ RUN npm install && npm install typescript && npx tsc
 WORKDIR /app
 
 # Copy prisma schema if exists
-COPY prisma/ ./prisma/ 2>/dev/null || :
+COPY prisma ./prisma/
 
 # Generate Prisma client if prisma directory exists
-RUN [ -d "prisma" ] && npx prisma generate || :
+RUN if [ -d "prisma" ]; then npx prisma generate; fi
 
 # Copy source code
 COPY . .
@@ -47,7 +47,7 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma/ ./prisma/ 2>/dev/null || :
+COPY --from=builder /app/prisma ./prisma/
 COPY --from=builder /app/shared ./shared
 
 # Install production dependencies
