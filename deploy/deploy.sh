@@ -104,6 +104,29 @@ check_commands() {
         fi
     fi
     
+    # 检查MongoDB服务
+    if ! docker ps | grep -q mongodb; then
+        log "启动MongoDB服务..."
+        # 创建MongoDB数据目录
+        mkdir -p "$WORKSPACE_DIR/data/mongodb"
+        chmod -R 777 "$WORKSPACE_DIR/data/mongodb"
+        
+        # 启动MongoDB容器
+        docker run -d \
+            --name mongodb \
+            --network panda-quant-network \
+            -p 27017:27017 \
+            -v "$WORKSPACE_DIR/data/mongodb:/data/db" \
+            -e MONGO_INITDB_ROOT_USERNAME=admin \
+            -e MONGO_INITDB_ROOT_PASSWORD=Wl528586* \
+            mongo:6.0
+        
+        # 等待服务启动
+        sleep 10
+        
+        log "MongoDB服务启动完成"
+    fi
+    
     # 检查MongoDB工具包
     if ! command -v mongodump &> /dev/null; then
         log "安装MongoDB工具包..."
@@ -830,12 +853,8 @@ init_database() {
         error "mongosh 命令不可用，请安装 MongoDB 客户端工具"
     fi
     
-    # 检查MongoDB服务是否运行
-    if ! systemctl is-active --quiet mongod; then
-        log "启动MongoDB服务..."
-        sudo systemctl start mongod
-        sudo systemctl enable mongod
-    fi
+    # 等待服务启动
+    sleep 5
     
     # 创建管理端数据库
     log "创建管理端数据库..."
