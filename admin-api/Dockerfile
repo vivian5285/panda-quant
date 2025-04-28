@@ -33,10 +33,9 @@ RUN npx prisma generate
 # Verify TypeScript installation
 RUN tsc --version
 
-# Link shared module and copy its build output
-RUN npm link ./shared
-RUN mkdir -p node_modules/@shared
-RUN cp -r /app/shared/dist/* node_modules/@shared/
+# Copy shared module build output
+RUN mkdir -p node_modules/shared
+RUN cp -r /app/shared/dist/* node_modules/shared/
 
 # Build admin-api
 RUN npx tsc
@@ -55,11 +54,10 @@ COPY tsconfig.json ./
 # Install production dependencies and TypeScript
 RUN npm install --production
 RUN npm install -g typescript
-RUN npm link ./shared
 
-# Create symlink for shared module
-RUN mkdir -p node_modules/@shared
-RUN cp -r /app/admin-api/shared/dist/* node_modules/@shared/
+# Copy shared module build output
+RUN mkdir -p node_modules/shared
+RUN cp -r /app/admin-api/shared/dist/* node_modules/shared/
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
