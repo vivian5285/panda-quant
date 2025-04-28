@@ -145,13 +145,32 @@ export class FeeService {
     return amount * 0.01; // 示例：1% 的费用
   }
 
-  async createFee(userId: string, amount: number, type: string): Promise<IFee> {
-    return await Fee.create({
+  async createFee(userId: string, amount: number, type: 'monthly' | 'withdrawal'): Promise<IFee> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const userAsset = await Asset.findOne({ userId });
+    if (!userAsset) {
+      throw new Error('User asset not found');
+    }
+
+    // 确保 userAsset 有 chain 属性
+    const assetWithChain = userAsset as IAssetWithChain;
+    if (!assetWithChain.chain) {
+      throw new Error('Asset chain information is missing');
+    }
+
+    const fee = new Fee({
       userId,
       amount,
       type,
-      status: 'pending'
+      status: 'completed',
+      chain: assetWithChain.chain
     });
+
+    return await fee.save();
   }
 
   async processFee(feeId: string): Promise<void> {

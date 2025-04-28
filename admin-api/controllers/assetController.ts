@@ -60,7 +60,7 @@ export const processMonthlyFees = async (req: Request, res: Response) => {
 
       if (monthsSinceLastDeduction >= 1) {
         // 创建托管费记录
-        const fee = await feeService.createFee(user._id.toString(), 30, 'monthly');
+        const fee = await feeService.createFee((user._id as string).toString(), 30, 'monthly');
         
         // 更新用户资产
         userAsset.balance -= 30;
