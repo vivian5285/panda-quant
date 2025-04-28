@@ -16,7 +16,7 @@ RUN npm install && \
     npm install -g typescript && \
     npm install --save-dev @types/node && \
     npm install -g prisma && \
-    chmod -R 755 /app && \
+    chmod -R 777 /app && \
     chown -R node:node /app
 
 # Copy source code
@@ -44,7 +44,7 @@ COPY prisma ./prisma/
 # Install production dependencies
 RUN npm install --production && \
     npm install -g prisma && \
-    chmod -R 755 /app && \
+    chmod -R 777 /app && \
     chown -R node:node /app
 
 # Copy built files from build stage
@@ -60,5 +60,4 @@ ENV PORT=8081
 EXPOSE 8081
 
 # Start the application
-USER node
-CMD ["node", "dist/index.js"] 
+CMD ["npm", "start"] 
