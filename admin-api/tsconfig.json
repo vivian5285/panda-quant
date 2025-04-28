@@ -8,14 +8,14 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": ".",
     "resolveJsonModule": true,
     "declaration": true,
     "moduleResolution": "node",
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["./shared/*"]
+      "@shared/*": ["./shared/src/*"]
     }
   },
   "include": [
@@ -28,7 +28,7 @@
     "middleware/**/*",
     "routes/**/*",
     "controllers/**/*",
-    "shared/**/*",
+    "shared/src/**/*",
     "index.ts",
     "app.ts"
   ],

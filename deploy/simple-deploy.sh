@@ -86,6 +86,10 @@ deploy_admin() {
     sed -i 's/"shared\/\*\*\/\*",//g' tsconfig.json
     sed -i '/"references": \[/,/\]/d' tsconfig.json
     
+    # 更新导入路径
+    log "更新导入路径..."
+    find . -type f -name "*.ts" -exec sed -i 's|from "../../shared/|from "@shared/|g' {} \;
+    
     # 安装管理端依赖
     log "安装管理端依赖..."
     npm install
@@ -130,6 +134,10 @@ deploy_user() {
     cd "$WORKSPACE_DIR/user-api"
     sed -i 's/"shared\/\*\*\/\*",//g' tsconfig.json
     sed -i '/"references": \[/,/\]/d' tsconfig.json
+    
+    # 更新导入路径
+    log "更新导入路径..."
+    find . -type f -name "*.ts" -exec sed -i 's|from "../../shared/|from "@shared/|g' {} \;
     
     # 安装用户端依赖
     log "安装用户端依赖..."
