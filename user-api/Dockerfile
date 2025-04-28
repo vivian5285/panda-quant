@@ -20,12 +20,14 @@ COPY package*.json ./
 COPY prisma ./prisma/
 COPY src ./src/
 COPY tsconfig.json ./
+COPY index.ts ./
+COPY app.ts ./
 
 # Install dependencies
 RUN npm install
 RUN npm install -g typescript tsconfig-paths
 RUN npx prisma generate
-RUN npx tsc --project tsconfig.json --resolveJsonModule --esModuleInterop
+RUN npm run build
 
 # Production stage
 FROM node:18-alpine
