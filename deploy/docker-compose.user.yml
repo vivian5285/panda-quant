@@ -1,108 +1,66 @@
 version: '3.8'
 
 services:
-  # MongoDB 数据库
-  mongodb-user:
-    image: mongo:latest
-    container_name: panda-quant-mongodb-user
+  nginx-user:
+    image: nginx:alpine
+    container_name: panda-quant-nginx-user
     ports:
-      - "27019:27017"  # MongoDB 用户端口
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=PandaQuant@2024
-      - MONGO_INITDB_DATABASE=admin
-    command: ["--auth"]
+      - "81:80"
+      - "444:443"
     volumes:
-      - mongodb_user_data:/data/db
-    networks:
-      - panda-quant-network
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
-
-  # Redis 缓存
-  redis-user:
-    image: redis:alpine
-    container_name: panda-quant-redis-user
-    ports:
-      - "6381:6379"    # Redis 用户端口
-    command: redis-server --requirepass PandaQuant@2024
-    volumes:
-      - redis_user_data:/data
-    networks:
-      - panda-quant-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "PandaQuant@2024", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
-
-  # 用户前端
-  user-ui:
-    build:
-      context: ../user-ui
-      dockerfile: Dockerfile
-    image: deploy-user-ui
-    container_name: panda-quant-user-ui
-    ports:
-      - "8082:80"      # User UI 访问端口
-    environment:
-      - NODE_ENV=production
-      - VITE_API_URL=https://api.pandatrade.space
-      - VITE_DOMAIN=pandatrade.space
-      - VITE_API_SUBDOMAIN=api
-    networks:
-      - panda-quant-network
+      - ./nginx/user.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/letsencrypt:ro
+      - ./user-ui/dist:/usr/share/nginx/html:ro
     depends_on:
       - user-api
+      - user-ui
+    restart: unless-stopped
+    networks:
+      - panda-quant-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      test: ["CMD", "nginx", "-t"]
       interval: 30s
       timeout: 10s
-      retries: 5
-      start_period: 40s
+      retries: 3
 
-  # 用户后端
   user-api:
     build:
       context: ../user-api
-      dockerfile: Dockerfile
-    image: deploy-user-api
+      dockerfile: ../deploy/Dockerfile.api
+      args:
+        - PORT=3002
     container_name: panda-quant-user-api
-    ports:
-      - "8083:3000"    # User API 访问端口
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb-user:27017/panda-quant-user?authSource=admin
-      - REDIS_URL=redis://:PandaQuant@2024@redis-user:6379
-      - JWT_SECRET=Wl528586*
-      - PORT=3000
-      - DOMAIN=pandatrade.space
-      - API_SUBDOMAIN=api
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - MONGODB_URI=mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@mongodb:27017/${MONGODB_DATABASE}
+      - REDIS_URI=redis://:${REDIS_PASSWORD}@redis:6379
+    restart: unless-stopped
     networks:
       - panda-quant-network
-    depends_on:
-      mongodb-user:
-        condition: service_healthy
-      redis-user:
-        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
       interval: 30s
       timeout: 10s
-      retries: 5
-      start_period: 40s
+      retries: 3
+
+  user-ui:
+    build:
+      context: ../user-ui
+      dockerfile: ../deploy/Dockerfile.ui
+    container_name: panda-quant-user-ui
+    volumes:
+      - ../user-ui/dist:/usr/share/nginx/html:ro
+    restart: unless-stopped
+    networks:
+      - panda-quant-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   panda-quant-network:
-    external: true
-
-volumes:
-  mongodb_user_data:
-  redis_user_data:
-  nginx_letsencrypt:
-  nginx_www: 
+    external: true 
