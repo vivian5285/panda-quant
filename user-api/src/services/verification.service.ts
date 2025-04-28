@@ -1,10 +1,9 @@
-import { IUser } from '../models/User';
+import { AuthUser } from '../middleware/auth';
+import User from '../models/User';
 import { ValidationError } from '../utils/errors';
 import { generateToken, verifyToken } from '../utils/jwt';
 import { sendEmail, sendVerificationEmail } from '../utils/email';
-import { Injectable } from '@nestjs/common';
 
-@Injectable()
 export class VerificationService {
   private readonly EMAIL_VERIFICATION_EXPIRY = '24h';
   private readonly PASSWORD_RESET_EXPIRY = '1h';
@@ -82,11 +81,11 @@ export class VerificationService {
     }
   }
 
-  async sendPasswordResetEmail(user: IUser): Promise<void> {
-    const token = generateToken(user);
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+  async sendPasswordResetEmail(user: AuthUser): Promise<void> {
+    try {
+      const token = generateToken(user);
+      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
-    if (process.env.NODE_ENV !== 'test') {
       await sendEmail({
         to: user.email,
         subject: 'Reset your password',
@@ -98,16 +97,15 @@ export class VerificationService {
           <p>This link will expire in 1 hour.</p>
         `
       });
+    } catch (error) {
+      throw new ValidationError('Failed to send password reset email');
     }
   }
 
   async verifyEmailToken(token: string): Promise<string> {
     try {
-      const decoded = verifyToken(token);
-      if (!decoded) {
-        throw new ValidationError('Invalid or expired token');
-      }
-      return decoded.id;
+      const user = await verifyToken(token);
+      return user.id;
     } catch (error) {
       throw new ValidationError('Invalid or expired token');
     }
@@ -115,13 +113,29 @@ export class VerificationService {
 
   async verifyPasswordResetToken(token: string): Promise<string> {
     try {
-      const decoded = verifyToken(token);
-      if (!decoded) {
-        throw new ValidationError('Invalid or expired token');
-      }
-      return decoded.id;
+      const user = await verifyToken(token);
+      return user.id;
     } catch (error) {
       throw new ValidationError('Invalid or expired token');
+    }
+  }
+
+  async verifyUser(user: AuthUser): Promise<boolean> {
+    try {
+      const userDoc = await User.findById(user.id);
+      if (!userDoc) {
+        throw new ValidationError('User not found');
+      }
+      
+      userDoc.isVerified = true;
+      await userDoc.save();
+      
+      return true;
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      throw new ValidationError('Failed to verify user');
     }
   }
 } 
