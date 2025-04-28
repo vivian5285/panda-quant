@@ -45,6 +45,13 @@ check_dependencies() {
     command -v node >/dev/null 2>&1 || { error "需要安装 Node.js"; }
     command -v npm >/dev/null 2>&1 || { error "需要安装 npm"; }
     command -v docker-compose >/dev/null 2>&1 || { error "需要安装 docker-compose"; }
+    
+    # 检查 Node.js 版本
+    NODE_VERSION=$(node -v)
+    if [[ ! $NODE_VERSION =~ ^v(16|18|20) ]]; then
+        warn "建议使用 Node.js v16、v18 或 v20 版本，当前版本: $NODE_VERSION"
+    fi
+    
     log "系统依赖检查完成"
 }
 
@@ -113,6 +120,12 @@ load_env() {
         export MONGODB_DATABASE=panda_quant
         export REDIS_PASSWORD=Wl528586*
     fi
+    
+    # 确保环境变量被正确导出
+    export MONGODB_USERNAME=${MONGODB_USERNAME:-admin}
+    export MONGODB_PASSWORD=${MONGODB_PASSWORD:-Wl528586*}
+    export MONGODB_DATABASE=${MONGODB_DATABASE:-panda_quant}
+    export REDIS_PASSWORD=${REDIS_PASSWORD:-Wl528586*}
 }
 
 # 清理旧容器和镜像
@@ -136,6 +149,7 @@ deploy_shared() {
     # 安装依赖并构建
     log "安装共享模块依赖..."
     npm install --production
+    npm install --save-dev @types/bcryptjs
     log "构建共享模块..."
     npm run build
     
@@ -273,6 +287,10 @@ deploy_database() {
     
     # 启动数据库服务
     log "启动数据库服务..."
+    MONGODB_USERNAME=$MONGODB_USERNAME \
+    MONGODB_PASSWORD=$MONGODB_PASSWORD \
+    MONGODB_DATABASE=$MONGODB_DATABASE \
+    REDIS_PASSWORD=$REDIS_PASSWORD \
     docker-compose -f "$WORKSPACE_DIR/deploy/docker-compose.admin.yml" up -d mongodb redis
     
     # 检查服务状态
