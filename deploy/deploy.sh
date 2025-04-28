@@ -1,49 +1,133 @@
 #!/bin/bash
 
-# 设置错误处理
-set -e
+# 设置环境变量
+export COMPOSE_HTTP_TIMEOUT=300
+export DOCKER_BUILDKIT=1
 
-# 日志函数
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+# 颜色定义
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+# 打印带颜色的消息
+print_message() {
+    echo -e "${2}${1}${NC}"
 }
 
-# 设置 Docker 构建参数
-export DOCKER_BUILDKIT=1
-export COMPOSE_DOCKER_CLI_BUILD=1
-export BUILDKIT_INLINE_CACHE=1
+# 错误处理
+handle_error() {
+    print_message "Error: $1" "$RED"
+    exit 1
+}
 
-# 设置构建超时时间（秒）
-export COMPOSE_HTTP_TIMEOUT=300
+# 清理系统资源
+cleanup_system() {
+    print_message "Cleaning up system resources..." "$YELLOW"
+    
+    # 清理系统缓存
+    sync; echo 3 > /proc/sys/vm/drop_caches || print_message "Warning: Failed to clear system cache" "$YELLOW"
+    
+    # 清理 Docker 资源
+    docker system prune -af || handle_error "Failed to prune Docker system"
+    docker volume prune -f || handle_error "Failed to prune Docker volumes"
+    docker builder prune -af || handle_error "Failed to prune Docker builder cache"
+}
 
-# 设置构建参数
-BUILD_ARGS="--no-cache --progress=plain"
+# 停止服务
+stop_services() {
+    print_message "Stopping services..." "$YELLOW"
+    
+    # 停止所有服务
+    docker-compose -f docker-compose.admin.yml down || handle_error "Failed to stop admin services"
+    docker-compose -f docker-compose.user.yml down || handle_error "Failed to stop user services"
+}
 
-# 停止并清理现有容器
-log "停止并清理现有容器..."
-docker-compose down -v
+# 创建网络
+setup_network() {
+    print_message "Setting up network..." "$YELLOW"
+    
+    # 删除现有网络
+    docker network rm panda-quant-network 2>/dev/null || true
+    
+    # 创建新网络
+    docker-compose -f docker-compose.network.yml up -d || handle_error "Failed to create network"
+}
 
-# 清理旧的构建产物
-log "清理旧的构建产物..."
-rm -rf admin-ui/dist user-ui/dist
+# 构建服务
+build_services() {
+    print_message "Building services..." "$YELLOW"
+    
+    # 构建 admin-api
+    print_message "Building admin-api..." "$YELLOW"
+    docker-compose -f docker-compose.admin.yml build admin-api || handle_error "Failed to build admin-api"
+    
+    # 构建 admin-ui
+    print_message "Building admin-ui..." "$YELLOW"
+    docker-compose -f docker-compose.admin.yml build admin-ui || handle_error "Failed to build admin-ui"
+}
 
-# 重新安装依赖
-log "安装依赖..."
-cd admin-ui && npm install --legacy-peer-deps && cd ..
-cd user-ui && npm install --legacy-peer-deps && cd ..
-cd admin-api && npm install --legacy-peer-deps && cd ..
-cd user-api && npm install --legacy-peer-deps && cd ..
-
-# 重新构建镜像
-log "构建镜像..."
-docker-compose build $BUILD_ARGS
-
-# 创建网络并启动服务
-log "启动服务..."
-docker-compose up -d
+# 启动服务
+start_services() {
+    print_message "Starting services..." "$YELLOW"
+    
+    # 启动服务
+    docker-compose -f docker-compose.admin.yml up -d || handle_error "Failed to start services"
+}
 
 # 检查服务状态
-log "检查服务状态..."
-docker-compose ps
+check_services() {
+    print_message "Checking service status..." "$YELLOW"
+    
+    # 等待服务启动
+    sleep 10
+    
+    # 检查容器状态
+    if ! docker ps | grep -q "panda-quant-admin-api"; then
+        handle_error "admin-api container is not running"
+    fi
+    
+    if ! docker ps | grep -q "panda-quant-admin-ui"; then
+        handle_error "admin-ui container is not running"
+    fi
+    
+    if ! docker ps | grep -q "panda-quant-nginx-admin"; then
+        handle_error "nginx container is not running"
+    fi
+    
+    # 检查服务健康状态
+    print_message "Checking service health..." "$YELLOW"
+    
+    # 检查 admin-api 健康状态
+    if ! curl -s http://localhost:3001/health | grep -q "ok"; then
+        handle_error "admin-api health check failed"
+    fi
+    
+    # 检查 admin-ui 健康状态
+    if ! curl -s http://localhost:3000/health | grep -q "ok"; then
+        handle_error "admin-ui health check failed"
+    fi
+    
+    # 检查 nginx 健康状态
+    if ! curl -s http://localhost:8081/health | grep -q "ok"; then
+        handle_error "nginx health check failed"
+    fi
+}
 
-log "部署完成！" 
+# 主函数
+main() {
+    print_message "Starting deployment..." "$GREEN"
+    
+    # 执行部署步骤
+    cleanup_system
+    stop_services
+    setup_network
+    build_services
+    start_services
+    check_services
+    
+    print_message "Deployment completed successfully!" "$GREEN"
+}
+
+# 执行主函数
+main 
