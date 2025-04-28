@@ -34,26 +34,26 @@ COPY tsconfig.json ./
 COPY index.ts ./
 COPY app.ts ./
 
-# Install all dependencies at once
-RUN npm install && \
-    npm install -g typescript && \
-    npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg && \
-    npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg redis winston && \
-    npx prisma generate
+# Install dependencies in separate steps
+RUN npm install
+RUN npm install -g typescript
+RUN npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg
+RUN npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg redis winston
+RUN npx prisma generate
 
 # Verify TypeScript installation and dependencies
-RUN tsc --version && \
-    ls -la node_modules/@types && \
-    ls -la node_modules/mongoose && \
-    ls -la node_modules/bcryptjs && \
-    ls -la node_modules/express
+RUN tsc --version
+RUN ls -la node_modules/@types
+RUN ls -la node_modules/mongoose
+RUN ls -la node_modules/bcryptjs
+RUN ls -la node_modules/express
 
 # Copy shared module build output
 RUN mkdir -p node_modules/shared && \
     cp -r /app/shared/dist/* node_modules/shared/
 
 # Build admin-api
-RUN npx tsc --project tsconfig.json
+RUN npm run build
 
 # Production stage
 FROM node:18-alpine
@@ -67,10 +67,10 @@ COPY shared ./shared/
 COPY tsconfig.json ./
 
 # Install production dependencies
-RUN npm install --production && \
-    npm install -g typescript && \
-    npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg && \
-    npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg redis winston
+RUN npm install --production
+RUN npm install -g typescript
+RUN npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg
+RUN npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg redis winston
 
 # Copy shared module build output
 RUN mkdir -p node_modules/shared && \
