@@ -6,13 +6,6 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
-# Copy package files first
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-RUN npm install -g typescript tsconfig-paths
-
 # Copy shared module and build
 COPY shared ./shared
 WORKDIR /app/shared
@@ -20,8 +13,13 @@ RUN npm install
 RUN npm install typescript
 RUN npx tsc
 
-# Copy source files and build
+# Copy package files and install dependencies
 WORKDIR /app
+COPY package*.json ./
+RUN npm install
+RUN npm install -g typescript tsconfig-paths
+
+# Copy source files and build
 COPY prisma ./prisma/
 COPY src ./src/
 COPY tsconfig.json ./
