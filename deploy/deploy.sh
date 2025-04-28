@@ -31,12 +31,47 @@ DEPLOY_DIR="$(dirname "${BASH_SOURCE[0]}")"
 cd "$WORKSPACE_DIR"
 log "当前工作目录: $(pwd)"
 
+# 安装所有依赖
+install_dependencies() {
+    log "安装所有模块的依赖..."
+    
+    # 安装 shared 模块依赖
+    log "安装 shared 模块依赖..."
+    cd "$WORKSPACE_DIR/shared"
+    chmod -R 777 .
+    npm install
+    
+    # 安装 admin-api 依赖
+    log "安装 admin-api 依赖..."
+    cd "$WORKSPACE_DIR/admin-api"
+    chmod -R 777 .
+    npm install
+    
+    # 安装 user-api 依赖
+    log "安装 user-api 依赖..."
+    cd "$WORKSPACE_DIR/user-api"
+    chmod -R 777 .
+    npm install
+    
+    # 安装 admin-ui 依赖
+    log "安装 admin-ui 依赖..."
+    cd "$WORKSPACE_DIR/admin-ui"
+    chmod -R 777 .
+    npm install
+    
+    # 安装 user-ui 依赖
+    log "安装 user-ui 依赖..."
+    cd "$WORKSPACE_DIR/user-ui"
+    chmod -R 777 .
+    npm install
+    
+    cd "$WORKSPACE_DIR"
+}
+
 # 构建 shared 模块
 build_shared() {
     log "构建 shared 模块..."
     cd "$WORKSPACE_DIR/shared"
-    chmod -R 777 .
-    npm install
     npm run build
     cd "$WORKSPACE_DIR"
 }
@@ -85,6 +120,12 @@ copy_shared_directory() {
         cp -r "$WORKSPACE_DIR/shared"/* "$WORKSPACE_DIR/user-api/shared/"
         cp -r "$WORKSPACE_DIR/shared"/* "$WORKSPACE_DIR/admin-ui/shared/"
         cp -r "$WORKSPACE_DIR/shared"/* "$WORKSPACE_DIR/user-ui/shared/"
+        
+        # 创建符号链接
+        ln -sf "$WORKSPACE_DIR/shared" "$WORKSPACE_DIR/admin-api/shared"
+        ln -sf "$WORKSPACE_DIR/shared" "$WORKSPACE_DIR/user-api/shared"
+        ln -sf "$WORKSPACE_DIR/shared" "$WORKSPACE_DIR/admin-ui/shared"
+        ln -sf "$WORKSPACE_DIR/shared" "$WORKSPACE_DIR/user-ui/shared"
         
         log "shared目录复制完成"
     else
@@ -632,8 +673,17 @@ main() {
     # 备份数据库
     backup_database
     
+    # 安装所有依赖
+    install_dependencies
+    
     # 构建所有服务
-    build_services
+    log "开始构建所有服务..."
+    
+    # 构建 shared 模块
+    build_shared
+    
+    # 复制 shared 目录
+    copy_shared_directory
     
     # 启动服务
     log "启动服务..."

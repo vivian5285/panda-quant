@@ -8,15 +8,16 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "../",
     "resolveJsonModule": true,
     "declaration": true,
     "moduleResolution": "node",
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["./shared/dist/*"]
-    }
+      "@shared/*": ["../shared/*"]
+    },
+    "composite": true
   },
   "include": [
     "src/**/*",
@@ -28,10 +29,11 @@
     "middleware/**/*",
     "routes/**/*",
     "controllers/**/*",
+    "../shared/**/*",
     "index.ts",
     "app.ts"
   ],
   "references": [
-    { "path": "./shared" }
+    { "path": "../shared" }
   ]
 } 
