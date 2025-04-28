@@ -74,6 +74,12 @@ deploy_admin() {
     # 构建 shared 模块
     build_shared
     
+    # 复制 shared 模块到 admin-api
+    log "复制 shared 模块到 admin-api..."
+    cd "$WORKSPACE_DIR"
+    rm -rf admin-api/shared
+    cp -r shared admin-api/
+    
     # 安装管理端依赖
     log "安装管理端依赖..."
     cd "$WORKSPACE_DIR/admin-api"
@@ -107,6 +113,12 @@ deploy_user() {
     
     # 构建 shared 模块
     build_shared
+    
+    # 复制 shared 模块到 user-api
+    log "复制 shared 模块到 user-api..."
+    cd "$WORKSPACE_DIR"
+    rm -rf user-api/shared
+    cp -r shared user-api/
     
     # 安装用户端依赖
     log "安装用户端依赖..."
