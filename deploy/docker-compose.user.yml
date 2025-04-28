@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   # MongoDB 数据库
-  mongodb:
+  mongodb-user:
     image: mongo:latest
     container_name: panda-quant-mongodb-user
     ports:
@@ -24,7 +24,7 @@ services:
       start_period: 40s
 
   # Redis 缓存
-  redis:
+  redis-user:
     image: redis:alpine
     container_name: panda-quant-redis-user
     ports:
@@ -77,8 +77,8 @@ services:
       - "8083:3000"    # User API 访问端口
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb:27019/panda-quant-user?authSource=admin
-      - REDIS_URL=redis://:PandaQuant@2024@redis:6381
+      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb-user:27017/panda-quant-user?authSource=admin
+      - REDIS_URL=redis://:PandaQuant@2024@redis-user:6379
       - JWT_SECRET=Wl528586*
       - PORT=3000
       - DOMAIN=pandatrade.space
@@ -86,9 +86,9 @@ services:
     networks:
       - panda-quant-network
     depends_on:
-      mongodb:
+      mongodb-user:
         condition: service_healthy
-      redis:
+      redis-user:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]

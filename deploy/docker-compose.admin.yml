@@ -1,8 +1,31 @@
 version: '3.8'
 
 services:
+  # Nginx 反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: panda-quant-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - nginx_letsencrypt:/etc/letsencrypt
+      - nginx_www:/var/www/html
+    networks:
+      - panda-quant-network
+    depends_on:
+      - admin-ui
+      - admin-api
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
   # MongoDB 数据库
-  mongodb:
+  mongodb-admin:
     image: mongo:latest
     container_name: panda-quant-mongodb-admin
     ports:
@@ -24,7 +47,7 @@ services:
       start_period: 40s
 
   # Redis 缓存
-  redis:
+  redis-admin:
     image: redis:alpine
     container_name: panda-quant-redis-admin
     ports:
@@ -78,8 +101,8 @@ services:
       - "8081:3000"    # Admin API 访问端口
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb:27018/panda-quant-admin?authSource=admin
-      - REDIS_URL=redis://:PandaQuant@2024@redis:6380
+      - MONGODB_URI=mongodb://admin:PandaQuant@2024@mongodb-admin:27017/panda-quant-admin?authSource=admin
+      - REDIS_URL=redis://:PandaQuant@2024@redis-admin:6379
       - JWT_SECRET=Wl528586*
       - PORT=3000
       - DOMAIN=pandatrade.space
@@ -88,9 +111,9 @@ services:
     networks:
       - panda-quant-network
     depends_on:
-      mongodb:
+      mongodb-admin:
         condition: service_healthy
-      redis:
+      redis-admin:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
