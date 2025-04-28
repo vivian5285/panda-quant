@@ -4,6 +4,18 @@ import { VerificationService } from '../services/verification.service';
 import { DatabaseError, ValidationError } from '../utils/errors';
 import { generateToken } from '../utils/jwt';
 import { hashPassword, comparePassword } from '../utils/password';
+import { User, IUser } from '../models/user.model';
+import { AuthUser } from '../types/auth';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+const convertToAuthUser = (user: IUser): AuthUser => {
+  return {
+    id: user._id.toString(),
+    email: user.email,
+    role: user.role
+  };
+};
 
 export class AuthController {
   private userModel: UserModel;
@@ -69,42 +81,26 @@ export class AuthController {
   login = async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
-
-      if (!email || !password) {
-        throw new ValidationError('Missing required fields');
-      }
-
-      const user = await this.userModel.findUserByEmail(email);
+      const user = await User.findOne({ email });
       
       if (!user) {
-        throw new ValidationError('Invalid credentials');
+        return res.status(401).json({ message: '用户不存在' });
       }
-
-      const isPasswordValid = await comparePassword(password, user.password);
-      if (!isPasswordValid) {
-        throw new ValidationError('Invalid credentials');
+      
+      const isValidPassword = await user.comparePassword(password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: '密码错误' });
       }
-
-      if (!user.isVerified) {
-        throw new ValidationError('Please verify your email first');
-      }
-
-      const token = generateToken(user);
-
+      
+      const authUser = convertToAuthUser(user);
+      const token = jwt.sign(authUser, process.env.JWT_SECRET || 'your-secret-key');
+      
       res.json({
         token,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name
-        }
+        user: authUser
       });
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(401).json({ message: error.message });
-      } else {
-        res.status(500).json({ message: 'Internal server error' });
-      }
+      res.status(500).json({ message: '登录失败' });
     }
   };
 

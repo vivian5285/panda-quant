@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Strategy as StrategyModel, IStrategy } from '../models/strategy.model';
 import { Profit } from '../models/profit.model';
-import { AuthRequest } from '../middleware/auth';
+import { AuthRequest } from '../types/auth';
 import { ObjectId } from 'mongodb';
 
 // 计算每日收益

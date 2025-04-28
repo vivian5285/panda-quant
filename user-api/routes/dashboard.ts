@@ -1,15 +1,20 @@
 import express, { Router } from 'express';
 import { User } from '../models/user.model';
-import { Strategy } from '../models/strategy.model';
+import { Strategy, IStrategy } from '../models/strategy.model';
 import { Transaction } from '../models/transaction.model';
 import { Notification, INotification } from '../models/notification.model';
 import { authenticateToken } from '../middlewares/auth';
 import { AuthRequest } from '../types/auth';
+import mongoose from 'mongoose';
 
 const router = Router();
 
 // 获取仪表盘数据
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', async (req: AuthRequest, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: '未授权' });
+  }
+
   try {
     const userId = req.user.id;
 
@@ -44,7 +49,7 @@ router.get('/', authenticateToken, async (req, res) => {
         id: strategy._id,
         name: strategy.name,
         status: strategy.status,
-        profit: strategy.profit,
+        profit: (strategy as IStrategy).profit || 0,
         startTime: strategy.startTime
       })),
       recentTransactions: transactions.map(transaction => ({
@@ -89,7 +94,7 @@ router.get('/strategy/:id', async (req: AuthRequest, res) => {
   
   res.json({
     ...strategy.toObject(),
-    profit: strategy.profit || 0
+    profit: (strategy as IStrategy).profit || 0
   });
 });
 
@@ -100,7 +105,7 @@ router.post('/notifications', async (req: AuthRequest, res) => {
   }
   
   const notification: INotification = {
-    userId: req.user.id,
+    userId: new mongoose.Types.ObjectId(req.user.id),
     type: req.body.type,
     title: req.body.title,
     message: req.body.message,

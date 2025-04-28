@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import TronWeb from 'tronweb';
 import { IUser, User } from '../../models/user.model';
 import { Request } from 'express';
-import { AuthUser } from '../middleware/auth';
+import { AuthUser } from '../types/auth';
 
 declare module 'tronweb' {
   interface TronWeb {
@@ -142,28 +142,28 @@ export class DepositService {
 
     return status;
   }
+
+  async createDeposit(user: AuthUser) {
+    try {
+      const wallet = ethers.Wallet.createRandom();
+      const address = wallet.address;
+      
+      const userDoc = await User.findById(user.id);
+      if (!userDoc) {
+        throw new Error('User not found');
+      }
+      
+      (userDoc as IUserWithWallet).walletAddress = address;
+      await userDoc.save();
+      
+      return {
+        address,
+        privateKey: wallet.privateKey
+      };
+    } catch (error) {
+      throw new Error('Failed to create deposit');
+    }
+  }
 }
 
-export const depositService = new DepositService();
-
-export const createDeposit = async (user: AuthUser) => {
-    try {
-        const wallet = ethers.Wallet.createRandom();
-        const address = wallet.address;
-        
-        const userDoc = await User.findById(user.id);
-        if (!userDoc) {
-            throw new Error('User not found');
-        }
-        
-        userDoc.walletAddress = address;
-        await userDoc.save();
-        
-        return {
-            address,
-            privateKey: wallet.privateKey
-        };
-    } catch (error) {
-        throw new Error('Failed to create deposit');
-    }
-}; 
+export const depositService = new DepositService(); 
