@@ -106,7 +106,12 @@ load_env() {
     if [ -f "$WORKSPACE_DIR/.env" ]; then
         source "$WORKSPACE_DIR/.env"
     else
-        error "未找到 .env 文件，请创建环境变量配置文件"
+        log "未找到 .env 文件，使用默认环境变量配置"
+        # 设置默认环境变量
+        export MONGODB_USERNAME=admin
+        export MONGODB_PASSWORD=Wl528586*
+        export MONGODB_DATABASE=panda_quant
+        export REDIS_PASSWORD=Wl528586*
     fi
 }
 
