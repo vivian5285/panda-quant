@@ -9,11 +9,9 @@ RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies
+# Install dependencies including Prisma
 RUN npm install --legacy-peer-deps
-RUN npm install -g prisma
-
-# Generate Prisma client
+RUN npm install @prisma/client
 RUN npx prisma generate
 
 # Copy source code
@@ -33,11 +31,9 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 
-# Install production dependencies
+# Install production dependencies including Prisma
 RUN npm install --production --legacy-peer-deps
-RUN npm install -g prisma
-
-# Generate Prisma client for production
+RUN npm install @prisma/client
 RUN npx prisma generate
 
 # Set environment variables
