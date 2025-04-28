@@ -11,6 +11,8 @@ COPY shared ./shared
 WORKDIR /app/shared
 RUN npm install
 RUN npm install typescript
+RUN npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg
+RUN npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg
 RUN npx tsc
 
 # Copy package files and install dependencies
@@ -19,6 +21,7 @@ COPY package*.json ./
 RUN npm install
 RUN npm install -g typescript tsconfig-paths
 RUN npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg
+RUN npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg
 
 # Copy source files and build
 COPY prisma ./prisma/
@@ -41,6 +44,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 RUN npm install --production
 RUN npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg
+RUN npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
