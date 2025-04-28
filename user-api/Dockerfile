@@ -22,6 +22,10 @@ RUN npm install prisma --save-dev && \
     chmod -R 755 /app/node_modules/prisma && \
     chmod -R 755 /app/node_modules/@prisma
 RUN npx prisma generate
+
+# 修改 tsconfig.json 以移除 shared 引用
+RUN sed -i 's/"references": \[.*\]/"references": \[\]/' tsconfig.json
+
 RUN npx tsc --skipLibCheck
 
 # Debug: List files after build
