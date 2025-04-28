@@ -6,15 +6,10 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
-# Copy shared module first
-COPY shared ./shared
-
-# Build shared module
-WORKDIR /app/shared
-RUN npm install && npm install typescript && npx tsc
+# Copy shared module
+COPY --from=panda-quant-shared /app /app/shared
 
 # Copy admin-api files
-WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY tsconfig.json ./
@@ -44,7 +39,6 @@ WORKDIR /app
 # Copy package files and install production dependencies
 COPY package*.json ./
 COPY prisma ./prisma/
-COPY shared ./shared/
 
 # Install production dependencies
 RUN npm install --production

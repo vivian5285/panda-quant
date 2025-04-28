@@ -6,15 +6,19 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
+# Copy shared module
+COPY --from=panda-quant-shared /app /app/shared
+
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install && \
+    npm install -g vite && \
+    chmod -R 755 /app
 
-# Copy source code and shared module
+# Copy source code
 COPY . .
-COPY ../shared ./shared
 
 # Build the app
 RUN npm run build
