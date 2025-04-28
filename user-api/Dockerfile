@@ -38,7 +38,9 @@ RUN npx tsc
 RUN echo "=== Builder stage files ===" && \
     ls -la /app && \
     echo "=== Builder stage dist files ===" && \
-    ls -la /app/dist
+    ls -la /app/dist && \
+    echo "=== Builder stage dist contents ===" && \
+    cat /app/dist/index.js
 
 # Production stage
 FROM node:18-alpine
@@ -61,7 +63,9 @@ COPY --from=builder /app/shared ./shared
 RUN echo "=== Production stage files ===" && \
     ls -la /app/user-api && \
     echo "=== Production stage dist files ===" && \
-    ls -la /app/user-api/dist
+    ls -la /app/user-api/dist && \
+    echo "=== Production stage dist contents ===" && \
+    cat /app/user-api/dist/index.js
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
