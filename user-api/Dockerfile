@@ -34,6 +34,9 @@ COPY app.ts ./
 RUN npx prisma generate
 RUN npx tsc
 
+# Debug: List files after build
+RUN ls -la /app/dist
+
 # Production stage
 FROM node:18-alpine
 
@@ -50,6 +53,9 @@ RUN npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/shared ./shared
+
+# Debug: List files after copy
+RUN ls -la /app/user-api/dist
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
