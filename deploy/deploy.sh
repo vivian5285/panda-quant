@@ -39,8 +39,8 @@ stop_services() {
     print_message "Stopping services..." "$YELLOW"
     
     # 停止所有服务
-    docker-compose -f docker-compose.admin.yml down || handle_error "Failed to stop admin services"
-    docker-compose -f docker-compose.user.yml down || handle_error "Failed to stop user services"
+    docker-compose -f docker-compose.admin.yml down || print_message "No admin services to stop" "$YELLOW"
+    docker-compose -f docker-compose.user.yml down || print_message "No user services to stop" "$YELLOW"
 }
 
 # 创建网络
@@ -54,17 +54,29 @@ setup_network() {
     docker-compose -f docker-compose.network.yml up -d || handle_error "Failed to create network"
 }
 
+# 准备构建环境
+prepare_build() {
+    print_message "Preparing build environment..." "$YELLOW"
+    
+    # 创建必要的目录
+    mkdir -p prisma
+    
+    # 复制必要的文件
+    cp -r ../admin-api/* .
+    cp -r ../admin-ui/* .
+}
+
 # 构建服务
 build_services() {
     print_message "Building services..." "$YELLOW"
     
     # 构建 admin-api
     print_message "Building admin-api..." "$YELLOW"
-    docker-compose -f docker-compose.admin.yml build admin-api || handle_error "Failed to build admin-api"
+    docker-compose -f docker-compose.admin.yml build --no-cache admin-api || handle_error "Failed to build admin-api"
     
     # 构建 admin-ui
     print_message "Building admin-ui..." "$YELLOW"
-    docker-compose -f docker-compose.admin.yml build admin-ui || handle_error "Failed to build admin-ui"
+    docker-compose -f docker-compose.admin.yml build --no-cache admin-ui || handle_error "Failed to build admin-ui"
 }
 
 # 启动服务
@@ -122,6 +134,7 @@ main() {
     cleanup_system
     stop_services
     setup_network
+    prepare_build
     build_services
     start_services
     check_services

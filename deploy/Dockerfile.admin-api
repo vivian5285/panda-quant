@@ -7,18 +7,20 @@ RUN apk add --no-cache python3 make g++
 
 # Copy package files
 COPY package*.json ./
-COPY prisma ./prisma/
 
-# Install dependencies including Prisma
+# Install dependencies
 RUN npm install --legacy-peer-deps
 RUN npm install prisma --save-dev
 RUN npm install @prisma/client
 
-# Generate Prisma client
-RUN npx prisma generate
+# Create prisma directory if it doesn't exist
+RUN mkdir -p prisma
 
 # Copy source code
 COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate
 
 # Build the application
 RUN npm run build
@@ -34,7 +36,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 
-# Install production dependencies including Prisma
+# Install production dependencies
 RUN npm install --production --legacy-peer-deps
 RUN npm install prisma --save-dev
 RUN npm install @prisma/client
