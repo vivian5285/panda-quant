@@ -15,7 +15,7 @@ RUN chmod -R 777 .
 RUN npm install
 RUN chmod -R 777 node_modules
 RUN npm install typescript
-RUN npm run build
+RUN npx tsc
 
 # Copy admin-api files
 WORKDIR /app
@@ -38,7 +38,7 @@ RUN mkdir -p node_modules/@shared
 RUN cp -r /app/shared/dist/* node_modules/@shared/
 
 # Build admin-api
-RUN npm run build
+RUN npx tsc
 
 # Production stage
 FROM node:18-alpine
