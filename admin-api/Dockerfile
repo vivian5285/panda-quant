@@ -15,8 +15,7 @@ COPY tsconfig.json ./
 RUN npm install && \
     npm install -g typescript && \
     npm install --save-dev @types/node && \
-    npm install prisma --save-dev && \
-    chmod -R 777 /app
+    npm install prisma --save-dev
 
 # Copy source code
 COPY . .
@@ -24,7 +23,8 @@ COPY . .
 # Set environment variables for Prisma
 ENV MONGODB_ADMIN_URI=mongodb://admin:PandaQuant@2024@mongodb-admin:27017/panda-quant-admin?authSource=admin
 
-# Generate Prisma client
+# Generate Prisma client as root
+USER root
 RUN npx prisma generate
 
 # Build admin-api
@@ -44,8 +44,7 @@ COPY prisma ./prisma/
 
 # Install production dependencies
 RUN npm install --production && \
-    npm install prisma --save-dev && \
-    chmod -R 777 /app
+    npm install prisma --save-dev
 
 # Copy built files from build stage
 COPY --from=build /app/dist ./dist
