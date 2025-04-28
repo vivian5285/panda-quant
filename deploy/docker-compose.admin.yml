@@ -103,10 +103,6 @@ services:
       timeout: 10s
       retries: 3
 
-networks:
-  panda-quant-network:
-    external: true
-
 volumes:
   mongodb_data:
   redis_data: 
