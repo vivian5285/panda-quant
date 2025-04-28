@@ -86,16 +86,31 @@ build_shared() {
         # 确保目标目录存在
         mkdir -p src/types 2>/dev/null || true
         # 只移动 .ts 文件
-        find types -name "*.ts" -exec mv {} src/types/ \; 2>/dev/null || true
-        rm -rf types
+        find types -name "*.ts" -exec cp {} src/types/ \; 2>/dev/null || true
     fi
     
     if [ -d "models" ]; then
         # 确保目标目录存在
         mkdir -p src/models 2>/dev/null || true
         # 只移动 .ts 文件
-        find models -name "*.ts" -exec mv {} src/models/ \; 2>/dev/null || true
-        rm -rf models
+        find models -name "*.ts" -exec cp {} src/models/ \; 2>/dev/null || true
+    fi
+    
+    # 如果 src 目录下没有必要的文件，则从其他目录复制
+    if [ ! -f "src/types/auth.ts" ] && [ -f "types/auth.ts" ]; then
+        cp types/auth.ts src/types/
+    fi
+    
+    if [ ! -f "src/models/user.ts" ] && [ -f "models/user.ts" ]; then
+        cp models/user.ts src/models/
+    fi
+    
+    if [ ! -f "src/models/asset.ts" ] && [ -f "models/asset.ts" ]; then
+        cp models/asset.ts src/models/
+    fi
+    
+    if [ ! -f "src/models/fee.ts" ] && [ -f "models/fee.ts" ]; then
+        cp models/fee.ts src/models/
     fi
     
     # 确保所有必要的源文件都存在
