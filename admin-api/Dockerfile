@@ -27,7 +27,7 @@ COPY tsconfig.json ./
 # Install dependencies and type definitions
 RUN npm install
 RUN npm install -g typescript
-RUN npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node
+RUN npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg
 RUN npx prisma generate
 
 # Verify TypeScript installation
