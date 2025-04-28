@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "../",
+    "rootDir": "./",
     "resolveJsonModule": true,
     "declaration": true,
     "moduleResolution": "node",
@@ -16,8 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["../shared/*"]
-    },
-    "composite": true
+    }
   },
   "include": [
     "src/**/*",
