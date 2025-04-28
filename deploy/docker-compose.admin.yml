@@ -103,6 +103,15 @@ services:
       timeout: 10s
       retries: 3
 
+networks:
+  panda-quant-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+
 volumes:
   mongodb_data:
   redis_data: 
