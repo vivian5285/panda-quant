@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS build
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -47,9 +47,9 @@ RUN npm install --production && \
     npm install prisma --save-dev
 
 # Copy built files from build stage
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/prisma ./prisma
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/prisma ./prisma
 
 # Set environment variables
 ENV NODE_ENV=production
