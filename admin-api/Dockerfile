@@ -17,14 +17,19 @@ RUN npm install && \
     npm install --save-dev @types/node && \
     npm install prisma --save-dev
 
+# Set permissions
+RUN chown -R node:node /app
+
+# Switch to node user
+USER node
+
 # Copy source code
-COPY . .
+COPY --chown=node:node . .
 
 # Set environment variables for Prisma
 ENV MONGODB_ADMIN_URI=mongodb://admin:PandaQuant@2024@mongodb-admin:27017/panda-quant-admin?authSource=admin
 
-# Generate Prisma client as root
-USER root
+# Generate Prisma client
 RUN npx prisma generate
 
 # Build admin-api
