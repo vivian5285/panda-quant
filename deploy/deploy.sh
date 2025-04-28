@@ -60,10 +60,6 @@ prepare_build() {
     
     # 创建必要的目录
     mkdir -p prisma
-    
-    # 复制必要的文件
-    cp -r ../admin-api/* .
-    cp -r ../admin-ui/* .
 }
 
 # 构建服务
@@ -77,14 +73,25 @@ build_services() {
     # 构建 admin-ui
     print_message "Building admin-ui..." "$YELLOW"
     docker-compose -f docker-compose.admin.yml build --no-cache admin-ui || handle_error "Failed to build admin-ui"
+    
+    # 构建 user-api
+    print_message "Building user-api..." "$YELLOW"
+    docker-compose -f docker-compose.user.yml build --no-cache user-api || handle_error "Failed to build user-api"
+    
+    # 构建 user-ui
+    print_message "Building user-ui..." "$YELLOW"
+    docker-compose -f docker-compose.user.yml build --no-cache user-ui || handle_error "Failed to build user-ui"
 }
 
 # 启动服务
 start_services() {
     print_message "Starting services..." "$YELLOW"
     
-    # 启动服务
-    docker-compose -f docker-compose.admin.yml up -d || handle_error "Failed to start services"
+    # 启动管理端服务
+    docker-compose -f docker-compose.admin.yml up -d || handle_error "Failed to start admin services"
+    
+    # 启动用户端服务
+    docker-compose -f docker-compose.user.yml up -d || handle_error "Failed to start user services"
 }
 
 # 检查服务状态
@@ -94,7 +101,7 @@ check_services() {
     # 等待服务启动
     sleep 10
     
-    # 检查容器状态
+    # 检查管理端容器状态
     if ! docker ps | grep -q "panda-quant-admin-api"; then
         handle_error "admin-api container is not running"
     fi
@@ -104,25 +111,49 @@ check_services() {
     fi
     
     if ! docker ps | grep -q "panda-quant-nginx-admin"; then
-        handle_error "nginx container is not running"
+        handle_error "nginx-admin container is not running"
+    fi
+    
+    # 检查用户端容器状态
+    if ! docker ps | grep -q "panda-quant-user-api"; then
+        handle_error "user-api container is not running"
+    fi
+    
+    if ! docker ps | grep -q "panda-quant-user-ui"; then
+        handle_error "user-ui container is not running"
+    fi
+    
+    if ! docker ps | grep -q "panda-quant-nginx-user"; then
+        handle_error "nginx-user container is not running"
     fi
     
     # 检查服务健康状态
     print_message "Checking service health..." "$YELLOW"
     
-    # 检查 admin-api 健康状态
+    # 检查管理端健康状态
     if ! curl -s http://localhost:3001/health | grep -q "ok"; then
         handle_error "admin-api health check failed"
     fi
     
-    # 检查 admin-ui 健康状态
     if ! curl -s http://localhost:3000/health | grep -q "ok"; then
         handle_error "admin-ui health check failed"
     fi
     
-    # 检查 nginx 健康状态
     if ! curl -s http://localhost:8081/health | grep -q "ok"; then
-        handle_error "nginx health check failed"
+        handle_error "nginx-admin health check failed"
+    fi
+    
+    # 检查用户端健康状态
+    if ! curl -s http://localhost:3002/health | grep -q "ok"; then
+        handle_error "user-api health check failed"
+    fi
+    
+    if ! curl -s http://localhost:3003/health | grep -q "ok"; then
+        handle_error "user-ui health check failed"
+    fi
+    
+    if ! curl -s http://localhost:8080/health | grep -q "ok"; then
+        handle_error "nginx-user health check failed"
     fi
 }
 

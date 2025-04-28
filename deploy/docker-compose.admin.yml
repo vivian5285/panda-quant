@@ -60,7 +60,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ../admin-ui/dist:/usr/share/nginx/html:ro
+      - ./admin-ui/dist:/usr/share/nginx/html:ro
     restart: unless-stopped
     networks:
       panda-quant-network:
