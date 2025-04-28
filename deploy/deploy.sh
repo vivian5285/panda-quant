@@ -72,7 +72,31 @@ install_dependencies() {
 build_shared() {
     log "构建 shared 模块..."
     cd "$WORKSPACE_DIR/shared"
+    
+    # 确保源代码在正确的位置
+    if [ ! -d "src" ]; then
+        mkdir -p src/types src/models
+    fi
+    
+    # 如果源代码不在 src 目录下，则移动它们
+    if [ -d "types" ] && [ ! -d "src/types" ]; then
+        mv types/* src/types/ 2>/dev/null || true
+        rm -rf types
+    fi
+    
+    if [ -d "models" ] && [ ! -d "src/models" ]; then
+        mv models/* src/models/ 2>/dev/null || true
+        rm -rf models
+    fi
+    
+    # 构建项目
     npm run build
+    
+    # 确保构建成功
+    if [ ! -d "dist" ]; then
+        error "shared 模块构建失败"
+    fi
+    
     cd "$WORKSPACE_DIR"
 }
 
@@ -141,28 +165,28 @@ check_commands() {
 # 复制shared目录
 copy_shared_directory() {
     log "复制shared目录..."
-    if [ -d "$WORKSPACE_DIR/shared" ]; then
+    if [ -d "$WORKSPACE_DIR/shared/dist" ]; then
         # 确保目标目录存在
         mkdir -p "$WORKSPACE_DIR/admin-api/shared"
         mkdir -p "$WORKSPACE_DIR/user-api/shared"
         mkdir -p "$WORKSPACE_DIR/admin-ui/shared"
         mkdir -p "$WORKSPACE_DIR/user-ui/shared"
         
-        # 复制 shared 目录到各个服务目录
-        cp -r "$WORKSPACE_DIR/shared"/* "$WORKSPACE_DIR/admin-api/shared/"
-        cp -r "$WORKSPACE_DIR/shared"/* "$WORKSPACE_DIR/user-api/shared/"
-        cp -r "$WORKSPACE_DIR/shared"/* "$WORKSPACE_DIR/admin-ui/shared/"
-        cp -r "$WORKSPACE_DIR/shared"/* "$WORKSPACE_DIR/user-ui/shared/"
+        # 复制构建后的文件到各个服务目录
+        cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/admin-api/shared/"
+        cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/user-api/shared/"
+        cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/admin-ui/shared/"
+        cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/user-ui/shared/"
         
-        # 创建符号链接
-        ln -sf "$WORKSPACE_DIR/shared" "$WORKSPACE_DIR/admin-api/shared"
-        ln -sf "$WORKSPACE_DIR/shared" "$WORKSPACE_DIR/user-api/shared"
-        ln -sf "$WORKSPACE_DIR/shared" "$WORKSPACE_DIR/admin-ui/shared"
-        ln -sf "$WORKSPACE_DIR/shared" "$WORKSPACE_DIR/user-ui/shared"
+        # 复制 package.json 以确保依赖关系正确
+        cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/admin-api/shared/"
+        cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/user-api/shared/"
+        cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/admin-ui/shared/"
+        cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/user-ui/shared/"
         
         log "shared目录复制完成"
     else
-        error "找不到shared目录: $WORKSPACE_DIR/shared"
+        error "找不到shared构建目录: $WORKSPACE_DIR/shared/dist"
     fi
 }
 
