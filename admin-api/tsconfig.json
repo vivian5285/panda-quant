@@ -1,38 +1,26 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "es2018",
     "module": "commonjs",
-    "lib": ["es2020"],
+    "outDir": "./dist",
+    "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
-    "rootDir": ".",
-    "resolveJsonModule": true,
-    "declaration": true,
     "moduleResolution": "node",
-    "typeRoots": ["./node_modules/@types"],
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["./shared/src/*"]
+      "@shared/*": ["./shared/dist/*"]
     }
   },
   "include": [
     "src/**/*",
-    "models/**/*",
-    "types/**/*",
-    "interfaces/**/*",
-    "utils/**/*",
-    "services/**/*",
-    "middleware/**/*",
-    "routes/**/*",
-    "controllers/**/*",
-    "shared/src/**/*",
-    "index.ts",
-    "app.ts"
+    "shared/dist/**/*"
   ],
-  "references": [
-    { "path": "./shared" }
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
 } 

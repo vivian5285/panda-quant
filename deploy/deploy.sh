@@ -149,6 +149,9 @@ deploy_admin_api() {
     # 检查端口
     check_port 3001 "管理端 API"
     
+    # 先构建共享模块
+    deploy_shared
+    
     # 构建管理端 API
     log "构建管理端 API..."
     docker build -t panda-quant-admin-api \
@@ -168,6 +171,9 @@ deploy_admin_api() {
 # 部署管理端 UI
 deploy_admin_ui() {
     log "部署管理端 UI..."
+    
+    # 先构建共享模块
+    deploy_shared
     
     # 构建管理端 UI
     log "构建管理端 UI..."
@@ -191,6 +197,9 @@ deploy_user_api() {
     # 检查端口
     check_port 3002 "用户端 API"
     
+    # 先构建共享模块
+    deploy_shared
+    
     # 构建用户端 API
     log "构建用户端 API..."
     docker build -t panda-quant-user-api \
@@ -210,6 +219,9 @@ deploy_user_api() {
 # 部署用户端 UI
 deploy_user_ui() {
     log "部署用户端 UI..."
+    
+    # 先构建共享模块
+    deploy_shared
     
     # 构建用户端 UI
     log "构建用户端 UI..."
