@@ -31,10 +31,11 @@ build_shared() {
     log "构建 shared 模块..."
     cd "$WORKSPACE_DIR/shared"
     
-    # 清理之前的构建
+    # 清理之前的构建和源文件
     rm -rf dist
+    rm -rf src
     
-    # 确保源代码在正确的位置
+    # 创建新的目录结构
     mkdir -p src/types src/models
     
     # 复制源文件
