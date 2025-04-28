@@ -17,13 +17,15 @@ COPY admin-api/tsconfig.json ./
 # Install dependencies including dev dependencies for type declarations
 RUN npm install && \
     npm install -g typescript tsconfig-paths prisma && \
-    npm install --save-dev @types/mongoose @types/bcryptjs @types/express
+    npm install --save-dev @types/mongoose @types/bcryptjs @types/express && \
+    chmod -R 777 /app/node_modules/.prisma && \
+    chmod -R 777 /app/node_modules/.bin
 
 # Copy source code
 COPY admin-api .
 
 # Generate Prisma client
-RUN prisma generate
+RUN npx prisma generate
 
 # Build application with path aliases support
 RUN npx tsc
