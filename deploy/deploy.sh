@@ -110,6 +110,12 @@ cleanup() {
 
 # 部署共享模块
 deploy_shared() {
+    # 检查是否已经构建过
+    if [ -d "$WORKSPACE_DIR/shared/dist" ]; then
+        log "共享模块已构建，跳过..."
+        return 0
+    fi
+    
     log "部署共享模块..."
     cd "$WORKSPACE_DIR/shared"
     rm -rf dist node_modules
