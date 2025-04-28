@@ -194,12 +194,12 @@ set_default_env() {
     export API_SUBDOMAIN=${API_SUBDOMAIN:-"api"}
     
     # 设置默认数据库连接（转义@符号）
-    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:Wl528586*@mongodb:27017/panda-quant-admin?authSource=admin"}
-    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:Wl528586*@mongodb:27017/panda-quant-user?authSource=admin"}
+    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:Wl528586*@localhost:27017/panda-quant-admin?authSource=admin"}
+    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:Wl528586*@localhost:27017/panda-quant-user?authSource=admin"}
     
     # 设置默认Redis连接（转义@符号）
-    export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:Wl528586*@redis:6380"}
-    export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:Wl528586*@redis:6381"}
+    export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:Wl528586*@localhost:6380"}
+    export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:Wl528586*@localhost:6381"}
     
     # 保存环境变量到文件
     cat > .env << EOF
@@ -448,11 +448,11 @@ set_env() {
     export ADMIN_API_SUBDOMAIN=${ADMIN_API_SUBDOMAIN:-"admin-api"}
     export API_SUBDOMAIN=${API_SUBDOMAIN:-"api"}
     
-    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:Wl528586*@mongodb:27017/panda-quant-admin?authSource=admin"}
-    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:Wl528586*@mongodb:27017/panda-quant-user?authSource=admin"}
+    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:Wl528586*@localhost:27017/panda-quant-admin?authSource=admin"}
+    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:Wl528586*@localhost:27017/panda-quant-user?authSource=admin"}
     
-    export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:Wl528586*@redis:6380"}
-    export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:Wl528586*@redis:6381"}
+    export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:Wl528586*@localhost:6380"}
+    export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:Wl528586*@localhost:6381"}
     
     export JWT_SECRET=${JWT_SECRET:-"Wl528586*"}
     export ENCRYPTION_KEY=${ENCRYPTION_KEY:-"Wl528586*"}
@@ -854,28 +854,38 @@ init_database() {
     fi
     
     # 等待服务启动
-    sleep 5
+    log "等待MongoDB服务启动..."
+    sleep 10
+    
+    # 检查MongoDB连接
+    log "检查MongoDB连接..."
+    if ! mongosh "mongodb://admin:Wl528586*@localhost:27017/admin" --eval "db.getMongo()" &> /dev/null; then
+        error "无法连接到MongoDB，请检查服务是否正常运行"
+    fi
     
     # 创建管理端数据库
     log "创建管理端数据库..."
-    if ! mongosh "$MONGODB_ADMIN_URI" --eval "db.getMongo()" &> /dev/null; then
-        mongosh "$MONGODB_ADMIN_URI" --eval "db.createCollection('users')"
-        mongosh "$MONGODB_ADMIN_URI" --eval "db.createCollection('settings')"
-        log "管理端数据库创建成功"
-    else
-        log "管理端数据库已存在"
+    if ! mongosh "mongodb://admin:Wl528586*@localhost:27017/admin" --eval "db.getMongo()" &> /dev/null; then
+        error "无法连接到MongoDB管理数据库"
     fi
     
-    # 创建用户端数据库
-    log "创建用户端数据库..."
-    if ! mongosh "$MONGODB_USER_URI" --eval "db.getMongo()" &> /dev/null; then
-        mongosh "$MONGODB_USER_URI" --eval "db.createCollection('users')"
-        mongosh "$MONGODB_USER_URI" --eval "db.createCollection('orders')"
-        mongosh "$MONGODB_USER_URI" --eval "db.createCollection('transactions')"
-        log "用户端数据库创建成功"
-    else
-        log "用户端数据库已存在"
+    # 创建数据库和集合
+    log "创建数据库和集合..."
+    mongosh "mongodb://admin:Wl528586*@localhost:27017/admin" --eval "
+        db = db.getSiblingDB('panda-quant-admin');
+        db.createCollection('users');
+        db.createCollection('settings');
+        db = db.getSiblingDB('panda-quant-user');
+        db.createCollection('users');
+        db.createCollection('orders');
+        db.createCollection('transactions');
+    "
+    
+    if [ $? -ne 0 ]; then
+        error "创建数据库和集合失败"
     fi
+    
+    log "数据库初始化完成"
 }
 
 # 创建Dockerfile
