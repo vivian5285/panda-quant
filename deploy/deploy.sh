@@ -893,6 +893,7 @@ create_dockerfiles() {
     log "创建Dockerfile..."
     
     # 创建admin-api的Dockerfile
+    mkdir -p "$WORKSPACE_DIR/admin-api"
     cat > "$WORKSPACE_DIR/admin-api/Dockerfile" << EOF
 FROM node:18-alpine
 
@@ -911,6 +912,7 @@ CMD ["npm", "start"]
 EOF
 
     # 创建user-api的Dockerfile
+    mkdir -p "$WORKSPACE_DIR/user-api"
     cat > "$WORKSPACE_DIR/user-api/Dockerfile" << EOF
 FROM node:18-alpine
 
@@ -929,6 +931,7 @@ CMD ["npm", "start"]
 EOF
 
     # 创建admin-ui的Dockerfile
+    mkdir -p "$WORKSPACE_DIR/admin-ui"
     cat > "$WORKSPACE_DIR/admin-ui/Dockerfile" << EOF
 FROM node:18-alpine
 
@@ -947,6 +950,7 @@ CMD ["npm", "start"]
 EOF
 
     # 创建user-ui的Dockerfile
+    mkdir -p "$WORKSPACE_DIR/user-ui"
     cat > "$WORKSPACE_DIR/user-ui/Dockerfile" << EOF
 FROM node:18-alpine
 
