@@ -22,7 +22,17 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY src ./src/
+COPY models ./models/
+COPY types ./types/
+COPY interfaces ./interfaces/
+COPY utils ./utils/
+COPY services ./services/
+COPY middleware ./middleware/
+COPY routes ./routes/
+COPY controllers ./controllers/
 COPY tsconfig.json ./
+COPY index.ts ./
+COPY app.ts ./
 
 # Install dependencies and type definitions
 RUN npm install
