@@ -168,7 +168,13 @@ build_shared() {
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "mongoose": "^7.6.3",
+    "bcryptjs": "^2.4.3",
+    "express": "^4.18.2",
+    "@types/mongoose": "^5.11.97",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^4.17.21"
   }
 }
 EOL
@@ -200,7 +206,9 @@ EOL
 EOL
     
     # 安装依赖并构建
+    log "安装 shared 模块依赖..."
     npm install
+    log "构建 shared 模块..."
     npm run build
     
     # 确保构建成功
