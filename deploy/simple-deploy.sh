@@ -80,9 +80,14 @@ deploy_admin() {
     rm -rf admin-api/shared
     cp -r shared admin-api/
     
+    # 更新 tsconfig.json
+    log "更新 tsconfig.json..."
+    cd "$WORKSPACE_DIR/admin-api"
+    sed -i 's/"shared\/\*\*\/\*",//g' tsconfig.json
+    sed -i '/"references": \[/,/\]/d' tsconfig.json
+    
     # 安装管理端依赖
     log "安装管理端依赖..."
-    cd "$WORKSPACE_DIR/admin-api"
     npm install
     
     cd "$WORKSPACE_DIR/admin-ui"
@@ -120,9 +125,14 @@ deploy_user() {
     rm -rf user-api/shared
     cp -r shared user-api/
     
+    # 更新 tsconfig.json
+    log "更新 tsconfig.json..."
+    cd "$WORKSPACE_DIR/user-api"
+    sed -i 's/"shared\/\*\*\/\*",//g' tsconfig.json
+    sed -i '/"references": \[/,/\]/d' tsconfig.json
+    
     # 安装用户端依赖
     log "安装用户端依赖..."
-    cd "$WORKSPACE_DIR/user-api"
     npm install
     
     cd "$WORKSPACE_DIR/user-ui"
