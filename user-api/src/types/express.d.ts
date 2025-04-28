@@ -1,32 +1,23 @@
-import { Request as ExpressRequest, Response as ExpressResponse, NextFunction as ExpressNextFunction, Router as ExpressRouter } from 'express';
+import { Request as ExpressRequest, Response as ExpressResponse, NextFunction as ExpressNextFunction } from 'express';
 
 declare global {
   namespace Express {
     interface Request extends ExpressRequest {
-      user?: {
-        id: string;
-        email: string;
-        role: 'user' | 'admin';
-      };
+      user?: any;
+      headers: any;
+      body: any;
     }
     interface Response extends ExpressResponse {}
     interface NextFunction extends ExpressNextFunction {}
-    interface Router extends ExpressRouter {}
   }
 }
 
-export interface AuthRequest extends ExpressRequest {
-  user?: {
-    id: string;
-    email: string;
-    role: 'user' | 'admin';
-  };
+export interface AuthRequest extends Express.Request {
+  user?: any;
+  headers: any;
+  body: any;
 }
 
-export interface AuthResponse extends ExpressResponse {}
+export interface AuthResponse extends Express.Response {}
 
-export interface AuthNextFunction extends ExpressNextFunction {}
-
-export interface AuthRouter extends ExpressRouter {}
-
-export { ExpressRequest, ExpressResponse, ExpressNextFunction, ExpressRouter }; 
+export interface AuthNextFunction extends Express.NextFunction {} 

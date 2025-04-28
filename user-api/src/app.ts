@@ -7,6 +7,7 @@ import { errorHandler } from './middleware/error.middleware';
 import authRoutes from './routes/auth.routes';
 import verificationRoutes from './routes/verification.routes';
 import { syncService } from './services/sync.service';
+import routes from './routes';
 
 const app = express();
 
@@ -31,11 +32,15 @@ app.get('/health', (req, res) => {
 });
 
 // 路由
+app.use('/api', routes);
 app.use('/api/auth', authRoutes);
 app.use('/api/verification', verificationRoutes);
 
 // 错误处理
-app.use(errorHandler);
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
+});
 
 async function startServer() {
   try {
