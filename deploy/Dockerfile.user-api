@@ -1,15 +1,15 @@
 FROM node:18-alpine
 
-WORKDIR /app/user-api
+WORKDIR /app
 
 # 复制package.json和package-lock.json
-COPY user-api/package*.json ./
+COPY package*.json ./
 
 # 安装依赖
 RUN npm install
 
 # 复制源代码
-COPY user-api/ .
+COPY . .
 
 # 编译TypeScript代码
 RUN npm run build
