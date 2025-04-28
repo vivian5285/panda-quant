@@ -89,12 +89,20 @@ build_shared() {
         rm -rf models
     fi
     
+    # 清理之前的构建
+    rm -rf dist
+    
     # 构建项目
     npm run build
     
-    # 确保构建成功
+    # 确保构建成功并生成类型定义文件
     if [ ! -d "dist" ]; then
         error "shared 模块构建失败"
+    fi
+    
+    # 检查必要的类型定义文件是否存在
+    if [ ! -f "dist/types/auth.d.ts" ] || [ ! -f "dist/models/user.d.ts" ] || [ ! -f "dist/models/asset.d.ts" ] || [ ! -f "dist/models/fee.d.ts" ]; then
+        error "shared 模块的类型定义文件未正确生成"
     fi
     
     cd "$WORKSPACE_DIR"
@@ -183,6 +191,16 @@ copy_shared_directory() {
         cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/user-api/shared/"
         cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/admin-ui/shared/"
         cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/user-ui/shared/"
+        
+        # 验证类型定义文件是否已正确复制
+        for service in admin-api user-api admin-ui user-ui; do
+            if [ ! -f "$WORKSPACE_DIR/$service/shared/types/auth.d.ts" ] || \
+               [ ! -f "$WORKSPACE_DIR/$service/shared/models/user.d.ts" ] || \
+               [ ! -f "$WORKSPACE_DIR/$service/shared/models/asset.d.ts" ] || \
+               [ ! -f "$WORKSPACE_DIR/$service/shared/models/fee.d.ts" ]; then
+                error "类型定义文件未正确复制到 $service"
+            fi
+        done
         
         log "shared目录复制完成"
     else
@@ -649,13 +667,37 @@ build_services() {
     rm -rf node_modules
     rm -rf dist
     npm install
-    # 确保生成类型定义文件
+    
+    # 确保源代码在正确的位置
+    if [ ! -d "src" ]; then
+        mkdir -p src/types src/models
+    fi
+    
+    # 如果源代码不在 src 目录下，则移动它们
+    if [ -d "types" ] && [ ! -d "src/types" ]; then
+        mv types/* src/types/ 2>/dev/null || true
+        rm -rf types
+    fi
+    
+    if [ -d "models" ] && [ ! -d "src/models" ]; then
+        mv models/* src/models/ 2>/dev/null || true
+        rm -rf models
+    fi
+    
+    # 构建项目
     npm run build
     
-    # 检查类型定义文件是否存在
-    if [ ! -f "dist/models/user.d.ts" ]; then
-        error "shared 模块的类型定义文件未生成"
+    # 确保构建成功并生成类型定义文件
+    if [ ! -d "dist" ]; then
+        error "shared 模块构建失败"
     fi
+    
+    # 检查必要的类型定义文件是否存在
+    if [ ! -f "dist/types/auth.d.ts" ] || [ ! -f "dist/models/user.d.ts" ] || [ ! -f "dist/models/asset.d.ts" ] || [ ! -f "dist/models/fee.d.ts" ]; then
+        error "shared 模块的类型定义文件未正确生成"
+    fi
+    
+    cd "$WORKSPACE_DIR"
     
     # 复制 shared 目录
     log "复制 shared 目录..."
@@ -664,30 +706,27 @@ build_services() {
     mkdir -p "$WORKSPACE_DIR/admin-ui/shared"
     mkdir -p "$WORKSPACE_DIR/user-ui/shared"
     
-    # 复制整个 shared 目录，包括类型定义文件
+    # 复制构建后的文件到各个服务目录
     cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/admin-api/shared/"
     cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/user-api/shared/"
     cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/admin-ui/shared/"
     cp -r "$WORKSPACE_DIR/shared/dist"/* "$WORKSPACE_DIR/user-ui/shared/"
     
-    # 创建 package.json 文件
-    cat > "$WORKSPACE_DIR/admin-api/shared/package.json" << EOF
-{
-  "name": "@shared",
-  "version": "1.0.0",
-  "main": "index.js",
-  "types": "index.d.ts"
-}
-EOF
+    # 复制 package.json 以确保依赖关系正确
+    cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/admin-api/shared/"
+    cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/user-api/shared/"
+    cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/admin-ui/shared/"
+    cp "$WORKSPACE_DIR/shared/package.json" "$WORKSPACE_DIR/user-ui/shared/"
     
-    cat > "$WORKSPACE_DIR/user-api/shared/package.json" << EOF
-{
-  "name": "@shared",
-  "version": "1.0.0",
-  "main": "index.js",
-  "types": "index.d.ts"
-}
-EOF
+    # 验证类型定义文件是否已正确复制
+    for service in admin-api user-api admin-ui user-ui; do
+        if [ ! -f "$WORKSPACE_DIR/$service/shared/types/auth.d.ts" ] || \
+           [ ! -f "$WORKSPACE_DIR/$service/shared/models/user.d.ts" ] || \
+           [ ! -f "$WORKSPACE_DIR/$service/shared/models/asset.d.ts" ] || \
+           [ ! -f "$WORKSPACE_DIR/$service/shared/models/fee.d.ts" ]; then
+            error "类型定义文件未正确复制到 $service"
+        fi
+    done
     
     # 构建 admin-api
     log "构建 admin-api..."
@@ -695,14 +734,6 @@ EOF
     rm -rf node_modules
     rm -rf dist
     npm install
-    # 确保 shared 目录存在
-    if [ ! -d "shared" ]; then
-        error "shared 目录不存在，构建失败"
-    fi
-    # 确保类型定义文件存在
-    if [ ! -f "shared/models/user.d.ts" ]; then
-        error "shared 模块的类型定义文件未找到"
-    fi
     npm run build
     
     # 构建 user-api
@@ -711,14 +742,6 @@ EOF
     rm -rf node_modules
     rm -rf dist
     npm install
-    # 确保 shared 目录存在
-    if [ ! -d "shared" ]; then
-        error "shared 目录不存在，构建失败"
-    fi
-    # 确保类型定义文件存在
-    if [ ! -f "shared/models/user.d.ts" ]; then
-        error "shared 模块的类型定义文件未找到"
-    fi
     npm run build
     
     # 构建 admin-ui
@@ -727,14 +750,6 @@ EOF
     rm -rf node_modules
     rm -rf dist
     npm install
-    # 确保 shared 目录存在
-    if [ ! -d "shared" ]; then
-        error "shared 目录不存在，构建失败"
-    fi
-    # 确保类型定义文件存在
-    if [ ! -f "shared/models/user.d.ts" ]; then
-        error "shared 模块的类型定义文件未找到"
-    fi
     npm run build
     
     # 构建 user-ui
@@ -743,14 +758,6 @@ EOF
     rm -rf node_modules
     rm -rf dist
     npm install
-    # 确保 shared 目录存在
-    if [ ! -d "shared" ]; then
-        error "shared 目录不存在，构建失败"
-    fi
-    # 确保类型定义文件存在
-    if [ ! -f "shared/models/user.d.ts" ]; then
-        error "shared 模块的类型定义文件未找到"
-    fi
     npm run build
     
     cd "$WORKSPACE_DIR"
