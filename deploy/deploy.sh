@@ -194,8 +194,8 @@ set_default_env() {
     export API_SUBDOMAIN=${API_SUBDOMAIN:-"api"}
     
     # 设置默认数据库连接（转义@符号）
-    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:Wl528586*@mongodb:27018/panda-quant-admin?authSource=admin"}
-    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:Wl528586*@mongodb:27019/panda-quant-user?authSource=admin"}
+    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:Wl528586*@mongodb:27017/panda-quant-admin?authSource=admin"}
+    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:Wl528586*@mongodb:27017/panda-quant-user?authSource=admin"}
     
     # 设置默认Redis连接（转义@符号）
     export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:Wl528586*@redis:6380"}
@@ -448,8 +448,8 @@ set_env() {
     export ADMIN_API_SUBDOMAIN=${ADMIN_API_SUBDOMAIN:-"admin-api"}
     export API_SUBDOMAIN=${API_SUBDOMAIN:-"api"}
     
-    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:Wl528586*@mongodb:27018/panda-quant-admin?authSource=admin"}
-    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:Wl528586*@mongodb:27019/panda-quant-user?authSource=admin"}
+    export MONGODB_ADMIN_URI=${MONGODB_ADMIN_URI:-"mongodb://admin:Wl528586*@mongodb:27017/panda-quant-admin?authSource=admin"}
+    export MONGODB_USER_URI=${MONGODB_USER_URI:-"mongodb://admin:Wl528586*@mongodb:27017/panda-quant-user?authSource=admin"}
     
     export REDIS_ADMIN_URL=${REDIS_ADMIN_URL:-"redis://:Wl528586*@redis:6380"}
     export REDIS_USER_URL=${REDIS_USER_URL:-"redis://:Wl528586*@redis:6381"}
