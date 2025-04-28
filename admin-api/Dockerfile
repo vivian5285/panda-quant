@@ -69,6 +69,7 @@ COPY tsconfig.json ./
 # Install production dependencies
 RUN npm install --production && \
     npm install -g typescript && \
+    npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types/node @types/cors @types/jest @types/jsonwebtoken @types/node-cron @types/pg && \
     npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg redis winston
 
 # Copy shared module build output
