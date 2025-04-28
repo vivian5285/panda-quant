@@ -17,7 +17,8 @@ RUN npm install -g typescript tsconfig-paths
 COPY shared ./shared
 WORKDIR /app/shared
 RUN npm install
-RUN npm run build
+RUN npm install typescript
+RUN npx tsc
 
 # Copy source files and build
 WORKDIR /app
