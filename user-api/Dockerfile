@@ -24,11 +24,8 @@ RUN npm install --save-dev @types/mongoose @types/bcryptjs @types/express @types
 RUN npm install mongoose bcryptjs express cors jsonwebtoken node-cron pg
 
 # Copy source files and build
-COPY prisma ./prisma/
-COPY src ./src/
-COPY tsconfig.json ./
-COPY index.ts ./
-COPY app.ts ./
+COPY . .
+RUN ls -la /app/src
 
 # Generate Prisma client and build
 RUN npx prisma generate
