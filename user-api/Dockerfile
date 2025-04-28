@@ -24,7 +24,8 @@ RUN prisma generate
 # 修改 tsconfig.json 以移除 shared 引用
 RUN sed -i 's/"references": \[.*\]/"references": \[\]/' tsconfig.json && \
     sed -i 's/"paths": {.*}/"paths": {}/' tsconfig.json && \
-    sed -i 's/"baseUrl": ".*"/"baseUrl": "."/' tsconfig.json
+    sed -i 's/"baseUrl": ".*"/"baseUrl": "."/' tsconfig.json && \
+    sed -i 's/"include": \[.*\]/"include": \["src\/\*\*\/\*", "\*.ts"\]/' tsconfig.json
 
 RUN npx tsc --skipLibCheck
 
