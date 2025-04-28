@@ -24,9 +24,7 @@ services:
   user-api:
     build:
       context: ../user-api
-      dockerfile: ../deploy/Dockerfile.user-api
-      args:
-        - PORT=3002
+      dockerfile: Dockerfile
     container_name: panda-quant-user-api
     environment:
       - NODE_ENV=production
@@ -46,7 +44,7 @@ services:
   user-ui:
     build:
       context: ../user-ui
-      dockerfile: ../deploy/Dockerfile.user-ui
+      dockerfile: Dockerfile
     container_name: panda-quant-user-ui
     volumes:
       - ../user-ui/dist:/usr/share/nginx/html:ro

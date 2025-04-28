@@ -24,9 +24,7 @@ services:
   admin-api:
     build:
       context: ../admin-api
-      dockerfile: ../deploy/Dockerfile.admin-api
-      args:
-        - PORT=3001
+      dockerfile: Dockerfile
     container_name: panda-quant-admin-api
     environment:
       - NODE_ENV=production
@@ -46,7 +44,7 @@ services:
   admin-ui:
     build:
       context: ../admin-ui
-      dockerfile: ../deploy/Dockerfile.admin-ui
+      dockerfile: Dockerfile
     container_name: panda-quant-admin-ui
     volumes:
       - ../admin-ui/dist:/usr/share/nginx/html:ro
