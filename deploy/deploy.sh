@@ -21,6 +21,31 @@ handle_error() {
     exit 1
 }
 
+# 检查并安装必要的软件
+install_requirements() {
+    print_message "Installing required packages..." "$YELLOW"
+    
+    # 检查并安装必要的软件包
+    required_packages=(
+        "git"
+        "nodejs"
+        "npm"
+        "docker"
+        "docker-compose"
+        "nginx"
+        "certbot"
+        "python3-certbot-nginx"
+    )
+    
+    for package in "${required_packages[@]}"; do
+        if ! command -v "$package" &> /dev/null; then
+            print_message "Installing $package..." "$YELLOW"
+            apt-get update
+            apt-get install -y "$package" || handle_error "Failed to install $package"
+        fi
+    done
+}
+
 # 检查环境变量
 check_env() {
     print_message "Checking environment variables..." "$YELLOW"
@@ -67,6 +92,31 @@ install_dependencies() {
     cd ..
 }
 
+# 配置 SSL 证书
+setup_ssl() {
+    print_message "Setting up SSL certificates..." "$YELLOW"
+    
+    # 获取 SSL 证书
+    certbot --nginx -d pandatrade.space -d www.pandatrade.space -d admin.pandatrade.space -d api.pandatrade.space -d admin-api.pandatrade.space --non-interactive --agree-tos --email admin@pandatrade.space || handle_error "Failed to setup SSL certificates"
+    
+    # 设置自动更新
+    (crontab -l 2>/dev/null; echo "0 0 * * * /usr/bin/certbot renew --quiet") | crontab -
+}
+
+# 配置防火墙
+setup_firewall() {
+    print_message "Setting up firewall..." "$YELLOW"
+    
+    # 安装 ufw
+    apt-get install -y ufw || handle_error "Failed to install ufw"
+    
+    # 配置防火墙规则
+    ufw allow 22/tcp
+    ufw allow 80/tcp
+    ufw allow 443/tcp
+    echo "y" | ufw enable || handle_error "Failed to enable firewall"
+}
+
 # 清理系统资源
 cleanup_system() {
     print_message "Cleaning up system resources..." "$YELLOW"
@@ -85,7 +135,7 @@ stop_services() {
     print_message "Stopping services..." "$YELLOW"
     
     # 停止所有服务
-    docker-compose down || print_message "No services to stop" "$YELLOW"
+    docker-compose -f docker-compose.network.yml -f docker-compose.admin.yml -f docker-compose.user.yml down || print_message "No services to stop" "$YELLOW"
 }
 
 # 启动服务
@@ -93,7 +143,7 @@ start_services() {
     print_message "Starting services..." "$YELLOW"
     
     # 启动所有服务
-    docker-compose up -d || handle_error "Failed to start services"
+    docker-compose -f docker-compose.network.yml -f docker-compose.admin.yml -f docker-compose.user.yml up -d || handle_error "Failed to start services"
 }
 
 # 检查服务状态
@@ -109,7 +159,8 @@ check_services() {
         "panda-quant-admin-ui"
         "panda-quant-user-api"
         "panda-quant-user-ui"
-        "panda-quant-nginx"
+        "panda-quant-nginx-admin"
+        "panda-quant-nginx-user"
         "panda-quant-mongodb"
         "panda-quant-redis"
     )
@@ -125,11 +176,10 @@ check_services() {
     
     # 检查健康状态
     health_endpoints=(
-        "http://localhost:8081/health"
-        "http://localhost:3000/health"
-        "http://localhost:8082/health"
-        "http://localhost:3001/health"
-        "http://localhost/health"
+        "http://localhost:8081/health"  # Admin Nginx
+        "http://localhost:3001/health"  # Admin API
+        "http://localhost:8080/health"  # User Nginx
+        "http://localhost:3002/health"  # User API
     )
     
     for endpoint in "${health_endpoints[@]}"; do
@@ -139,17 +189,58 @@ check_services() {
     done
 }
 
+# 设置备份
+setup_backup() {
+    print_message "Setting up backup..." "$YELLOW"
+    
+    # 创建备份目录
+    mkdir -p /backup
+    
+    # 创建备份脚本
+    cat > /backup/backup.sh << 'EOF'
+#!/bin/bash
+BACKUP_DIR="/backup/$(date +%Y%m%d)"
+mkdir -p $BACKUP_DIR
+
+# 备份 MongoDB
+docker exec panda-quant-mongodb mongodump --out=$BACKUP_DIR/mongodb
+
+# 备份 Redis
+docker exec panda-quant-redis redis-cli SAVE
+docker cp panda-quant-redis:/data/dump.rdb $BACKUP_DIR/redis/
+
+# 压缩备份
+tar -czf $BACKUP_DIR.tar.gz $BACKUP_DIR
+rm -rf $BACKUP_DIR
+EOF
+    
+    # 设置备份脚本权限
+    chmod +x /backup/backup.sh
+    
+    # 设置备份定时任务
+    (crontab -l 2>/dev/null; echo "0 2 * * * /backup/backup.sh") | crontab -
+}
+
 # 主函数
 main() {
     print_message "Starting deployment..." "$GREEN"
     
+    # 检查是否为 root 用户
+    if [ "$EUID" -ne 0 ]; then
+        handle_error "Please run as root"
+    fi
+    
     # 执行部署步骤
+    install_requirements
     check_env
     install_dependencies
+    setup_ssl
+    setup_firewall
     cleanup_system
     stop_services
     start_services
     check_services
+    setup_backup
     
     print_message "Deployment completed successfully!" "$GREEN"
 }
