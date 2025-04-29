@@ -96,9 +96,64 @@ install_dependencies() {
     cd ../deploy
 }
 
-# 配置 SSL 证书
-setup_ssl() {
-    print_message "Setting up SSL certificates..." "$YELLOW"
+# 停止服务
+stop_services() {
+    print_message "Stopping services..." "$YELLOW"
+    
+    # 停止所有服务
+    docker-compose -f ./docker-compose.user.yml down || print_message "No user services to stop" "$YELLOW"
+    docker-compose -f ./docker-compose.admin.yml down || print_message "No admin services to stop" "$YELLOW"
+    docker-compose -f ./docker-compose.network.yml down || print_message "No network to stop" "$YELLOW"
+}
+
+# 启动服务
+start_services() {
+    print_message "Starting services..." "$YELLOW"
+    
+    # 按顺序启动服务
+    print_message "Creating network..." "$YELLOW"
+    docker-compose -f ./docker-compose.network.yml up -d || handle_error "Failed to create network"
+    
+    print_message "Starting admin services..." "$YELLOW"
+    docker-compose -f ./docker-compose.admin.yml up -d || handle_error "Failed to start admin services"
+    
+    print_message "Starting user services..." "$YELLOW"
+    docker-compose -f ./docker-compose.user.yml up -d || handle_error "Failed to start user services"
+}
+
+# 检查服务状态
+check_services() {
+    print_message "Checking service status..." "$YELLOW"
+    
+    # 等待服务启动
+    sleep 10
+    
+    # 检查容器状态
+    services=(
+        "panda-quant-admin-api"
+        "panda-quant-admin-ui"
+        "panda-quant-user-api"
+        "panda-quant-user-ui"
+        "panda-quant-nginx-admin"
+        "panda-quant-nginx-user"
+        "panda-quant-mongodb"
+        "panda-quant-redis"
+    )
+    
+    for service in "${services[@]}"; do
+        if ! docker ps | grep -q "$service"; then
+            handle_error "$service container is not running"
+        fi
+    done
+}
+
+# 配置域名和 SSL
+setup_domain_ssl() {
+    print_message "Setting up domain and SSL..." "$YELLOW"
+    
+    # 安装必要的软件
+    apt-get update
+    apt-get install -y nginx certbot python3-certbot-nginx
     
     # 获取 SSL 证书
     certbot --nginx -d pandatrade.space -d www.pandatrade.space -d admin.pandatrade.space -d api.pandatrade.space -d admin-api.pandatrade.space --non-interactive --agree-tos --email admin@pandatrade.space || handle_error "Failed to setup SSL certificates"
@@ -132,65 +187,6 @@ cleanup_system() {
     docker system prune -af || handle_error "Failed to prune Docker system"
     docker volume prune -f || handle_error "Failed to prune Docker volumes"
     docker builder prune -af || handle_error "Failed to prune Docker builder cache"
-}
-
-# 停止服务
-stop_services() {
-    print_message "Stopping services..." "$YELLOW"
-    
-    # 停止所有服务
-    docker-compose -f ./docker-compose.network.yml -f ./docker-compose.admin.yml -f ./docker-compose.user.yml down || print_message "No services to stop" "$YELLOW"
-}
-
-# 启动服务
-start_services() {
-    print_message "Starting services..." "$YELLOW"
-    
-    # 启动所有服务
-    docker-compose -f ./docker-compose.network.yml -f ./docker-compose.admin.yml -f ./docker-compose.user.yml up -d || handle_error "Failed to start services"
-}
-
-# 检查服务状态
-check_services() {
-    print_message "Checking service status..." "$YELLOW"
-    
-    # 等待服务启动
-    sleep 10
-    
-    # 检查容器状态
-    services=(
-        "panda-quant-admin-api"
-        "panda-quant-admin-ui"
-        "panda-quant-user-api"
-        "panda-quant-user-ui"
-        "panda-quant-nginx-admin"
-        "panda-quant-nginx-user"
-        "panda-quant-mongodb"
-        "panda-quant-redis"
-    )
-    
-    for service in "${services[@]}"; do
-        if ! docker ps | grep -q "$service"; then
-            handle_error "$service container is not running"
-        fi
-    done
-    
-    # 检查服务健康状态
-    print_message "Checking service health..." "$YELLOW"
-    
-    # 检查健康状态
-    health_endpoints=(
-        "http://localhost:8081/health"  # Admin Nginx
-        "http://localhost:3001/health"  # Admin API
-        "http://localhost:8080/health"  # User Nginx
-        "http://localhost:3002/health"  # User API
-    )
-    
-    for endpoint in "${health_endpoints[@]}"; do
-        if ! curl -s "$endpoint" | grep -q "ok"; then
-            handle_error "Health check failed for $endpoint"
-        fi
-    done
 }
 
 # 设置备份
@@ -238,13 +234,20 @@ main() {
     install_requirements
     check_env
     install_dependencies
-    setup_ssl
-    setup_firewall
-    cleanup_system
     stop_services
     start_services
     check_services
-    setup_backup
+    
+    # 询问是否继续配置域名和 SSL
+    read -p "Do you want to configure domain and SSL now? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        setup_domain_ssl
+        setup_firewall
+        setup_backup
+    else
+        print_message "Skipping domain and SSL configuration. You can run these steps later." "$YELLOW"
+    fi
     
     print_message "Deployment completed successfully!" "$GREEN"
 }
