@@ -1,5 +1,52 @@
 import { Request, Response } from 'express';
-import { CommissionService } from '../services/commission';
+import { CommissionService } from '../services/commissionService';
+import { User } from '../models/User';
+
+interface AuthRequest extends Request {
+  user?: {
+    _id: string;
+    [key: string]: any;
+  };
+}
+
+export const commissionController = {
+  async getCommissions(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const commissions = await CommissionService.getUserCommissions(req.user._id);
+      res.json(commissions);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
+    }
+  },
+
+  async createCommission(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const commission = await CommissionService.createCommission({
+        ...req.body,
+        userId: req.user._id
+      });
+      res.status(201).json(commission);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
+    }
+  }
+};
 
 export class CommissionController {
   private commissionService: CommissionService;
