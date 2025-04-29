@@ -18,8 +18,9 @@ RUN yarn install --frozen-lockfile && \
 # Copy source code
 COPY . .
 
-# Generate Prisma client
-RUN yarn prisma generate
+# Set permissions and generate Prisma client
+RUN chmod +x node_modules/.bin/prisma && \
+    yarn prisma generate
 
 # Build admin-api
 RUN yarn build
@@ -36,6 +37,9 @@ COPY prisma ./prisma/
 # Install production dependencies
 RUN yarn install --production --frozen-lockfile && \
     yarn add prisma@5.10.0 --dev
+
+# Set permissions
+RUN chmod +x node_modules/.bin/prisma
 
 # Copy built files from build stage
 COPY --from=builder /app/dist ./dist
