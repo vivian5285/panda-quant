@@ -11,8 +11,10 @@ COPY package*.json ./
 COPY prisma ./prisma/
 COPY tsconfig.json ./
 
-# Install dependencies step by step
-RUN npm install --legacy-peer-deps && \
+# Update npm and install dependencies
+RUN npm install -g npm@11.3.0 && \
+    npm cache clean --force && \
+    npm install --legacy-peer-deps && \
     npm install -g typescript@5.4.2 && \
     npm install prisma@5.10.0 --save-dev
 
@@ -34,8 +36,10 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install production dependencies
-RUN npm install --omit=dev --legacy-peer-deps && \
+# Update npm and install production dependencies
+RUN npm install -g npm@11.3.0 && \
+    npm cache clean --force && \
+    npm install --omit=dev --legacy-peer-deps && \
     npm install prisma@5.10.0 --save-dev
 
 # Copy built files from build stage
