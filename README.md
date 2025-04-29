@@ -34,51 +34,18 @@ PandaQuant 是一个专业的量化交易平台，提供智能交易策略和自
 
 ```
 panda-quant/
-├── user-ui/                 # 用户界面
-│   ├── public/             # 静态资源
-│   └── src/
-│       ├── components/     # 组件
-│       │   ├── home/      # 首页组件
-│       │   │   ├── HeroBanner.tsx        # 首页横幅
-│       │   │   ├── CoreAdvantages.tsx    # 核心优势
-│       │   │   ├── ProfitSection.tsx     # 收益展示
-│       │   │   ├── StrategySection.tsx   # 策略展示
-│       │   │   ├── SecuritySection.tsx   # 安全保障
-│       │   │   ├── InviteSection.tsx     # 邀请返佣
-│       │   │   ├── FAQSection.tsx        # 常见问题
-│       │   │   ├── ContactSection.tsx    # 联系方式
-│       │   │   ├── PandaCharacter.tsx    # 熊猫角色
-│       │   │   └── HomePage.tsx          # 首页布局
-│       │   └── layout/    # 布局组件
-│       │       ├── Header.tsx            # 导航栏
-│       │       └── Footer.tsx            # 页脚
-│       ├── pages/         # 页面
-│       ├── styles/        # 样式
-│       ├── utils/         # 工具函数
-│       ├── hooks/         # 自定义钩子
-│       ├── context/       # 上下文
-│       ├── services/      # API 服务
-│       ├── types/         # 类型定义
-│       ├── i18n/          # 国际化
-│       ├── App.tsx        # 应用入口
-│       └── index.tsx      # 渲染入口
-│
-├── admin-ui/              # 管理界面
-│   └── ...
-│
-├── server/                # 后端服务
-│   ├── src/
-│   │   ├── controllers/   # 控制器
-│   │   ├── models/        # 数据模型
-│   │   ├── routes/        # 路由
-│   │   ├── services/      # 业务逻辑
-│   │   ├── utils/         # 工具函数
-│   │   ├── config/        # 配置文件
-│   │   └── app.ts         # 应用入口
-│   └── ...
-│
-└── shared/                # 共享代码
-    └── ...
+├── admin-api/          # 管理后台 API
+├── admin-ui/           # 管理后台前端
+├── user-api/           # 用户 API
+├── user-ui/            # 用户前端
+├── strategy-engine/    # 策略引擎
+├── server/             # 服务器
+├── deploy/             # 部署相关文件
+│   ├── nginx/          # Nginx 配置文件
+│   ├── admin-deploy.sh # 管理端部署脚本
+│   ├── user-deploy.sh  # 用户端部署脚本
+│   └── ssl-setup.sh    # SSL 证书配置脚本
+└── .env                # 环境变量配置文件
 ```
 
 ## 🎨 设计风格
@@ -198,4 +165,192 @@ npm run dev
 
 - 邮箱：support@pandaquant.com
 - Telegram：@pandaquant
-- Discord：PandaQuant 
+- Discord：PandaQuant
+
+## 系统要求
+
+- Ubuntu 20.04 LTS 或更高版本
+- Node.js 18.x
+- MongoDB 4.4 或更高版本
+- Redis 6.0 或更高版本
+- Nginx 1.18 或更高版本
+- PM2 进程管理器
+
+## 环境变量配置
+
+在项目根目录创建 `.env` 文件，包含以下必要配置：
+
+```env
+# MongoDB 配置
+MONGO_INITDB_ROOT_USERNAME=your_mongo_username
+MONGO_INITDB_ROOT_PASSWORD=your_mongo_password
+
+# Redis 配置
+REDIS_PASSWORD=your_redis_password
+
+# JWT 配置
+JWT_SECRET=your_jwt_secret
+
+# 加密密钥
+ENCRYPTION_KEY=your_encryption_key
+```
+
+## 部署流程
+
+### 1. 部署管理端
+
+管理端包含管理后台 API 和前端界面。
+
+```bash
+# 进入项目目录
+cd panda-quant
+
+# 执行管理端部署脚本
+bash deploy/admin-deploy.sh
+```
+
+部署完成后，管理端将运行在以下端口：
+- 管理后台 API: 3001
+- 管理后台前端: 80/443 (通过 Nginx 代理)
+
+### 2. 部署用户和策略端
+
+用户和策略端包含用户 API、前端、策略引擎和服务器。
+
+```bash
+# 进入项目目录
+cd panda-quant
+
+# 执行用户端部署脚本
+bash deploy/user-deploy.sh
+```
+
+部署完成后，用户和策略端将运行在以下端口：
+- 用户 API: 3002
+- 用户前端: 80/443 (通过 Nginx 代理)
+- 策略引擎: 3003
+- 服务器: 3004
+
+### 3. 配置 SSL 证书
+
+为所有域名配置 SSL 证书：
+
+```bash
+# 进入项目目录
+cd panda-quant
+
+# 执行 SSL 证书配置脚本
+bash deploy/ssl-setup.sh
+```
+
+该脚本将为以下域名配置 SSL 证书：
+- pandatrade.space
+- admin.pandatrade.space
+- admin-api.pandatrade.space
+- api.pandatrade.space
+- strategy.pandatrade.space
+- server.pandatrade.space
+
+## 服务管理
+
+### 使用 PM2 管理服务
+
+```bash
+# 查看所有服务状态
+pm2 list
+
+# 查看服务日志
+pm2 logs [service-name]
+
+# 重启服务
+pm2 restart [service-name]
+
+# 停止服务
+pm2 stop [service-name]
+
+# 删除服务
+pm2 delete [service-name]
+```
+
+### 使用 systemctl 管理系统服务
+
+```bash
+# 管理 Nginx
+sudo systemctl status nginx
+sudo systemctl restart nginx
+sudo systemctl stop nginx
+
+# 管理 MongoDB
+sudo systemctl status mongodb
+sudo systemctl restart mongodb
+sudo systemctl stop mongodb
+
+# 管理 Redis
+sudo systemctl status redis-server
+sudo systemctl restart redis-server
+sudo systemctl stop redis-server
+```
+
+## 防火墙配置
+
+系统已配置以下端口：
+- 80/tcp (HTTP)
+- 443/tcp (HTTPS)
+- 3001/tcp (管理 API)
+- 3002-3005/tcp (用户和策略服务)
+
+## 故障排除
+
+1. 检查服务状态：
+   ```bash
+   pm2 list
+   sudo systemctl status nginx
+   sudo systemctl status mongodb
+   sudo systemctl status redis-server
+   ```
+
+2. 查看日志：
+   ```bash
+   pm2 logs
+   sudo tail -f /var/log/nginx/error.log
+   sudo tail -f /var/log/mongodb/mongod.log
+   sudo tail -f /var/log/redis/redis-server.log
+   ```
+
+3. 检查端口占用：
+   ```bash
+   sudo netstat -tulpn | grep LISTEN
+   ```
+
+## 更新部署
+
+1. 拉取最新代码：
+   ```bash
+   git pull
+   ```
+
+2. 重新部署特定服务：
+   ```bash
+   # 更新管理端
+   bash deploy/admin-deploy.sh
+
+   # 更新用户端
+   bash deploy/user-deploy.sh
+   ```
+
+3. 更新 SSL 证书：
+   ```bash
+   bash deploy/ssl-setup.sh
+   ```
+
+## 注意事项
+
+1. 部署前确保所有必要的环境变量已正确配置
+2. 确保服务器有足够的磁盘空间和内存
+3. 建议在部署前备份数据库
+4. SSL 证书配置需要域名 DNS 记录已正确设置
+5. 防火墙配置可能会影响服务访问，请确保相关端口已开放
+
+## 技术支持
+
+如有问题，请联系技术支持团队。 
