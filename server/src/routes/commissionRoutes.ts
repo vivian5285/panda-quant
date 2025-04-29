@@ -1,11 +1,10 @@
 import { Router } from 'express';
 import { commissionController } from '../controllers/commissionController';
-import { auth } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
-router.post('/', auth, commissionController.createCommission);
-router.get('/', auth, commissionController.getCommissions);
-router.get('/stats', auth, commissionController.getCommissionStats);
+router.post('/calculate', authMiddleware, commissionController.calculateCommission);
+router.get('/history', authMiddleware, commissionController.getCommissionHistory);
 
 export default router; 

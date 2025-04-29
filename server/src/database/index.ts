@@ -1,31 +1,48 @@
-import { Deposit, DepositNotification, LargeDepositAlert } from '../types/deposit';
+import { IDeposit } from '../types/deposit';
 import { logger } from '../utils/logger';
 import { Pool } from 'pg';
+import { DepositNotification } from '../models/depositNotification';
 
-export class Database {
-  private static instance: Database;
-  private pool: Pool;
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: parseInt(process.env.DB_PORT || '5432')
+});
 
-  private constructor() {
-    this.pool = new Pool({
-      user: process.env.DB_USER,
-      host: process.env.DB_HOST,
-      database: process.env.DB_NAME,
-      password: process.env.DB_PASSWORD,
-      port: parseInt(process.env.DB_PORT || '5432')
-    });
-  }
-
-  public static getInstance(): Database {
-    if (!Database.instance) {
-      Database.instance = new Database();
-    }
-    return Database.instance;
-  }
-
-  public async saveNotification(notification: DepositNotification): Promise<void> {
+export const database = {
+  async createDeposit(deposit: IDeposit) {
+    const client = await pool.connect();
     try {
-      await this.pool.query(
+      await client.query('BEGIN');
+      
+      const result = await client.query(
+        'INSERT INTO deposits (user_id, amount, status, created_at) VALUES ($1, $2, $3, $4) RETURNING *',
+        [deposit.userId, deposit.amount, deposit.status, deposit.createdAt]
+      );
+
+      const notification = new DepositNotification({
+        type: 'deposit',
+        message: `New deposit of ${deposit.amount}`,
+        data: deposit
+      });
+
+      await notification.save();
+      
+      await client.query('COMMIT');
+      return result.rows[0];
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  },
+
+  async saveNotification(notification: DepositNotification): Promise<void> {
+    try {
+      await pool.query(
         'INSERT INTO notifications (user_id, type, message, data) VALUES ($1, $2, $3, $4)',
         [notification.userId, notification.type, notification.message, notification.data]
       );
@@ -33,26 +50,26 @@ export class Database {
       logger.error('Error saving notification:', error);
       throw error;
     }
-  }
+  },
 
-  public async getAdmins(): Promise<{ id: string }[]> {
+  async getAdmins(): Promise<{ id: string }[]> {
     try {
-      const result = await this.pool.query('SELECT id FROM users WHERE is_admin = true');
+      const result = await pool.query('SELECT id FROM users WHERE is_admin = true');
       return result.rows;
     } catch (error) {
       logger.error('Error getting admins:', error);
       throw error;
     }
-  }
+  },
 
-  public async recordRiskEvent(event: {
+  async recordRiskEvent(event: {
     type: string;
     userId: string;
     amount: number;
     timestamp: Date;
   }): Promise<void> {
     try {
-      await this.pool.query(
+      await pool.query(
         'INSERT INTO risk_events (type, user_id, amount, timestamp) VALUES ($1, $2, $3, $4)',
         [event.type, event.userId, event.amount, event.timestamp]
       );
@@ -60,11 +77,11 @@ export class Database {
       logger.error('Error recording risk event:', error);
       throw error;
     }
-  }
+  },
 
-  public async saveDeposit(deposit: Deposit): Promise<void> {
+  async saveDeposit(deposit: IDeposit): Promise<void> {
     try {
-      await this.pool.query(
+      await pool.query(
         'INSERT INTO deposits (user_id, amount, currency, network, tx_hash, timestamp, status) VALUES ($1, $2, $3, $4, $5, $6, $7)',
         [deposit.userId, deposit.amount, deposit.currency, deposit.network, deposit.txHash, deposit.timestamp, deposit.status]
       );
@@ -73,4 +90,4 @@ export class Database {
       throw error;
     }
   }
-} 
+}; 

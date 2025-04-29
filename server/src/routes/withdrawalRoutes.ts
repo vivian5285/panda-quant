@@ -1,18 +1,18 @@
 import { Router } from 'express';
 import { withdrawalController } from '../controllers/withdrawalController';
-import { auth } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
 // User routes
-router.post('/', auth, withdrawalController.createWithdrawal);
-router.get('/', auth, withdrawalController.getWithdrawals);
-router.patch('/:id/status', auth, withdrawalController.updateWithdrawalStatus);
+router.post('/', authMiddleware, withdrawalController.createWithdrawal);
+router.get('/', authMiddleware, withdrawalController.getWithdrawals);
+router.patch('/:id/status', authMiddleware, withdrawalController.updateWithdrawalStatus);
 
 // Admin routes
-router.get('/pending', auth, withdrawalController.getPendingWithdrawals);
-router.post('/:withdrawalId/process', auth, withdrawalController.processWithdrawal);
-router.post('/:withdrawalId/complete', auth, withdrawalController.completeWithdrawal);
-router.get('/stats', auth, withdrawalController.getWithdrawalStats);
+router.get('/pending', authMiddleware, withdrawalController.getPendingWithdrawals);
+router.post('/:withdrawalId/process', authMiddleware, withdrawalController.processWithdrawal);
+router.post('/:withdrawalId/complete', authMiddleware, withdrawalController.completeWithdrawal);
+router.get('/stats', authMiddleware, withdrawalController.getWithdrawalStats);
 
 export default router; 

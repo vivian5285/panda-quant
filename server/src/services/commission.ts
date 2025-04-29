@@ -105,4 +105,53 @@ export class CommissionService {
   async getCommissionTrend(startDate?: string, endDate?: string) {
     return await this.commissionModel.getCommissionTrend(startDate, endDate);
   }
+
+  async getTeamMembers(userId: Types.ObjectId) {
+    return await User.find({ referrerId: userId });
+  }
+
+  async getTeamStats(userId: Types.ObjectId) {
+    const teamMembers = await this.getTeamMembers(userId);
+    const memberIds = teamMembers.map(member => member._id);
+
+    const commissions = await Commission.find({
+      userId: { $in: memberIds }
+    });
+
+    return {
+      totalMembers: teamMembers.length,
+      totalCommission: commissions.reduce((sum, commission) => sum + commission.amount, 0)
+    };
+  }
+
+  async getUserCommissionRecords(userId: Types.ObjectId) {
+    return await Commission.find({ userId });
+  }
+
+  async getUserCommissionRecordsCount(userId: Types.ObjectId) {
+    return await Commission.countDocuments({ userId });
+  }
+
+  async getUsersWithCommission() {
+    return await User.find({
+      commissionBalance: { $gt: 0 }
+    });
+  }
+
+  async getUsersWithCommissionCount() {
+    return await User.countDocuments({
+      commissionBalance: { $gt: 0 }
+    });
+  }
+
+  async getCommissionTrend(userId: Types.ObjectId) {
+    const commissions = await Commission.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(30);
+
+    return commissions.map(commission => ({
+      date: commission.createdAt,
+      amount: commission.amount
+    }));
+  }
 } 

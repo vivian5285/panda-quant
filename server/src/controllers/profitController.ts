@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Types, Document } from 'mongoose';
 import { Strategy } from '../models/Strategy';
-import { StrategyPerformance } from '../models/StrategyPerformance';
+import { StrategyPerformance } from '../models/strategyPerformance';
 import { commissionService } from '../services/commissionService';
 import { IStrategyPerformance } from '../interfaces/IStrategyPerformance';
 
@@ -54,6 +54,44 @@ export const profitController = {
       } else {
         res.status(500).json({ error: 'An unknown error occurred' });
       }
+    }
+  },
+
+  async getStrategyProfit(req: Request, res: Response) {
+    try {
+      const { strategyId } = req.params;
+      const performance = await StrategyPerformance.findOne({ strategyId });
+      
+      if (!performance) {
+        return res.status(404).json({ message: 'Strategy performance not found' });
+      }
+
+      return res.json(performance);
+    } catch (error) {
+      console.error('Error getting strategy profit:', error);
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+  },
+
+  async updateStrategyProfit(req: Request, res: Response) {
+    try {
+      const { strategyId } = req.params;
+      const { profit } = req.body;
+
+      const performance = await StrategyPerformance.findOneAndUpdate(
+        { strategyId },
+        { profit },
+        { new: true }
+      );
+
+      if (!performance) {
+        return res.status(404).json({ message: 'Strategy performance not found' });
+      }
+
+      return res.json(performance);
+    } catch (error) {
+      console.error('Error updating strategy profit:', error);
+      return res.status(500).json({ message: 'Internal server error' });
     }
   }
 }; 

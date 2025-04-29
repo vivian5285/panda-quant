@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
-import { config } from '../config';
+import { connect } from 'mongoose';
+import { Redis } from 'ioredis';
+import config from '../config';
 
-const connectDB = async () => {
+export const connectDB = async () => {
   try {
-    const mongoUri = process.env.MONGO_URI || config.mongoUri;
-    await mongoose.connect(mongoUri);
+    await connect(config.mongodb.uri);
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection error:', error);
@@ -12,4 +12,8 @@ const connectDB = async () => {
   }
 };
 
-export default connectDB; 
+export const redis = new Redis({
+  host: config.redis.host,
+  port: config.redis.port,
+  password: config.redis.password
+}); 

@@ -2,39 +2,30 @@ import { Request, Response } from 'express';
 import { StrategyRatingService } from '../services/strategyRatingService';
 import { AuthRequest } from '../types';
 import { Types } from 'mongoose';
+import { StrategyRating } from '../models/strategyRating';
+import { IStrategyRating } from '../interfaces/IStrategyRating';
 
 const strategyRatingService = new StrategyRatingService();
 
 export const strategyRatingController = {
   // 创建评价
-  async createRating(req: AuthRequest, res: Response) {
+  async createRating(req: Request, res: Response) {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
       const { strategyId, rating, comment } = req.body;
+      const userId = new Types.ObjectId(req.user?._id);
 
-      // 检查用户是否已评价
-      const hasRated = await strategyRatingService.hasUserRated(strategyId, req.user._id);
-      if (hasRated) {
-        return res.status(400).json({ message: '您已经评价过该策略' });
-      }
-
-      const newRating = await strategyRatingService.createRating({
-        strategyId,
-        userId: req.user._id,
+      const newRating = new StrategyRating({
+        userId,
+        strategyId: new Types.ObjectId(strategyId),
         rating,
         comment
       });
 
-      res.status(201).json(newRating);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Unknown error occurred' });
-      }
+      const savedRating = await newRating.save();
+      return res.status(201).json(savedRating);
+    } catch (error) {
+      console.error('Error creating rating:', error);
+      return res.status(500).json({ message: 'Internal server error' });
     }
   },
 
@@ -148,20 +139,14 @@ export const strategyRatingController = {
   },
 
   // 获取所有评价
-  async getRatings(req: AuthRequest, res: Response) {
+  async getRatings(req: Request, res: Response) {
     try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      const ratings = await strategyRatingService.getAllRatings();
-      res.json(ratings);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Unknown error occurred' });
-      }
+      const { strategyId } = req.params;
+      const ratings = await StrategyRating.find({ strategyId: new Types.ObjectId(strategyId) });
+      return res.json(ratings);
+    } catch (error) {
+      console.error('Error getting ratings:', error);
+      return res.status(500).json({ message: 'Internal server error' });
     }
   }
 }; 

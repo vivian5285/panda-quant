@@ -18,7 +18,7 @@ export class WithdrawalService {
     userId: Types.ObjectId,
     amount: number,
     paymentMethod: string,
-    paymentDetails: any
+    paymentDetails: Record<string, any>
   ): Promise<ICommissionWithdrawal> {
     const withdrawal = new CommissionWithdrawal({
       userId,
@@ -27,7 +27,9 @@ export class WithdrawalService {
       paymentMethod,
       paymentDetails
     });
-    return await withdrawal.save();
+
+    const savedWithdrawal = await withdrawal.save();
+    return savedWithdrawal.toObject() as ICommissionWithdrawal;
   }
 
   async processWithdrawal(
@@ -35,31 +37,35 @@ export class WithdrawalService {
     status: 'approved' | 'rejected',
     adminComment?: string
   ): Promise<ICommissionWithdrawal> {
-    const withdrawal = await CommissionWithdrawal.findByIdAndUpdate(
-      withdrawalId,
-      { status, adminComment },
-      { new: true }
-    );
+    const withdrawal = await CommissionWithdrawal.findById(withdrawalId);
     if (!withdrawal) {
       throw new Error('Withdrawal not found');
     }
-    return withdrawal;
+
+    withdrawal.status = status;
+    if (adminComment) {
+      withdrawal.adminComment = adminComment;
+    }
+
+    const updatedWithdrawal = await withdrawal.save();
+    return updatedWithdrawal.toObject() as ICommissionWithdrawal;
   }
 
   async completeWithdrawal(withdrawalId: Types.ObjectId): Promise<ICommissionWithdrawal> {
-    const withdrawal = await CommissionWithdrawal.findByIdAndUpdate(
-      withdrawalId,
-      { status: 'completed' },
-      { new: true }
-    );
+    const withdrawal = await CommissionWithdrawal.findById(withdrawalId);
     if (!withdrawal) {
       throw new Error('Withdrawal not found');
     }
-    return withdrawal;
+
+    withdrawal.status = 'completed';
+    const updatedWithdrawal = await withdrawal.save();
+    return updatedWithdrawal.toObject() as ICommissionWithdrawal;
   }
 
   async getWithdrawalHistory(userId: Types.ObjectId): Promise<ICommissionWithdrawal[]> {
-    return await CommissionWithdrawal.find({ userId }).sort({ createdAt: -1 });
+    const withdrawals = await CommissionWithdrawal.find({ userId })
+      .sort({ createdAt: -1 });
+    return withdrawals.map(withdrawal => withdrawal.toObject() as ICommissionWithdrawal);
   }
 
   async getWithdrawalStats(userId: Types.ObjectId): Promise<{
@@ -82,11 +88,15 @@ export class WithdrawalService {
   }
 
   async getPendingWithdrawals(): Promise<ICommissionWithdrawal[]> {
-    return await CommissionWithdrawal.find({ status: 'pending' }).sort({ createdAt: -1 });
+    const withdrawals = await CommissionWithdrawal.find({ status: 'pending' })
+      .sort({ createdAt: -1 });
+    return withdrawals.map(withdrawal => withdrawal.toObject() as ICommissionWithdrawal);
   }
 
   async getWithdrawals(userId: Types.ObjectId): Promise<ICommissionWithdrawal[]> {
-    return await CommissionWithdrawal.find({ userId }).sort({ createdAt: -1 });
+    const withdrawals = await CommissionWithdrawal.find({ userId })
+      .sort({ createdAt: -1 });
+    return withdrawals.map(withdrawal => withdrawal.toObject() as ICommissionWithdrawal);
   }
 
   async updateWithdrawalStatus(
@@ -94,14 +104,17 @@ export class WithdrawalService {
     status: 'pending' | 'approved' | 'rejected' | 'completed',
     adminComment?: string
   ): Promise<ICommissionWithdrawal> {
-    const withdrawal = await CommissionWithdrawal.findByIdAndUpdate(
-      withdrawalId,
-      { status, adminComment },
-      { new: true }
-    );
+    const withdrawal = await CommissionWithdrawal.findById(withdrawalId);
     if (!withdrawal) {
       throw new Error('Withdrawal not found');
     }
-    return withdrawal;
+
+    withdrawal.status = status;
+    if (adminComment) {
+      withdrawal.adminComment = adminComment;
+    }
+
+    const updatedWithdrawal = await withdrawal.save();
+    return updatedWithdrawal.toObject() as ICommissionWithdrawal;
   }
 } 

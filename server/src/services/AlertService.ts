@@ -1,35 +1,36 @@
-import { Model } from 'mongoose';
 import { IAlert } from '../interfaces/IAlert';
-import { Alert } from '../models/Alert';
+import { Types } from 'mongoose';
 
 export class AlertService {
-  private static instance: AlertService;
-  private alertModel: Model<IAlert>;
+  private alerts: Map<string, IAlert> = new Map();
 
-  public static getInstance(): AlertService {
-    if (!AlertService.instance) {
-      AlertService.instance = new AlertService();
+  async createAlert(alert: IAlert): Promise<IAlert> {
+    const id = new Types.ObjectId().toString();
+    const newAlert = { ...alert, id };
+    this.alerts.set(id, newAlert);
+    return newAlert;
+  }
+
+  async getAlert(id: string): Promise<IAlert | undefined> {
+    return this.alerts.get(id);
+  }
+
+  async updateAlert(id: string, alert: Partial<IAlert>): Promise<IAlert | undefined> {
+    const existingAlert = this.alerts.get(id);
+    if (!existingAlert) {
+      return undefined;
     }
-    return AlertService.instance;
+
+    const updatedAlert = { ...existingAlert, ...alert };
+    this.alerts.set(id, updatedAlert);
+    return updatedAlert;
   }
 
-  constructor() {
-    this.alertModel = Alert;
+  async deleteAlert(id: string): Promise<boolean> {
+    return this.alerts.delete(id);
   }
 
-  async createAlert(data: Partial<IAlert>) {
-    return this.alertModel.create(data);
-  }
-
-  async getAlerts(userId: string) {
-    return this.alertModel.find({ userId });
-  }
-
-  async markAsRead(alertId: string) {
-    return this.alertModel.findByIdAndUpdate(
-      alertId,
-      { isRead: true },
-      { new: true }
-    );
+  async getAllAlerts(): Promise<IAlert[]> {
+    return Array.from(this.alerts.values());
   }
 } 

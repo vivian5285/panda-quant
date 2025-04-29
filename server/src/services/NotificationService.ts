@@ -5,6 +5,8 @@ import WebSocket from 'ws';
 import { Types } from 'mongoose';
 import { Deposit } from '../models/Deposit';
 import { User } from '../models/User';
+import { IDeposit } from '../interfaces/IDeposit';
+import { Notification } from '../models/notification';
 
 export class NotificationService {
   private static instance: NotificationService;
@@ -88,5 +90,27 @@ export class NotificationService {
     
     // 发送通知逻辑
     console.log(`Deposit notification: User ${userId} deposited ${amount}`);
+  }
+
+  async createDepositNotification(deposit: IDeposit) {
+    const notification = new Notification({
+      type: 'deposit',
+      message: `New deposit of ${deposit.amount}`,
+      data: deposit
+    });
+
+    return await notification.save();
+  }
+
+  async getNotifications(userId: string) {
+    return await Notification.find({ userId });
+  }
+
+  async markAsRead(notificationId: string) {
+    return await Notification.findByIdAndUpdate(
+      notificationId,
+      { isRead: true },
+      { new: true }
+    );
   }
 } 

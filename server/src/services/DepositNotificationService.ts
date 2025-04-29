@@ -4,6 +4,8 @@ import { NotificationService } from './NotificationService';
 import { Deposit } from '../models/Deposit';
 import { logger } from '../utils/logger';
 import { EventEmitter } from 'events';
+import { IDeposit } from '../interfaces/IDeposit';
+import { DepositNotification } from '../models/depositNotification';
 
 export class DepositNotificationService {
   private static instance: DepositNotificationService;
@@ -27,14 +29,26 @@ export class DepositNotificationService {
     this.io = new Server(server);
   }
 
-  async notifyDeposit(deposit: InstanceType<typeof Deposit> & { _id: Types.ObjectId }) {
-    const { userId, amount, status } = deposit;
-    
-    this.io.to(userId.toString()).emit('deposit', {
-      userId,
-      amount,
-      status
+  async notifyDeposit(deposit: IDeposit) {
+    const notification = new DepositNotification({
+      type: 'deposit',
+      message: `New deposit of ${deposit.amount}`,
+      data: deposit
     });
+
+    await notification.save();
+    this.io.emit('deposit', notification);
+  }
+
+  async notifyLargeDeposit(deposit: IDeposit) {
+    const notification = new DepositNotification({
+      type: 'large_deposit',
+      message: `Large deposit detected: ${deposit.amount}`,
+      data: deposit
+    });
+
+    await notification.save();
+    this.io.emit('large_deposit', notification);
   }
 
   private async handleDeposit(deposit: Deposit) {
