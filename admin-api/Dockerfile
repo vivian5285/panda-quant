@@ -6,16 +6,17 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
+# Install yarn
+RUN npm install -g yarn
+
 # Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY tsconfig.json ./
 
 # Install dependencies
-RUN npm install -g npm@9.8.1 && \
-    npm cache clean --force && \
-    npm install --legacy-peer-deps && \
-    npm install prisma@5.10.0 --save-dev
+RUN yarn install --frozen-lockfile && \
+    yarn add prisma@5.10.0 --dev
 
 # Copy source code
 COPY . .
@@ -24,22 +25,23 @@ COPY . .
 RUN npx prisma generate
 
 # Build admin-api
-RUN npm run build
+RUN yarn build
 
 # Production stage
 FROM node:20-alpine
 
 WORKDIR /app
 
+# Install yarn
+RUN npm install -g yarn
+
 # Install production dependencies
 COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install production dependencies
-RUN npm install -g npm@9.8.1 && \
-    npm cache clean --force && \
-    npm install --omit=dev --legacy-peer-deps && \
-    npm install prisma@5.10.0 --save-dev
+RUN yarn install --production --frozen-lockfile && \
+    yarn add prisma@5.10.0 --dev
 
 # Copy built files from build stage
 COPY --from=builder /app/dist ./dist
