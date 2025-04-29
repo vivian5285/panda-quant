@@ -27,7 +27,6 @@ RUN npm install --save-dev \
     @types/date-fns \
     @types/recharts \
     @types/socket.io-client \
-    @types/web-vitals \
     @types/antd \
     @types/i18next-browser-languagedetector \
     @types/react-toastify \
