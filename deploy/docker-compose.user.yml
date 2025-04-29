@@ -1,8 +1,8 @@
 services:
   nginx-user:
     build:
-      context: ..
-      dockerfile: deploy/Dockerfile.user-ui
+      context: .
+      dockerfile: docker/Dockerfile.user-ui
     container_name: panda-quant-nginx-user
     ports:
       - "8080:80"
@@ -19,19 +19,14 @@ services:
 
   user-api:
     build:
-      context: ../user-api
-      dockerfile: ../deploy/Dockerfile.user-api
-      args:
-        - NODE_ENV=production
+      context: user-api
+      dockerfile: ../docker/Dockerfile.user-api
     container_name: panda-quant-user-api
     ports:
       - "3002:3002"
     environment:
       - NODE_ENV=production
-      - JWT_SECRET=Wl528586*
-      - ENCRYPTION_KEY=Wl528586*
-      - MONGODB_URI=mongodb://admin:Wl528586*@mongodb:27017/panda_quant
-      - REDIS_URI=redis://:Wl528586*@redis:6379
+      - PORT=3002
     restart: unless-stopped
     networks:
       panda-quant-network:
@@ -49,8 +44,8 @@ services:
 
   user-ui:
     build:
-      context: ../user-ui
-      dockerfile: ../deploy/Dockerfile.user-ui
+      context: user-ui
+      dockerfile: ../docker/Dockerfile.user-ui
     container_name: panda-quant-user-ui
     ports:
       - "3003:80"
