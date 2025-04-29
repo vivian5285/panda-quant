@@ -9,9 +9,6 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Install TypeScript globally
-RUN npm install -g typescript
-
 # Copy package files
 COPY package*.json ./
 
@@ -26,11 +23,6 @@ RUN mkdir -p prisma
 # Copy source code
 COPY . .
 
-# Set permissions for prisma and typescript
-RUN chmod -R 777 /app/node_modules/.prisma
-RUN chmod -R 777 /app/node_modules/.bin/prisma
-RUN chmod -R 777 /usr/local/bin/tsc
-
 # Generate Prisma client
 RUN npx prisma generate
 
@@ -42,19 +34,11 @@ FROM node:18-slim
 
 WORKDIR /app
 
-# Install TypeScript globally
-RUN npm install -g typescript
-
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
-
-# Set permissions for prisma and typescript
-RUN chmod -R 777 /app/node_modules/.prisma
-RUN chmod -R 777 /app/node_modules/.bin/prisma
-RUN chmod -R 777 /usr/local/bin/tsc
 
 # Install production dependencies
 RUN npm install --production --legacy-peer-deps
