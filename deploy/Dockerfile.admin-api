@@ -59,6 +59,7 @@ RUN npm install --save \
 # Set permissions for TypeScript and Prisma
 RUN chmod -R 777 /usr/local/bin/tsc
 RUN chmod -R 777 /app/node_modules/.bin/prisma
+RUN chmod -R 777 /app/node_modules/prisma
 
 # Copy source code
 COPY . .
@@ -82,6 +83,10 @@ COPY --from=builder /app/prisma ./prisma
 
 # Install production dependencies
 RUN npm install --production --legacy-peer-deps
+
+# Set permissions for Prisma
+RUN chmod -R 777 /app/node_modules/.bin/prisma
+RUN chmod -R 777 /app/node_modules/prisma
 
 # Set environment variables
 ENV NODE_ENV=production
