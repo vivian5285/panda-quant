@@ -1,6 +1,7 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { IStrategyRating } from '../interfaces/IStrategyRating';
-import { StrategyRating } from '../models/StrategyRating';
+import { StrategyRating } from '../models/strategyRating';
+import { Document } from 'mongoose';
 
 export class StrategyRatingService {
   private static instance: StrategyRatingService;
@@ -18,17 +19,17 @@ export class StrategyRatingService {
   }
 
   // 创建评价
-  async createRating(data: Partial<IStrategyRating>): Promise<IStrategyRating> {
+  async createRating(data: Partial<IStrategyRating>): Promise<Document<unknown, {}, IStrategyRating> & IStrategyRating & Required<{ _id: Types.ObjectId }>> {
     return this.strategyRatingModel.create(data);
   }
 
   // 获取策略的所有评价
-  async getRatings(strategyId: string): Promise<IStrategyRating[]> {
+  async getRatingsByStrategy(strategyId: string): Promise<(Document<unknown, {}, IStrategyRating> & IStrategyRating & Required<{ _id: Types.ObjectId }>)[]> {
     return this.strategyRatingModel.find({ strategyId });
   }
 
   // 获取用户的评价
-  async getUserRatings(userId: string): Promise<IStrategyRating[]> {
+  async getRatingsByUser(userId: string): Promise<(Document<unknown, {}, IStrategyRating> & IStrategyRating & Required<{ _id: Types.ObjectId }>)[]> {
     return await StrategyRating.find({ userId })
       .populate('strategyId', 'name')
       .sort({ createdAt: -1 });
@@ -44,7 +45,7 @@ export class StrategyRatingService {
   }
 
   // 更新评价
-  async updateRating(ratingId: string, updateData: Partial<IStrategyRating>): Promise<IStrategyRating | null> {
+  async updateRating(ratingId: string, updateData: Partial<IStrategyRating>): Promise<Document<unknown, {}, IStrategyRating> & IStrategyRating & Required<{ _id: Types.ObjectId }> | null> {
     return await StrategyRating.findByIdAndUpdate(
       ratingId,
       { $set: updateData },
@@ -53,7 +54,7 @@ export class StrategyRatingService {
   }
 
   // 删除评价
-  async deleteRating(ratingId: string): Promise<IStrategyRating | null> {
+  async deleteRating(ratingId: string): Promise<Document<unknown, {}, IStrategyRating> & IStrategyRating & Required<{ _id: Types.ObjectId }> | null> {
     return await StrategyRating.findByIdAndDelete(ratingId);
   }
 
@@ -61,5 +62,13 @@ export class StrategyRatingService {
   async hasUserRated(strategyId: string, userId: string): Promise<boolean> {
     const rating = await StrategyRating.findOne({ strategyId, userId });
     return !!rating;
+  }
+
+  // 获取所有评价
+  async getAllRatings(): Promise<(Document<unknown, {}, IStrategyRating> & IStrategyRating & Required<{ _id: Types.ObjectId }>)[]> {
+    return await StrategyRating.find()
+      .populate('strategyId', 'name')
+      .populate('userId', 'username')
+      .sort({ createdAt: -1 });
   }
 } 

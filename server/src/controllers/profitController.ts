@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
-import { Types } from 'mongoose';
+import { Types, Document } from 'mongoose';
 import { Strategy } from '../models/Strategy';
 import { StrategyPerformance } from '../models/StrategyPerformance';
 import { commissionService } from '../services/commissionService';
+import { IStrategyPerformance } from '../interfaces/IStrategyPerformance';
 
 export const profitController = {
   async createProfit(req: Request, res: Response) {
@@ -16,7 +17,7 @@ export const profitController = {
       });
 
       // 计算并分配佣金
-      await commissionService.calculateAndDistributeCommission(performance as InstanceType<typeof StrategyPerformance> & { _id: Types.ObjectId });
+      await commissionService.calculateAndDistributeCommission(performance as Document<unknown, {}, IStrategyPerformance> & IStrategyPerformance & Required<{ _id: Types.ObjectId }>);
 
       res.status(201).json(performance);
     } catch (error: unknown) {
@@ -38,17 +39,21 @@ export const profitController = {
       }
 
       const performance = await StrategyPerformance.findOne({ 
-        strategyId: strategy._id as Types.ObjectId 
+        strategyId: strategy._id 
       });
 
       if (!performance) {
         return res.status(404).json({ error: 'Performance record not found' });
       }
 
-      const result = await commissionService.calculateAndDistributeCommission(performance);
+      const result = await commissionService.calculateAndDistributeCommission(performance as Document<unknown, {}, IStrategyPerformance> & IStrategyPerformance & Required<{ _id: Types.ObjectId }>);
       res.json(result);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'An unknown error occurred' });
+      }
     }
   }
 }; 

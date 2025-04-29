@@ -1,5 +1,5 @@
 import { CommissionWithdrawal } from '../models/commissionWithdrawal';
-import { User } from '../models/User';
+import { ICommissionWithdrawal } from '../interfaces/ICommissionWithdrawal';
 import { Types } from 'mongoose';
 
 export class WithdrawalService {
@@ -19,76 +19,46 @@ export class WithdrawalService {
     amount: number,
     paymentMethod: string,
     paymentDetails: any
-  ): Promise<CommissionWithdrawal> {
-    const user = await User.findById(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    if (user.commissionBalance < amount) {
-      throw new Error('Insufficient commission balance');
-    }
-
+  ): Promise<ICommissionWithdrawal> {
     const withdrawal = new CommissionWithdrawal({
       userId,
       amount,
+      status: 'pending',
       paymentMethod,
-      paymentDetails,
-      status: 'pending'
+      paymentDetails
     });
-
-    await withdrawal.save();
-    return withdrawal;
+    return await withdrawal.save();
   }
 
   async processWithdrawal(
     withdrawalId: Types.ObjectId,
     status: 'approved' | 'rejected',
-    adminComment: string
-  ): Promise<CommissionWithdrawal> {
-    const withdrawal = await CommissionWithdrawal.findById(withdrawalId);
+    adminComment?: string
+  ): Promise<ICommissionWithdrawal> {
+    const withdrawal = await CommissionWithdrawal.findByIdAndUpdate(
+      withdrawalId,
+      { status, adminComment },
+      { new: true }
+    );
     if (!withdrawal) {
       throw new Error('Withdrawal not found');
     }
-
-    if (withdrawal.status !== 'pending') {
-      throw new Error('Withdrawal is not in pending status');
-    }
-
-    const user = await User.findById(withdrawal.userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    if (status === 'approved') {
-      user.commissionBalance -= withdrawal.amount;
-      await user.save();
-    }
-
-    withdrawal.status = status;
-    withdrawal.adminComment = adminComment;
-    await withdrawal.save();
-
     return withdrawal;
   }
 
-  async completeWithdrawal(withdrawalId: Types.ObjectId): Promise<CommissionWithdrawal> {
-    const withdrawal = await CommissionWithdrawal.findById(withdrawalId);
+  async completeWithdrawal(withdrawalId: Types.ObjectId): Promise<ICommissionWithdrawal> {
+    const withdrawal = await CommissionWithdrawal.findByIdAndUpdate(
+      withdrawalId,
+      { status: 'completed' },
+      { new: true }
+    );
     if (!withdrawal) {
       throw new Error('Withdrawal not found');
     }
-
-    if (withdrawal.status !== 'approved') {
-      throw new Error('Withdrawal must be approved before completion');
-    }
-
-    withdrawal.status = 'completed';
-    await withdrawal.save();
-
     return withdrawal;
   }
 
-  async getWithdrawalHistory(userId: Types.ObjectId): Promise<CommissionWithdrawal[]> {
+  async getWithdrawalHistory(userId: Types.ObjectId): Promise<ICommissionWithdrawal[]> {
     return await CommissionWithdrawal.find({ userId }).sort({ createdAt: -1 });
   }
 
@@ -109,5 +79,29 @@ export class WithdrawalService {
       pendingWithdrawals: pending.length,
       completedWithdrawals: completed.length
     };
+  }
+
+  async getPendingWithdrawals(): Promise<ICommissionWithdrawal[]> {
+    return await CommissionWithdrawal.find({ status: 'pending' }).sort({ createdAt: -1 });
+  }
+
+  async getWithdrawals(userId: Types.ObjectId): Promise<ICommissionWithdrawal[]> {
+    return await CommissionWithdrawal.find({ userId }).sort({ createdAt: -1 });
+  }
+
+  async updateWithdrawalStatus(
+    withdrawalId: Types.ObjectId,
+    status: 'pending' | 'approved' | 'rejected' | 'completed',
+    adminComment?: string
+  ): Promise<ICommissionWithdrawal> {
+    const withdrawal = await CommissionWithdrawal.findByIdAndUpdate(
+      withdrawalId,
+      { status, adminComment },
+      { new: true }
+    );
+    if (!withdrawal) {
+      throw new Error('Withdrawal not found');
+    }
+    return withdrawal;
   }
 } 

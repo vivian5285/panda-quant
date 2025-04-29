@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { UserLevelService } from '../services/userLevelService';
 import { validateUserLevel } from '../validators/userLevelValidator';
 import { handleError } from '../utils/errorHandler';
+import { Types } from 'mongoose';
 
 const userLevelService = new UserLevelService();
 
@@ -9,9 +10,9 @@ export const userLevelController = {
   // 获取所有用户等级
   async getAllLevels(req: Request, res: Response) {
     try {
-      const levels = await userLevelService.getAllLevels();
+      const levels = await userLevelService.getLevels();
       res.json(levels);
-    } catch (error) {
+    } catch (error: unknown) {
       handleError(res, error);
     }
   },
@@ -20,9 +21,9 @@ export const userLevelController = {
   async getLevelById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const level = await userLevelService.getLevelById(id);
+      const level = await userLevelService.getLevel(new Types.ObjectId(id));
       res.json(level);
-    } catch (error) {
+    } catch (error: unknown) {
       handleError(res, error);
     }
   },
@@ -38,7 +39,7 @@ export const userLevelController = {
 
       const level = await userLevelService.createLevel(levelData);
       res.status(201).json(level);
-    } catch (error) {
+    } catch (error: unknown) {
       handleError(res, error);
     }
   },
@@ -53,9 +54,9 @@ export const userLevelController = {
         return res.status(400).json({ error: validationError });
       }
 
-      const level = await userLevelService.updateLevel(id, levelData);
+      const level = await userLevelService.updateLevel(new Types.ObjectId(id), levelData);
       res.json(level);
-    } catch (error) {
+    } catch (error: unknown) {
       handleError(res, error);
     }
   },
@@ -64,9 +65,9 @@ export const userLevelController = {
   async deleteLevel(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      await userLevelService.deleteLevel(id);
+      await userLevelService.deleteLevel(new Types.ObjectId(id));
       res.status(204).send();
-    } catch (error) {
+    } catch (error: unknown) {
       handleError(res, error);
     }
   }

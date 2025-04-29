@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { StrategyRatingService } from '../services/strategyRatingService';
 import { AuthRequest } from '../types';
+import { Types } from 'mongoose';
 
 const strategyRatingService = new StrategyRatingService();
 
@@ -41,10 +42,14 @@ export const strategyRatingController = {
   async getStrategyRatings(req: Request, res: Response) {
     try {
       const { strategyId } = req.params;
-      const ratings = await strategyRatingService.getStrategyRatings(strategyId);
+      const ratings = await strategyRatingService.getRatingsByStrategy(strategyId);
       res.json(ratings);
-    } catch (error) {
-      res.status(500).json({ message: '获取评价失败', error });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
     }
   },
 
@@ -55,7 +60,7 @@ export const strategyRatingController = {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const ratings = await strategyRatingService.getUserRatings(req.user._id);
+      const ratings = await strategyRatingService.getRatingsByUser(req.user._id);
       res.json(ratings);
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -72,8 +77,12 @@ export const strategyRatingController = {
       const { strategyId } = req.params;
       const averageRating = await strategyRatingService.getAverageRating(strategyId);
       res.json({ averageRating });
-    } catch (error) {
-      res.status(500).json({ message: '获取平均评分失败', error });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
     }
   },
 
@@ -88,7 +97,7 @@ export const strategyRatingController = {
       const { rating, comment } = req.body;
 
       // 验证用户是否有权限修改评价
-      const existingRatings = await strategyRatingService.getUserRatings(req.user._id);
+      const existingRatings = await strategyRatingService.getRatingsByUser(req.user._id);
       const canUpdate = existingRatings.some(r => r._id.toString() === ratingId);
       
       if (!canUpdate) {
@@ -97,13 +106,8 @@ export const strategyRatingController = {
 
       const updatedRating = await strategyRatingService.updateRating(ratingId, {
         rating,
-        comment,
-        userId: req.user._id
+        comment
       });
-
-      if (!updatedRating) {
-        return res.status(404).json({ message: '评价不存在' });
-      }
 
       res.json(updatedRating);
     } catch (error: unknown) {
@@ -125,19 +129,14 @@ export const strategyRatingController = {
       const { ratingId } = req.params;
 
       // 验证用户是否有权限删除评价
-      const existingRatings = await strategyRatingService.getUserRatings(req.user._id);
+      const existingRatings = await strategyRatingService.getRatingsByUser(req.user._id);
       const canDelete = existingRatings.some(r => r._id.toString() === ratingId);
       
       if (!canDelete) {
         return res.status(403).json({ message: '无权删除此评价' });
       }
 
-      const deletedRating = await strategyRatingService.deleteRating(ratingId);
-
-      if (!deletedRating) {
-        return res.status(404).json({ message: '评价不存在' });
-      }
-
+      await strategyRatingService.deleteRating(ratingId);
       res.status(204).send();
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -148,13 +147,15 @@ export const strategyRatingController = {
     }
   },
 
+  // 获取所有评价
   async getRatings(req: AuthRequest, res: Response) {
     try {
       if (!req.user) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      res.json([]);
+      const ratings = await strategyRatingService.getAllRatings();
+      res.json(ratings);
     } catch (error: unknown) {
       if (error instanceof Error) {
         res.status(500).json({ error: error.message });
