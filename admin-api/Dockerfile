@@ -12,7 +12,7 @@ COPY prisma ./prisma/
 COPY tsconfig.json ./
 
 # Install dependencies
-RUN npm install -g npm@latest && \
+RUN npm install -g npm@10.8.2 && \
     npm install --legacy-peer-deps && \
     npm install -g typescript && \
     npm install prisma --save-dev
@@ -41,7 +41,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm install -g npm@latest && \
+RUN npm install -g npm@10.8.2 && \
     npm install --production --legacy-peer-deps && \
     npm install prisma --save-dev
 
