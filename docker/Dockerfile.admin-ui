@@ -10,8 +10,11 @@ COPY package*.json ./
 # 安装依赖和 TypeScript
 RUN npm install --legacy-peer-deps && \
     npm install -g typescript@latest && \
+    npm install @mui/material@latest && \
     npm install @mui/x-data-grid@latest && \
     npm install web-vitals@2.1.4 && \
+    npm install @types/babel__core@7.1.20 --save-dev && \
+    npm install @babel/core@7.23.7 --save-dev && \
     chmod +x /usr/local/bin/tsc
 
 # 创建 tsconfig.json
@@ -55,10 +58,53 @@ declare module "web-vitals" {\
   export function onLCP(callback: (metric: any) => void): void;\
   export function onTTFB(callback: (metric: any) => void): void;\
 }\
-declare module "@mui/material/styles/createTypography" {\
+declare module "@mui/material/styles" {\
+  export interface TypographyVariants {\
+    [key: string]: any;\
+  }\
   export interface TypographyVariantsOptions {\
     [key: string]: any;\
   }\
+  export interface TypographyOptions {\
+    fontFamily?: string;\
+    fontSize?: number;\
+    fontWeightLight?: number;\
+    fontWeightRegular?: number;\
+    fontWeightMedium?: number;\
+    fontWeightBold?: number;\
+    htmlFontSize?: number;\
+    allVariants?: any;\
+    pxToRem?: (size: number) => string;\
+    [key: string]: any;\
+  }\
+  export function createTypography(palette: any, typography: TypographyOptions): TypographyOptions;\
+}\
+declare module "@babel/core" {\
+  export interface TransformOptions {\
+    filename?: string;\
+    sourceType?: "script" | "module" | "unambiguous";\
+    sourceMaps?: boolean | "inline" | "both";\
+    sourceFileName?: string;\
+    sourceRoot?: string;\
+    moduleRoot?: string;\
+    moduleIds?: boolean;\
+    moduleId?: string;\
+    comments?: boolean;\
+    compact?: boolean | "auto";\
+    minified?: boolean;\
+    ast?: boolean;\
+    code?: boolean;\
+    [key: string]: any;\
+  }\
+  export interface TransformResult {\
+    code?: string | null;\
+    map?: object | null;\
+    ast?: object | null;\
+  }\
+  export function transform(code: string, options?: TransformOptions): Promise<TransformResult>;\
+  export function transformSync(code: string, options?: TransformOptions): TransformResult;\
+  export function transformFile(filename: string, options?: TransformOptions): Promise<TransformResult>;\
+  export function transformFileSync(filename: string, options?: TransformOptions): TransformResult;\
 }\
 declare module "@/utils/api";\
 declare module "@/utils/date";\
