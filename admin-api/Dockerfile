@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 COPY tsconfig.json ./
 
-# Update npm and install dependencies
+# Install dependencies
 RUN npm install -g npm@11.3.0 && \
     npm cache clean --force && \
     npm install --legacy-peer-deps && \
@@ -28,7 +28,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -36,7 +36,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Update npm and install production dependencies
+# Install production dependencies
 RUN npm install -g npm@11.3.0 && \
     npm cache clean --force && \
     npm install --omit=dev --legacy-peer-deps && \
