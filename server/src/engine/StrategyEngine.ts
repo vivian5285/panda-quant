@@ -1,6 +1,7 @@
 import { Order, OrderStatus, Strategy, StrategyExecutionResult } from '../types';
 import { OrderQueueService } from '../services/OrderQueueService';
 import { MonitoringService } from '../services/MonitoringService';
+import { generateUUID } from '../utils/uuid';
 
 export class StrategyEngine {
   private static instance: StrategyEngine;
@@ -21,7 +22,7 @@ export class StrategyEngine {
 
   async executeStrategy(strategy: Strategy): Promise<StrategyExecutionResult> {
     const result: StrategyExecutionResult = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       strategyId: strategy.id,
       status: 'success',
       startTime: new Date(),

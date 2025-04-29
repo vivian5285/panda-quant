@@ -4,6 +4,7 @@ import { CommissionRecord } from '../models/commissionRecord';
 import { commissionService } from '../services/commissionService';
 import { validateObjectId } from '../middleware/validation';
 import { CommissionService } from '../services/commissionService';
+import { AuthRequest } from '../types';
 
 const commissionServiceInstance = new CommissionService();
 
@@ -129,20 +130,20 @@ export const commissionController = {
   /**
    * 获取用户的佣金记录
    */
-  async getUserCommissions(req: Request, res: Response) {
+  async getCommissions(req: AuthRequest, res: Response) {
     try {
-      const userId = req.user._id;
-      const { startDate, endDate, status } = req.query;
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
-      const commissions = await commissionServiceInstance.getUserCommissions(userId, {
-        startDate: startDate ? new Date(startDate as string) : undefined,
-        endDate: endDate ? new Date(endDate as string) : undefined,
-        status: status as 'pending' | 'paid'
-      });
-
+      const commissions = await CommissionService.getInstance().getUserCommissions(req.user._id);
       res.json(commissions);
-    } catch (error) {
-      res.status(500).json({ message: '获取佣金记录失败', error });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
     }
   },
 
@@ -368,6 +369,77 @@ export const commissionController = {
       res.json(ranking);
     } catch (error) {
       res.status(500).json({ message: '获取佣金排行失败', error });
+    }
+  },
+
+  async createCommission(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const commission = await CommissionService.getInstance().createCommission({
+        ...req.body,
+        userId: req.user._id
+      });
+      res.status(201).json(commission);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
+    }
+  },
+
+  async getTeamInfo(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const teamInfo = await CommissionService.getInstance().getTeamInfo(req.user._id);
+      res.json(teamInfo);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
+    }
+  },
+
+  async getCommissionRecords(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const records = await CommissionService.getInstance().getCommissionRecords(req.user._id);
+      res.json(records);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
+    }
+  },
+
+  async getCommissionTrend(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const trend = await CommissionService.getInstance().getCommissionTrend(req.user._id);
+      res.json(trend);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
     }
   }
 }; 

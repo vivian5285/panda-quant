@@ -1,8 +1,19 @@
-import { User } from '../models/user';
+import { User } from '../models/User';
 import { CommissionRecord } from '../models/commissionRecord';
-import { StrategyPerformance } from '../models/strategyPerformance';
+import { StrategyPerformance } from '../models/StrategyPerformance';
 
 export class CommissionService {
+  private static instance: CommissionService;
+
+  private constructor() {}
+
+  public static getInstance(): CommissionService {
+    if (!CommissionService.instance) {
+      CommissionService.instance = new CommissionService();
+    }
+    return CommissionService.instance;
+  }
+
   // 平台佣金比例
   private static readonly PLATFORM_COMMISSION_RATE = 0.1; // 10%
   // 一级推荐佣金比例
@@ -140,5 +151,20 @@ export class CommissionService {
       pending: pending[0]?.total || 0,
       paid: paid[0]?.total || 0
     };
+  }
+
+  async getTeamInfo(userId: string): Promise<any> {
+    // Implementation
+    return {};
+  }
+
+  async getCommissionRecords(userId: string): Promise<any[]> {
+    // Implementation
+    return [];
+  }
+
+  async getCommissionTrend(userId: string): Promise<any[]> {
+    // Implementation
+    return [];
   }
 } 

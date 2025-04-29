@@ -1,45 +1,46 @@
 import { UserLevel } from '../models/userLevel';
 import { NotFoundError } from '../utils/errors';
 
-export const userLevelService = {
+export class UserLevelService {
+  private static instance: UserLevelService;
+
+  private constructor() {}
+
+  public static getInstance(): UserLevelService {
+    if (!UserLevelService.instance) {
+      UserLevelService.instance = new UserLevelService();
+    }
+    return UserLevelService.instance;
+  }
+
   // 获取所有用户等级
-  async getAllLevels(): Promise<UserLevel[]> {
-    return await UserLevel.find().sort({ createdAt: -1 });
-  },
+  async getLevels(): Promise<typeof UserLevel[]> {
+    return UserLevel.find();
+  }
 
   // 获取单个用户等级
-  async getLevelById(id: string): Promise<UserLevel> {
-    const level = await UserLevel.findById(id);
-    if (!level) {
-      throw new NotFoundError('User level not found');
-    }
-    return level;
-  },
+  async getLevel(id: string): Promise<typeof UserLevel | null> {
+    return UserLevel.findById(id);
+  }
 
   // 创建用户等级
-  async createLevel(levelData: Partial<UserLevel>): Promise<UserLevel> {
-    const level = new UserLevel(levelData);
-    return await level.save();
-  },
+  async createLevel(data: {
+    name: string;
+    description: string;
+    requirements: Record<string, any>;
+    benefits: Record<string, any>;
+  }): Promise<typeof UserLevel> {
+    const level = new UserLevel(data);
+    return level.save();
+  }
 
   // 更新用户等级
-  async updateLevel(id: string, levelData: Partial<UserLevel>): Promise<UserLevel> {
-    const level = await UserLevel.findByIdAndUpdate(
-      id,
-      { ...levelData, updatedAt: new Date() },
-      { new: true, runValidators: true }
-    );
-    if (!level) {
-      throw new NotFoundError('User level not found');
-    }
-    return level;
-  },
+  async updateLevel(id: string, data: Partial<typeof UserLevel>): Promise<typeof UserLevel | null> {
+    return UserLevel.findByIdAndUpdate(id, data, { new: true });
+  }
 
   // 删除用户等级
-  async deleteLevel(id: string): Promise<void> {
-    const level = await UserLevel.findByIdAndDelete(id);
-    if (!level) {
-      throw new NotFoundError('User level not found');
-    }
+  async deleteLevel(id: string): Promise<typeof UserLevel | null> {
+    return UserLevel.findByIdAndDelete(id);
   }
-}; 
+} 

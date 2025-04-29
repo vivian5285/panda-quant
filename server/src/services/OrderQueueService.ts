@@ -1,5 +1,6 @@
 import { Order, OrderStatus } from '../types';
 import { RedisService } from './redis';
+import { generateUUID } from '../utils/uuid';
 
 export class OrderQueueService {
   private static instance: OrderQueueService;
@@ -19,7 +20,7 @@ export class OrderQueueService {
   async addOrder(order: Omit<Order, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<void> {
     const orderWithDefaults: Order = {
       ...order,
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       status: OrderStatus.PENDING,
       createdAt: new Date(),
       updatedAt: new Date()

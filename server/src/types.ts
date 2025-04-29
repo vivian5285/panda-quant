@@ -1,3 +1,17 @@
+import { Request } from 'express';
+
+export interface AuthRequest extends Request {
+  user?: User;
+}
+
+export interface User {
+  id: string;
+  _id: string;
+  role: string;
+  permissions: string[];
+  [key: string]: any;
+}
+
 export enum OrderType {
   MARKET = 'market',
   LIMIT = 'limit',

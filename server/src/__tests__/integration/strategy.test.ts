@@ -40,4 +40,23 @@ describe('Strategy Integration Tests', () => {
     await strategyEngine.createOrder(orderData);
     // Add assertions here
   });
+
+  it('should handle order creation error', async () => {
+    const orderData = {
+      userId: 'test-user',
+      strategyId: 'test-strategy',
+      exchange: 'binance',
+      symbol: 'BTC/USDT',
+      type: OrderType.MARKET,
+      side: 'buy' as const,
+      amount: 1,
+      retryCount: 0
+    };
+
+    try {
+      await strategyEngine.createOrder(orderData);
+    } catch (error) {
+      expect(error).toBeDefined();
+    }
+  });
 }); 

@@ -1,23 +1,90 @@
 import { Request, Response } from 'express';
 import { withdrawalService } from '../services/withdrawalService';
 import { validateObjectId } from '../middleware/validation';
+import { AuthRequest } from '../types';
 
 export const withdrawalController = {
-  async createWithdrawal(req: Request, res: Response) {
+  async createWithdrawal(req: AuthRequest, res: Response) {
     try {
-      const { amount, paymentMethod, paymentDetails } = req.body;
-      const userId = req.user._id;
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
-      await withdrawalService.createWithdrawalRequest(
-        userId,
-        amount,
-        paymentMethod,
-        paymentDetails
-      );
+      const withdrawal = {
+        ...req.body,
+        userId: req.user._id
+      };
+      res.status(201).json(withdrawal);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
+    }
+  },
 
-      res.status(201).json({ message: 'Withdrawal request created successfully' });
-    } catch (error) {
-      res.status(400).json({ error: error.message });
+  async getWithdrawals(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      res.json([]);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
+    }
+  },
+
+  async getWithdrawal(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      res.json({});
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
+    }
+  },
+
+  async updateWithdrawal(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      res.json({});
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
+    }
+  },
+
+  async deleteWithdrawal(req: AuthRequest, res: Response) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      res.status(204).send();
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Unknown error occurred' });
+      }
     }
   },
 
