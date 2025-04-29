@@ -70,4 +70,9 @@ export class RiskManagementService {
   public getRiskLimits(): Map<string, number> {
     return this.riskLimits;
   }
+
+  async checkRisk(userId: string, amount: number): Promise<boolean> {
+    // TODO: Implement risk check logic
+    return true;
+  }
 } 

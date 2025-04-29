@@ -1,19 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+export interface JwtPayload {
+  userId: string;
+  [key: string]: any;
+}
 
-  if (!token) {
-    return res.status(401).json({ error: '未提供认证令牌' });
-  }
-
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || '');
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as JwtPayload;
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(403).json({ error: '无效的认证令牌' });
+    return res.status(401).json({ message: 'Invalid token' });
   }
 }; 

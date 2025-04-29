@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import Redis from 'ioredis';
+import { redis } from './redis';
+import { config } from '../config';
 import axios from 'axios';
 
 export const checkDatabaseHealth = async (): Promise<boolean> => {
@@ -17,9 +18,7 @@ export const checkDatabaseHealth = async (): Promise<boolean> => {
 
 export const checkRedisHealth = async (): Promise<boolean> => {
   try {
-    const redis = new Redis(process.env.REDIS_URI);
     await redis.ping();
-    redis.disconnect();
     return true;
   } catch (error) {
     console.error('Redis health check failed:', error);
@@ -35,4 +34,46 @@ export const checkServerHealth = async (): Promise<boolean> => {
     console.error('Server health check failed:', error);
     return false;
   }
-}; 
+};
+
+export async function checkHealth(): Promise<{
+  status: string;
+  services: {
+    redis: boolean;
+    database: boolean;
+    server: boolean;
+  };
+}> {
+  const redisStatus = await checkRedis();
+  const databaseStatus = await checkDatabase();
+  const serverStatus = await checkServer();
+
+  return {
+    status: redisStatus && databaseStatus && serverStatus ? 'healthy' : 'degraded',
+    services: {
+      redis: redisStatus,
+      database: databaseStatus,
+      server: serverStatus
+    }
+  };
+}
+
+async function checkRedis(): Promise<boolean> {
+  try {
+    await redis.ping();
+    return true;
+  } catch (error) {
+    console.error('Redis health check failed:', error);
+    return false;
+  }
+}
+
+async function checkDatabase(): Promise<boolean> {
+  // TODO: Implement database health check
+  return true;
+}
+
+async function checkServer(): Promise<boolean> {
+  // TODO: Implement server health check
+  return true;
+} 
