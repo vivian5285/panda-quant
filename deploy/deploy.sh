@@ -100,6 +100,8 @@ install_dependencies() {
     if [ ! -d "node_modules" ]; then
         print_message "Installing user-ui dependencies..." "$YELLOW"
         npm install --legacy-peer-deps || handle_error "Failed to install user-ui dependencies"
+        # 生成类型声明文件
+        npm run build:types || handle_error "Failed to generate type declarations"
     else
         print_message "user-ui dependencies already installed, skipping..." "$YELLOW"
     fi
@@ -109,6 +111,8 @@ install_dependencies() {
     if [ ! -d "node_modules" ]; then
         print_message "Installing admin-ui dependencies..." "$YELLOW"
         npm install --legacy-peer-deps || handle_error "Failed to install admin-ui dependencies"
+        # 生成类型声明文件
+        npm run build:types || handle_error "Failed to generate type declarations"
     else
         print_message "admin-ui dependencies already installed, skipping..." "$YELLOW"
     fi
@@ -124,6 +128,11 @@ stop_services() {
     docker-compose -f ./docker-compose.user.yml down || print_message "No user services to stop" "$YELLOW"
     docker-compose -f ./docker-compose.admin.yml down || print_message "No admin services to stop" "$YELLOW"
     docker-compose -f ./docker-compose.network.yml down || print_message "No network to stop" "$YELLOW"
+    
+    # 清理 Docker 资源
+    docker system prune -af || print_message "Warning: Failed to prune Docker system" "$YELLOW"
+    docker volume prune -f || print_message "Warning: Failed to prune Docker volumes" "$YELLOW"
+    docker builder prune -af || print_message "Warning: Failed to prune Docker builder cache" "$YELLOW"
 }
 
 # 启动服务
@@ -135,10 +144,10 @@ start_services() {
     docker-compose -f ./docker-compose.network.yml up -d || handle_error "Failed to create network"
     
     print_message "Starting admin services..." "$YELLOW"
-    docker-compose -f ./docker-compose.admin.yml up -d || handle_error "Failed to start admin services"
+    docker-compose -f ./docker-compose.admin.yml up -d --build || handle_error "Failed to start admin services"
     
     print_message "Starting user services..." "$YELLOW"
-    docker-compose -f ./docker-compose.user.yml up -d || handle_error "Failed to start user services"
+    docker-compose -f ./docker-compose.user.yml up -d --build || handle_error "Failed to start user services"
 }
 
 # 检查服务状态

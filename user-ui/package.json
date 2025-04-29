@@ -51,7 +51,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build --mode production",
+    "build:analyze": "tsc && vite build --mode production --report",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "generate:translations": "ts-node scripts/generate-translations.ts",

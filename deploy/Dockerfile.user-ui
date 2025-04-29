@@ -16,6 +16,11 @@ RUN npm install -g typescript vite terser
 COPY user-ui/package*.json ./
 COPY user-ui/ ./
 
+# Set environment variables
+ENV VITE_API_URL=https://api.pandatrade.space
+ENV VITE_WS_URL=wss://api.pandatrade.space
+ENV NODE_ENV=production
+
 # Install dependencies and type declarations
 RUN npm install --legacy-peer-deps && \
     npm install --save-dev terser && \
@@ -25,8 +30,8 @@ RUN npm install --legacy-peer-deps && \
 RUN chmod -R 777 /usr/local/bin/tsc && \
     chmod -R 777 /usr/local/bin/vite
 
-# Build the application
-RUN npm run build
+# Build the application with production mode
+RUN npm run build -- --mode production
 
 # Production stage
 FROM nginx:alpine
