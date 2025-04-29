@@ -5,10 +5,13 @@ export interface IUser extends Document {
   username: string;
   email: string;
   password: string;
-  role: 'user' | 'admin';
-  status: 'active' | 'inactive' | 'suspended';
+  role: string;
+  permissions: string[];
+  referrerId?: string;
+  commissionBalance: number;
   createdAt: Date;
   updatedAt: Date;
+  status: 'active' | 'inactive' | 'suspended';
   lastLogin?: Date;
   profile?: {
     firstName?: string;
@@ -83,4 +86,6 @@ export interface IUser extends Document {
     browser?: string;
     lastActive?: Date;
   };
-} 
+}
+
+export type User = IUser; 

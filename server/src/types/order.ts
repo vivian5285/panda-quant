@@ -2,39 +2,24 @@ import { Document } from 'mongoose';
 import { Types } from 'mongoose';
 
 export interface IOrder extends Document {
-  _id: Types.ObjectId;
-  userId: Types.ObjectId;
-  strategyId: Types.ObjectId;
+  _id: string;
+  userId: string;
+  strategyId: string;
   symbol: string;
-  type: 'market' | 'limit' | 'stop' | 'stop_limit';
-  side: 'buy' | 'sell';
-  status: 'open' | 'filled' | 'canceled' | 'rejected';
+  type: 'buy' | 'sell';
+  status: 'pending' | 'filled' | 'cancelled';
+  price: number;
   quantity: number;
-  price?: number;
-  stopPrice?: number;
-  limitPrice?: number;
-  filledQuantity?: number;
-  averageFillPrice?: number;
-  commission?: number;
+  executedPrice?: number;
+  executedQuantity?: number;
   createdAt: Date;
   updatedAt: Date;
-  filledAt?: Date;
-  canceledAt?: Date;
-  metadata?: {
-    exchange?: string;
-    orderId?: string;
-    clientOrderId?: string;
-    timeInForce?: string;
-    iceberg?: boolean;
-    postOnly?: boolean;
-    reduceOnly?: boolean;
-    closePosition?: boolean;
-    activationPrice?: number;
-    callbackRate?: number;
-    workingType?: string;
-    priceProtect?: boolean;
-  };
 }
+
+export type Order = IOrder;
+
+export interface OrderCreateInput extends Omit<IOrder, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface OrderUpdateInput extends Partial<OrderCreateInput> {}
 
 export interface IOrderBook extends Document {
   _id: Types.ObjectId;

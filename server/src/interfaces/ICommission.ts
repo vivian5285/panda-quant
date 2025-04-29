@@ -1,12 +1,10 @@
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
 
 export interface ICommission extends Document {
-  userId: Types.ObjectId;
-  fromUserId: Types.ObjectId;
+  _id: string;
+  userId: string;
   amount: number;
-  level: number;
-  strategyId: Types.ObjectId;
-  performanceId: Types.ObjectId;
+  type: 'trade' | 'referral';
   status: 'pending' | 'paid';
   createdAt: Date;
   updatedAt: Date;

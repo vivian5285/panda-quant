@@ -1,16 +1,18 @@
-import { Types } from 'mongoose';
+import { Document } from 'mongoose';
 
-export interface INotification {
-  _id?: Types.ObjectId;
-  userId: Types.ObjectId;
-  type: string;
+export interface INotification extends Document {
+  _id: string;
+  userId: string;
+  type: 'trade' | 'deposit' | 'withdrawal' | 'commission' | 'alert';
   title: string;
   message: string;
-  data?: any;
-  isRead: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  read: boolean;
+  data?: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export type NotificationCreateInput = Omit<INotification, '_id' | 'createdAt' | 'updatedAt'>;
-export type NotificationUpdateInput = Partial<NotificationCreateInput>; 
+export type Notification = INotification;
+
+export interface NotificationCreateInput extends Omit<INotification, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface NotificationUpdateInput extends Partial<NotificationCreateInput> {} 

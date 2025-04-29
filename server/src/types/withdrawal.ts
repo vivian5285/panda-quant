@@ -1,4 +1,7 @@
 import { Types } from 'mongoose';
+import { ICommissionWithdrawal } from '../interfaces/ICommissionWithdrawal';
+
+export type Withdrawal = ICommissionWithdrawal;
 
 export interface IWithdrawal {
   _id?: Types.ObjectId;
@@ -13,8 +16,8 @@ export interface IWithdrawal {
   updatedAt?: Date;
 }
 
-export type WithdrawalCreateInput = Omit<IWithdrawal, '_id' | 'createdAt' | 'updatedAt'>;
-export type WithdrawalUpdateInput = Partial<WithdrawalCreateInput>;
+export interface WithdrawalCreateInput extends Omit<ICommissionWithdrawal, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface WithdrawalUpdateInput extends Partial<WithdrawalCreateInput> {}
 
 export interface WithdrawalNotification {
   userId: Types.ObjectId;

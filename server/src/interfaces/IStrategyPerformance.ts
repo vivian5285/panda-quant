@@ -1,8 +1,15 @@
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
 
 export interface IStrategyPerformance extends Document {
-  userId: Types.ObjectId;
-  strategyId: Types.ObjectId;
-  profit: number;
+  _id: string;
+  strategyId: string;
+  userId: string;
+  performance: {
+    totalReturn: number;
+    dailyReturn: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+  };
   createdAt: Date;
+  updatedAt: Date;
 } 

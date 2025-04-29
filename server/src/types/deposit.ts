@@ -1,4 +1,7 @@
 import { Types } from 'mongoose';
+import { IDeposit } from '../interfaces/IDeposit';
+
+export type Deposit = IDeposit;
 
 export interface IDeposit {
   _id?: Types.ObjectId;
@@ -13,11 +16,11 @@ export interface IDeposit {
   updatedAt?: Date;
 }
 
-export type DepositCreateInput = Omit<IDeposit, '_id' | 'createdAt' | 'updatedAt'>;
-export type DepositUpdateInput = Partial<DepositCreateInput>;
+export interface DepositCreateInput extends Omit<IDeposit, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface DepositUpdateInput extends Partial<DepositCreateInput> {}
 
 export interface DepositNotification {
-  userId: Types.ObjectId;
+  userId: string;
   amount: number;
   currency: string;
   network: string;

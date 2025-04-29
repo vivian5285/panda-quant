@@ -13,8 +13,9 @@ export interface User {
   [key: string]: any;
 }
 
-export * from './user';
 export * from './auth';
+export * from './deposit';
+export * from './user';
 export * from './commission';
 export * from './withdrawal';
 export * from './strategy';

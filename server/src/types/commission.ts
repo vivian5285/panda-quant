@@ -1,5 +1,6 @@
 import { Document } from 'mongoose';
 import { Types } from 'mongoose';
+import { ICommission } from '../interfaces/ICommission';
 
 export interface ICommission extends Document {
   _id: Types.ObjectId;
@@ -75,4 +76,9 @@ export interface ICommissionStats {
     count: number;
     amount: number;
   }[];
-} 
+}
+
+export type Commission = ICommission;
+
+export interface CommissionCreateInput extends Omit<ICommission, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface CommissionUpdateInput extends Partial<CommissionCreateInput> {} 

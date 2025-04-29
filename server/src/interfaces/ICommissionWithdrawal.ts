@@ -1,13 +1,11 @@
 import { Document } from 'mongoose';
-import { Types } from 'mongoose';
 
 export interface ICommissionWithdrawal extends Document {
-  userId: Types.ObjectId;
+  _id: string;
+  userId: string;
   amount: number;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
-  paymentMethod: string;
-  paymentDetails: Record<string, any>;
-  adminComment?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  walletAddress: string;
   createdAt: Date;
   updatedAt: Date;
 } 

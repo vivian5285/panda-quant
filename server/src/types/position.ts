@@ -1,5 +1,6 @@
 import { Document } from 'mongoose';
 import { Types } from 'mongoose';
+import { IPosition } from '../interfaces/IPosition';
 
 export interface IPosition extends Document {
   _id: Types.ObjectId;
@@ -103,4 +104,9 @@ export interface IPositionStats {
     volume: number;
     pnl: number;
   }[];
-} 
+}
+
+export type Position = IPosition;
+
+export interface PositionCreateInput extends Omit<IPosition, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface PositionUpdateInput extends Partial<PositionCreateInput> {} 

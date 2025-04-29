@@ -1,45 +1,11 @@
 import { Document } from 'mongoose';
 import { Types } from 'mongoose';
+import { IStrategy } from '../interfaces/IStrategy';
 
-export interface IStrategy extends Document {
-  _id: Types.ObjectId;
-  name: string;
-  description: string;
-  type: 'manual' | 'automated';
-  status: 'active' | 'inactive' | 'testing';
-  userId: Types.ObjectId;
-  settings: {
-    riskLevel: 'low' | 'medium' | 'high';
-    maxDrawdown: number;
-    maxDailyLoss: number;
-    maxPositionSize: number;
-    leverage: number;
-    stopLoss: number;
-    takeProfit: number;
-    timeframes: string[];
-    pairs: string[];
-  };
-  performance: {
-    totalTrades: number;
-    winRate: number;
-    profitFactor: number;
-    averageTradeDuration: number;
-    totalProfit: number;
-    maxDrawdown: number;
-    sharpeRatio: number;
-    sortinoRatio: number;
-    lastUpdated: Date;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-  lastActive?: Date;
-  metadata?: {
-    version?: string;
-    lastBacktest?: Date;
-    lastOptimization?: Date;
-    tags?: string[];
-  };
-}
+export type Strategy = IStrategy;
+
+export interface StrategyCreateInput extends Omit<IStrategy, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface StrategyUpdateInput extends Partial<StrategyCreateInput> {}
 
 export interface IStrategyPerformance extends Document {
   _id: Types.ObjectId;

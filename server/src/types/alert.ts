@@ -1,4 +1,7 @@
 import { Types } from 'mongoose';
+import { IAlert } from '../interfaces/IAlert';
+
+export type Alert = IAlert;
 
 export interface IAlert {
   _id?: Types.ObjectId;

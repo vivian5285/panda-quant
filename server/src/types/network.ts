@@ -1,11 +1,20 @@
-export interface NetworkStatus {
-  network: string;
-  status: 'online' | 'offline' | 'checking' | 'error';
+import { Document } from 'mongoose';
+
+export interface INetworkStatus extends Document {
+  _id: string;
+  type: 'api' | 'database' | 'redis' | 'websocket';
+  status: 'up' | 'down' | 'degraded';
   lastChecked: Date;
-  blockHeight?: number;
-  latency?: number;
+  responseTime: number;
   error?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
+
+export type NetworkStatus = INetworkStatus;
+
+export interface NetworkStatusCreateInput extends Omit<INetworkStatus, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface NetworkStatusUpdateInput extends Partial<NetworkStatusCreateInput> {}
 
 export interface NetworkConfig {
   name: string;
