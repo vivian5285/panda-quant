@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 RUN npm install -g typescript
 
 # Copy package files
-COPY package*.json ./
+COPY admin-api/package*.json ./
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
@@ -60,7 +60,7 @@ RUN npm install --save \
 RUN chmod -R 777 /usr/local/bin/tsc
 
 # Copy source code
-COPY . .
+COPY admin-api/ .
 
 # Set permissions for Prisma
 RUN chmod -R 777 /app/node_modules/.bin/prisma
@@ -94,10 +94,10 @@ RUN chmod -R 777 /app/node_modules/@prisma/client
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=3002
+ENV PORT=3001
 
 # Expose the application port
-EXPOSE 3002
+EXPOSE 3001
 
 # Start the application
 CMD ["npm", "start"] 
