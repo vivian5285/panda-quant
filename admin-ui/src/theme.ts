@@ -1,34 +1,95 @@
-import { createTheme, ThemeOptions } from '@mui/material/styles';
-import type { TypographyOptions } from '@mui/material/styles/createTypography';
+import { createTheme, ThemeOptions, PaletteOptions, TypographyVariantsOptions } from '@mui/material/styles';
+import React from 'react';
 
 // 扩展 Material-UI 的 Palette 类型
 declare module '@mui/material/styles' {
   interface Palette {
-    accent: Palette['primary'];
-    border: string;
-    card: string;
+    accent: {
+      main: string;
+      light: string;
+      dark: string;
+    };
+    border: {
+      main: string;
+      light: string;
+      dark: string;
+    };
+    card: {
+      main: string;
+      light: string;
+      dark: string;
+    };
+    gradient: {
+      primary: string;
+      secondary: string;
+      success: string;
+      warning: string;
+      error: string;
+      info: string;
+    };
   }
   interface PaletteOptions {
-    accent?: PaletteOptions['primary'];
-    border?: string;
-    card?: string;
+    accent?: {
+      main: string;
+      light: string;
+      dark: string;
+    };
+    border?: {
+      main: string;
+      light: string;
+      dark: string;
+    };
+    card?: {
+      main: string;
+      light: string;
+      dark: string;
+    };
+    gradient?: {
+      primary: string;
+      secondary: string;
+      success: string;
+      warning: string;
+      error: string;
+      info: string;
+    };
   }
   interface TypographyVariants {
-    [key: string]: any;
+    h1: React.CSSProperties;
+    h2: React.CSSProperties;
+    h3: React.CSSProperties;
+    h4: React.CSSProperties;
+    h5: React.CSSProperties;
+    h6: React.CSSProperties;
+    body1: React.CSSProperties;
+    body2: React.CSSProperties;
   }
   interface TypographyVariantsOptions {
-    [key: string]: any;
+    h1?: React.CSSProperties;
+    h2?: React.CSSProperties;
+    h3?: React.CSSProperties;
+    h4?: React.CSSProperties;
+    h5?: React.CSSProperties;
+    h6?: React.CSSProperties;
+    body1?: React.CSSProperties;
+    body2?: React.CSSProperties;
   }
 }
 
 declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
-    [key: string]: true;
+    h1: true;
+    h2: true;
+    h3: true;
+    h4: true;
+    h5: true;
+    h6: true;
+    body1: true;
+    body2: true;
   }
 }
 
 // 排版配置
-const typography: TypographyOptions = {
+const typography: TypographyVariantsOptions = {
   fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
   h1: {
     fontSize: '3.5rem',
@@ -83,14 +144,13 @@ const typography: TypographyOptions = {
 
 const themeOptions: ThemeOptions = {
   palette: {
-    mode: 'light',
     primary: {
-      main: '#00FFB8', // 熊猫绿
+      main: '#00FFB8',
       light: '#33FFC6',
       dark: '#00CC93',
     },
     secondary: {
-      main: '#FFFFFF', // 纯白
+      main: '#FFFFFF',
       light: '#FFFFFF',
       dark: '#F5F5F5',
     },
@@ -102,95 +162,99 @@ const themeOptions: ThemeOptions = {
       primary: '#333333',
       secondary: '#666666',
     },
-    card: '#FFFFFF',
-    border: 'rgba(0, 0, 0, 0.1)',
+    card: {
+      main: '#FFFFFF',
+      light: '#F5F5F5',
+      dark: '#EEEEEE',
+    },
+    border: {
+      main: 'rgba(0, 0, 0, 0.1)',
+      light: 'rgba(0, 0, 0, 0.05)',
+      dark: 'rgba(0, 0, 0, 0.2)',
+    },
     accent: {
-      main: '#00FFB8', // 使用熊猫绿作为强调色
+      main: '#00FFB8',
       light: '#33FFC6',
       dark: '#00CC93',
     },
     success: {
-      main: '#00FFB8', // 使用熊猫绿作为成功色
+      main: '#00FFB8',
       light: '#33FFC6',
       dark: '#00CC93',
     },
     warning: {
-      main: '#FFD600', // 保留警告色
+      main: '#FFD600',
       light: '#FFDE33',
       dark: '#CCAB00',
     },
     error: {
-      main: '#FF1744', // 保留错误色
+      main: '#FF1744',
       light: '#FF4569',
       dark: '#CC1236',
     },
     info: {
-      main: '#0288d1',
-      light: '#03a9f4',
-      dark: '#01579b',
+      main: '#2196F3',
+      light: '#4DABF5',
+      dark: '#0B79D0',
+    },
+    gradient: {
+      primary: 'linear-gradient(135deg, #00FFB8 0%, #FFFFFF 100%)',
+      secondary: 'linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%)',
+      success: 'linear-gradient(135deg, #00FFB8 0%, #33FFC6 100%)',
+      warning: 'linear-gradient(135deg, #FFD600 0%, #FFDE33 100%)',
+      error: 'linear-gradient(135deg, #FF1744 0%, #FF4569 100%)',
+      info: 'linear-gradient(135deg, #2196F3 0%, #4DABF5 100%)',
     },
   },
-  typography,
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontSize: '2.5rem',
+      fontWeight: 500,
+    },
+    h2: {
+      fontSize: '2rem',
+      fontWeight: 500,
+    },
+    h3: {
+      fontSize: '1.75rem',
+      fontWeight: 500,
+    },
+    h4: {
+      fontSize: '1.5rem',
+      fontWeight: 500,
+    },
+    h5: {
+      fontSize: '1.25rem',
+      fontWeight: 500,
+    },
+    h6: {
+      fontSize: '1rem',
+      fontWeight: 500,
+    },
+    body1: {
+      fontSize: '1rem',
+      lineHeight: 1.5,
+    },
+    body2: {
+      fontSize: '0.875rem',
+      lineHeight: 1.43,
+    },
+  },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
           textTransform: 'none',
           borderRadius: 8,
-          padding: '8px 16px',
-          fontWeight: 600,
-          fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
-        },
-      },
-    },
-    MuiTypography: {
-      styleOverrides: {
-        root: {
-          fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
-        },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 8,
-            fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
-            '&:hover .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#00FFB8',
-            },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#00FFB8',
-            },
-          },
-          '& .MuiInputLabel-root': {
-            fontFamily: '"Poppins", "Roboto", "Helvetica", "Arial", sans-serif',
-          },
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
-          border: '1px solid rgba(0, 255, 184, 0.1)',
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
-          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
-          border: '1px solid rgba(0, 255, 184, 0.1)',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: '0 12px 40px rgba(0, 255, 184, 0.15)',
-            borderColor: 'rgba(0, 255, 184, 0.3)',
-          },
+          borderRadius: 12,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         },
       },
     },
@@ -216,4 +280,4 @@ export const themeUtils = {
   gradients: {
     primary: 'linear-gradient(135deg, #00FFB8 0%, #00CC93 100%)',
   },
-}; 
+} as const; 
