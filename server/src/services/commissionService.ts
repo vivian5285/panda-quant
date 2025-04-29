@@ -35,8 +35,8 @@ export class CommissionService {
    * 计算并分配佣金
    * @param performance 策略收益记录
    */
-  async calculateAndDistributeCommission(performance: InstanceType<typeof StrategyPerformance>) {
-    const { userId, profit, strategyId } = performance;
+  async calculateAndDistributeCommission(performance: InstanceType<typeof StrategyPerformance> & { _id: Types.ObjectId }) {
+    const { userId, profit, strategyId, _id } = performance;
 
     // 1. 计算平台佣金
     const platformCommission = profit * CommissionService.PLATFORM_COMMISSION_RATE;
@@ -51,12 +51,12 @@ export class CommissionService {
     if (user.referrerId) {
       const firstLevelCommission = profit * CommissionService.FIRST_LEVEL_COMMISSION_RATE;
       await this.createCommissionRecord({
-        userId: user.referrerId,
-        fromUserId: userId,
+        userId: new Types.ObjectId(user.referrerId.toString()),
+        fromUserId: new Types.ObjectId(userId.toString()),
         amount: firstLevelCommission,
         level: 1,
-        strategyId,
-        performanceId: performance._id
+        strategyId: new Types.ObjectId(strategyId.toString()),
+        performanceId: _id
       });
     }
 
@@ -66,12 +66,12 @@ export class CommissionService {
       if (referrer?.referrerId) {
         const secondLevelCommission = profit * CommissionService.SECOND_LEVEL_COMMISSION_RATE;
         await this.createCommissionRecord({
-          userId: referrer.referrerId,
-          fromUserId: userId,
+          userId: new Types.ObjectId(referrer.referrerId.toString()),
+          fromUserId: new Types.ObjectId(userId.toString()),
           amount: secondLevelCommission,
           level: 2,
-          strategyId,
-          performanceId: performance._id
+          strategyId: new Types.ObjectId(strategyId.toString()),
+          performanceId: _id
         });
       }
     }
@@ -79,11 +79,11 @@ export class CommissionService {
     // 5. 创建平台佣金记录
     await this.createCommissionRecord({
       userId: null, // 平台佣金
-      fromUserId: userId,
+      fromUserId: new Types.ObjectId(userId.toString()),
       amount: platformCommission,
       level: 0,
-      strategyId,
-      performanceId: performance._id
+      strategyId: new Types.ObjectId(strategyId.toString()),
+      performanceId: _id
     });
 
     return {
@@ -193,6 +193,31 @@ export class CommissionService {
       { new: true, upsert: true }
     );
     return commission;
+  }
+
+  async getCommissionHistory(userId: string) {
+    return this.commissionModel.find({ userId }).sort({ createdAt: -1 });
+  }
+
+  async getTotalCommission(userId: string) {
+    const result = await this.commissionModel.aggregate([
+      { $match: { userId: new Types.ObjectId(userId) } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+    return result[0]?.total || 0;
+  }
+
+  async distributeCommission(commissionId: string) {
+    const commission = await this.commissionModel.findById(commissionId);
+    if (!commission) {
+      throw new NotFoundError('Commission not found');
+    }
+    // Add distribution logic here
+    return commission;
+  }
+
+  async createCommission(data: Partial<ICommission>) {
+    return this.commissionModel.create(data);
   }
 }
 

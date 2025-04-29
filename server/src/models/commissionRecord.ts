@@ -1,13 +1,13 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 
 export interface ICommissionRecord extends Document {
-  userId: string | null; // null 表示平台佣金
-  fromUserId: string; // 产生佣金的用户
+  userId: Types.ObjectId | null; // null 表示平台佣金
+  fromUserId: Types.ObjectId; // 产生佣金的用户
   amount: number;
   level: number; // 0: 平台佣金, 1: 一级推荐, 2: 二级推荐
   status: 'pending' | 'paid';
-  strategyId: string;
-  performanceId: string;
+  strategyId: Types.ObjectId;
+  performanceId: Types.ObjectId;
   createdAt: Date;
   paidAt?: Date;
 }

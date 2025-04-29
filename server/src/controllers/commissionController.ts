@@ -7,6 +7,7 @@ import { CommissionService } from '../services/commissionService';
 import { AuthRequest } from '../types';
 import { validateRequest } from '../middleware/validation';
 import { body } from 'express-validator';
+import { Error as MongooseError } from 'mongoose';
 
 const commissionServiceInstance = new CommissionService();
 
@@ -17,8 +18,11 @@ export const commissionController = {
       const rule = new CommissionRule(req.body);
       await rule.save();
       res.status(201).json(rule);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      if (error instanceof MongooseError.ValidationError) {
+        return res.status(400).json({ error: error.message });
+      }
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -26,8 +30,8 @@ export const commissionController = {
     try {
       const rules = await CommissionRule.find();
       res.json(rules);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -35,11 +39,11 @@ export const commissionController = {
     try {
       const rule = await CommissionRule.findById(req.params.id);
       if (!rule) {
-        return res.status(404).json({ error: 'Commission rule not found' });
+        return res.status(404).json({ error: 'Rule not found' });
       }
       res.json(rule);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -48,14 +52,14 @@ export const commissionController = {
       const rule = await CommissionRule.findByIdAndUpdate(
         req.params.id,
         req.body,
-        { new: true, runValidators: true }
+        { new: true }
       );
       if (!rule) {
-        return res.status(404).json({ error: 'Commission rule not found' });
+        return res.status(404).json({ error: 'Rule not found' });
       }
       res.json(rule);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -63,69 +67,39 @@ export const commissionController = {
     try {
       const rule = await CommissionRule.findByIdAndDelete(req.params.id);
       if (!rule) {
-        return res.status(404).json({ error: 'Commission rule not found' });
+        return res.status(404).json({ error: 'Rule not found' });
       }
-      res.json({ message: 'Commission rule deleted successfully' });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.json({ message: 'Rule deleted successfully' });
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
   // Commission Records
   async getCommissionHistory(req: Request, res: Response) {
     try {
-      const { userId } = req.params;
-      const { startDate, endDate } = req.query;
-
-      if (!validateObjectId(userId)) {
-        return res.status(400).json({ error: 'Invalid user ID' });
-      }
-
-      const records = await commissionService.getCommissionHistory(
-        userId,
-        startDate ? new Date(startDate as string) : undefined,
-        endDate ? new Date(endDate as string) : undefined
-      );
-
-      res.json(records);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+      const history = await commissionService.getCommissionHistory(req.params.userId);
+      res.json(history);
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
   async getTotalCommission(req: Request, res: Response) {
     try {
-      const { userId } = req.params;
-      const { startDate, endDate } = req.query;
-
-      if (!validateObjectId(userId)) {
-        return res.status(400).json({ error: 'Invalid user ID' });
-      }
-
-      const total = await commissionService.getTotalCommission(
-        userId,
-        startDate ? new Date(startDate as string) : undefined,
-        endDate ? new Date(endDate as string) : undefined
-      );
-
+      const total = await commissionService.getTotalCommission(req.params.userId);
       res.json({ total });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
   async distributeCommission(req: Request, res: Response) {
     try {
-      const { recordId } = req.params;
-
-      if (!validateObjectId(recordId)) {
-        return res.status(400).json({ error: 'Invalid record ID' });
-      }
-
-      await commissionService.distributeCommission(recordId);
-      res.json({ message: 'Commission distributed successfully' });
-    } catch (error) {
-      res.status(400).json({ error: error.message });
+      const commission = await commissionService.distributeCommission(req.params.id);
+      res.json(commission);
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -134,18 +108,13 @@ export const commissionController = {
    */
   async getCommissions(req: AuthRequest, res: Response) {
     try {
-      if (!req.user) {
+      if (!req.user?._id) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-
-      const commissions = await CommissionService.getInstance().getUserCommissions(req.user._id);
+      const commissions = await commissionService.getUserCommissions(req.user._id.toString());
       res.json(commissions);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Unknown error occurred' });
-      }
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -154,11 +123,10 @@ export const commissionController = {
    */
   async getUserCommissionStats(req: Request, res: Response) {
     try {
-      const userId = req.user._id;
-      const stats = await commissionServiceInstance.getUserCommissionStats(userId);
+      const stats = await commissionService.getUserCommissionStats(req.params.userId);
       res.json(stats);
-    } catch (error) {
-      res.status(500).json({ message: '获取佣金统计失败', error });
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -167,36 +135,13 @@ export const commissionController = {
    */
   async getAllCommissions(req: Request, res: Response) {
     try {
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: '无权访问' });
-      }
-
-      const { startDate, endDate, status, userId } = req.query;
-      const query: any = {};
-
-      if (startDate || endDate) {
-        query.createdAt = {};
-        if (startDate) query.createdAt.$gte = new Date(startDate as string);
-        if (endDate) query.createdAt.$lte = new Date(endDate as string);
-      }
-
-      if (status) {
-        query.status = status;
-      }
-
-      if (userId) {
-        query.userId = userId;
-      }
-
-      const commissions = await CommissionRecord.find(query)
+      const commissions = await CommissionRecord.find()
         .populate('userId', 'username')
         .populate('fromUserId', 'username')
-        .populate('strategyId', 'name')
         .sort({ createdAt: -1 });
-
       res.json(commissions);
-    } catch (error) {
-      res.status(500).json({ message: '获取佣金记录失败', error });
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -205,31 +150,17 @@ export const commissionController = {
    */
   async updateCommissionStatus(req: Request, res: Response) {
     try {
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: '无权访问' });
-      }
-
-      const { id } = req.params;
-      const { status } = req.body;
-
-      if (!['pending', 'paid'].includes(status)) {
-        return res.status(400).json({ message: '无效的状态' });
-      }
-
-      const commission = await CommissionRecord.findById(id);
+      const commission = await CommissionRecord.findByIdAndUpdate(
+        req.params.id,
+        { status: req.body.status },
+        { new: true }
+      );
       if (!commission) {
-        return res.status(404).json({ message: '佣金记录不存在' });
+        return res.status(404).json({ error: 'Commission not found' });
       }
-
-      commission.status = status;
-      if (status === 'paid') {
-        commission.paidAt = new Date();
-      }
-      await commission.save();
-
       res.json(commission);
-    } catch (error) {
-      res.status(500).json({ message: '更新佣金状态失败', error });
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -238,41 +169,27 @@ export const commissionController = {
    */
   async getCommissionStats(req: Request, res: Response) {
     try {
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: '无权访问' });
-      }
-
-      const { startDate, endDate } = req.query;
-      const query: any = {};
-
-      if (startDate || endDate) {
-        query.createdAt = {};
-        if (startDate) query.createdAt.$gte = new Date(startDate as string);
-        if (endDate) query.createdAt.$lte = new Date(endDate as string);
-      }
-
-      const [total, pending, paid] = await Promise.all([
-        CommissionRecord.aggregate([
-          { $match: query },
-          { $group: { _id: null, total: { $sum: '$amount' } } }
-        ]),
-        CommissionRecord.aggregate([
-          { $match: { ...query, status: 'pending' } },
-          { $group: { _id: null, total: { $sum: '$amount' } } }
-        ]),
-        CommissionRecord.aggregate([
-          { $match: { ...query, status: 'paid' } },
-          { $group: { _id: null, total: { $sum: '$amount' } } }
-        ])
+      const stats = await CommissionRecord.aggregate([
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$amount' },
+            pending: {
+              $sum: {
+                $cond: [{ $eq: ['$status', 'pending'] }, '$amount', 0]
+              }
+            },
+            paid: {
+              $sum: {
+                $cond: [{ $eq: ['$status', 'paid'] }, '$amount', 0]
+              }
+            }
+          }
+        }
       ]);
-
-      res.json({
-        total: total[0]?.total || 0,
-        pending: pending[0]?.total || 0,
-        paid: paid[0]?.total || 0
-      });
-    } catch (error) {
-      res.status(500).json({ message: '获取佣金统计失败', error });
+      res.json(stats[0] || { total: 0, pending: 0, paid: 0 });
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -281,41 +198,18 @@ export const commissionController = {
    */
   async getCommissionDistribution(req: Request, res: Response) {
     try {
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: '无权访问' });
-      }
-
-      const { startDate, endDate } = req.query;
-      const query: any = {};
-
-      if (startDate || endDate) {
-        query.createdAt = {};
-        if (startDate) query.createdAt.$gte = new Date(startDate as string);
-        if (endDate) query.createdAt.$lte = new Date(endDate as string);
-      }
-
       const distribution = await CommissionRecord.aggregate([
-        { $match: query },
         {
           $group: {
             _id: '$level',
             total: { $sum: '$amount' },
             count: { $sum: 1 }
           }
-        },
-        {
-          $project: {
-            level: '$_id',
-            total: 1,
-            count: 1,
-            _id: 0
-          }
         }
       ]);
-
       res.json(distribution);
-    } catch (error) {
-      res.status(500).json({ message: '获取佣金分布统计失败', error });
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -324,145 +218,91 @@ export const commissionController = {
    */
   async getCommissionRanking(req: Request, res: Response) {
     try {
-      if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: '无权访问' });
-      }
-
-      const { startDate, endDate, limit = 10 } = req.query;
-      const query: any = {};
-
-      if (startDate || endDate) {
-        query.createdAt = {};
-        if (startDate) query.createdAt.$gte = new Date(startDate as string);
-        if (endDate) query.createdAt.$lte = new Date(endDate as string);
-      }
-
       const ranking = await CommissionRecord.aggregate([
-        { $match: query },
         {
           $group: {
             _id: '$userId',
-            total: { $sum: '$amount' },
-            count: { $sum: 1 }
+            total: { $sum: '$amount' }
           }
         },
         { $sort: { total: -1 } },
-        { $limit: Number(limit) },
-        {
-          $lookup: {
-            from: 'users',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'user'
-          }
-        },
-        { $unwind: '$user' },
-        {
-          $project: {
-            userId: '$_id',
-            username: '$user.username',
-            total: 1,
-            count: 1,
-            _id: 0
-          }
-        }
+        { $limit: 10 }
       ]);
-
       res.json(ranking);
-    } catch (error) {
-      res.status(500).json({ message: '获取佣金排行失败', error });
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
   async createCommission(req: AuthRequest, res: Response) {
     try {
-      if (!req.user) {
+      if (!req.user?._id) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-
-      const commission = await CommissionService.getInstance().createCommission({
+      const commission = await commissionService.createCommission({
         ...req.body,
         userId: req.user._id
       });
       res.status(201).json(commission);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Unknown error occurred' });
-      }
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
   async getTeamInfo(req: AuthRequest, res: Response) {
     try {
-      if (!req.user) {
+      if (!req.user?._id) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-
-      const teamInfo = await CommissionService.getInstance().getTeamInfo(req.user._id);
+      const teamInfo = await commissionService.getTeamInfo(req.user._id.toString());
       res.json(teamInfo);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Unknown error occurred' });
-      }
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
   async getCommissionRecords(req: AuthRequest, res: Response) {
     try {
-      if (!req.user) {
+      if (!req.user?._id) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-
-      const records = await CommissionService.getInstance().getCommissionRecords(req.user._id);
+      const records = await commissionService.getCommissionRecords(req.user._id.toString());
       res.json(records);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Unknown error occurred' });
-      }
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
   async getCommissionTrend(req: AuthRequest, res: Response) {
     try {
-      if (!req.user) {
+      if (!req.user?._id) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-
-      const trend = await CommissionService.getInstance().getCommissionTrend(req.user._id);
+      const trend = await commissionService.getCommissionTrend(req.user._id.toString());
       res.json(trend);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Unknown error occurred' });
-      }
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
   async getCommission(req: Request, res: Response) {
     try {
-      const { userId } = req.params;
-      const commission = await commissionService.getCommission(userId);
-      res.json({ success: true, data: commission });
-    } catch (error) {
-      res.status(500).json({ success: false, message: 'Failed to get commission' });
+      const commission = await commissionService.getCommission(req.params.userId);
+      res.json(commission);
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   },
 
   async updateCommission(req: Request, res: Response) {
     try {
-      const { userId } = req.params;
-      const { rate } = req.body;
-      const commission = await commissionService.updateCommission(userId, rate);
-      res.json({ success: true, data: commission });
-    } catch (error) {
-      res.status(500).json({ success: false, message: 'Failed to update commission' });
+      const commission = await commissionService.updateCommission(
+        req.params.userId,
+        req.body.rate
+      );
+      res.json(commission);
+    } catch (error: unknown) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
 }; 
