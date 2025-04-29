@@ -62,4 +62,9 @@ export const hasPermission = (permission: string) => {
     }
     next();
   };
-}; 
+};
+
+export const auth = authenticateToken;
+export const requireModerator = hasPermission('moderate');
+export const requireAdmin = isAdmin;
+export const authorize = hasPermission; 

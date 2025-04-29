@@ -145,23 +145,16 @@ describe('Strategy Tests', () => {
   });
 
   it('should execute strategy successfully', async () => {
-    const strategy = {
-      id: '1',
-      userId: 'user1',
-      name: 'Test Strategy',
-      description: 'Test Description',
-      riskLevel: 'medium' as const,
-      active: true,
-      parameters: {}
-    };
-
+    const strategyId = 'test-strategy-1';
     const parameters = {
+      userId: 'test-user-1',
       symbol: 'BTC/USDT',
       amount: 1000,
-      leverage: 1
+      leverage: 1,
+      maxDrawdown: 0.1
     };
 
-    const result = await strategyEngine.executeStrategy(strategy, parameters);
+    const result = await strategyEngine.executeStrategy(strategyId, parameters);
     expect(result).toBeDefined();
   });
 

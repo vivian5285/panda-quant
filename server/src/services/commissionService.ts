@@ -1,9 +1,10 @@
-import { User } from '../models/User';
-import { CommissionRecord } from '../models/commissionRecord';
-import { StrategyPerformance } from '../models/StrategyPerformance';
 import { Model } from 'mongoose';
 import { ICommission } from '../interfaces/ICommission';
 import { IUser } from '../interfaces/IUser';
+import { CommissionRecord } from '../models/commissionRecord';
+import { StrategyPerformance } from '../models/strategyPerformance';
+import { Commission } from '../models/commission';
+import { User } from '../models/user';
 
 export class CommissionService {
   private static instance: CommissionService;
@@ -46,10 +47,10 @@ export class CommissionService {
     }
 
     // 3. 计算并分配一级推荐佣金
-    if (user.referrer) {
+    if (user.referrerId) {
       const firstLevelCommission = profit * CommissionService.FIRST_LEVEL_COMMISSION_RATE;
       await this.createCommissionRecord({
-        userId: user.referrer,
+        userId: user.referrerId,
         fromUserId: userId,
         amount: firstLevelCommission,
         level: 1,
@@ -59,12 +60,12 @@ export class CommissionService {
     }
 
     // 4. 计算并分配二级推荐佣金
-    if (user.referrer) {
-      const referrer = await User.findById(user.referrer);
-      if (referrer?.referrer) {
+    if (user.referrerId) {
+      const referrer = await User.findById(user.referrerId);
+      if (referrer?.referrerId) {
         const secondLevelCommission = profit * CommissionService.SECOND_LEVEL_COMMISSION_RATE;
         await this.createCommissionRecord({
-          userId: referrer.referrer,
+          userId: referrer.referrerId,
           fromUserId: userId,
           amount: secondLevelCommission,
           level: 2,
@@ -86,8 +87,8 @@ export class CommissionService {
 
     return {
       platformCommission,
-      firstLevelCommission: user.referrer ? profit * CommissionService.FIRST_LEVEL_COMMISSION_RATE : 0,
-      secondLevelCommission: user.referrer ? profit * CommissionService.SECOND_LEVEL_COMMISSION_RATE : 0
+      firstLevelCommission: user.referrerId ? profit * CommissionService.FIRST_LEVEL_COMMISSION_RATE : 0,
+      secondLevelCommission: user.referrerId ? profit * CommissionService.SECOND_LEVEL_COMMISSION_RATE : 0
     };
   }
 
