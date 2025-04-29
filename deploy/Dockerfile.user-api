@@ -67,16 +67,19 @@ RUN npm install --save \
     winston \
     zod
 
-# Set permissions for TypeScript and Prisma
+# Set permissions for TypeScript
 RUN chmod -R 777 /usr/local/bin/tsc
-RUN chmod -R 777 /app/node_modules/.bin/prisma
-RUN chmod -R 777 /app/node_modules/prisma
 
 # Copy source code
 COPY . .
 
+# Set permissions for Prisma
+RUN chmod -R 777 /app/node_modules/.bin/prisma
+RUN chmod -R 777 /app/node_modules/prisma
+RUN chmod -R 777 /app/node_modules/@prisma/client
+
 # Generate Prisma client
-RUN npx prisma generate
+RUN /app/node_modules/.bin/prisma generate
 
 # Build the application
 RUN npm run build
@@ -98,6 +101,7 @@ RUN npm install --production --legacy-peer-deps
 # Set permissions for Prisma
 RUN chmod -R 777 /app/node_modules/.bin/prisma
 RUN chmod -R 777 /app/node_modules/prisma
+RUN chmod -R 777 /app/node_modules/@prisma/client
 
 # Set environment variables
 ENV NODE_ENV=production
