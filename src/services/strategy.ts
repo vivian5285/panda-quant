@@ -1,7 +1,8 @@
 import { StrategyExecutionRequest, StrategyExecutionResponse } from '../interfaces/api';
 import { StrategyEngine } from '../engine/StrategyEngine';
 import { v4 as uuidv4 } from 'uuid';
-import { StrategyParameters } from '../types/strategy';
+import { StrategyParams } from '../types/strategy';
+import { logger } from '../utils/logger';
 
 export const executeStrategy = async (
   request: StrategyExecutionRequest
@@ -10,7 +11,7 @@ export const executeStrategy = async (
   
   try {
     const engine = new StrategyEngine();
-    const strategyParams: StrategyParameters = {
+    const strategyParams: StrategyParams = {
       userId: request.userId,
       symbol: request.parameters.symbol,
       amount: request.parameters.amount,
@@ -21,15 +22,17 @@ export const executeStrategy = async (
 
     return {
       executionId,
-      status: 'completed',
-      result
+      status: result.status,
+      result: result.data,
+      message: result.message
     };
   } catch (error) {
-    console.error('Strategy execution failed:', error);
+    logger.error('Strategy execution failed:', error);
     return {
       executionId,
       status: 'failed',
-      error: error instanceof Error ? error.message : '未知错误'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Strategy execution failed'
     };
   }
 }; 

@@ -1,0 +1,3 @@
+import { Request, Response } from 'express';
+import { BlacklistService } from '../services/blacklistService';
+// ... existing code ... 

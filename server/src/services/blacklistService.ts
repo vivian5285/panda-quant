@@ -99,4 +99,6 @@ export class BlacklistService {
     const entry = await this.blacklistModel.findOne({ type, value });
     return !!entry;
   }
-} 
+}
+
+export const blacklistService = BlacklistService.getInstance(); 

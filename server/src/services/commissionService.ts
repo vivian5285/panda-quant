@@ -175,4 +175,6 @@ export class CommissionService {
     // Implementation
     return [];
   }
-} 
+}
+
+export const commissionService = CommissionService.getInstance(); 

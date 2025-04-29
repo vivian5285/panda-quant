@@ -7,6 +7,7 @@ import { RiskManagementService } from '../services/RiskManagementService';
 import { PerformanceTracker } from '../services/PerformanceTracker';
 import { StrategyEngine } from '../engine/StrategyEngine';
 import { OrderType, OrderSide } from '../types/order';
+import { StrategyExecutionResult } from '../services/StrategyExecutionService';
 
 describe('Strategy Execution', () => {
   const mockRequest: StrategyExecutionRequest = {
@@ -91,13 +92,13 @@ describe('Strategy Tests', () => {
 
   describe('Risk Management', () => {
     test('should approve valid strategy execution', async () => {
-      const riskCheck = await riskManagementService.checkRisk('user1', 'high-frequency', 10000);
-      expect(riskCheck.isApproved).toBe(true);
+      const riskCheck = await riskManagementService.checkRisk('user1', 10000);
+      expect(riskCheck).toBe(true);
     });
 
     test('should reject excessive leverage', async () => {
-      const riskCheck = await riskManagementService.checkRisk('user1', 'high-frequency', 100000);
-      expect(riskCheck.isApproved).toBe(false);
+      const riskCheck = await riskManagementService.checkRisk('user1', 100000);
+      expect(riskCheck).toBe(false);
     });
   });
 
@@ -111,8 +112,10 @@ describe('Strategy Tests', () => {
         trades: []
       };
 
-      performanceTracker.recordPerformance('high-frequency', performance);
-      const recorded = performanceTracker.getPerformance('high-frequency');
+      performanceTracker.recordPerformance('monthlyReturn', performance.monthlyReturn);
+      performanceTracker.recordPerformance('maxDrawdown', performance.maxDrawdown);
+      
+      const recorded = performanceTracker.getPerformance();
       
       expect(recorded.monthlyReturn).toBe(0.6);
       expect(recorded.maxDrawdown).toBe(0.08);

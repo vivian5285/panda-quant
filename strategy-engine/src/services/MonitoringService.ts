@@ -143,7 +143,7 @@ export class MonitoringService {
     for (const rule of relevantRules) {
       const shouldAlert = this.evaluateAlertCondition(rule, metric.value);
       if (shouldAlert) {
-        this.alertService.sendAlert({
+        this.alertService.sendAlert(JSON.stringify({
           ruleId: rule.id,
           metric: metric.name,
           value: metric.value,
@@ -151,7 +151,7 @@ export class MonitoringService {
           severity: rule.severity,
           description: rule.description,
           timestamp: Date.now()
-        });
+        }));
       }
     }
   }
