@@ -24,7 +24,6 @@ RUN npm install --save-dev \
     @types/react-dom \
     @types/react-router-dom \
     @types/react-i18next \
-    @types/framer-motion \
     @types/date-fns \
     @types/recharts \
     @types/socket.io-client \
