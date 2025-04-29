@@ -18,7 +18,7 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install --legacy-peer-deps
 
-# Install type declarations
+# Install type declarations and UI dependencies
 RUN npm install --save-dev \
     @types/react \
     @types/react-dom \
@@ -29,7 +29,6 @@ RUN npm install --save-dev \
     @types/antd \
     @types/recharts \
     @types/socket.io-client \
-    @types/web-vitals \
     @mui/material \
     @mui/icons-material \
     @mui/x-data-grid \
