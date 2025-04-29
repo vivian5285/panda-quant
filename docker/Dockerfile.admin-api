@@ -102,14 +102,14 @@ COPY --from=builder /app/package*.json ./
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=8081
 
 # Expose the application port
-EXPOSE 3001
+EXPOSE 8081
 
 # Add health check
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:3001/health || exit 1
+  CMD curl -f http://localhost:8081/health || exit 1
 
 # Start the application
 CMD ["node", "dist/index.js"] 

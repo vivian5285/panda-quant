@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 RUN npm install -g typescript
 
 # Copy package files first to leverage Docker cache
-COPY package*.json ./
+COPY server/package*.json ./
 
 # Install dependencies
 RUN npm install --legacy-peer-deps && \
@@ -39,26 +39,27 @@ RUN npm install --save \
 RUN chmod -R 777 /usr/local/bin/tsc
 
 # Copy source code
-COPY . .
+COPY server/ ./
 
 # Build the application
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+FROM node:18-slim
+
+WORKDIR /app
 
 # Copy built files from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy nginx configuration
-COPY ../deploy/nginx/server.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
 
 # Expose the application port
-EXPOSE 80
+EXPOSE 3005
 
 # Add health check
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD nginx -t || exit 1
+  CMD curl -f http://localhost:3005/health || exit 1
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"] 
+# Start the application
+CMD ["npm", "start"] 
