@@ -26,7 +26,6 @@ RUN npm install --save-dev \
     @types/react-router-dom \
     @types/react-i18next \
     @types/date-fns \
-    @types/web-vitals \
     @types/antd \
     @types/recharts \
     @types/socket.io-client
