@@ -4,7 +4,7 @@ interface EmailOptions {
   to: string;
   subject: string;
   text: string;
-  html: string;
+  html?: string;
 }
 
 const transporter = nodemailer.createTransport({

@@ -1,14 +1,5 @@
 import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
-import { validateEmail, validatePassword } from '../utils/validation';
-import { ValidationError } from '../utils/errors';
-
-interface RequestWithUser extends Request {
-  user?: {
-    id: string;
-    email: string;
-  };
-}
 
 const router = Router();
 const userController = new UserController();

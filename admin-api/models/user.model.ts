@@ -1,9 +1,24 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { IUser as SharedIUser } from '../../shared/models/user';
 
-export interface IUser extends SharedIUser {
-  // 添加任何额外的字段
+export interface IUser extends Document {
+  email: string;
+  username?: string;
+  password: string;
+  walletAddress?: string;
+  role: 'admin' | 'user';
+  status: 'active' | 'inactive';
+  isAdmin: boolean;
+  adminType?: string;
+  permissions: Record<string, any>;
+  balance: number;
+  lastLogin?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  referralCode?: string;
+  referredBy?: Types.ObjectId;
+  name: string;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>({
@@ -28,7 +43,7 @@ const userSchema = new Schema<IUser>({
 });
 
 // 密码加密中间件
-userSchema.pre('save', async function(this: IUser & Document, next) {
+userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
     return next();
   }
@@ -43,7 +58,7 @@ userSchema.pre('save', async function(this: IUser & Document, next) {
 });
 
 // 密码比较方法
-userSchema.methods.comparePassword = async function(this: IUser & Document, candidatePassword: string): Promise<boolean> {
+userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
@@ -53,7 +68,7 @@ userSchema.index({ status: 1 });
 userSchema.index({ role: 1 });
 
 // 添加创建管理员账号的静态方法
-userSchema.statics.createAdmin = async function(email: string, password: string): Promise<IUser & Document> {
+userSchema.statics.createAdmin = async function(email: string, password: string): Promise<IUser> {
   const hashedPassword = await bcrypt.hash(password, 10);
   return this.create({
     email,

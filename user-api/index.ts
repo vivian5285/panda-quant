@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { DatabaseService } from './services/databaseService';
 import { StrategyManager } from './managers/strategyManager';
 import authRoutes from './routes/auth';
-import userRoutes from './routes/user';
+import { userRouter } from './routes/user';
 import assetRoutes from './routes/asset.routes';
 import strategyRoutes from './routes/strategy';
 import marketRoutes from './routes/market';
@@ -21,7 +21,7 @@ app.use(cors());
 app.use(express.json());
 
 // Request logging middleware
-app.use((req, res, next) => {
+app.use((req, _res, next) => {
   logger.info(`${req.method} ${req.url}`);
   next();
 });
@@ -43,7 +43,7 @@ app.set('strategyManager', strategyManager);
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
+app.use('/api/user', userRouter);
 app.use('/api/asset', assetRoutes);
 app.use('/api/strategy', strategyRoutes);
 app.use('/api/market', marketRoutes);
@@ -52,7 +52,7 @@ app.use('/api/market', marketRoutes);
 scheduleWeeklyFeeDeduction();
 
 // Health check route
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ok',
     message: 'Panda Quant User API is running'
@@ -60,7 +60,7 @@ app.get('/health', (req, res) => {
 });
 
 // 404 handler
-app.use((req, res) => {
+app.use((_req, res) => {
   res.status(404).json({
     success: false,
     message: '请求的资源不存在'
@@ -68,7 +68,7 @@ app.use((req, res) => {
 });
 
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   logger.error('Unhandled error:', err);
   res.status(500).json({
     success: false,

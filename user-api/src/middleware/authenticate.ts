@@ -1,6 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { ValidationError } from '../utils/errors';
+import { AuthRequest, AuthResponse } from '../types/express';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -18,7 +19,7 @@ declare global {
   }
 }
 
-export function authenticate(req: Request, res: Response, next: NextFunction): void {
+export function authenticate(req: AuthRequest, res: AuthResponse, next: NextFunction): void {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -30,7 +31,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
       throw new ValidationError('No token provided');
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string; role: 'user' | 'admin' };
     req.user = decoded;
     next();
   } catch (error) {

@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
-import { DatabaseError, ValidationError } from '../utils/errors';
+import { ValidationError } from '../utils/errors';
 
 export class BacktestController {
   constructor() {}
 
   // 创建回测
-  async createBacktest(req: Request, res: Response) {
+  async createBacktest(_req: Request, res: Response) {
     try {
-      const backtestData = req.body;
       // TODO: 实现创建回测的逻辑
       res.status(201).json({ message: 'Create backtest - Not implemented' });
     } catch (error) {
@@ -20,7 +19,7 @@ export class BacktestController {
   }
 
   // 获取回测列表
-  async getBacktests(req: Request, res: Response) {
+  async getBacktests(_req: Request, res: Response) {
     try {
       // TODO: 实现获取回测列表的逻辑
       res.json({ message: 'Get backtests - Not implemented' });
@@ -52,7 +51,6 @@ export class BacktestController {
   async updateBacktest(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const backtestData = req.body;
       // TODO: 实现更新回测的逻辑
       res.json({ message: `Update backtest ${id} - Not implemented` });
     } catch (error) {

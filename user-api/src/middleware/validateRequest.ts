@@ -14,6 +14,6 @@ export const validateRequest = (type: any) => {
             return res.status(400).json({ error: message });
         }
 
-        next();
+        return next();
     };
 }; 

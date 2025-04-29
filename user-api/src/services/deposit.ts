@@ -1,7 +1,6 @@
 import { ethers } from 'ethers';
 import TronWeb from 'tronweb';
-import { IUser, User } from '../../models/user.model';
-import { AuthUser } from '../../types/auth';
+import { User } from '../models/user.model';
 import { Deposit } from '../models/deposit';
 import mongoose from 'mongoose';
 import { Transaction } from '../models/transaction.model';
@@ -39,10 +38,6 @@ const chainConfigs: Record<string, ChainConfig> = {
     contractAddress: process.env.TRX_CONTRACT_ADDRESS || ''
   }
 };
-
-interface IUserWithWallet extends IUser {
-  walletAddress?: string;
-}
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
@@ -230,7 +225,7 @@ export class DepositService {
     }
   }
 
-  async createDeposit(user: AuthUser) {
+  async createDeposit(user: { id: string }) {
     const session = await mongoose.startSession();
     try {
       session.startTransaction();
@@ -241,7 +236,7 @@ export class DepositService {
         throw new Error('User not found');
       }
 
-      (userDoc as IUserWithWallet).walletAddress = wallet.address;
+      userDoc.walletAddress = wallet.address;
       await userDoc.save({ session });
 
       await session.commitTransaction();
@@ -251,7 +246,7 @@ export class DepositService {
       };
     } catch (error) {
       await session.abortTransaction();
-      throw new Error('Failed to create deposit');
+      throw error;
     } finally {
       session.endSession();
     }

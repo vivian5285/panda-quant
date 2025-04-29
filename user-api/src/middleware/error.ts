@@ -2,9 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 
 export const errorHandler = (
   err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
+  _req: Request,
+  res: Response<any, Record<string, any>>,
+  _next: NextFunction
 ) => {
   console.error(err.stack);
   

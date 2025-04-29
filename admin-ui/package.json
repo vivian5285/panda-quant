@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "@babel/plugin-transform-react-jsx": "^7.25.9",
+    "@jridgewell/source-map": "^0.3.6",
     "@types/recharts": "^1.8.29",
     "@vitejs/plugin-react": "^4.4.1",
     "vite": "^6.3.3",

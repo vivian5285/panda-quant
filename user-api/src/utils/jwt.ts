@@ -1,29 +1,24 @@
 import jwt from 'jsonwebtoken';
-import { AuthUser } from '../middleware/auth';
-import User from '../models/User';
+import { AuthUser } from '../types/auth.types';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export const generateToken = (user: AuthUser): string => {
     return jwt.sign(
-        { id: user.id },
-        process.env.JWT_SECRET as string,
+        {
+            id: user.id,
+            email: user.email,
+            role: user.role
+        },
+        JWT_SECRET,
         { expiresIn: '24h' }
     );
 };
 
-export const verifyToken = async (token: string): Promise<AuthUser> => {
+export const verifyToken = (token: string): AuthUser => {
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
-        const user = await User.findById(decoded.id);
-        
-        if (!user) {
-            throw new Error('User not found');
-        }
-        
-        return {
-            id: user._id.toString(),
-            email: user.email,
-            role: user.role
-        };
+        const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
+        return decoded;
     } catch (error) {
         throw new Error('Invalid token');
     }

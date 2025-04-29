@@ -1,10 +1,9 @@
-import { User, UserModel } from '../models/user.model';
+import { User } from '../models/user.model';
 import bcrypt from 'bcrypt';
 import { DatabaseError } from '../utils/errors';
-import { Model } from 'mongoose';
 
 export class UserService {
-  private userModel = UserModel;
+  private userModel = User;
 
   async getUserByEmail(email: string): Promise<User | null> {
     try {

@@ -1,32 +1,14 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
 import { VerificationService } from '../services/verification.service';
-import { User } from '../models/user.model';
-import { DatabaseError, ValidationError } from '../utils/errors';
-import { sendVerificationEmail } from '../utils/email';
 import { validateEmail, validatePassword } from '../utils/validation';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { UserRole } from '../models/User';
+import { User } from '../models/user.model';
+import { ApiResponse } from '../types/api';
+import { AuthUser } from '../types/auth.types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-interface AuthUser {
-  id: string;
-  email: string;
-  role: UserRole;
-}
-
-interface RequestWithUser extends Request {
-  user?: AuthUser;
-}
-
-interface UserRequestBody {
-  email: string;
-  password: string;
-  name: string;
-  code?: string;
-}
 
 const generateToken = (payload: AuthUser): string => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
@@ -50,7 +32,7 @@ export class UserController {
     this.verificationService = new VerificationService();
   }
 
-  async sendCode(req: Request, res: Response) {
+  async sendCode(req: Request, res: Response): Promise<Response> {
     try {
       const { email, type } = req.body;
 
@@ -67,15 +49,16 @@ export class UserController {
       }
 
       // 生成并发送验证码
-      await this.verificationService.sendVerificationEmail(email, type);
-      res.json({ message: '验证码已发送' });
+      const code = await this.verificationService.generateCode(type, email);
+      await this.verificationService.sendVerificationEmail({ email, verificationCode: code } as User);
+      return res.json({ message: '验证码已发送' });
     } catch (error) {
       console.error('Failed to send code:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      return res.status(500).json({ message: 'Internal server error' });
     }
   }
 
-  async register(req: Request, res: Response) {
+  async register(req: Request, res: Response): Promise<Response> {
     try {
       const { email, password, name, code } = req.body;
 
@@ -108,7 +91,7 @@ export class UserController {
         return res.status(500).json({ message: 'Failed to create user' });
       }
 
-      res.status(201).json({
+      return res.status(201).json({
         message: 'User registered successfully',
         user: {
           id: user.id,
@@ -118,11 +101,11 @@ export class UserController {
       });
     } catch (error) {
       console.error('Failed to register:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      return res.status(500).json({ message: 'Internal server error' });
     }
   }
 
-  async login(req: Request, res: Response) {
+  async login(req: Request, res: Response): Promise<Response> {
     try {
       const { email, password } = req.body;
 
@@ -145,12 +128,12 @@ export class UserController {
       }
 
       const token = generateToken({ 
-        id: user.id, 
-        email: user.email, 
-        role: user.role as UserRole 
+        id: user._id.toString(), 
+        email: user.email,
+        role: user.role
       });
 
-      res.json({
+      return res.json({
         message: 'Login successful',
         token,
         user: {
@@ -161,11 +144,11 @@ export class UserController {
       });
     } catch (error) {
       console.error('Failed to login:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      return res.status(500).json({ message: 'Internal server error' });
     }
   }
 
-  async verifyEmail(req: Request, res: Response) {
+  async verifyEmail(req: Request, res: Response): Promise<Response> {
     try {
       const { email, code } = req.body;
 
@@ -192,64 +175,70 @@ export class UserController {
         return res.status(500).json({ message: 'Failed to update user' });
       }
 
-      res.json({ message: 'Email verified successfully' });
+      return res.json({ message: 'Email verified successfully' });
     } catch (error) {
       console.error('Failed to verify email:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      return res.status(500).json({ message: 'Internal server error' });
     }
   }
 
-  async getProfile(req: RequestWithUser, res: Response) {
+  async getProfile(req: Request, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: 'Unauthorized' });
+      const userId = req.user?.id;
+      if (!userId) {
+        throw new Error('User not authenticated');
       }
 
-      const user = await this.userService.getUserById(req.user.id);
+      const user = await User.findById(userId);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        throw new Error('User not found');
       }
 
-      res.json({
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name
-        }
-      });
+      const response: ApiResponse<User> = {
+        success: true,
+        data: user,
+        error: null
+      };
+      res.status(200).json(response);
     } catch (error) {
-      console.error('Failed to get profile:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      const response: ApiResponse<null> = {
+        success: false,
+        data: null,
+        error: error instanceof Error ? error.message : 'An error occurred'
+      };
+      res.status(401).json(response);
     }
   }
 
-  async updateProfile(req: RequestWithUser, res: Response) {
+  async updateProfile(req: Request, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: 'Unauthorized' });
+      const userId = req.user?.id;
+      if (!userId) {
+        throw new Error('User not authenticated');
       }
 
-      const { name } = req.body;
-      if (!name) {
-        return res.status(400).json({ message: 'Name is required' });
-      }
-
-      const user = await this.userService.updateUser(req.user.id, { name });
+      const user = await User.findByIdAndUpdate(
+        userId,
+        { $set: req.body },
+        { new: true }
+      );
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        throw new Error('User not found');
       }
 
-      res.json({
-        message: 'Profile updated successfully',
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name
-        }
-      });
+      const response: ApiResponse<User> = {
+        success: true,
+        data: user,
+        error: null
+      };
+      res.status(200).json(response);
     } catch (error) {
-      console.error('Failed to update profile:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      const response: ApiResponse<null> = {
+        success: false,
+        data: null,
+        error: error instanceof Error ? error.message : 'An error occurred'
+      };
+      res.status(400).json(response);
     }
   }
 } 

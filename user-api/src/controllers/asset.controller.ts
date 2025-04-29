@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { DatabaseError, ValidationError } from '../utils/errors';
+import { ValidationError } from '../utils/errors';
 
 export class AssetController {
   constructor() {}
 
   // 获取资产列表
-  async getAssets(req: Request, res: Response) {
+  async getAssets(_req: Request, res: Response) {
     try {
       // TODO: 实现获取资产列表的逻辑
       res.json({ message: 'Get assets - Not implemented' });
@@ -34,9 +34,8 @@ export class AssetController {
   }
 
   // 添加资产
-  async addAsset(req: Request, res: Response) {
+  async addAsset(_req: Request, res: Response) {
     try {
-      const assetData = req.body;
       // TODO: 实现添加资产的逻辑
       res.status(201).json({ message: 'Add asset - Not implemented' });
     } catch (error) {
@@ -49,10 +48,9 @@ export class AssetController {
   }
 
   // 更新资产
-  async updateAsset(req: Request, res: Response) {
+  async updateAsset(_req: Request, res: Response) {
     try {
-      const { id } = req.params;
-      const assetData = req.body;
+      const { id } = _req.params;
       // TODO: 实现更新资产的逻辑
       res.json({ message: `Update asset ${id} - Not implemented` });
     } catch (error) {

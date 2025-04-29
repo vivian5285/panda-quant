@@ -1,31 +1,53 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import User from '../models/User';
-import { DatabaseError } from '../utils/errors';
-import { IUser } from '../models/User';
-import { AuthRequest } from '../types/express';
+import { User } from '../models/user.model';
+import { verifyToken } from '../utils/jwt';
+import { AuthUser } from '../types/auth.types';
 
-// 定义 AuthUser 类型
-export type AuthUser = {
-    id: string;
-    email: string;
-    role: 'user' | 'admin';
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthUser;
+    }
+  }
+}
+
+export const auth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    const decoded = verifyToken(token);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    req.user = {
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role as 'user' | 'admin'
+    };
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
 };
 
-// 扩展 Express 的 Request 类型
-declare global {
-    namespace Express {
-        interface Request {
-            user?: AuthUser;
-        }
-    }
-}
+export const generateToken = (user: AuthUser): string => {
+  return jwt.sign(
+    { id: user.id, email: user.email, role: user.role },
+    process.env.JWT_SECRET || 'your-secret-key',
+    { expiresIn: '24h' }
+  );
+};
 
 export const authenticate = async (
   req: AuthRequest,
-  res: Response,
+  res: AuthResponse,
   next: NextFunction
-) => {
+): Promise<void | AuthResponse> => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     
@@ -34,7 +56,7 @@ export const authenticate = async (
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || '');
-    req.user = decoded;
+    req.user = decoded as AuthUser;
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });
@@ -42,7 +64,7 @@ export const authenticate = async (
 };
 
 export const authorize = (roles: string[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, res: AuthResponse, next: NextFunction): void | AuthResponse => {
     if (!req.user) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -53,37 +75,4 @@ export const authorize = (roles: string[]) => {
 
     next();
   };
-};
-
-export const auth = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const token = req.header('Authorization')?.replace('Bearer ', '');
-        
-        if (!token) {
-            return res.status(401).json({ error: 'No token provided' });
-        }
-        
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
-        const user = await User.findById(decoded.id) as IUser | null;
-        
-        if (!user) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-        
-        req.user = {
-            id: user._id.toString(),
-            email: user.email,
-            role: user.role
-        };
-        
-        next();
-    } catch (error) {
-        if (error instanceof jwt.JsonWebTokenError) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        if (error instanceof DatabaseError) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        return res.status(500).json({ error: 'Internal server error' });
-    }
 }; 

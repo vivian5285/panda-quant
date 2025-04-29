@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
-import { DatabaseError, ValidationError } from '../utils/errors';
+import { ValidationError } from '../utils/errors';
 
 export class StrategyController {
   constructor() {}
 
   // 创建策略
-  async createStrategy(req: Request, res: Response) {
+  async createStrategy(_req: Request, res: Response) {
     try {
-      const strategyData = req.body;
       // TODO: 实现创建策略的逻辑
       res.status(201).json({ message: 'Create strategy - Not implemented' });
     } catch (error) {
@@ -20,7 +19,7 @@ export class StrategyController {
   }
 
   // 获取策略列表
-  async getStrategies(req: Request, res: Response) {
+  async getStrategies(_req: Request, res: Response) {
     try {
       // TODO: 实现获取策略列表的逻辑
       res.json({ message: 'Get strategies - Not implemented' });
@@ -52,7 +51,6 @@ export class StrategyController {
   async updateStrategy(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const strategyData = req.body;
       // TODO: 实现更新策略的逻辑
       res.json({ message: `Update strategy ${id} - Not implemented` });
     } catch (error) {

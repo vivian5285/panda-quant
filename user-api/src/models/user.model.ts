@@ -1,13 +1,14 @@
-import { Schema, model, Document, SchemaTypes, CallbackError } from 'mongoose';
+import mongoose, { Schema, Document, SchemaTypes, CallbackError } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { DatabaseError } from '../utils/errors';
 import { validateEmail, validatePassword } from '../utils/validation';
 
 export interface User extends Document {
+  _id: mongoose.Types.ObjectId;
   email: string;
   password: string;
   name: string;
-  role: string;
+  role: 'user' | 'admin';
   status: string;
   isAdmin: boolean;
   permissions: Record<string, boolean>;
@@ -15,8 +16,10 @@ export interface User extends Document {
   verificationCode?: string;
   verificationCodeExpires?: Date;
   isEmailVerified: boolean;
+  walletAddress?: string;
   createdAt: Date;
   updatedAt: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<User>(
@@ -25,6 +28,8 @@ const userSchema = new Schema<User>(
       type: String,
       required: [true, 'Email is required'],
       unique: true,
+      trim: true,
+      lowercase: true,
       validate: {
         validator: validateEmail,
         message: 'Invalid email format'
@@ -45,6 +50,7 @@ const userSchema = new Schema<User>(
     },
     role: {
       type: String,
+      enum: ['user', 'admin'],
       default: 'user'
     },
     status: {
@@ -74,6 +80,10 @@ const userSchema = new Schema<User>(
     isEmailVerified: {
       type: Boolean,
       default: false
+    },
+    walletAddress: {
+      type: String,
+      default: undefined
     }
   },
   {
@@ -99,42 +109,32 @@ userSchema.methods.comparePassword = async function(candidatePassword: string): 
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-export const UserModel = model<User>('User', userSchema);
+// Static methods
+userSchema.statics.findByEmail = async function(email: string) {
+  return this.findOne({ email });
+};
 
-// 静态方法
-export class User {
-  static async findByEmail(email: string): Promise<User | null> {
-    return UserModel.findOne({ email });
+userSchema.statics.updateVerificationCode = async function(userId: string, code: string, expires: Date) {
+  try {
+    await this.findByIdAndUpdate(userId, {
+      verificationCode: code,
+      verificationCodeExpires: expires
+    });
+  } catch (error) {
+    throw new DatabaseError('Failed to update verification code');
   }
+};
 
-  static async create(userData: Partial<User>): Promise<User> {
-    try {
-      return await UserModel.create(userData);
-    } catch (error) {
-      throw new DatabaseError('Failed to create user');
-    }
+userSchema.statics.verifyEmail = async function(userId: string) {
+  try {
+    await this.findByIdAndUpdate(userId, {
+      isVerified: true,
+      verificationCode: undefined,
+      verificationCodeExpires: undefined
+    });
+  } catch (error) {
+    throw new DatabaseError('Failed to verify email');
   }
+};
 
-  static async updateVerificationCode(userId: string, code: string, expires: Date): Promise<void> {
-    try {
-      await UserModel.findByIdAndUpdate(userId, {
-        verificationCode: code,
-        verificationCodeExpires: expires
-      });
-    } catch (error) {
-      throw new DatabaseError('Failed to update verification code');
-    }
-  }
-
-  static async verifyEmail(userId: string): Promise<void> {
-    try {
-      await UserModel.findByIdAndUpdate(userId, {
-        isVerified: true,
-        verificationCode: undefined,
-        verificationCodeExpires: undefined
-      });
-    } catch (error) {
-      throw new DatabaseError('Failed to verify email');
-    }
-  }
-} 
+export const User = mongoose.model<User>('User', userSchema); 

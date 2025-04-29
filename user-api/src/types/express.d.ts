@@ -1,27 +1,15 @@
 import { Request as ExpressRequest, Response as ExpressResponse, NextFunction as ExpressNextFunction } from 'express';
+import { AuthUser } from './auth.types';
 
-declare global {
-  namespace Express {
-    interface Request extends ExpressRequest {
-      user?: any;
-      headers: any;
-      body: any;
-      params: any;
-    }
-    interface Response extends ExpressResponse {
-      status: (code: number) => Response;
-      json: (body: any) => Response;
-    }
-    interface NextFunction extends ExpressNextFunction {}
-  }
+export interface AuthRequest extends ExpressRequest {
+  user?: AuthUser;
 }
 
-export interface AuthRequest extends Express.Request {
-  user?: any;
+export interface AuthResponse extends ExpressResponse {
+  status(code: number): this;
+  json(body: any): this;
 }
 
-export interface AuthResponse extends Express.Response {}
-
-export interface AuthNextFunction extends Express.NextFunction {}
+export interface AuthNextFunction extends ExpressNextFunction {}
 
 export type AuthRouter = Express.Router; 

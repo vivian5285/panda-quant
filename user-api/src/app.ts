@@ -4,7 +4,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { errorHandler } from './middleware/error';
-import { authenticate } from './middleware/auth';
 import authRoutes from './routes/auth.routes';
 import verificationRoutes from './routes/verification.routes';
 import { syncService } from './services/sync.service';
@@ -20,12 +19,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api', authenticate, routes);
+app.use('/api', routes);
 app.use('/api/auth', authRoutes);
 app.use('/api/verification', verificationRoutes);
 
 // Error handling
-app.use(errorHandler);
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  errorHandler(err, _req, res, _next);
+});
 
 async function startServer() {
   try {

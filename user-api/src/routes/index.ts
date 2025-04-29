@@ -116,7 +116,7 @@ const swaggerDocument = {
 router.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // 健康检查
-router.get('/health', (req, res) => {
+router.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
@@ -128,7 +128,7 @@ router.use('/api/v1/backtests', backtestRoutes);
 router.use('/api/v1/transactions', transactionRoutes);
 
 // 404 处理
-router.use((req, res) => {
+router.use((_req, res) => {
   res.status(404).json({
     status: 'error',
     message: 'Route not found'

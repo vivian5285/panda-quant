@@ -1,21 +1,21 @@
-import mongoose, { Document, Model } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 import { DatabaseError } from '../utils/errors';
 
-export interface IVerification extends Document {
+export interface VerificationCode extends Document {
   email: string;
   code: string;
   type: 'register' | 'reset-password';
   expiresAt: Date;
-  isUsed: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const verificationSchema = new mongoose.Schema({
+const verificationSchema = new Schema<VerificationCode>({
   email: {
     type: String,
     required: true,
-    unique: true
+    trim: true,
+    lowercase: true
   },
   code: {
     type: String,
@@ -23,16 +23,12 @@ const verificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    required: true,
-    enum: ['register', 'reset-password']
+    enum: ['register', 'reset-password'],
+    required: true
   },
   expiresAt: {
     type: Date,
     required: true
-  },
-  isUsed: {
-    type: Boolean,
-    default: false
   }
 }, {
   timestamps: true
@@ -42,15 +38,15 @@ const verificationSchema = new mongoose.Schema({
 verificationSchema.index({ email: 1 });
 verificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-const VerificationModel = mongoose.model<IVerification>('Verification', verificationSchema);
+export const VerificationCode = mongoose.model<VerificationCode>('VerificationCode', verificationSchema);
 
 export class Verification {
-  static async create(email: string, code: string, type: 'register' | 'reset-password'): Promise<IVerification> {
+  static async create(email: string, code: string, type: 'register' | 'reset-password'): Promise<VerificationCode> {
     try {
       // 设置验证码过期时间为10分钟
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
       
-      const verification = new VerificationModel({
+      const verification = new VerificationCode({
         email,
         code,
         type,
@@ -63,13 +59,12 @@ export class Verification {
     }
   }
 
-  static async findByEmailAndCode(email: string, code: string, type: 'register' | 'reset-password'): Promise<IVerification | null> {
+  static async findByEmailAndCode(email: string, code: string, type: 'register' | 'reset-password'): Promise<VerificationCode | null> {
     try {
-      return await VerificationModel.findOne({
+      return await VerificationCode.findOne({
         email,
         code,
         type,
-        isUsed: false,
         expiresAt: { $gt: new Date() }
       }).exec();
     } catch (error) {
@@ -79,7 +74,7 @@ export class Verification {
 
   static async markAsUsed(id: string): Promise<void> {
     try {
-      await VerificationModel.findByIdAndUpdate(id, { isUsed: true }).exec();
+      await VerificationCode.findByIdAndUpdate(id, { isUsed: true }).exec();
     } catch (error) {
       throw new DatabaseError('Error marking verification code as used', error);
     }
@@ -87,11 +82,9 @@ export class Verification {
 
   static async deleteByEmail(email: string, type: 'register' | 'reset-password'): Promise<void> {
     try {
-      await VerificationModel.deleteMany({ email, type }).exec();
+      await VerificationCode.deleteMany({ email, type }).exec();
     } catch (error) {
       throw new DatabaseError('Error deleting verification codes', error);
     }
   }
-}
-
-export { VerificationModel }; 
+} 

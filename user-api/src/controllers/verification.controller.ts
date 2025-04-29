@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
 import { VerificationService } from '../services/verification.service';
 import { ValidationError } from '../utils/errors';
+import { AuthRequest, AuthResponse } from '../types/express';
+import { User } from '../models/user.model';
 
 export class VerificationController {
   private verificationService: VerificationService;
@@ -9,7 +10,7 @@ export class VerificationController {
     this.verificationService = new VerificationService();
   }
 
-  sendCode = async (req: Request, res: Response): Promise<void> => {
+  sendCode = async (req: AuthRequest, res: AuthResponse): Promise<void> => {
     try {
       const { email, type } = req.body;
 
@@ -21,7 +22,8 @@ export class VerificationController {
         throw new ValidationError('Invalid verification type');
       }
 
-      await this.verificationService.sendVerificationEmail(email, type);
+      const code = await this.verificationService.generateCode(type, email);
+      await this.verificationService.sendVerificationEmail({ email, verificationCode: code } as User);
 
       res.json({
         success: true,
@@ -42,7 +44,7 @@ export class VerificationController {
     }
   };
 
-  verifyCode = async (req: Request, res: Response): Promise<void> => {
+  verifyCode = async (req: AuthRequest, res: AuthResponse): Promise<void> => {
     try {
       const { email, code, type } = req.body;
 
