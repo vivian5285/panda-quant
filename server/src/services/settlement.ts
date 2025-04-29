@@ -1,12 +1,24 @@
-import { Settlement, SettlementFilter, SettlementResponse, SettlementSummary } from '../types/settlement';
+import { Settlement, ISettlement } from '../models/Settlement';
+import { PlatformEarning, IPlatformEarning } from '../models/PlatformEarning';
+import { NotFoundError } from '../utils/errors';
+import { SettlementFilter, SettlementResponse, SettlementSummary } from '../types/settlement';
 import { Commission } from '../models/Commission';
-import { Settlement as SettlementModel } from '../models/Settlement';
-import { PlatformEarning } from '../models/PlatformEarning';
 import { UserEarning } from '../models/UserEarning';
 import { User } from '../models/User';
 import { format } from 'date-fns';
 
 export class SettlementService {
+  private static instance: SettlementService;
+
+  private constructor() {}
+
+  public static getInstance(): SettlementService {
+    if (!SettlementService.instance) {
+      SettlementService.instance = new SettlementService();
+    }
+    return SettlementService.instance;
+  }
+
   async getSettlements(filter: SettlementFilter): Promise<SettlementResponse> {
     const query: any = {};
     
@@ -23,7 +35,7 @@ export class SettlementService {
       query.status = filter.status;
     }
 
-    const settlements = await SettlementModel.find(query)
+    const settlements = await Settlement.find(query)
       .populate('userId', 'username email')
       .sort({ createdAt: -1 });
 
@@ -40,9 +52,9 @@ export class SettlementService {
 
     settlements.forEach(settlement => {
       summary.totalAmount += settlement.amount;
-      summary.platformTotal += settlement.platformShare;
-      summary.level1Total += settlement.level1Share;
-      summary.level2Total += settlement.level2Share;
+      summary.platformTotal += settlement.metadata?.platformShare || 0;
+      summary.level1Total += settlement.metadata?.level1Share || 0;
+      summary.level2Total += settlement.metadata?.level2Share || 0;
 
       switch (settlement.status) {
         case 'pending':
@@ -60,45 +72,35 @@ export class SettlementService {
     return {
       settlements: settlements.map(s => ({
         id: s._id.toString(),
-        userId: s.userId._id.toString(),
+        userId: s.userId.toString(),
         amount: s.amount,
-        commissionIds: s.commissionIds.map(id => id.toString()),
+        commissionIds: s.metadata?.commissionIds?.map((id: any) => id.toString()) || [],
         createdAt: s.createdAt,
         status: s.status,
-        platformShare: s.platformShare,
-        level1Share: s.level1Share,
-        level2Share: s.level2Share
+        platformShare: s.metadata?.platformShare || 0,
+        level1Share: s.metadata?.level1Share || 0,
+        level2Share: s.metadata?.level2Share || 0
       })),
       summary
     };
   }
 
-  async getSettlementDetails(id: string): Promise<Settlement> {
-    const settlement = await SettlementModel.findById(id)
+  async getSettlementDetails(id: string): Promise<ISettlement> {
+    const settlement = await Settlement.findById(id)
       .populate('userId', 'username email')
-      .populate('commissionIds');
+      .populate('metadata.commissionIds');
 
     if (!settlement) {
-      throw new Error('Settlement not found');
+      throw new NotFoundError('Settlement not found');
     }
 
-    return {
-      id: settlement._id.toString(),
-      userId: settlement.userId._id.toString(),
-      amount: settlement.amount,
-      commissionIds: settlement.commissionIds.map(id => id.toString()),
-      createdAt: settlement.createdAt,
-      status: settlement.status,
-      platformShare: settlement.platformShare,
-      level1Share: settlement.level1Share,
-      level2Share: settlement.level2Share
-    };
+    return settlement;
   }
 
   async updateSettlementStatus(id: string, status: 'completed' | 'failed'): Promise<void> {
-    const settlement = await SettlementModel.findById(id);
+    const settlement = await Settlement.findById(id);
     if (!settlement) {
-      throw new Error('Settlement not found');
+      throw new NotFoundError('Settlement not found');
     }
 
     settlement.status = status;
@@ -166,14 +168,16 @@ export class SettlementService {
       }
 
       // 创建结算记录
-      const settlement = new SettlementModel({
+      const settlement = new Settlement({
         userId: user._id,
         amount: userShare,
-        commissionIds: commissions.map(c => c._id),
         status: 'pending',
-        platformShare,
-        level1Share,
-        level2Share
+        metadata: {
+          commissionIds: commissions.map(c => c._id),
+          platformShare,
+          level1Share,
+          level2Share
+        }
       });
       await settlement.save();
 
@@ -186,17 +190,17 @@ export class SettlementService {
   }
 
   async processPayment(id: string): Promise<void> {
-    const settlement = await SettlementModel.findById(id);
+    const settlement = await Settlement.findById(id);
     if (!settlement) {
-      throw new Error('Settlement not found');
+      throw new NotFoundError('Settlement not found');
     }
 
     if (settlement.status !== 'pending') {
-      throw new Error('Settlement is not in pending status');
+      throw new NotFoundError('Settlement is not in pending status');
     }
 
     // 开始事务
-    const session = await SettlementModel.startSession();
+    const session = await Settlement.startSession();
     session.startTransaction();
 
     try {
@@ -207,18 +211,18 @@ export class SettlementService {
       // 处理平台分成
       const platformEarning = new PlatformEarning({
         settlementId: settlement._id,
-        amount: settlement.platformShare
+        amount: settlement.metadata?.platformShare || 0
       });
       await platformEarning.save({ session });
 
       // 处理第一代推荐人分成
-      if (settlement.level1Share > 0) {
+      if ((settlement.metadata?.level1Share || 0) > 0) {
         const user = await User.findById(settlement.userId);
         if (user?.referrerId) {
           const userEarning = new UserEarning({
             userId: user.referrerId,
             settlementId: settlement._id,
-            amount: settlement.level1Share,
+            amount: settlement.metadata?.level1Share || 0,
             level: 1
           });
           await userEarning.save({ session });
@@ -226,7 +230,7 @@ export class SettlementService {
       }
 
       // 处理第二代推荐人分成
-      if (settlement.level2Share > 0) {
+      if ((settlement.metadata?.level2Share || 0) > 0) {
         const user = await User.findById(settlement.userId);
         if (user?.referrerId) {
           const level1User = await User.findById(user.referrerId);
@@ -234,7 +238,7 @@ export class SettlementService {
             const userEarning = new UserEarning({
               userId: level1User.referrerId,
               settlementId: settlement._id,
-              amount: settlement.level2Share,
+              amount: settlement.metadata?.level2Share || 0,
               level: 2
             });
             await userEarning.save({ session });
@@ -248,6 +252,88 @@ export class SettlementService {
       throw error;
     } finally {
       session.endSession();
+    }
+  }
+
+  // 创建结算记录
+  async createSettlement(settlementData: Partial<ISettlement>): Promise<ISettlement> {
+    const settlement = new Settlement(settlementData);
+    return await settlement.save();
+  }
+
+  // 获取所有结算记录
+  async getAllSettlements(): Promise<ISettlement[]> {
+    return await Settlement.find().sort({ createdAt: -1 });
+  }
+
+  // 获取单个结算记录
+  async getSettlementById(id: string): Promise<ISettlement> {
+    const settlement = await Settlement.findById(id);
+    if (!settlement) {
+      throw new NotFoundError('Settlement not found');
+    }
+    return settlement;
+  }
+
+  // 更新结算记录
+  async updateSettlement(id: string, settlementData: Partial<ISettlement>): Promise<ISettlement> {
+    const settlement = await Settlement.findByIdAndUpdate(
+      id,
+      { ...settlementData, updatedAt: new Date() },
+      { new: true, runValidators: true }
+    );
+    if (!settlement) {
+      throw new NotFoundError('Settlement not found');
+    }
+    return settlement;
+  }
+
+  // 删除结算记录
+  async deleteSettlement(id: string): Promise<void> {
+    const settlement = await Settlement.findByIdAndDelete(id);
+    if (!settlement) {
+      throw new NotFoundError('Settlement not found');
+    }
+  }
+
+  // 创建平台收益记录
+  async createPlatformEarning(earningData: Partial<IPlatformEarning>): Promise<IPlatformEarning> {
+    const earning = new PlatformEarning(earningData);
+    return await earning.save();
+  }
+
+  // 获取所有平台收益记录
+  async getAllPlatformEarnings(): Promise<IPlatformEarning[]> {
+    return await PlatformEarning.find().sort({ createdAt: -1 });
+  }
+
+  // 获取单个平台收益记录
+  async getPlatformEarningById(id: string): Promise<IPlatformEarning> {
+    const earning = await PlatformEarning.findById(id);
+    if (!earning) {
+      throw new NotFoundError('Platform earning not found');
+    }
+    return earning;
+  }
+
+  // 更新平台收益记录
+  async updatePlatformEarning(id: string, earningData: Partial<IPlatformEarning>): Promise<IPlatformEarning> {
+    const earning = await PlatformEarning.findByIdAndUpdate(
+      id,
+      { ...earningData, updatedAt: new Date() },
+      { new: true, runValidators: true }
+    );
+    if (!earning) {
+      throw new NotFoundError('Platform earning not found');
+    }
+    return earning;
+  }
+
+  // 删除平台收益记录
+  async deletePlatformEarning(id: string): Promise<void> {
+    const earning = await PlatformEarning.findByIdAndDelete(id);
+    if (!earning) {
+      throw new NotFoundError('Platform earning not found');
     }
   }
 } 

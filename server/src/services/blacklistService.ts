@@ -1,4 +1,4 @@
-import { BlacklistEntry } from '../models/blacklist';
+import { BlacklistEntry, IBlacklistEntry } from '../models/blacklist';
 import { NotFoundError } from '../utils/errors';
 
 export class BlacklistService {
@@ -14,27 +14,27 @@ export class BlacklistService {
   }
 
   // 获取所有黑名单条目
-  async getAllEntries(): Promise<BlacklistEntry[]> {
+  async getAllEntries(): Promise<IBlacklistEntry[]> {
     return await BlacklistEntry.find().sort({ createdAt: -1 });
-  },
+  }
 
   // 获取单个黑名单条目
-  async getEntryById(id: string): Promise<BlacklistEntry> {
+  async getEntryById(id: string): Promise<IBlacklistEntry> {
     const entry = await BlacklistEntry.findById(id);
     if (!entry) {
       throw new NotFoundError('Blacklist entry not found');
     }
     return entry;
-  },
+  }
 
   // 创建黑名单条目
-  async createEntry(entryData: Partial<BlacklistEntry>): Promise<BlacklistEntry> {
+  async createEntry(entryData: Partial<IBlacklistEntry>): Promise<IBlacklistEntry> {
     const entry = new BlacklistEntry(entryData);
     return await entry.save();
-  },
+  }
 
   // 更新黑名单条目
-  async updateEntry(id: string, entryData: Partial<BlacklistEntry>): Promise<BlacklistEntry> {
+  async updateEntry(id: string, entryData: Partial<IBlacklistEntry>): Promise<IBlacklistEntry> {
     const entry = await BlacklistEntry.findByIdAndUpdate(
       id,
       { ...entryData, updatedAt: new Date() },
@@ -44,7 +44,7 @@ export class BlacklistService {
       throw new NotFoundError('Blacklist entry not found');
     }
     return entry;
-  },
+  }
 
   // 删除黑名单条目
   async deleteEntry(id: string): Promise<void> {
@@ -52,10 +52,10 @@ export class BlacklistService {
     if (!entry) {
       throw new NotFoundError('Blacklist entry not found');
     }
-  },
+  }
 
   // 搜索黑名单条目
-  async searchEntries(query: string): Promise<BlacklistEntry[]> {
+  async searchEntries(query: string): Promise<IBlacklistEntry[]> {
     return await BlacklistEntry.find({
       $or: [
         { userId: { $regex: query, $options: 'i' } },
@@ -64,25 +64,25 @@ export class BlacklistService {
         { reason: { $regex: query, $options: 'i' } }
       ]
     }).sort({ createdAt: -1 });
-  },
+  }
 
   async addToBlacklist(data: {
     type: string;
     value: string;
     reason: string;
     createdBy: string;
-  }): Promise<typeof BlacklistEntry> {
+  }): Promise<IBlacklistEntry> {
     const entry = new BlacklistEntry(data);
     return entry.save();
-  },
+  }
 
-  async removeFromBlacklist(id: string): Promise<typeof BlacklistEntry | null> {
+  async removeFromBlacklist(id: string): Promise<IBlacklistEntry | null> {
     return BlacklistEntry.findByIdAndDelete(id);
-  },
+  }
 
-  async getBlacklist(): Promise<typeof BlacklistEntry[]> {
+  async getBlacklist(): Promise<IBlacklistEntry[]> {
     return BlacklistEntry.find();
-  },
+  }
 
   async isBlacklisted(type: string, value: string): Promise<boolean> {
     const entry = await BlacklistEntry.findOne({ type, value });
