@@ -2,8 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import userAssetRoutes from '../../user-api/routes/assetRoutes';
-import adminAssetRoutes from '../../admin-api/routes/assetRoutes';
+import { config } from './config';
 
 dotenv.config();
 
@@ -18,9 +17,10 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/panda-qua
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-// 路由
-app.use('/api/user', userAssetRoutes); // 用户API
-app.use('/api/admin', adminAssetRoutes); // 管理员API
+// 健康检查路由
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
 // 错误处理
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -28,7 +28,4 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ message: '服务器内部错误' });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-}); 
+export default app; 

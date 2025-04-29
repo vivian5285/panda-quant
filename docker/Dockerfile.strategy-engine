@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 RUN npm install -g typescript
 
 # Copy package files first to leverage Docker cache
-COPY package*.json ./
+COPY strategy-engine/package*.json ./
 
 # Install dependencies
 RUN npm install --legacy-peer-deps && \
@@ -33,13 +33,14 @@ RUN npm install --save \
     axios \
     dotenv \
     express \
-    winston
+    winston \
+    web3
 
 # Set permissions for TypeScript
 RUN chmod -R 777 /usr/local/bin/tsc
 
 # Copy source code
-COPY . .
+COPY strategy-engine/ ./
 
 # Build the application
 RUN npm run build

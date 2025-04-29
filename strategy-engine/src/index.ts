@@ -1,27 +1,33 @@
 import Web3 from 'web3';
+import express from 'express';
+import dotenv from 'dotenv';
+import { StrategyRunner, Strategy } from './strategy';
 
-export interface Strategy {
-  _id: string;
-  name: string;
-  description: string;
-  riskLevel: 'high' | 'medium' | 'low';
-  active: boolean;
-}
+// Load environment variables
+dotenv.config();
 
-export class StrategyRunner {
-  private web3: Web3;
-  private account: string;
+const app = express();
+const port = process.env.PORT || 4000;
 
-  constructor(web3: Web3, account: string) {
-    this.web3 = web3;
-    this.account = account;
-  }
+// Initialize Web3
+const web3 = new Web3(`https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`);
+const account = process.env.ACCOUNT || '0x0000000000000000000000000000000000000000';
 
-  async updateStrategy(id: string, data: Partial<Strategy>): Promise<void> {
-    // TODO: Implement strategy update logic
-    console.log('Updating strategy:', id, data);
-  }
-}
+// Initialize Strategy Runner
+const strategyRunner = new StrategyRunner(web3, account);
+
+// Middleware
+app.use(express.json());
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+// Start server
+app.listen(port, () => {
+  console.log(`Strategy Engine running on port ${port}`);
+});
 
 export function getExpectedMonthlyReturn(name: string, riskLevel: string): number {
   // TODO: Implement expected return calculation
