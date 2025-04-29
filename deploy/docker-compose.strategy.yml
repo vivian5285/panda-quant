@@ -3,23 +3,23 @@ version: '3.8'
 services:
   strategy-engine:
     build:
-      context: strategy-engine
+      context: ../strategy-engine
       dockerfile: ../docker/Dockerfile.strategy-engine
     container_name: panda-quant-strategy-engine
     ports:
       - "3004:3004"
     environment:
       - NODE_ENV=production
-      - PORT=3004
+      - MONGODB_URI=${MONGODB_ADMIN_URI}
+      - REDIS_URL=${REDIS_ADMIN_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    depends_on:
+      - mongodb
+      - redis
     restart: unless-stopped
     networks:
-      panda-quant-network:
-        aliases:
-          - strategy-engine
-    deploy:
-      resources:
-        limits:
-          memory: 4G
+      - panda-quant-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
       interval: 30s
@@ -28,23 +28,23 @@ services:
 
   server:
     build:
-      context: server
+      context: ../server
       dockerfile: ../docker/Dockerfile.server
     container_name: panda-quant-server
     ports:
       - "3005:3005"
     environment:
       - NODE_ENV=production
-      - PORT=3005
+      - MONGODB_URI=${MONGODB_ADMIN_URI}
+      - REDIS_URL=${REDIS_ADMIN_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    depends_on:
+      - mongodb
+      - redis
     restart: unless-stopped
     networks:
-      panda-quant-network:
-        aliases:
-          - server
-    deploy:
-      resources:
-        limits:
-          memory: 4G
+      - panda-quant-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3005/health"]
       interval: 30s
@@ -53,5 +53,4 @@ services:
 
 networks:
   panda-quant-network:
-    name: panda-quant-network
     external: true 
