@@ -54,15 +54,22 @@ install_dependencies() {
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
     apt-get install -y nodejs
     
+    # 安装 MongoDB
+    wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
+    echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+    apt-get update
+    apt-get install -y mongodb-org
+    
     # 安装其他必要包
     apt-get install -y \
         nginx \
         redis-server \
-        mongodb \
-        pm2 \
         git \
         curl \
         jq
+    
+    # 全局安装 PM2
+    npm install -g pm2
     
     check_result "安装软件包失败"
 }
