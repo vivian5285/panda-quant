@@ -3,6 +3,7 @@ import { PlatformEarning, IPlatformEarning } from '../models/PlatformEarning';
 import { NotFoundError } from '../utils/errors';
 import { SettlementFilter, SettlementResponse, SettlementSummary } from '../types/settlement';
 import { Commission } from '../models/Commission';
+import { ICommission } from '../interfaces/ICommission';
 import { UserEarning } from '../models/UserEarning';
 import { User } from '../models/User';
 import { format } from 'date-fns';

@@ -1,41 +1,11 @@
-import mongoose, { Schema, Document, Types } from 'mongoose';
-
-export interface IStrategyPerformance extends Document {
-  _id: Types.ObjectId;
-  strategyId: Types.ObjectId;
-  userId: Types.ObjectId;
-  profit: number;
-  startDate: Date;
-  endDate: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Schema, model, Types } from 'mongoose';
+import { IStrategyPerformance } from '../interfaces/IStrategyPerformance';
 
 const strategyPerformanceSchema = new Schema<IStrategyPerformance>({
-  strategyId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Strategy',
-    required: true
-  },
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  profit: {
-    type: Number,
-    required: true
-  },
-  startDate: {
-    type: Date,
-    required: true
-  },
-  endDate: {
-    type: Date,
-    required: true
-  }
-}, {
-  timestamps: true
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  strategyId: { type: Schema.Types.ObjectId, ref: 'Strategy', required: true },
+  profit: { type: Number, required: true },
+  createdAt: { type: Date, default: Date.now }
 });
 
-export const StrategyPerformance = mongoose.model<IStrategyPerformance>('StrategyPerformance', strategyPerformanceSchema); 
+export const StrategyPerformance = model<IStrategyPerformance>('StrategyPerformance', strategyPerformanceSchema); 
