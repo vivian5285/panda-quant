@@ -16,9 +16,34 @@ RUN npm install -g typescript vite terser
 COPY admin-ui/package*.json ./
 COPY admin-ui/ ./
 
-# Install dependencies
+# Install dependencies and type declarations
 RUN npm install --legacy-peer-deps && \
-    npm install --save-dev terser
+    npm install --save-dev \
+    @types/react \
+    @types/react-dom \
+    @types/react-router-dom \
+    @types/react-i18next \
+    @types/date-fns \
+    @types/recharts \
+    @types/socket.io-client \
+    @types/antd \
+    @types/i18next-browser-languagedetector \
+    @types/react-toastify \
+    @types/node \
+    @types/jest \
+    @typescript-eslint/eslint-plugin \
+    @typescript-eslint/parser \
+    eslint \
+    eslint-plugin-react \
+    eslint-plugin-react-hooks \
+    jest \
+    ts-jest \
+    ts-node \
+    @vitejs/plugin-react \
+    vite \
+    vite-plugin-svgr \
+    vitest \
+    terser
 
 # Set permissions for TypeScript and Vite
 RUN chmod -R 777 /usr/local/bin/tsc && \
