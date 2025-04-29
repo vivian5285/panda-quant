@@ -1,4 +1,4 @@
-import { PrismaClient, Log } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 export enum LogLevel {
     INFO = 'INFO',
