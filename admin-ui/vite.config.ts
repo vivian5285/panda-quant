@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import svgr from 'vite-plugin-svgr'
 import { splitVendorChunkPlugin } from 'vite'
+import path from 'path'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -27,7 +28,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src')
+      '@': path.resolve(__dirname, './src')
     }
   },
   build: {
@@ -35,23 +36,10 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react')) {
-              return 'react-vendor'
-            }
-            if (id.includes('@mui')) {
-              return 'mui-vendor'
-            }
-            if (id.includes('i18next')) {
-              return 'i18n-vendor'
-            }
-            if (id.includes('lodash') || id.includes('date-fns')) {
-              return 'utils-vendor'
-            }
-            return 'vendor'
-          }
-        }
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          mui: ['@mui/material', '@mui/icons-material'],
+        },
       }
     },
     chunkSizeWarningLimit: 1000,
@@ -69,11 +57,11 @@ export default defineConfig({
     }
   },
   server: {
-    port: 3002,
+    port: 3000,
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false
       }

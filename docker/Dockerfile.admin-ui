@@ -37,15 +37,13 @@ RUN echo '{\
     "noImplicitAny": false,\
     "strictNullChecks": false,\
     "paths": {\
-      "@/*": ["src/*"]\
+      "@/*": ["src/*"],\
+      "@/utils/*": ["src/utils/*"]\
     }\
   },\
   "include": ["src"],\
   "exclude": ["node_modules"]\
 }' > tsconfig.json
-
-# 复制源代码
-COPY . .
 
 # 创建类型声明文件
 RUN mkdir -p src && \
@@ -61,7 +59,90 @@ declare module "@mui/material/styles/createTypography" {\
   export interface TypographyVariantsOptions {\
     [key: string]: any;\
   }\
+}\
+declare module "@/utils/api";\
+declare module "@/utils/date";\
+declare module "@/utils/currency";\
+interface ImportMetaEnv {\
+  VITE_API_URL: string;\
+  VITE_WS_URL: string;\
+}\
+interface ImportMeta {\
+  readonly env: ImportMetaEnv;\
+}\
+interface Order {\
+  id: string;\
+  tradingPair: string;\
+  amount: number;\
+  total: number;\
+  timestamp: string;\
+}\
+interface User {\
+  id: string;\
+  name: string;\
+  email: string;\
+  status: string;\
+}\
+interface Theme {\
+  primary: {\
+    main: string;\
+    light: string;\
+    dark: string;\
+  };\
+  text: {\
+    primary: string;\
+    secondary: string;\
+  };\
+  success: string;\
+  warning: string;\
+  error: string;\
+}\
+interface PageLayoutProps {\
+  title: string;\
+  children: React.ReactNode;\
+  actions?: React.ReactNode;\
+  filters?: React.ReactNode;\
+  content?: React.ReactNode;\
+}\
+interface ChipProps {\
+  label: string;\
+  color?: "primary" | "secondary" | "error" | "info" | "success" | "warning";\
+  variant?: "filled" | "outlined";\
+  size?: "small" | "medium";\
+  icon?: React.ReactNode;\
+  onClick?: () => void;\
+}\
+interface DatePickerProps {\
+  label: string;\
+  value: Date | null;\
+  onChange: (date: any) => void;\
+  renderInput?: (params: any) => React.ReactElement;\
 }' > src/types.d.ts
+
+# 创建必要的工具目录和文件
+RUN mkdir -p src/utils && \
+    echo 'export const formatDate = (date: Date) => date.toISOString();\
+export const formatCurrency = (amount: number) => amount.toFixed(2);\
+export const api = {\
+  get: async (url: string) => ({}),\
+  post: async (url: string, data: any) => ({}),\
+  put: async (url: string, data: any) => ({}),\
+  delete: async (url: string) => ({})\
+};\
+export const themeUtils = {\
+  getColor: (theme: any, color: string) => theme[color] || color,\
+  getTextColor: (theme: any, color: string) => theme.text[color] || color\
+};\
+export const motion = {\
+  variants: {\
+    container: {},\
+    item: {}\
+  },\
+  transition: {}\
+};' > src/utils/index.ts
+
+# 复制源代码
+COPY . .
 
 # 构建应用
 RUN npm run build

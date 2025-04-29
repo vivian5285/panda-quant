@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, ThemeOptions } from '@mui/material/styles';
 import type { TypographyOptions } from '@mui/material/styles/createTypography';
 
 // 扩展 Material-UI 的 Palette 类型
@@ -12,6 +12,18 @@ declare module '@mui/material/styles' {
     accent?: PaletteOptions['primary'];
     border?: string;
     card?: string;
+  }
+  interface TypographyVariants {
+    [key: string]: any;
+  }
+  interface TypographyVariantsOptions {
+    [key: string]: any;
+  }
+}
+
+declare module '@mui/material/Typography' {
+  interface TypographyPropsVariantOverrides {
+    [key: string]: true;
   }
 }
 
@@ -69,7 +81,7 @@ const typography: TypographyOptions = {
   },
 };
 
-export const theme = createTheme({
+const themeOptions: ThemeOptions = {
   palette: {
     mode: 'light',
     primary: {
@@ -111,6 +123,11 @@ export const theme = createTheme({
       main: '#FF1744', // 保留错误色
       light: '#FF4569',
       dark: '#CC1236',
+    },
+    info: {
+      main: '#0288d1',
+      light: '#03a9f4',
+      dark: '#01579b',
     },
   },
   typography,
@@ -178,7 +195,11 @@ export const theme = createTheme({
       },
     },
   },
-});
+};
+
+const theme = createTheme(themeOptions);
+
+export default theme;
 
 export const themeUtils = {
   palette: {

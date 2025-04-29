@@ -11,15 +11,15 @@ declare global {
   }
 }
 
-const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://194.164.149.214:3000/api',
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 // 请求拦截器
-instance.interceptors.request.use(
+api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -33,7 +33,7 @@ instance.interceptors.request.use(
 );
 
 // 响应拦截器
-instance.interceptors.response.use(
+api.interceptors.response.use(
   (response) => {
     return response;
   },
@@ -46,4 +46,4 @@ instance.interceptors.response.use(
   }
 );
 
-export default instance; 
+export default api; 
