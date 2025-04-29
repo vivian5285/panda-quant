@@ -108,6 +108,19 @@ setup_backend() {
     # Admin API
     cd admin-api
     npm install
+    
+    # 编译 TypeScript 代码
+    print_message "编译 TypeScript 代码..."
+    npm run build
+    
+    # 生成 Prisma 客户端
+    print_message "生成 Prisma 客户端..."
+    npm run prisma:generate
+    
+    # 运行数据库迁移
+    print_message "运行数据库迁移..."
+    npm run prisma:migrate
+    
     cd ..
 }
 
