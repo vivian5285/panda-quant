@@ -3,37 +3,25 @@ import { Types } from 'mongoose';
 import { IPosition } from '../interfaces/IPosition';
 
 export interface IPosition extends Document {
-  _id: Types.ObjectId;
-  userId: Types.ObjectId;
-  strategyId: Types.ObjectId;
+  _id: string;
+  userId: string;
+  strategyId: string;
+  exchange: string;
   symbol: string;
   side: 'long' | 'short';
-  status: 'open' | 'closed';
-  quantity: number;
+  amount: number;
   entryPrice: number;
   currentPrice: number;
-  unrealizedPnl: number;
-  realizedPnl: number;
+  unrealizedPnL: number;
+  realizedPnL: number;
   leverage: number;
   margin: number;
-  stopLoss?: number;
-  takeProfit?: number;
+  liquidationPrice: number;
   createdAt: Date;
   updatedAt: Date;
   closedAt?: Date;
-  metadata?: {
-    exchange?: string;
-    positionId?: string;
-    initialMargin?: number;
-    maintenanceMargin?: number;
-    liquidationPrice?: number;
-    markPrice?: number;
-    fundingRate?: number;
-    nextFundingTime?: Date;
-    timeInPosition?: number;
-    maxDrawdown?: number;
-    maxProfit?: number;
-  };
+  error?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface IPositionHistory extends Document {

@@ -111,4 +111,21 @@ export interface IStrategyBacktest extends Document {
   }[];
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface IStrategy extends Document {
+  _id: string;
+  userId: string;
+  name: string;
+  description: string;
+  exchange: string;
+  symbol: string;
+  timeframe: string;
+  parameters: Record<string, any>;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  lastExecutedAt?: Date;
+  error?: string;
+  metadata?: Record<string, any>;
 } 

@@ -1,19 +1,33 @@
 import { Document } from 'mongoose';
 import { Types } from 'mongoose';
 
+export type OrderType = 'market' | 'limit' | 'stop' | 'stop_limit';
+export type OrderStatus = 'pending' | 'open' | 'closed' | 'cancelled' | 'failed';
+
 export interface IOrder extends Document {
   _id: string;
   userId: string;
   strategyId: string;
+  positionId?: string;
+  exchange: string;
   symbol: string;
-  type: 'buy' | 'sell';
-  status: 'pending' | 'filled' | 'cancelled';
-  price: number;
-  quantity: number;
-  executedPrice?: number;
-  executedQuantity?: number;
+  orderId: string;
+  clientOrderId: string;
+  type: 'market' | 'limit' | 'stop' | 'stop_limit';
+  side: 'buy' | 'sell';
+  amount: number;
+  price?: number;
+  stopPrice?: number;
+  status: 'open' | 'closed' | 'canceled' | 'expired' | 'rejected';
+  filledAmount: number;
+  averageFillPrice?: number;
+  fee: number;
+  feeCurrency: string;
   createdAt: Date;
   updatedAt: Date;
+  closedAt?: Date;
+  error?: string;
+  metadata?: Record<string, any>;
 }
 
 export type Order = IOrder;
