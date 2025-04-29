@@ -1,17 +1,5 @@
 #!/bin/bash
 
-# 设置环境变量
-export COMPOSE_HTTP_TIMEOUT=300
-export DOCKER_BUILDKIT=1
-
-# 加载环境变量
-if [ -f ../.env ]; then
-    print_message "Loading environment variables from .env file..." "$YELLOW"
-    export $(grep -v '^#' ../.env | xargs)
-else
-    handle_error ".env file not found"
-fi
-
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -28,6 +16,18 @@ handle_error() {
     print_message "Error: $1" "$RED"
     exit 1
 }
+
+# 设置环境变量
+export COMPOSE_HTTP_TIMEOUT=300
+export DOCKER_BUILDKIT=1
+
+# 加载环境变量
+if [ -f ../.env ]; then
+    print_message "Loading environment variables from .env file..." "$YELLOW"
+    export $(grep -v '^#' ../.env | xargs)
+else
+    handle_error ".env file not found"
+fi
 
 # 检查并安装必要的软件
 install_requirements() {
@@ -77,21 +77,41 @@ check_env() {
 install_dependencies() {
     print_message "Installing dependencies..." "$YELLOW"
     
-    # 安装用户API依赖
+    # 检查并安装用户API依赖
     cd ../user-api
-    npm install || handle_error "Failed to install user-api dependencies"
+    if [ ! -d "node_modules" ]; then
+        print_message "Installing user-api dependencies..." "$YELLOW"
+        npm install --legacy-peer-deps || handle_error "Failed to install user-api dependencies"
+    else
+        print_message "user-api dependencies already installed, skipping..." "$YELLOW"
+    fi
     
-    # 安装管理API依赖
+    # 检查并安装管理API依赖
     cd ../admin-api
-    npm install || handle_error "Failed to install admin-api dependencies"
+    if [ ! -d "node_modules" ]; then
+        print_message "Installing admin-api dependencies..." "$YELLOW"
+        npm install --legacy-peer-deps || handle_error "Failed to install admin-api dependencies"
+    else
+        print_message "admin-api dependencies already installed, skipping..." "$YELLOW"
+    fi
     
-    # 安装用户UI依赖
+    # 检查并安装用户UI依赖
     cd ../user-ui
-    npm install || handle_error "Failed to install user-ui dependencies"
+    if [ ! -d "node_modules" ]; then
+        print_message "Installing user-ui dependencies..." "$YELLOW"
+        npm install --legacy-peer-deps || handle_error "Failed to install user-ui dependencies"
+    else
+        print_message "user-ui dependencies already installed, skipping..." "$YELLOW"
+    fi
     
-    # 安装管理UI依赖
+    # 检查并安装管理UI依赖
     cd ../admin-ui
-    npm install || handle_error "Failed to install admin-ui dependencies"
+    if [ ! -d "node_modules" ]; then
+        print_message "Installing admin-ui dependencies..." "$YELLOW"
+        npm install --legacy-peer-deps || handle_error "Failed to install admin-ui dependencies"
+    else
+        print_message "admin-ui dependencies already installed, skipping..." "$YELLOW"
+    fi
     
     cd ../deploy
 }
