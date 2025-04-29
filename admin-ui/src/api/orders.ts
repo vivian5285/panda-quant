@@ -1,21 +1,19 @@
+import axios from './axios';
+
 export interface Order {
   id: string;
   userId: string;
   username: string;
   strategyId: string;
   strategyName: string;
-  symbol: string;
   tradingPair: string;
   type: 'buy' | 'sell';
-  status: 'pending' | 'completed' | 'cancelled' | 'failed';
+  status: 'failed' | 'pending' | 'completed' | 'cancelled';
+  amount: number;
   price: number;
-  quantity: number;
-  totalAmount: number;
-  total: number;
   timestamp: string;
   createdAt: string;
   updatedAt: string;
-  amount: number;
 }
 
 // Mock data
@@ -60,18 +58,21 @@ const mockOrders: Order[] = [
   },
 ];
 
-export const getOrders = async (): Promise<Order[]> => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(mockOrders);
-    }, 1000);
-  });
+export const getOrders = async (params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  type?: string;
+  startDate?: string;
+  endDate?: string;
+}) => {
+  const response = await axios.get<{ data: Order[]; total: number }>('/orders', { params });
+  return response;
 };
 
-export const getOrderById = async (id: string): Promise<Order | null> => {
-  const order = mockOrders.find((o) => o.id === id);
-  return order || null;
+export const getOrderById = async (id: string) => {
+  const response = await axios.get<Order>(`/orders/${id}`);
+  return response;
 };
 
 export const updateOrderStatus = async (
@@ -97,24 +98,17 @@ export const cancelOrder = async (id: string): Promise<boolean> => {
   return false;
 };
 
-export const createOrder = async (orderData: Partial<Order>): Promise<Order> => {
-  // 这里应该是实际的 API 调用
-  return {
-    id: Date.now().toString(),
-    tradingPair: orderData.tradingPair || '',
-    type: orderData.type || 'buy',
-    status: orderData.status || 'pending',
-    amount: orderData.amount || 0,
-    price: orderData.price || 0,
-    timestamp: new Date().toISOString(),
-  };
+export const createOrder = async (data: Partial<Order>) => {
+  const response = await axios.post<Order>('/orders', data);
+  return response;
 };
 
-export const updateOrder = async (orderData: Order): Promise<Order> => {
-  // 这里应该是实际的 API 调用
-  return orderData;
+export const updateOrder = async (id: string, data: Partial<Order>) => {
+  const response = await axios.put<Order>(`/orders/${id}`, data);
+  return response;
 };
 
-export const deleteOrder = async (orderId: string): Promise<void> => {
-  // 这里应该是实际的 API 调用
+export const deleteOrder = async (id: string) => {
+  const response = await axios.delete(`/orders/${id}`);
+  return response;
 }; 

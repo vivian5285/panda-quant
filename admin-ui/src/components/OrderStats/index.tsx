@@ -7,87 +7,111 @@ import {
   Typography,
   LinearProgress,
 } from '@mui/material';
-import {
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
-  AttachMoney as AttachMoneyIcon,
-  Timeline as TimelineIcon,
-} from '@mui/icons-material';
-import { StyledCard, StyledBox, StyledTypography } from '../common/StyledComponents';
 import { themeUtils } from '../../theme';
 
 interface OrderStatsProps {
   totalOrders: number;
-  successRate: number;
-  averageProfit: number;
-  totalVolume: number;
+  completedOrders: number;
+  pendingOrders: number;
+  cancelledOrders: number;
 }
 
 const OrderStats: React.FC<OrderStatsProps> = ({
   totalOrders,
-  successRate,
-  averageProfit,
-  totalVolume,
+  completedOrders,
+  pendingOrders,
+  cancelledOrders,
 }) => {
   const stats = [
     {
-      title: '总订单数',
+      label: '总订单数',
       value: totalOrders,
-      icon: <TimelineIcon sx={{ fontSize: 40, color: themeUtils.palette.primary.main }} />,
       color: themeUtils.palette.primary.main,
     },
     {
-      title: '成功率',
-      value: `${(successRate * 100).toFixed(1)}%`,
-      icon: <TrendingUpIcon sx={{ fontSize: 40, color: themeUtils.palette.success.main }} />,
+      label: '已完成订单',
+      value: completedOrders,
       color: themeUtils.palette.success.main,
     },
     {
-      title: '平均收益',
-      value: `${averageProfit.toFixed(2)}%`,
-      icon: <AttachMoneyIcon sx={{ fontSize: 40, color: themeUtils.palette.warning.main }} />,
+      label: '待处理订单',
+      value: pendingOrders,
       color: themeUtils.palette.warning.main,
     },
     {
-      title: '总交易量',
-      value: `$${totalVolume.toLocaleString()}`,
-      icon: <TrendingDownIcon sx={{ fontSize: 40, color: themeUtils.palette.error.main }} />,
+      label: '已取消订单',
+      value: cancelledOrders,
       color: themeUtils.palette.error.main,
     },
   ];
 
   return (
-    <Grid container spacing={3}>
-      {stats.map((stat, index) => (
-        <Grid item xs={12} sm={6} md={3} key={index}>
-          <StyledCard>
-            <StyledBox>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                {stat.icon}
-                <StyledTypography variant="h6" sx={{ ml: 2 }}>
-                  {stat.title}
-                </StyledTypography>
-              </Box>
-              <StyledTypography variant="h4" sx={{ mb: 1 }}>
-                {stat.value}
-              </StyledTypography>
-              <LinearProgress
-                variant="determinate"
-                value={100}
+    <Card
+      sx={{
+        borderRadius: 2,
+        boxShadow: themeUtils.custom.shadows.card,
+        '&:hover': {
+          boxShadow: themeUtils.custom.shadows.cardHover,
+        },
+      }}
+    >
+      <CardContent>
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{
+            color: themeUtils.palette.text.primary,
+            fontWeight: 600,
+          }}
+        >
+          订单统计
+        </Typography>
+        <Grid container spacing={3}>
+          {stats.map((stat) => (
+            <Grid item xs={12} sm={6} md={3} key={stat.label}>
+              <Box
                 sx={{
-                  height: 4,
-                  borderRadius: 2,
-                  backgroundColor: `${stat.color}20`,
-                  '& .MuiLinearProgress-bar': {
-                    backgroundColor: stat.color,
-                  },
+                  p: 2,
+                  borderRadius: 1,
+                  backgroundColor: themeUtils.palette.card.main,
                 }}
-              />
-            </StyledBox>
-          </StyledCard>
+              >
+                <Typography
+                  variant="subtitle2"
+                  color="textSecondary"
+                  sx={{ mb: 1 }}
+                >
+                  {stat.label}
+                </Typography>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    color: stat.color,
+                    fontWeight: 700,
+                    mb: 2,
+                  }}
+                >
+                  {stat.value}
+                </Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={(stat.value / totalOrders) * 100}
+                  sx={{
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: themeUtils.palette.border.main,
+                    '& .MuiLinearProgress-bar': {
+                      borderRadius: 3,
+                      backgroundColor: stat.color,
+                    },
+                  }}
+                />
+              </Box>
+            </Grid>
+          ))}
         </Grid>
-      ))}
-    </Grid>
+      </CardContent>
+    </Card>
   );
 };
 

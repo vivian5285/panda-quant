@@ -12,6 +12,9 @@ import {
   IconButton,
   TextField,
   InputAdornment,
+  Card,
+  CardContent,
+  Typography,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -25,9 +28,9 @@ import { themeUtils } from '../../theme';
 
 interface Order {
   id: string;
-  symbol: string;
+  tradingPair: string;
   type: 'buy' | 'sell';
-  status: 'completed' | 'pending' | 'cancelled';
+  status: 'failed' | 'pending' | 'completed' | 'cancelled';
   amount: number;
   price: number;
   timestamp: string;
@@ -35,9 +38,12 @@ interface Order {
 
 interface OrderHistoryProps {
   orders: Order[];
+  success?: boolean;
+  warning?: boolean;
+  error?: boolean;
 }
 
-const OrderHistory: React.FC<OrderHistoryProps> = ({ orders }) => {
+const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, success, warning, error }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,21 +71,42 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders }) => {
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
       case 'completed':
-        return 'success';
+        return themeUtils.palette.success.main;
       case 'pending':
-        return 'warning';
+        return themeUtils.palette.warning.main;
       case 'cancelled':
-        return 'error';
+      case 'failed':
+        return themeUtils.palette.error.main;
+      default:
+        return themeUtils.palette.text.secondary;
     }
   };
 
   const filteredOrders = orders.filter(order =>
-    order.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+    order.tradingPair.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <StyledCard>
-      <StyledBox>
+    <Card
+      sx={{
+        borderRadius: 2,
+        boxShadow: themeUtils.custom.shadows.card,
+        '&:hover': {
+          boxShadow: themeUtils.custom.shadows.cardHover,
+        },
+      }}
+    >
+      <CardContent>
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{
+            color: themeUtils.palette.text.primary,
+            fontWeight: 600,
+          }}
+        >
+          订单历史
+        </Typography>
         <Box sx={{ mb: 3 }}>
           <TextField
             fullWidth
@@ -120,20 +147,20 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders }) => {
                 </TableCell>
                 <TableCell>
                   <StyledTypography variant="subtitle1">
-                    状态
-                  </StyledTypography>
-                </TableCell>
-                <TableCell align="right">
-                  <StyledTypography variant="subtitle1">
                     数量
                   </StyledTypography>
                 </TableCell>
-                <TableCell align="right">
+                <TableCell>
                   <StyledTypography variant="subtitle1">
                     价格
                   </StyledTypography>
                 </TableCell>
-                <TableCell align="right">
+                <TableCell>
+                  <StyledTypography variant="subtitle1">
+                    状态
+                  </StyledTypography>
+                </TableCell>
+                <TableCell>
                   <StyledTypography variant="subtitle1">
                     时间
                   </StyledTypography>
@@ -147,7 +174,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders }) => {
                   <TableRow key={order.id}>
                     <TableCell>
                       <StyledTypography>
-                        {order.symbol}
+                        {order.tradingPair}
                       </StyledTypography>
                     </TableCell>
                     <TableCell>
@@ -158,27 +185,34 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders }) => {
                       />
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        {getStatusIcon(order.status)}
-                        <Chip
-                          label={order.status === 'completed' ? '已完成' : order.status === 'pending' ? '进行中' : '已取消'}
-                          color={getStatusColor(order.status)}
-                          size="small"
-                          sx={{ ml: 1 }}
-                        />
-                      </Box>
-                    </TableCell>
-                    <TableCell align="right">
                       <StyledTypography>
                         {order.amount.toLocaleString()}
                       </StyledTypography>
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell>
                       <StyledTypography>
                         ${order.price.toLocaleString()}
                       </StyledTypography>
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell>
+                      <Chip
+                        label={
+                          order.status === 'completed'
+                            ? '已完成'
+                            : order.status === 'pending'
+                            ? '处理中'
+                            : order.status === 'cancelled'
+                            ? '已取消'
+                            : '失败'
+                        }
+                        sx={{
+                          backgroundColor: getStatusColor(order.status),
+                          color: '#fff',
+                        }}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
                       <StyledTypography>
                         {new Date(order.timestamp).toLocaleString()}
                       </StyledTypography>
@@ -198,8 +232,8 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders }) => {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-      </StyledBox>
-    </StyledCard>
+      </CardContent>
+    </Card>
   );
 };
 

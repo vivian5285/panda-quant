@@ -1,17 +1,9 @@
 import axios from 'axios';
 
-interface ImportMetaEnv {
-  VITE_API_URL: string;
-}
-
-declare global {
-  interface ImportMeta {
-    readonly env: ImportMetaEnv;
-  }
-}
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -38,9 +30,28 @@ instance.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+    if (error.response) {
+      switch (error.response.status) {
+        case 401:
+          // 未授权，清除 token 并跳转到登录页
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+          break;
+        case 403:
+          // 禁止访问
+          window.location.href = '/403';
+          break;
+        case 404:
+          // 资源不存在
+          window.location.href = '/404';
+          break;
+        case 500:
+          // 服务器错误
+          window.location.href = '/500';
+          break;
+        default:
+          break;
+      }
     }
     return Promise.reject(error);
   }
