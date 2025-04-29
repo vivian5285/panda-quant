@@ -19,7 +19,7 @@ RUN yarn install --frozen-lockfile && \
 COPY . .
 
 # Generate Prisma client
-RUN npx prisma generate
+RUN yarn prisma generate
 
 # Build admin-api
 RUN yarn build
