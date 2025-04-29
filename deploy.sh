@@ -143,6 +143,10 @@ setup_firewall() {
 start_services() {
     print_message "Starting services..."
     
+    # 清理 Docker 缓存
+    print_message "Cleaning Docker cache..."
+    docker system prune -f
+    
     # 启动管理服务
     docker-compose -f deploy/docker-compose.admin.yml up -d --build
     check_result "Failed to start admin services"
