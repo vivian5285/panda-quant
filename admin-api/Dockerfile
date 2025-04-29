@@ -14,8 +14,8 @@ COPY tsconfig.json ./
 # Install dependencies
 RUN npm config set registry https://registry.npmmirror.com && \
     npm install --legacy-peer-deps && \
-    npm install -g typescript && \
-    npm install prisma --save-dev
+    npm install -g typescript@5.4.2 && \
+    npm install prisma@5.10.0 --save-dev
 
 # Copy source code
 COPY . .
@@ -43,7 +43,7 @@ COPY prisma ./prisma/
 
 RUN npm config set registry https://registry.npmmirror.com && \
     npm install --omit=dev --legacy-peer-deps && \
-    npm install prisma --save-dev
+    npm install prisma@5.10.0 --save-dev
 
 # Copy built files from build stage
 COPY --from=builder /app/dist ./dist
