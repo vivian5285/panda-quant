@@ -2,16 +2,12 @@ version: '3.8'
 
 services:
   nginx-admin:
-    image: nginx:alpine
+    build:
+      context: ../admin-ui
+      dockerfile: ../deploy/Dockerfile.admin-ui
     container_name: panda-quant-nginx-admin
     ports:
       - "8081:80"
-    volumes:
-      - ./nginx/admin.conf:/etc/nginx/nginx.conf:ro
-      - ./admin-ui/dist:/usr/share/nginx/html:ro
-    depends_on:
-      - admin-api
-      - admin-ui
     restart: unless-stopped
     networks:
       panda-quant-network:
@@ -46,32 +42,6 @@ services:
           memory: 4G
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  admin-ui:
-    build:
-      context: .
-      dockerfile: Dockerfile.admin-ui
-      args:
-        - NODE_ENV=production
-    container_name: panda-quant-admin-ui
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./admin-ui/dist:/usr/share/nginx/html:ro
-    restart: unless-stopped
-    networks:
-      panda-quant-network:
-        aliases:
-          - admin-ui
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
