@@ -3,9 +3,9 @@ import { LogService, LogLevel, LogSource } from '../services/logs';
 
 const logService = new LogService();
 
-export const getLogs = async (req: Request, res: Response): Promise<void> => {
+export const getLogs = async (_req: Request, res: Response): Promise<void> => {
     try {
-        const { level, source, startDate, endDate } = req.query;
+        const { level, source, startDate, endDate } = _req.query;
         
         const logs = await logService.getLogs(
             level as LogLevel,
@@ -20,7 +20,7 @@ export const getLogs = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const getLogStats = async (req: Request, res: Response): Promise<void> => {
+export const getLogStats = async (_req: Request, res: Response): Promise<void> => {
     try {
         const stats = await logService.getLogStats();
         res.json(stats);
