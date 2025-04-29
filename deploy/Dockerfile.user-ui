@@ -20,24 +20,78 @@ RUN npm install --legacy-peer-deps
 
 # Install type declarations and UI dependencies
 RUN npm install --save-dev \
+    @types/node \
     @types/react \
     @types/react-dom \
-    @types/node \
-    @types/react-router-dom \
-    @types/react-i18next \
-    @types/date-fns \
-    @types/antd \
+    @types/react-toastify \
+    @types/web3 \
     @types/recharts \
-    @types/socket.io-client \
-    @mui/material \
-    @mui/icons-material \
-    @mui/x-data-grid \
-    @mui/x-date-pickers \
+    @typescript-eslint/eslint-plugin \
+    @typescript-eslint/parser \
+    @vitejs/plugin-react \
+    chalk \
+    eslint \
+    eslint-plugin-react \
+    eslint-plugin-react-hooks \
+    eslint-plugin-react-refresh \
+    png2icons \
+    sass \
+    ts-node \
+    typescript \
+    vite \
+    vite-plugin-checker \
+    vite-plugin-compression \
+    vite-plugin-eslint \
+    vite-plugin-svgr \
+    web-vitals \
+    @babel/core \
+    @babel/preset-env \
+    @babel/preset-react \
+    @babel/preset-typescript \
+    @playwright/test
+
+# Install production dependencies
+RUN npm install --save \
     @emotion/react \
     @emotion/styled \
+    @ethersproject/providers \
+    @mui/icons-material \
+    @mui/lab \
+    @mui/material \
+    @mui/system \
+    @mui/x-data-grid \
+    @mui/x-date-pickers \
+    @tanstack/react-query \
+    @web3modal/wagmi \
+    axios \
+    chart.js \
+    chartjs-chart-financial \
+    chartjs-plugin-gradient \
+    date-fns \
+    ethers \
     framer-motion \
+    i18next \
+    i18next-browser-languagedetector \
+    i18next-http-backend \
+    lightweight-charts \
+    qrcode.react \
+    react \
+    react-chartjs-2 \
+    react-dom \
+    react-hook-form \
+    react-hot-toast \
+    react-i18next \
+    react-is \
+    react-router-dom \
+    react-swipeable \
     react-toastify \
-    i18next-browser-languagedetector
+    recharts \
+    sharp \
+    socket.io-client \
+    viem \
+    wagmi \
+    web3 \
+    yup
 
 # Set permissions for TypeScript
 RUN chmod -R 777 /usr/local/bin/tsc

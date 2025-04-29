@@ -17,18 +17,62 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
-RUN npm install prisma --save-dev
-RUN npm install @prisma/client
 
-# Create prisma directory if it doesn't exist
-RUN mkdir -p prisma
+# Install type declarations and dev dependencies
+RUN npm install --save-dev \
+    @types/bcrypt \
+    @types/bcryptjs \
+    @types/cors \
+    @types/express \
+    @types/jest \
+    @types/jsonwebtoken \
+    @types/mongoose \
+    @types/morgan \
+    @types/node \
+    @types/node-cron \
+    @types/node-schedule \
+    @types/nodemailer \
+    @types/pg \
+    @types/swagger-ui-express \
+    jest \
+    mongodb-memory-server \
+    nodemon \
+    prisma \
+    swagger-ui-express \
+    ts-node \
+    typescript
+
+# Install production dependencies
+RUN npm install --save \
+    @prisma/client \
+    axios \
+    bcrypt \
+    bcryptjs \
+    class-transformer \
+    class-validator \
+    cors \
+    dotenv \
+    ethers \
+    express \
+    express-rate-limit \
+    helmet \
+    jsonwebtoken \
+    mongoose \
+    morgan \
+    nanoid \
+    node-cron \
+    node-schedule \
+    nodemailer \
+    pg \
+    winston \
+    zod
+
+# Set permissions for TypeScript and Prisma
+RUN chmod -R 777 /usr/local/bin/tsc
+RUN chmod -R 777 /app/node_modules/.bin/prisma
 
 # Copy source code
 COPY . .
-
-# Set permissions for Prisma and TypeScript
-RUN chmod -R 777 /app/node_modules/.bin/prisma
-RUN chmod -R 777 /usr/local/bin/tsc
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -49,21 +93,13 @@ COPY --from=builder /app/prisma ./prisma
 
 # Install production dependencies
 RUN npm install --production --legacy-peer-deps
-RUN npm install prisma --save-dev
-RUN npm install @prisma/client
-
-# Set permissions for Prisma
-RUN chmod -R 777 /app/node_modules/.bin/prisma
-
-# Generate Prisma client for production
-RUN npx prisma generate
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=3002
+ENV PORT=3003
 
 # Expose the application port
-EXPOSE 3002
+EXPOSE 3003
 
 # Start the application
 CMD ["npm", "start"] 
