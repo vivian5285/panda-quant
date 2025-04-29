@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Install TypeScript globally
-RUN npm install -g typescript
+# Install TypeScript and Vite globally
+RUN npm install -g typescript vite
 
 # Copy admin-ui source code
 COPY admin-ui/package*.json ./
@@ -19,8 +19,9 @@ COPY admin-ui/ ./
 # Install dependencies
 RUN npm install --legacy-peer-deps
 
-# Set permissions for TypeScript
-RUN chmod -R 777 /usr/local/bin/tsc
+# Set permissions for TypeScript and Vite
+RUN chmod -R 777 /usr/local/bin/tsc && \
+    chmod -R 777 /usr/local/bin/vite
 
 # Build the application
 RUN npm run build
