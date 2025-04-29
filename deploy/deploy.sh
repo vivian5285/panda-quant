@@ -21,6 +21,52 @@ handle_error() {
     exit 1
 }
 
+# 检查环境变量
+check_env() {
+    print_message "Checking environment variables..." "$YELLOW"
+    
+    # 检查必要的环境变量
+    required_vars=(
+        "JWT_SECRET"
+        "ENCRYPTION_KEY"
+        "MONGODB_PASSWORD"
+        "REDIS_PASSWORD"
+    )
+    
+    for var in "${required_vars[@]}"; do
+        if [ -z "${!var}" ]; then
+            handle_error "Missing required environment variable: $var"
+        fi
+    done
+}
+
+# 安装依赖
+install_dependencies() {
+    print_message "Installing dependencies..." "$YELLOW"
+    
+    # 安装部署依赖
+    cd deploy
+    npm install || handle_error "Failed to install deploy dependencies"
+    
+    # 安装用户API依赖
+    cd ../user-api
+    npm install || handle_error "Failed to install user-api dependencies"
+    
+    # 安装管理API依赖
+    cd ../admin-api
+    npm install || handle_error "Failed to install admin-api dependencies"
+    
+    # 安装用户UI依赖
+    cd ../user-ui
+    npm install || handle_error "Failed to install user-ui dependencies"
+    
+    # 安装管理UI依赖
+    cd ../admin-ui
+    npm install || handle_error "Failed to install admin-ui dependencies"
+    
+    cd ..
+}
+
 # 清理系统资源
 cleanup_system() {
     print_message "Cleaning up system resources..." "$YELLOW"
@@ -39,59 +85,15 @@ stop_services() {
     print_message "Stopping services..." "$YELLOW"
     
     # 停止所有服务
-    docker-compose -f docker-compose.admin.yml down || print_message "No admin services to stop" "$YELLOW"
-    docker-compose -f docker-compose.user.yml down || print_message "No user services to stop" "$YELLOW"
-}
-
-# 创建网络
-setup_network() {
-    print_message "Setting up network..." "$YELLOW"
-    
-    # 删除现有网络
-    docker network rm panda-quant-network 2>/dev/null || true
-    
-    # 创建新网络
-    docker-compose -f docker-compose.network.yml up -d || handle_error "Failed to create network"
-}
-
-# 准备构建环境
-prepare_build() {
-    print_message "Preparing build environment..." "$YELLOW"
-    
-    # 创建必要的目录
-    mkdir -p prisma
-}
-
-# 构建服务
-build_services() {
-    print_message "Building services..." "$YELLOW"
-    
-    # 构建 admin-api
-    print_message "Building admin-api..." "$YELLOW"
-    docker-compose -f docker-compose.admin.yml build --no-cache admin-api || handle_error "Failed to build admin-api"
-    
-    # 构建 admin-ui
-    print_message "Building admin-ui..." "$YELLOW"
-    docker-compose -f docker-compose.admin.yml build --no-cache admin-ui || handle_error "Failed to build admin-ui"
-    
-    # 构建 user-api
-    print_message "Building user-api..." "$YELLOW"
-    docker-compose -f docker-compose.user.yml build --no-cache user-api || handle_error "Failed to build user-api"
-    
-    # 构建 user-ui
-    print_message "Building user-ui..." "$YELLOW"
-    docker-compose -f docker-compose.user.yml build --no-cache user-ui || handle_error "Failed to build user-ui"
+    docker-compose down || print_message "No services to stop" "$YELLOW"
 }
 
 # 启动服务
 start_services() {
     print_message "Starting services..." "$YELLOW"
     
-    # 启动管理端服务
-    docker-compose -f docker-compose.admin.yml up -d || handle_error "Failed to start admin services"
-    
-    # 启动用户端服务
-    docker-compose -f docker-compose.user.yml up -d || handle_error "Failed to start user services"
+    # 启动所有服务
+    docker-compose up -d || handle_error "Failed to start services"
 }
 
 # 检查服务状态
@@ -101,60 +103,40 @@ check_services() {
     # 等待服务启动
     sleep 10
     
-    # 检查管理端容器状态
-    if ! docker ps | grep -q "panda-quant-admin-api"; then
-        handle_error "admin-api container is not running"
-    fi
+    # 检查容器状态
+    services=(
+        "panda-quant-admin-api"
+        "panda-quant-admin-ui"
+        "panda-quant-user-api"
+        "panda-quant-user-ui"
+        "panda-quant-nginx"
+        "panda-quant-mongodb"
+        "panda-quant-redis"
+    )
     
-    if ! docker ps | grep -q "panda-quant-admin-ui"; then
-        handle_error "admin-ui container is not running"
-    fi
-    
-    if ! docker ps | grep -q "panda-quant-nginx-admin"; then
-        handle_error "nginx-admin container is not running"
-    fi
-    
-    # 检查用户端容器状态
-    if ! docker ps | grep -q "panda-quant-user-api"; then
-        handle_error "user-api container is not running"
-    fi
-    
-    if ! docker ps | grep -q "panda-quant-user-ui"; then
-        handle_error "user-ui container is not running"
-    fi
-    
-    if ! docker ps | grep -q "panda-quant-nginx-user"; then
-        handle_error "nginx-user container is not running"
-    fi
+    for service in "${services[@]}"; do
+        if ! docker ps | grep -q "$service"; then
+            handle_error "$service container is not running"
+        fi
+    done
     
     # 检查服务健康状态
     print_message "Checking service health..." "$YELLOW"
     
-    # 检查管理端健康状态
-    if ! curl -s http://localhost:3001/health | grep -q "ok"; then
-        handle_error "admin-api health check failed"
-    fi
+    # 检查健康状态
+    health_endpoints=(
+        "http://localhost:8081/health"
+        "http://localhost:3000/health"
+        "http://localhost:8082/health"
+        "http://localhost:3001/health"
+        "http://localhost/health"
+    )
     
-    if ! curl -s http://localhost:3000/health | grep -q "ok"; then
-        handle_error "admin-ui health check failed"
-    fi
-    
-    if ! curl -s http://localhost:8081/health | grep -q "ok"; then
-        handle_error "nginx-admin health check failed"
-    fi
-    
-    # 检查用户端健康状态
-    if ! curl -s http://localhost:3002/health | grep -q "ok"; then
-        handle_error "user-api health check failed"
-    fi
-    
-    if ! curl -s http://localhost:3003/health | grep -q "ok"; then
-        handle_error "user-ui health check failed"
-    fi
-    
-    if ! curl -s http://localhost:8080/health | grep -q "ok"; then
-        handle_error "nginx-user health check failed"
-    fi
+    for endpoint in "${health_endpoints[@]}"; do
+        if ! curl -s "$endpoint" | grep -q "ok"; then
+            handle_error "Health check failed for $endpoint"
+        fi
+    done
 }
 
 # 主函数
@@ -162,11 +144,10 @@ main() {
     print_message "Starting deployment..." "$GREEN"
     
     # 执行部署步骤
+    check_env
+    install_dependencies
     cleanup_system
     stop_services
-    setup_network
-    prepare_build
-    build_services
     start_services
     check_services
     

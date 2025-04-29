@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "module": "commonjs",
-    "lib": ["es2020"],
+    "module": "es2020",
+    "lib": ["es2020", "dom", "dom.iterable"],
+    "jsx": "react",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -15,6 +16,9 @@
     "composite": true,
     "moduleResolution": "node",
     "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "noImplicitAny": false,
     "strictNullChecks": false,
     "typeRoots": ["./node_modules/@types", "./src/types"],
@@ -22,7 +26,9 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "allowJs": true,
+    "isolatedModules": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
