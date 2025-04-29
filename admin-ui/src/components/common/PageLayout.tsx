@@ -12,9 +12,9 @@ interface PageLayoutProps {
   content?: React.ReactNode;
 }
 
-const PageLayout = ({ title, children, actions, filters, content }: PageLayoutProps) => {
+const PageLayout: React.FC<PageLayoutProps> = ({ title, children, actions, filters, content }) => {
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth="lg">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

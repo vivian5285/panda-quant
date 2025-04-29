@@ -1,9 +1,11 @@
 export interface User {
   id: string;
-  username: string;
   email: string;
+  username: string;
+  role: 'admin' | 'user';
   status: 'active' | 'inactive' | 'suspended';
-  role: 'admin' | 'user' | 'manager';
+  createdAt: string;
+  updatedAt: string;
   lastLogin: string;
   avatar?: string;
 }
@@ -19,6 +21,8 @@ export const getUsers = async (): Promise<User[]> => {
       status: 'active',
       role: 'admin',
       lastLogin: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     },
     // 添加更多模拟数据...
   ];
@@ -33,6 +37,8 @@ export const createUser = async (userData: Partial<User>): Promise<User> => {
     status: userData.status || 'active',
     role: userData.role || 'user',
     lastLogin: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 };
 

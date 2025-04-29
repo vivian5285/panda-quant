@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import theme from './theme';
+import theme from "./theme";
 import { AuthProvider } from './contexts/AuthContext';
 import { SnackbarProvider } from './contexts/SnackbarContext';
 import { LoadingProvider } from './contexts/LoadingContext';

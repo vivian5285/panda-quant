@@ -5,13 +5,17 @@ export interface Order {
   strategyId: string;
   strategyName: string;
   symbol: string;
+  tradingPair: string;
   type: 'buy' | 'sell';
   status: 'pending' | 'completed' | 'cancelled' | 'failed';
   price: number;
   quantity: number;
   totalAmount: number;
+  total: number;
+  timestamp: string;
   createdAt: string;
   updatedAt: string;
+  amount: number;
 }
 
 // Mock data
@@ -23,13 +27,17 @@ const mockOrders: Order[] = [
     strategyId: 'strategy1',
     strategyName: 'Momentum Trading',
     symbol: 'BTC/USDT',
+    tradingPair: 'BTC/USDT',
     type: 'buy',
     status: 'completed',
     price: 50000,
     quantity: 0.1,
     totalAmount: 5000,
+    total: 5000,
+    timestamp: '2024-01-01T10:00:00Z',
     createdAt: '2024-01-01T10:00:00Z',
     updatedAt: '2024-01-01T10:01:00Z',
+    amount: 5000,
   },
   {
     id: '2',
@@ -38,13 +46,17 @@ const mockOrders: Order[] = [
     strategyId: 'strategy2',
     strategyName: 'Mean Reversion',
     symbol: 'ETH/USDT',
+    tradingPair: 'ETH/USDT',
     type: 'sell',
     status: 'pending',
     price: 3000,
     quantity: 1,
     totalAmount: 3000,
+    total: 3000,
+    timestamp: '2024-01-01T11:00:00Z',
     createdAt: '2024-01-01T11:00:00Z',
     updatedAt: '2024-01-01T11:00:00Z',
+    amount: 3000,
   },
 ];
 

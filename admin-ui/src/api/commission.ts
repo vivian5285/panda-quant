@@ -1,24 +1,22 @@
-import { get, post } from '@/utils/request';
+import axios from './axios';
+import { AxiosResponse } from 'axios';
 
 export interface Commission {
   id: string;
   userId: string;
   amount: number;
-  status: 'pending' | 'completed' | 'failed';
-  details: {
-    orderId: string;
-    orderAmount: number;
-    commissionRate: number;
-  };
+  status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CommissionFilter {
+  userId?: string;
+  status?: string;
   startDate?: string;
   endDate?: string;
-  userId?: string;
-  status?: 'all' | 'pending' | 'completed' | 'failed';
+  page?: number;
+  limit?: number;
 }
 
 export interface CommissionSummary {
@@ -30,47 +28,48 @@ export interface CommissionSummary {
 }
 
 export interface CommissionResponse {
-  commissions: Commission[];
-  summary: CommissionSummary;
+  items: Commission[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
-export async function getCommissions(filter: CommissionFilter): Promise<CommissionResponse> {
-  return get('/commissions', filter);
-}
-
-export const getCommissionDetails = async (id: string): Promise<Commission> => {
-  try {
-    const response = await request(`/api/commissions/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching commission details:', error);
-    throw error;
-  }
+export const getCommissions = async (params?: CommissionFilter): Promise<CommissionResponse> => {
+  const response: AxiosResponse<CommissionResponse> = await axios.get('/api/commissions', { params });
+  return response.data;
 };
 
-export const updateCommissionStatus = async (id: string, status: 'completed' | 'failed'): Promise<Commission> => {
-  try {
-    const response = await request.put(`/api/commissions/${id}/status`, { status });
-    return response.data;
-  } catch (error) {
-    console.error('Error updating commission status:', error);
-    throw error;
-  }
+export const getCommissionById = async (id: string): Promise<Commission> => {
+  const response: AxiosResponse<Commission> = await axios.get(`/api/commissions/${id}`);
+  return response.data;
+};
+
+export const updateCommissionStatus = async (id: string, status: string): Promise<Commission> => {
+  const response: AxiosResponse<Commission> = await axios.put(`/api/commissions/${id}/status`, { status });
+  return response.data;
+};
+
+export const createCommission = async (data: {
+  userId: string;
+  amount: number;
+  status: string;
+}): Promise<Commission> => {
+  const response: AxiosResponse<Commission> = await axios.post('/api/commissions', data);
+  return response.data;
+};
+
+export const deleteCommission = async (id: string): Promise<void> => {
+  await axios.delete(`/api/commissions/${id}`);
 };
 
 export const exportCommissions = async (filter: CommissionFilter): Promise<Blob> => {
-  try {
-    const response = await request.get('/api/commissions/export', {
-      params: filter,
-      responseType: 'blob',
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error exporting commissions:', error);
-    throw error;
-  }
+  const response: AxiosResponse<Blob> = await axios.get('/api/commissions/export', {
+    params: filter,
+    responseType: 'blob',
+  });
+  return response.data;
 };
 
-export async function reissueCommission(id: string, amount: number): Promise<void> {
-  return post(`/commissions/${id}/reissue`, { amount });
-} 
+export const reissueCommission = async (id: string, amount: number): Promise<void> => {
+  await axios.post(`/api/commissions/${id}/reissue`, { amount });
+}; 

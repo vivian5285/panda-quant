@@ -82,7 +82,7 @@ const LogManagement: React.FC = () => {
     }
   };
 
-  const columns: GridColDef[] = [
+  const columns: GridColDef<any>[] = [
     {
       field: 'level',
       headerName: t('log.level'),
