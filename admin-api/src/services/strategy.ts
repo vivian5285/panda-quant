@@ -69,7 +69,7 @@ export class StrategyService {
         return StrategyService.instance;
     }
 
-    public async createStrategy(strategy: IStrategy) {
+    public async createStrategy(strategy: IStrategy): Promise<void> {
         // Implementation
     }
 } 

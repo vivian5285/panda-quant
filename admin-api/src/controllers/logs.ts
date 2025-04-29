@@ -3,7 +3,7 @@ import { LogService, LogLevel, LogSource } from '../services/logs';
 
 const logService = new LogService();
 
-export const getLogs = async (req: Request, res: Response) => {
+export const getLogs = async (req: Request, res: Response): Promise<void> => {
     try {
         const { level, source, startDate, endDate } = req.query;
         
@@ -20,7 +20,7 @@ export const getLogs = async (req: Request, res: Response) => {
     }
 };
 
-export const getLogStats = async (req: Request, res: Response) => {
+export const getLogStats = async (req: Request, res: Response): Promise<void> => {
     try {
         const stats = await logService.getLogStats();
         res.json(stats);
@@ -30,12 +30,13 @@ export const getLogStats = async (req: Request, res: Response) => {
 };
 
 export class LogController {
-  async createLog(req: Request, res: Response) {
+  async createLog(req: Request, res: Response): Promise<void> {
     try {
       const { level, message, source, details } = req.body;
 
       if (!level || !message || !source) {
-        return res.status(400).json({ error: 'Missing required fields' });
+        res.status(400).json({ error: 'Missing required fields' });
+        return;
       }
 
       const log = await logService.createLog(
