@@ -21,8 +21,8 @@ services:
 
   admin-api:
     build:
-      context: .
-      dockerfile: Dockerfile.admin-api
+      context: ../admin-api
+      dockerfile: ../deploy/Dockerfile.admin-api
       args:
         - NODE_ENV=production
     container_name: panda-quant-admin-api

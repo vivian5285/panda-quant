@@ -12,63 +12,50 @@ RUN apt-get update && apt-get install -y \
 # Install TypeScript globally
 RUN npm install -g typescript
 
-# Copy package files
-COPY admin-api/package*.json ./
+# Copy package files first to leverage Docker cache
+COPY ../admin-api/package*.json ./
 
 # Install dependencies
-RUN npm install --legacy-peer-deps
-
-# Install type declarations and dev dependencies
-RUN npm install --save-dev \
+RUN npm install --legacy-peer-deps && \
+    npm install --save-dev \
     @types/bcrypt \
     @types/bcryptjs \
     @types/cors \
     @types/express \
-    @types/jest \
     @types/jsonwebtoken \
-    @types/mongoose \
     @types/node \
-    @types/node-cron \
-    @types/nodemailer \
-    @types/pg \
-    jest \
-    prisma \
-    ts-jest \
-    ts-node
+    @types/passport \
+    @types/passport-jwt \
+    @types/passport-local \
+    @types/validator \
+    @typescript-eslint/eslint-plugin \
+    @typescript-eslint/parser \
+    eslint \
+    eslint-config-prettier \
+    eslint-plugin-prettier \
+    prettier \
+    ts-node \
+    typescript
 
 # Install production dependencies
 RUN npm install --save \
     @prisma/client \
     axios \
-    bcryptjs \
+    bcrypt \
     cors \
     dotenv \
     express \
-    express-rate-limit \
     jsonwebtoken \
-    mongoose \
-    node-cron \
-    nodemailer \
-    nodemon \
-    pg \
-    redis \
-    tsconfig-paths \
-    winston \
-    typescript
+    passport \
+    passport-jwt \
+    passport-local \
+    validator
 
 # Set permissions for TypeScript
 RUN chmod -R 777 /usr/local/bin/tsc
 
 # Copy source code
-COPY admin-api/ .
-
-# Set permissions for Prisma
-RUN chmod -R 777 /app/node_modules/.bin/prisma
-RUN chmod -R 777 /app/node_modules/prisma
-RUN chmod -R 777 /app/node_modules/@prisma/client
-
-# Generate Prisma client
-RUN /app/node_modules/.bin/prisma generate
+COPY ../admin-api/ .
 
 # Build the application
 RUN npm run build
@@ -82,15 +69,6 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma
-
-# Install production dependencies
-RUN npm install --production --legacy-peer-deps
-
-# Set permissions for Prisma
-RUN chmod -R 777 /app/node_modules/.bin/prisma
-RUN chmod -R 777 /app/node_modules/prisma
-RUN chmod -R 777 /app/node_modules/@prisma/client
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -99,5 +77,9 @@ ENV PORT=3001
 # Expose the application port
 EXPOSE 3001
 
+# Add health check
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD curl -f http://localhost:3001/health || exit 1
+
 # Start the application
-CMD ["npm", "start"] 
+CMD ["node", "dist/index.js"] 
