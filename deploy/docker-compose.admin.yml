@@ -14,8 +14,8 @@ services:
 
   admin-api:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile.admin-api
+      context: ../admin-api
+      dockerfile: Dockerfile
     container_name: panda-quant-admin-api
     restart: always
     networks:
