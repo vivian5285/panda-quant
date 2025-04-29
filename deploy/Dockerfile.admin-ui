@@ -10,14 +10,15 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install TypeScript and Vite globally
-RUN npm install -g typescript vite
+RUN npm install -g typescript vite terser
 
 # Copy admin-ui source code
 COPY admin-ui/package*.json ./
 COPY admin-ui/ ./
 
 # Install dependencies
-RUN npm install --legacy-peer-deps
+RUN npm install --legacy-peer-deps && \
+    npm install --save-dev terser
 
 # Set permissions for TypeScript and Vite
 RUN chmod -R 777 /usr/local/bin/tsc && \
