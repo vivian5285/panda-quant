@@ -5,6 +5,8 @@ import { StrategyExecutionService } from '../services/StrategyExecutionService';
 import { BacktestService } from '../services/BacktestService';
 import { RiskManagementService } from '../services/RiskManagementService';
 import { PerformanceTracker } from '../services/PerformanceTracker';
+import { StrategyEngine } from '../engine/StrategyEngine';
+import { OrderType, OrderSide } from '../types/order';
 
 describe('Strategy Execution', () => {
   const mockRequest: StrategyExecutionRequest = {
@@ -45,15 +47,17 @@ describe('Strategy Execution', () => {
 });
 
 describe('Strategy Tests', () => {
+  let strategyEngine: StrategyEngine;
   let strategyService: StrategyExecutionService;
   let backtestService: BacktestService;
-  let riskService: RiskManagementService;
+  let riskManagementService: RiskManagementService;
   let performanceTracker: PerformanceTracker;
 
   beforeEach(() => {
+    strategyEngine = new StrategyEngine();
     strategyService = StrategyExecutionService.getInstance();
     backtestService = BacktestService.getInstance();
-    riskService = RiskManagementService.getInstance();
+    riskManagementService = new RiskManagementService();
     performanceTracker = new PerformanceTracker();
   });
 
@@ -87,12 +91,12 @@ describe('Strategy Tests', () => {
 
   describe('Risk Management', () => {
     test('should approve valid strategy execution', async () => {
-      const riskCheck = await riskService.checkRisk('user1', 'high-frequency', 10000);
+      const riskCheck = await riskManagementService.checkRisk('user1', 'high-frequency', 10000);
       expect(riskCheck.isApproved).toBe(true);
     });
 
     test('should reject excessive leverage', async () => {
-      const riskCheck = await riskService.checkRisk('user1', 'high-frequency', 100000);
+      const riskCheck = await riskManagementService.checkRisk('user1', 'high-frequency', 100000);
       expect(riskCheck.isApproved).toBe(false);
     });
   });
@@ -134,5 +138,46 @@ describe('Strategy Tests', () => {
         exchange: 'binance'
       })).rejects.toThrow();
     });
+  });
+
+  it('should execute strategy successfully', async () => {
+    const strategy = {
+      id: '1',
+      userId: 'user1',
+      name: 'Test Strategy',
+      description: 'Test Description',
+      riskLevel: 'medium' as const,
+      active: true,
+      parameters: {}
+    };
+
+    const result = await strategyEngine.executeStrategy(strategy);
+    expect(result).toBeDefined();
+  });
+
+  it('should check risk properly', async () => {
+    const isApproved = await riskManagementService.checkRisk('user1', 1000);
+    expect(isApproved).toBe(true);
+  });
+
+  it('should track performance', async () => {
+    performanceTracker.recordPerformance('profit', 100);
+    const performance = performanceTracker.getPerformance();
+    expect(performance.profit).toBe(100);
+  });
+
+  it('should create order with correct type', async () => {
+    const order = await strategyEngine.createOrder({
+      userId: 'user1',
+      strategyId: '1',
+      exchange: 'binance',
+      symbol: 'BTC/USDT',
+      type: OrderType.MARKET,
+      side: OrderSide.BUY,
+      amount: 1,
+      retryCount: 0
+    });
+
+    expect(order.type).toBe(OrderType.MARKET);
   });
 }); 

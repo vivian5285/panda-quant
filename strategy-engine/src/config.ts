@@ -6,5 +6,6 @@ export const config = {
   },
   server: {
     port: parseInt(process.env.PORT || '4000')
-  }
+  },
+  wsUrl: process.env.WS_URL || 'ws://localhost:4000'
 }; 

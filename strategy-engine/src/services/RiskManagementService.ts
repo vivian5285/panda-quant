@@ -4,7 +4,7 @@ export class RiskManagementService {
   private static instance: RiskManagementService;
   private riskLimits: Map<string, number>;
 
-  private constructor() {
+  constructor() {
     this.riskLimits = new Map();
     this.initializeRiskLimits();
   }

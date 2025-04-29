@@ -1,61 +1,54 @@
 import { logger } from '../utils/logger';
-import { Order, OrderStatus } from '../interfaces/order';
+import { Order, OrderStatus, OrderType, OrderSide } from '../types/order';
 import { v4 as uuidv4 } from 'uuid';
 
 export class OrderQueueService {
   private static instance: OrderQueueService;
-  private queue: Map<string, Order>;
-  private processing: Set<string>;
-  private maxRetries: number;
-  private retryDelay: number;
+  private queue: Map<string, Order> = new Map();
+  private processing: Set<string> = new Set();
+  private maxRetries: number = 3;
+  private retryDelay: number = 5000;
 
-  private constructor() {
-    this.queue = new Map();
-    this.processing = new Set();
-    this.maxRetries = 3;
-    this.retryDelay = 5000; // 5秒
-  }
+  private constructor() {}
 
-  public static getInstance(): OrderQueueService {
+  static getInstance(): OrderQueueService {
     if (!OrderQueueService.instance) {
       OrderQueueService.instance = new OrderQueueService();
     }
     return OrderQueueService.instance;
   }
 
-  public async addOrder(order: Omit<Order, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  async addOrder(order: Omit<Order, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const orderId = uuidv4();
     const newOrder: Order = {
       ...order,
       id: orderId,
       status: OrderStatus.PENDING,
       createdAt: new Date(),
-      updatedAt: new Date(),
-      retryCount: 0,
+      updatedAt: new Date()
     };
-
     this.queue.set(orderId, newOrder);
     logger.info(`Order ${orderId} added to queue`);
     return orderId;
   }
 
-  public async processOrder(orderId: string): Promise<void> {
+  async processOrder(orderId: string): Promise<void> {
     if (this.processing.has(orderId)) {
       logger.warn(`Order ${orderId} is already being processed`);
       return;
     }
 
+    this.processing.add(orderId);
     const order = this.queue.get(orderId);
     if (!order) {
       logger.error(`Order ${orderId} not found in queue`);
+      this.processing.delete(orderId);
       return;
     }
 
-    this.processing.add(orderId);
     try {
       // 执行订单
       await this.executeOrder(order);
-      order.status = OrderStatus.COMPLETED;
       logger.info(`Order ${orderId} completed successfully`);
     } catch (error) {
       logger.error(`Error processing order ${orderId}:`, error);
@@ -81,7 +74,7 @@ export class OrderQueueService {
     }
   }
 
-  public async cancelOrder(orderId: string): Promise<boolean> {
+  async cancelOrder(orderId: string): Promise<boolean> {
     const order = this.queue.get(orderId);
     if (!order) {
       logger.error(`Order ${orderId} not found in queue`);
@@ -100,7 +93,7 @@ export class OrderQueueService {
     return true;
   }
 
-  public getOrderStatus(orderId: string): OrderStatus | null {
+  getOrderStatus(orderId: string): OrderStatus | null {
     const order = this.queue.get(orderId);
     return order ? order.status : null;
   }

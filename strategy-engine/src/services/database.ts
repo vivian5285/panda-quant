@@ -9,4 +9,14 @@ export async function connectDatabase(): Promise<void> {
 export async function disconnectDatabase(): Promise<void> {
   await mongoose.disconnect();
   console.log('Disconnected from MongoDB');
+}
+
+export async function checkDatabaseHealth(): Promise<boolean> {
+  try {
+    await mongoose.connection.db.admin().ping();
+    return true;
+  } catch (error) {
+    console.error('Database health check failed:', error);
+    return false;
+  }
 } 

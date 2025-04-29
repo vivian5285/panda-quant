@@ -9,6 +9,14 @@ export enum OrderSide {
   SELL = 'sell'
 }
 
+export enum OrderStatus {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  CANCELLED = 'cancelled',
+  RETRYING = 'retrying'
+}
+
 export interface Order {
   id: string;
   userId: string;
@@ -19,7 +27,7 @@ export interface Order {
   side: OrderSide;
   amount: number;
   retryCount: number;
-  status: string;
+  status: OrderStatus;
   createdAt: Date;
   updatedAt: Date;
 } 
