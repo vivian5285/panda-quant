@@ -1,11 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import mongoose from 'mongoose';
-import { UserLevel } from '../models/userLevel';
-import { userLevelService } from '../services/userLevelService';
+import mongoose, { Types } from 'mongoose';
+import { UserLevel } from '../models/UserLevel';
+import { UserLevelService } from '../services/userLevelService';
 
 describe('UserLevel Service', () => {
+  let userLevelService: UserLevelService;
+  let userId: Types.ObjectId;
+
   beforeEach(async () => {
     await mongoose.connect('mongodb://localhost:27017/test');
+    userLevelService = UserLevelService.getInstance();
+    userId = new Types.ObjectId();
   });
 
   afterEach(async () => {
@@ -101,5 +106,21 @@ describe('UserLevel Service', () => {
     await userLevelService.deleteLevel(createdLevel._id);
     const levels = await userLevelService.getAllLevels();
     expect(levels).toHaveLength(0);
+  });
+
+  it('should create a user level', async () => {
+    const userLevel = await UserLevel.create({
+      userId,
+      level: 1,
+      experience: 0
+    });
+
+    expect(userLevel).toBeDefined();
+    expect(userLevel.level).toBe(1);
+  });
+
+  it('should get user level', async () => {
+    const level = await userLevelService.getUserLevel(userId.toString());
+    expect(level).toBeDefined();
   });
 }); 

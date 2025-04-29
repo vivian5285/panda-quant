@@ -1,6 +1,10 @@
+import { Model } from 'mongoose';
+import { IAlert } from '../interfaces/IAlert';
+import { Alert } from '../models/Alert';
+
 export class AlertService {
   private static instance: AlertService;
-  private alerts: Map<string, Alert>;
+  private alertModel: Model<IAlert>;
 
   public static getInstance(): AlertService {
     if (!AlertService.instance) {
@@ -10,8 +14,22 @@ export class AlertService {
   }
 
   constructor() {
-    this.alerts = new Map();
+    this.alertModel = Alert;
   }
 
-  // ... existing code ...
+  async createAlert(data: Partial<IAlert>) {
+    return this.alertModel.create(data);
+  }
+
+  async getAlerts(userId: string) {
+    return this.alertModel.find({ userId });
+  }
+
+  async markAsRead(alertId: string) {
+    return this.alertModel.findByIdAndUpdate(
+      alertId,
+      { isRead: true },
+      { new: true }
+    );
+  }
 } 

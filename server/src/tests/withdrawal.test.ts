@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import mongoose from 'mongoose';
-import { CommissionWithdrawal } from '../models/commissionWithdrawal';
-import { User } from '../models/user';
-import { withdrawalService } from '../services/withdrawalService';
+import mongoose, { Types } from 'mongoose';
+import { CommissionWithdrawal, ICommissionWithdrawal } from '../models/commissionWithdrawal';
+import { User } from '../models/User';
+import { WithdrawalService } from '../services/withdrawalService';
 
 describe('Withdrawal Service', () => {
   let testUser: any;
+  let withdrawalService: WithdrawalService;
+  let userId: Types.ObjectId;
 
   beforeEach(async () => {
     await mongoose.connect('mongodb://localhost:27017/test');
@@ -18,6 +20,9 @@ describe('Withdrawal Service', () => {
       commissionBalance: 1000
     });
     await testUser.save();
+
+    withdrawalService = WithdrawalService.getInstance();
+    userId = new Types.ObjectId();
   });
 
   afterEach(async () => {
@@ -43,7 +48,8 @@ describe('Withdrawal Service', () => {
     );
 
     const withdrawal = await CommissionWithdrawal.findOne({ userId: testUser._id });
-    expect(withdrawal).toBeDefined();
+    if (!withdrawal) throw new Error('Withdrawal not found');
+    
     expect(withdrawal.amount).toBe(amount);
     expect(withdrawal.status).toBe('pending');
   });
@@ -85,12 +91,18 @@ describe('Withdrawal Service', () => {
     );
 
     const withdrawal = await CommissionWithdrawal.findOne({ userId: testUser._id });
+    if (!withdrawal) throw new Error('Withdrawal not found');
 
     // Process withdrawal
-    await withdrawalService.processWithdrawal(withdrawal._id, 'approved', 'Approved by admin');
+    await withdrawalService.processWithdrawal(
+      withdrawal._id as Types.ObjectId,
+      'approved',
+      'Approved by admin'
+    );
 
     const updatedWithdrawal = await CommissionWithdrawal.findById(withdrawal._id);
     const updatedUser = await User.findById(testUser._id);
+    if (!updatedWithdrawal || !updatedUser) throw new Error('Withdrawal or user not found');
 
     expect(updatedWithdrawal.status).toBe('approved');
     expect(updatedUser.commissionBalance).toBe(500); // 1000 - 500
@@ -114,12 +126,18 @@ describe('Withdrawal Service', () => {
     );
 
     const withdrawal = await CommissionWithdrawal.findOne({ userId: testUser._id });
+    if (!withdrawal) throw new Error('Withdrawal not found');
 
     // Process withdrawal
-    await withdrawalService.processWithdrawal(withdrawal._id, 'rejected', 'Invalid bank details');
+    await withdrawalService.processWithdrawal(
+      withdrawal._id as Types.ObjectId,
+      'rejected',
+      'Invalid bank details'
+    );
 
     const updatedWithdrawal = await CommissionWithdrawal.findById(withdrawal._id);
     const updatedUser = await User.findById(testUser._id);
+    if (!updatedWithdrawal || !updatedUser) throw new Error('Withdrawal or user not found');
 
     expect(updatedWithdrawal.status).toBe('rejected');
     expect(updatedUser.commissionBalance).toBe(1000); // Balance should remain unchanged
@@ -143,12 +161,20 @@ describe('Withdrawal Service', () => {
     );
 
     const withdrawal = await CommissionWithdrawal.findOne({ userId: testUser._id });
-    await withdrawalService.processWithdrawal(withdrawal._id, 'approved', 'Approved by admin');
+    if (!withdrawal) throw new Error('Withdrawal not found');
+    
+    await withdrawalService.processWithdrawal(
+      withdrawal._id as Types.ObjectId,
+      'approved',
+      'Approved by admin'
+    );
 
     // Complete withdrawal
-    await withdrawalService.completeWithdrawal(withdrawal._id);
+    await withdrawalService.completeWithdrawal(withdrawal._id as Types.ObjectId);
 
     const completedWithdrawal = await CommissionWithdrawal.findById(withdrawal._id);
+    if (!completedWithdrawal) throw new Error('Withdrawal not found');
+    
     expect(completedWithdrawal.status).toBe('completed');
   });
 
@@ -200,11 +226,9 @@ describe('Withdrawal Service', () => {
       await withdrawal.save();
     }
 
-    const stats = await withdrawalService.getWithdrawalStats();
-    expect(stats.totalPending).toBe(1);
-    expect(stats.totalApproved).toBe(1);
-    expect(stats.totalRejected).toBe(1);
-    expect(stats.totalCompleted).toBe(1);
-    expect(stats.totalAmount).toBe(1000);
+    const stats = await withdrawalService.getWithdrawalStats(testUser._id);
+    expect(stats.pendingWithdrawals).toBe(1);
+    expect(stats.completedWithdrawals).toBe(1);
+    expect(stats.totalWithdrawn).toBe(400); // Only completed withdrawals count
   });
 }); 

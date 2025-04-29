@@ -2,12 +2,31 @@ import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import { Strategy } from '../models/Strategy';
 import { StrategyPerformance } from '../models/StrategyPerformance';
-import { CommissionService } from '../services/commissionService';
+import { commissionService } from '../services/commissionService';
 
-const commissionService = new CommissionService();
+export const profitController = {
+  async createProfit(req: Request, res: Response) {
+    try {
+      const { userId, strategyId, profit } = req.body;
+      
+      const performance = await StrategyPerformance.create({
+        userId: new Types.ObjectId(userId),
+        strategyId: new Types.ObjectId(strategyId),
+        profit
+      });
 
-export class ProfitController {
-  // ... existing code ...
+      // 计算并分配佣金
+      await commissionService.calculateAndDistributeCommission(performance as InstanceType<typeof StrategyPerformance> & { _id: Types.ObjectId });
+
+      res.status(201).json(performance);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'An unknown error occurred' });
+      }
+    }
+  },
 
   async calculateAndDistributeCommission(req: Request, res: Response) {
     try {
@@ -32,4 +51,4 @@ export class ProfitController {
       res.status(500).json({ error: error.message });
     }
   }
-} 
+}; 

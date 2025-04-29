@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
-import { userLevelService } from '../services/userLevelService';
+import { UserLevelService } from '../services/userLevelService';
 import { validateUserLevel } from '../validators/userLevelValidator';
 import { handleError } from '../utils/errorHandler';
+
+const userLevelService = new UserLevelService();
 
 export const userLevelController = {
   // 获取所有用户等级

@@ -1,5 +1,6 @@
-import { StrategyRating, IStrategyRating } from '../models/strategyRating';
 import { Model } from 'mongoose';
+import { IStrategyRating } from '../interfaces/IStrategyRating';
+import { StrategyRating } from '../models/StrategyRating';
 
 export class StrategyRatingService {
   private static instance: StrategyRatingService;
@@ -17,16 +18,13 @@ export class StrategyRatingService {
   }
 
   // 创建评价
-  async createRating(ratingData: Partial<IStrategyRating>): Promise<IStrategyRating> {
-    const rating = new StrategyRating(ratingData);
-    return await rating.save();
+  async createRating(data: Partial<IStrategyRating>): Promise<IStrategyRating> {
+    return this.strategyRatingModel.create(data);
   }
 
   // 获取策略的所有评价
-  async getStrategyRatings(strategyId: string): Promise<IStrategyRating[]> {
-    return await StrategyRating.find({ strategyId })
-      .populate('userId', 'username')
-      .sort({ createdAt: -1 });
+  async getRatings(strategyId: string): Promise<IStrategyRating[]> {
+    return this.strategyRatingModel.find({ strategyId });
   }
 
   // 获取用户的评价

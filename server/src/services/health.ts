@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
-import Redis from 'ioredis';
+import { createClient } from 'redis';
 import axios from 'axios';
+import { config } from '../config';
 
 export const checkDatabaseHealth = async (): Promise<boolean> => {
   try {
@@ -15,11 +16,16 @@ export const checkDatabaseHealth = async (): Promise<boolean> => {
   }
 };
 
-export const checkRedisHealth = async (): Promise<boolean> => {
+export const checkRedisHealth = async () => {
   try {
-    const redis = new Redis(process.env.REDIS_URI);
-    await redis.ping();
-    redis.disconnect();
+    const client = createClient({
+      url: config.redis.url
+    });
+
+    await client.connect();
+    await client.ping();
+    await client.quit();
+
     return true;
   } catch (error) {
     console.error('Redis health check failed:', error);

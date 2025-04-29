@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import mongoose from 'mongoose';
 import { BlacklistEntry } from '../models/blacklist';
 import { blacklistService } from '../services/blacklistService';
+import { IBlacklistEntry } from '../interfaces/IBlacklistEntry';
+import { Blacklist } from '../models/Blacklist';
 
 describe('Blacklist Service', () => {
   beforeEach(async () => {
@@ -118,5 +120,62 @@ describe('Blacklist Service', () => {
     await blacklistService.createEntry(entryData);
     const entries = await blacklistService.searchEntries({ type: 'spam' });
     expect(entries).toHaveLength(1);
+  });
+});
+
+describe('Blacklist', () => {
+  it('should create a blacklist entry', async () => {
+    const entry: Partial<IBlacklistEntry> = {
+      userId: '123',
+      username: 'testuser',
+      email: 'test@example.com',
+      reason: 'Test reason',
+      type: 'spam' as const,
+      status: 'active',
+      expiresAt: new Date(),
+      notes: 'Test notes'
+    };
+
+    const blacklistEntry = await Blacklist.create(entry);
+    expect(blacklistEntry).toBeDefined();
+    expect(blacklistEntry.userId).toBe(entry.userId);
+  });
+
+  it('should update a blacklist entry', async () => {
+    const entry = await Blacklist.create({
+      userId: '123',
+      username: 'testuser',
+      email: 'test@example.com',
+      reason: 'Test reason',
+      type: 'spam' as const,
+      status: 'active',
+      expiresAt: new Date(),
+      notes: 'Test notes'
+    });
+
+    const updated = await Blacklist.findByIdAndUpdate(
+      entry._id,
+      { status: 'inactive' },
+      { new: true }
+    );
+
+    expect(updated?.status).toBe('inactive');
+  });
+
+  it('should delete a blacklist entry', async () => {
+    const entry = await Blacklist.create({
+      userId: '123',
+      username: 'testuser',
+      email: 'test@example.com',
+      reason: 'Test reason',
+      type: 'spam' as const,
+      status: 'active',
+      expiresAt: new Date(),
+      notes: 'Test notes'
+    });
+
+    await Blacklist.findByIdAndDelete(entry._id);
+    const found = await Blacklist.findById(entry._id);
+    expect(found).toBeNull();
   });
 }); 

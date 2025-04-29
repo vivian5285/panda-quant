@@ -1,18 +1,21 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { connect, disconnect } from '../config/database';
-import { StrategyRatingController } from '../controllers/strategyRatingController';
-import { StrategyRating } from '../models/strategyRating';
-import { User } from '../models/user';
-import { Strategy } from '../models/strategy';
+import { strategyRatingController } from '../controllers/strategyRatingController';
+import { StrategyRating } from '../models/StrategyRating';
+import { User } from '../models/User';
+import { Strategy } from '../models/Strategy';
+import { Types } from 'mongoose';
 
 describe('StrategyRating Controller', () => {
-  let controller: StrategyRatingController;
+  let controller: strategyRatingController;
   let testUser: any;
   let testStrategy: any;
+  let userId: Types.ObjectId;
+  let strategyId: Types.ObjectId;
 
   beforeEach(async () => {
     await connect();
-    controller = new StrategyRatingController();
+    controller = new strategyRatingController();
 
     // 创建测试用户
     testUser = await User.create({
@@ -29,6 +32,9 @@ describe('StrategyRating Controller', () => {
       creator: testUser._id,
       status: 'active'
     });
+
+    userId = new Types.ObjectId();
+    strategyId = new Types.ObjectId();
   });
 
   afterEach(async () => {
@@ -223,5 +229,22 @@ describe('StrategyRating Controller', () => {
     // 验证评分已被删除
     const deletedRating = await StrategyRating.findById(rating._id);
     expect(deletedRating).toBeNull();
+  });
+
+  it('should create a rating', async () => {
+    const rating = await StrategyRating.create({
+      userId,
+      strategyId,
+      rating: 5,
+      comment: 'Great strategy!'
+    });
+
+    expect(rating).toBeDefined();
+    expect(rating.rating).toBe(5);
+  });
+
+  it('should get strategy ratings', async () => {
+    const ratings = await StrategyRating.find({ strategyId });
+    expect(Array.isArray(ratings)).toBe(true);
   });
 }); 

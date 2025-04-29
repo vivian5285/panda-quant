@@ -1,11 +1,15 @@
 import mongoose from 'mongoose';
-import config from './config';
+import { config } from '../config';
 
-const environment = process.env.NODE_ENV || 'development';
-const { mongoUri } = config[environment];
+const connectDB = async () => {
+  try {
+    const mongoUri = process.env.MONGO_URI || config.mongoUri;
+    await mongoose.connect(mongoUri);
+    console.log('MongoDB connected successfully');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    process.exit(1);
+  }
+};
 
-mongoose.connect(mongoUri)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
-export { mongoose }; 
+export default connectDB; 

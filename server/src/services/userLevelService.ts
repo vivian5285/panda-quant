@@ -1,7 +1,7 @@
-import { UserLevel } from '../models/userLevel';
-import { NotFoundError } from '../utils/errors';
 import { Model } from 'mongoose';
-import { IUserLevel } from '../interfaces/userLevel';
+import { IUserLevel } from '../interfaces/IUserLevel';
+import { UserLevel } from '../models/UserLevel';
+import { NotFoundError } from '../utils/errors';
 
 export class UserLevelService {
   private static instance: UserLevelService;
@@ -47,5 +47,13 @@ export class UserLevelService {
   // 删除用户等级
   async deleteLevel(id: string): Promise<typeof UserLevel | null> {
     return UserLevel.findByIdAndDelete(id);
+  }
+
+  async createUserLevel(data: Partial<IUserLevel>) {
+    return this.userLevelModel.create(data);
+  }
+
+  async getUserLevel(userId: string) {
+    return this.userLevelModel.findOne({ userId });
   }
 } 

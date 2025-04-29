@@ -8,6 +8,7 @@ const userSchema = new Schema<IUser>({
   role: { type: String, required: true, default: 'user' },
   permissions: [{ type: String }],
   referrerId: { type: Schema.Types.ObjectId, ref: 'User' },
+  commissionBalance: { type: Number, required: true, default: 0 },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

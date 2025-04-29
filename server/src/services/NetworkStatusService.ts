@@ -1,3 +1,6 @@
+import { Server } from 'socket.io';
+import { Types } from 'mongoose';
+import { User } from '../models/User';
 import { WebSocket } from 'ws';
 import { NetworkConfig, NetworkStatus } from '../types/network';
 import { logger } from '../utils/logger';
@@ -10,6 +13,7 @@ export class NetworkStatusService {
   private monitoringInterval: NodeJS.Timeout | null = null;
   private wsServer: WebSocket.Server;
   private clients: Map<string, WebSocket>;
+  private io: Server;
 
   public static getInstance(): NetworkStatusService {
     if (!NetworkStatusService.instance) {
@@ -21,9 +25,10 @@ export class NetworkStatusService {
   constructor() {
     this.wsServer = new WebSocket.Server({ port: 8082 });
     this.clients = new Map();
-    this.setupWebSocketServer();
+    this.setupWebSocketServer(this.wsServer);
     this.initializeNetworks();
     this.startMonitoring();
+    this.io = new Server();
   }
 
   private initializeNetworks() {
@@ -92,5 +97,16 @@ export class NetworkStatusService {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
     }
+  }
+
+  setupWebSocketServer(server: any) {
+    this.wsServer = new WebSocket.Server(server);
+  }
+
+  async notifyNetworkStatus(userId: Types.ObjectId, status: 'online' | 'offline') {
+    this.io.to(userId.toString()).emit('network_status', {
+      userId,
+      status
+    });
   }
 } 

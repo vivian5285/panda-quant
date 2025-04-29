@@ -1,13 +1,34 @@
-import { CommissionModel } from '../models/commission';
-import { UserModel } from '../models/user';
+import { Model, Types } from 'mongoose';
+import { ICommission } from '../interfaces/ICommission';
+import { IUser } from '../interfaces/IUser';
+import { Commission } from '../models/Commission';
+import { User } from '../models/User';
 
 export class CommissionService {
-  private commissionModel: CommissionModel;
-  private userModel: UserModel;
+  private static instance: CommissionService;
+  private commissionModel: Model<ICommission>;
+  private userModel: Model<IUser>;
+
+  public static getInstance(): CommissionService {
+    if (!CommissionService.instance) {
+      CommissionService.instance = new CommissionService();
+    }
+    return CommissionService.instance;
+  }
 
   constructor() {
-    this.commissionModel = new CommissionModel();
-    this.userModel = new UserModel();
+    this.commissionModel = Commission;
+    this.userModel = User;
+  }
+
+  async calculateCommission(userId: string, amount: number) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const commission = amount * 0.1; // 10% commission
+    return commission;
   }
 
   // 获取用户团队信息

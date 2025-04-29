@@ -2,6 +2,9 @@ import { DepositNotification, LargeDepositAlert } from '../types/deposit';
 import { logger } from '../utils/logger';
 import { Database } from '../database';
 import WebSocket from 'ws';
+import { Types } from 'mongoose';
+import { Deposit } from '../models/Deposit';
+import { User } from '../models/User';
 
 export class NotificationService {
   private static instance: NotificationService;
@@ -78,5 +81,12 @@ export class NotificationService {
 
   private setupWebSocketServer() {
     // TODO: 实现WebSocket服务器设置
+  }
+
+  async notifyDeposit(deposit: InstanceType<typeof Deposit> & { _id: Types.ObjectId }) {
+    const { userId, amount } = deposit;
+    
+    // 发送通知逻辑
+    console.log(`Deposit notification: User ${userId} deposited ${amount}`);
   }
 } 

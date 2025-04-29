@@ -9,6 +9,7 @@ export interface IUser extends Document {
   role: string;
   permissions: string[];
   referrerId?: string;
+  commissionBalance: number;
   createdAt: Date;
   updatedAt: Date;
 } 

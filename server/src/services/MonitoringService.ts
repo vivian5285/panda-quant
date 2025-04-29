@@ -1,5 +1,6 @@
 import { AlertService } from './AlertService';
-import { Order } from '../types';
+import { Types } from 'mongoose';
+import { StrategyPerformance } from '../models/StrategyPerformance';
 
 export class MonitoringService {
   private static instance: MonitoringService;
@@ -16,21 +17,20 @@ export class MonitoringService {
     this.alertService = AlertService.getInstance();
   }
 
-  async createAlert(alertData: {
-    ruleId: string;
-    metric: string;
-    value: number;
-    threshold: number;
-    severity: 'info' | 'warning' | 'critical';
-    description: string;
-    timestamp: number;
-  }): Promise<void> {
-    const alertMessage = JSON.stringify(alertData);
-    await this.alertService.createAlert(alertMessage);
-  }
+  async monitorStrategyPerformance(performance: InstanceType<typeof StrategyPerformance> & { _id: Types.ObjectId }) {
+    const { userId, strategyId, profit } = performance;
 
-  async monitorOrder(order: Order): Promise<void> {
-    // Implementation of order monitoring
-    // This is a placeholder for the actual monitoring logic
+    // 监控策略表现
+    if (profit < 0) {
+      await this.alertService.createAlert({
+        userId: new Types.ObjectId(userId.toString()),
+        type: 'strategy_loss',
+        message: `策略 ${strategyId} 出现亏损`,
+        data: {
+          strategyId,
+          profit
+        }
+      });
+    }
   }
 } 

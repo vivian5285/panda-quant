@@ -1,14 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { CommissionRule } from '../models/commissionRule';
 import { CommissionRecord } from '../models/commissionRecord';
-import { User } from '../models/user';
-import { Order } from '../models/order';
-import { commissionService } from '../services/commissionService';
+import { User } from '../models/User';
+import { Order } from '../models/Order';
+import { CommissionService } from '../services/commissionService';
 
 describe('Commission Service', () => {
   let testUser: any;
   let testOrder: any;
+  let commissionService: CommissionService;
+  let userId: Types.ObjectId;
 
   beforeEach(async () => {
     await mongoose.connect('mongodb://localhost:27017/test');
@@ -29,6 +31,9 @@ describe('Commission Service', () => {
       status: 'completed'
     });
     await testOrder.save();
+
+    commissionService = CommissionService.getInstance();
+    userId = new Types.ObjectId();
   });
 
   afterEach(async () => {
@@ -125,5 +130,28 @@ describe('Commission Service', () => {
 
     const total = await commissionService.getTotalCommission(testUser._id);
     expect(total).toBe(commission);
+  });
+
+  it('should calculate commission for a user', async () => {
+    const amount = 1000;
+    const commission = await commissionService.calculateCommission(userId.toString(), amount);
+    expect(commission).toBe(100); // 10% of 1000
+  });
+
+  it('should create a commission record', async () => {
+    const data = {
+      userId,
+      amount: 100,
+      status: 'pending'
+    };
+
+    const record = await commissionService.createCommission(data);
+    expect(record).toBeDefined();
+    expect(record.amount).toBe(100);
+  });
+
+  it('should get user commissions', async () => {
+    const commissions = await commissionService.getUserCommissions(userId.toString());
+    expect(Array.isArray(commissions)).toBe(true);
   });
 }); 

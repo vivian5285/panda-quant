@@ -1,13 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { validationResult } from 'express-validator';
+import { ValidationError } from 'express-validator';
 import { Types } from 'mongoose';
 
 export const validateRequest = (req: Request, res: Response, next: NextFunction) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
+  const errors = req.validationErrors();
+  if (errors) {
     return res.status(400).json({
-      success: false,
-      errors: errors.array().map(error => ({
+      errors: errors.map((error: ValidationError) => ({
         field: error.param,
         message: error.msg
       }))

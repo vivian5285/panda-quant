@@ -1,219 +1,177 @@
 # Strategy Engine
 
-A high-performance, real-time trading strategy execution engine for quantitative trading.
+The Strategy Engine is a core component of the Panda Quant platform that manages and executes trading strategies. It provides a robust framework for strategy development, backtesting, and live trading.
 
 ## Features
 
-- **Real-time Market Data Processing**
-  - WebSocket-based market data streaming
-  - Redis caching for performance optimization
-  - Automatic reconnection and error handling
+- Strategy Development Framework
+- Backtesting Engine
+- Live Trading Execution
+- Performance Analytics
+- Risk Management
+- Market Data Integration
+- Order Management
+- Position Management
 
-- **Strategy Execution**
-  - Support for multiple strategy types
-  - Concurrent strategy execution
-  - Risk management and position sizing
-  - Order management and tracking
-
-- **Performance Monitoring**
-  - Real-time metrics collection
-  - Customizable alert rules
-  - Historical performance analysis
-  - System health monitoring
-
-- **Testing**
-  - Comprehensive unit tests
-  - Integration tests
-  - End-to-end tests
-  - Performance benchmarks
-
-## Architecture
+## Project Structure
 
 ```
 strategy-engine/
 ├── src/
-│   ├── engine/           # Core strategy execution engine
-│   ├── services/         # Business logic services
-│   ├── interfaces/       # Type definitions
-│   ├── utils/            # Utility functions
-│   ├── monitoring/       # Monitoring and metrics
-│   └── __tests__/        # Test suites
-├── config/              # Configuration files
-└── docs/               # Documentation
+│   ├── core/           # Core engine components
+│   │   ├── engine.ts   # Main engine class
+│   │   ├── strategy.ts # Base strategy class
+│   │   └── types.ts    # Core type definitions
+│   ├── strategies/     # Strategy implementations
+│   │   ├── grid/       # Grid trading strategy
+│   │   ├── ma/         # Moving average strategy
+│   │   └── momentum/   # Momentum strategy
+│   ├── data/          # Market data handling
+│   │   ├── feed.ts    # Data feed interface
+│   │   └── store.ts   # Data storage
+│   ├── analysis/      # Performance analysis
+│   │   ├── metrics.ts # Performance metrics
+│   │   └── report.ts  # Analysis reports
+│   ├── risk/          # Risk management
+│   │   ├── manager.ts # Risk manager
+│   │   └── rules.ts   # Risk rules
+│   └── utils/         # Utility functions
+├── tests/             # Test files
+└── examples/          # Example strategies
 ```
 
-## Getting Started
+## Core Components
 
-### Prerequisites
+### Engine
+The main engine class that manages strategy execution, data feeds, and order routing.
 
-- Node.js >= 14
-- Redis >= 6
-- Docker (optional)
+### Strategy
+Base strategy class that all strategies must extend. Provides common functionality and lifecycle methods.
 
-### Installation
+### Data Feed
+Interface for market data providers. Supports real-time and historical data.
 
-1. Clone the repository:
-```bash
-git clone https://github.com/your-org/strategy-engine.git
-cd strategy-engine
-```
+### Risk Manager
+Manages position sizing, stop losses, and other risk controls.
 
-2. Install dependencies:
-```bash
-npm install
-```
+## Strategy Development
 
-3. Configure environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
+1. Extend the base `Strategy` class
+2. Implement required lifecycle methods
+3. Define strategy parameters
+4. Add risk management rules
+5. Write tests
+6. Backtest the strategy
 
-4. Start Redis:
-```bash
-docker run -d -p 6379:6379 redis
-```
+Example strategy implementation:
 
-5. Start the engine:
-```bash
-npm start
-```
+```typescript
+import { Strategy, StrategyConfig } from '../core/strategy';
+import { MarketData, Order, Position } from '../core/types';
 
-## Configuration
+export class MyStrategy extends Strategy {
+  constructor(config: StrategyConfig) {
+    super(config);
+    this.name = 'My Strategy';
+    this.description = 'A custom trading strategy';
+  }
 
-### Environment Variables
+  async initialize(): Promise<void> {
+    // Initialize strategy
+  }
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `REDIS_HOST` | Redis host | localhost |
-| `REDIS_PORT` | Redis port | 6379 |
-| `WS_URL` | WebSocket URL | ws://localhost:8080 |
-| `MAX_CONCURRENT_STRATEGIES` | Maximum concurrent strategies | 10 |
-| `EXECUTION_INTERVAL` | Strategy execution interval (ms) | 1000 |
+  async onTick(data: MarketData): Promise<void> {
+    // Process market data
+  }
 
-### Strategy Configuration
+  async onOrder(order: Order): Promise<void> {
+    // Handle order updates
+  }
 
-Strategies can be configured through the admin interface or by editing the configuration files in `config/strategies/`.
-
-Example strategy configuration:
-```json
-{
-  "name": "SuperTrend",
-  "type": "technical",
-  "parameters": {
-    "period": 10,
-    "multiplier": 3
-  },
-  "risk": {
-    "maxPositionSize": 10000,
-    "maxDrawdown": 0.1
+  async onPosition(position: Position): Promise<void> {
+    // Handle position updates
   }
 }
 ```
 
-## API Documentation
+## Backtesting
 
-### Strategy Execution
-
-```typescript
-interface StrategyExecutionRequest {
-  strategyId: string;
-  userId: string;
-  parameters: Record<string, any>;
-}
-
-interface StrategyExecutionResponse {
-  executionId: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  result?: any;
-  error?: string;
-}
-```
-
-### Market Data
+The engine includes a comprehensive backtesting framework:
 
 ```typescript
-interface MarketData {
-  symbol: string;
-  price: number;
-  volume: number;
-  timestamp: number;
-}
+import { Backtester } from '../core/backtester';
+import { MyStrategy } from './my-strategy';
+
+const strategy = new MyStrategy({
+  // strategy parameters
+});
+
+const backtester = new Backtester({
+  strategy,
+  startDate: '2023-01-01',
+  endDate: '2023-12-31',
+  symbol: 'BTC/USDT',
+  initialBalance: 10000
+});
+
+const results = await backtester.run();
 ```
 
-### Monitoring
+## Performance Metrics
 
-```typescript
-interface Metric {
-  name: string;
-  value: number;
-  timestamp: number;
-  tags?: Record<string, string>;
-}
+- Sharpe Ratio
+- Maximum Drawdown
+- Win Rate
+- Profit Factor
+- Return on Investment (ROI)
+- Risk-Adjusted Return
+- Trade Statistics
 
-interface AlertRule {
-  id: string;
-  metric: string;
-  condition: 'gt' | 'lt' | 'eq' | 'neq';
-  threshold: number;
-  severity: 'info' | 'warning' | 'critical';
-  description: string;
-}
+## Risk Management
+
+Built-in risk management features:
+
+- Position Sizing
+- Stop Loss
+- Take Profit
+- Maximum Drawdown
+- Exposure Limits
+- Risk per Trade
+- Daily Loss Limits
+
+## Getting Started
+
+1. Install dependencies:
+```bash
+npm install
 ```
 
-## Testing
-
-### Unit Tests
-
+2. Run tests:
 ```bash
 npm test
 ```
 
-### Integration Tests
-
+3. Start development:
 ```bash
-npm run test:integration
+npm run dev
 ```
 
-### End-to-End Tests
+## Configuration
 
-```bash
-npm run test:e2e
-```
-
-## Monitoring and Alerts
-
-The engine provides comprehensive monitoring capabilities:
-
-1. **System Metrics**
-   - CPU usage
-   - Memory usage
-   - Network latency
-   - Disk I/O
-
-2. **Strategy Metrics**
-   - Execution time
-   - Error rate
-   - Profit/loss
-   - Drawdown
-
-3. **Alert Rules**
-   - Customizable thresholds
-   - Multiple severity levels
-   - Email/SMS notifications
+Environment variables:
+- `DATA_FEED_URL` - Market data feed URL
+- `BROKER_API_KEY` - Broker API key
+- `BROKER_SECRET` - Broker API secret
+- `NODE_ENV` - Environment (development/production)
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Implement your changes
+4. Add tests
+5. Submit a pull request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-For support, please open an issue in the GitHub repository or contact the development team at support@example.com. 
+MIT 

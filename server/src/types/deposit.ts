@@ -1,18 +1,29 @@
-export interface Deposit {
-  userId: string;
+import { Types } from 'mongoose';
+
+export interface IDeposit {
+  _id?: Types.ObjectId;
+  userId: Types.ObjectId;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed';
+  network: string;
+  address: string;
+  transactionId?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export type DepositCreateInput = Omit<IDeposit, '_id' | 'createdAt' | 'updatedAt'>;
+export type DepositUpdateInput = Partial<DepositCreateInput>;
+
+export interface DepositNotification {
+  userId: Types.ObjectId;
   amount: number;
   currency: string;
   network: string;
-  txHash: string;
-  timestamp: Date;
-  status: 'pending' | 'confirmed' | 'failed';
-}
-
-export interface DepositNotification {
-  userId: string;
-  type: string;
-  message: string;
-  data: any;
+  address: string;
+  transactionId: string;
+  status: 'pending' | 'completed' | 'failed';
 }
 
 export interface LargeDepositAlert {
