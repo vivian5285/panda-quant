@@ -1,45 +1,143 @@
-import { ICommission } from '../interfaces/ICommission';
-import { IUser } from '../interfaces/IUser';
-import { StrategyPerformance } from '../types/strategy';
-import { Commission } from '../models/commission';
-import { User } from '../models/user';
+import { Model } from 'mongoose';
+import { User, ICommission, IUserLevel, ICommissionRecord } from '../types';
+import { StrategyPerformance } from '../models/strategyPerformance';
 
-export class CommissionService {
-  // ... existing code ...
+export interface ICommissionService {
+  calculateCommission(performance: number, userLevel: IUserLevel): number;
+  distributeCommission(strategyId: string, userId: string, performance: number): Promise<void>;
+}
 
-  async getUserCommissions(userId: string): Promise<ICommission[]> {
-    return Commission.find({ userId }).exec();
+export class CommissionService implements ICommissionService {
+  private readonly baseCommissionRate = 0.1; // 10% base commission rate
+  private commissionModel: Model<ICommission>;
+  private userModel: Model<User>;
+  private commissionRecordModel: Model<ICommissionRecord>;
+  private strategyPerformanceModel: Model<any>;
+
+  constructor(
+    commissionModel: Model<ICommission>,
+    userModel: Model<User>,
+    commissionRecordModel: Model<ICommissionRecord>
+  ) {
+    this.commissionModel = commissionModel;
+    this.userModel = userModel;
+    this.commissionRecordModel = commissionRecordModel;
+    this.strategyPerformanceModel = StrategyPerformance;
   }
 
-  async createCommission(data: Partial<ICommission>): Promise<ICommission> {
-    const commission = new Commission(data);
-    return commission.save();
+  /**
+   * 计算佣金
+   * @param performance 策略表现
+   * @param userLevel 用户等级
+   * @returns 计算出的佣金
+   */
+  public calculateCommission(performance: number, userLevel: IUserLevel): number {
+    const levelMultiplier = this.getLevelMultiplier(userLevel);
+    return performance * this.baseCommissionRate * levelMultiplier;
   }
 
-  async getAllUserCommissions(userId: string): Promise<ICommission[]> {
-    return Commission.find({ userId }).exec();
+  /**
+   * 分配佣金
+   * @param strategyId 策略ID
+   * @param userId 用户ID
+   * @param performance 策略表现
+   */
+  public async distributeCommission(strategyId: string, userId: string, performance: number): Promise<void> {
+    const commissionEarned = this.calculateCommission(performance, 'bronze'); // Default to bronze level
+    await this.strategyPerformanceModel.create({
+      strategyId,
+      userId,
+      performance,
+      commissionEarned,
+      date: new Date()
+    });
   }
 
-  async calculateCommission(user: IUser, performance: StrategyPerformance): Promise<number> {
-    // 实现佣金计算逻辑
-    return 0;
+  /**
+   * 获取用户等级对应的佣金倍率
+   * @param userLevel 用户等级
+   * @returns 佣金倍率
+   */
+  private getLevelMultiplier(userLevel: IUserLevel): number {
+    switch (userLevel) {
+      case 'bronze':
+        return 1.0;
+      case 'silver':
+        return 1.2;
+      case 'gold':
+        return 1.5;
+      case 'platinum':
+        return 2.0;
+      default:
+        return 1.0;
+    }
   }
 
-  async distributeCommission(userId: string, amount: number): Promise<void> {
-    // 实现佣金分配逻辑
+  public async createCommissionRecord(userId: string, referrerId: string, amount: number): Promise<ICommissionRecord> {
+    const record = new this.commissionRecordModel({
+      userId,
+      referrerId,
+      amount,
+      type: 'commission',
+      status: 'pending'
+    });
+    return await record.save();
   }
 
-  async getCommissionHistory(userId: string): Promise<ICommission[]> {
-    return Commission.find({ userId })
-      .sort({ createdAt: -1 })
-      .exec();
+  public async distributeCommissionRecord(recordId: string): Promise<void> {
+    const record = await this.commissionRecordModel.findById(recordId);
+    if (!record) {
+      throw new Error('Commission record not found');
+    }
+
+    const referrer = await this.userModel.findById(record.referrerId);
+    if (!referrer) {
+      throw new Error('Referrer not found');
+    }
+
+    const commission = new this.commissionModel({
+      userId: referrer._id,
+      amount: record.amount,
+      type: 'referral',
+      status: 'completed'
+    });
+
+    await commission.save();
+    record.status = 'completed';
+    await record.save();
   }
 
-  async getTotalCommission(userId: string): Promise<number> {
-    const result = await Commission.aggregate([
-      { $match: { userId } },
-      { $group: { _id: null, total: { $sum: '$commission' } } }
-    ]);
-    return result[0]?.total || 0;
+  public async getCommissionHistory(userId: string): Promise<ICommission[]> {
+    return await this.commissionModel.find({ userId });
   }
-} 
+
+  public async getTotalCommission(userId: string): Promise<number> {
+    const commissions = await this.commissionModel.find({ userId });
+    return commissions.reduce((total, commission) => total + commission.amount, 0);
+  }
+
+  private async getUserLevel(userId: string): Promise<IUserLevel> {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const totalCommission = await this.getTotalCommission(userId);
+    const userLevels = await this.getUserLevels();
+    
+    for (const level of userLevels) {
+      if (totalCommission >= level.requirements.commission) {
+        return level;
+      }
+    }
+
+    return userLevels[0];
+  }
+
+  private async getUserLevels(): Promise<IUserLevel[]> {
+    // Implementation to get user levels from database
+    return [];
+  }
+}
+
+export const commissionService = new CommissionService(); 
