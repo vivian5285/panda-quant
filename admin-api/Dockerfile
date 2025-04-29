@@ -22,8 +22,9 @@ COPY . .
 RUN chmod +x node_modules/.bin/prisma && \
     yarn prisma generate
 
-# Build admin-api
-RUN yarn build
+# Set permissions and build admin-api
+RUN chmod +x node_modules/.bin/tsc && \
+    yarn build
 
 # Production stage
 FROM node:20-alpine
