@@ -48,7 +48,7 @@ install_dependencies() {
         lsb-release
     
     # 添加 Docker 官方 GPG 密钥
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg --yes
     
     # 设置 Docker 仓库
     echo \
@@ -99,21 +99,29 @@ check_env_variables() {
 setup_domain_and_ssl() {
     print_message "Setting up domain and SSL..."
     
-    # 创建 Nginx 配置目录
-    mkdir -p /etc/nginx/conf.d
+    # 检查域名配置
+    if [ -z "$DOMAIN" ]; then
+        print_error "DOMAIN environment variable is not set"
+        exit 1
+    fi
     
-    # 复制 Nginx 配置文件
+    # 检查 SSL 证书
+    if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ] || [ ! -f "/etc/letsencrypt/live/$DOMAIN/privkey.pem" ]; then
+        print_error "SSL certificates not found for $DOMAIN"
+        exit 1
+    fi
+    
+    # 配置 Nginx
     cp deploy/nginx/nginx.conf /etc/nginx/nginx.conf
-    cp deploy/nginx/*.conf /etc/nginx/conf.d/
+    cp deploy/nginx/admin.conf /etc/nginx/conf.d/
+    cp deploy/nginx/user.conf /etc/nginx/conf.d/
+    cp deploy/nginx/strategy.conf /etc/nginx/conf.d/
+    cp deploy/nginx/server.conf /etc/nginx/conf.d/
     
     # 重启 Nginx
     systemctl restart nginx
     
-    # 获取 SSL 证书
-    certbot --nginx -d panda-quant.com -d www.panda-quant.com -d admin.panda-quant.com -d strategy.panda-quant.com --non-interactive --agree-tos --email admin@panda-quant.com
-    
-    # 配置自动续期
-    echo "0 0 * * * certbot renew --quiet" | crontab -
+    print_success "Domain and SSL setup completed"
 }
 
 # 配置防火墙
@@ -150,31 +158,27 @@ start_services() {
 
 # 检查服务状态
 check_services() {
-    print_message "Checking services status..."
+    print_message "Checking services..."
     
-    # 检查管理服务
-    admin_services=("nginx-admin" "admin-api" "mongodb" "redis")
-    for service in "${admin_services[@]}"; do
-        if ! docker-compose -f deploy/docker-compose.admin.yml ps | grep -q "$service.*Up"; then
-            print_error "$service is not running"
-        fi
-    done
+    # 检查 admin 服务
+    if ! docker-compose -f deploy/docker-compose.admin.yml ps | grep -q "Up"; then
+        print_error "Admin services are not running"
+        exit 1
+    fi
     
-    # 检查用户服务
-    user_services=("nginx-user" "user-api" "user-ui")
-    for service in "${user_services[@]}"; do
-        if ! docker-compose -f deploy/docker-compose.user.yml ps | grep -q "$service.*Up"; then
-            print_error "$service is not running"
-        fi
-    done
+    # 检查 user 服务
+    if ! docker-compose -f deploy/docker-compose.user.yml ps | grep -q "Up"; then
+        print_error "User services are not running"
+        exit 1
+    fi
     
-    # 检查策略服务
-    strategy_services=("strategy-engine" "server")
-    for service in "${strategy_services[@]}"; do
-        if ! docker-compose -f deploy/docker-compose.strategy.yml ps | grep -q "$service.*Up"; then
-            print_error "$service is not running"
-        fi
-    done
+    # 检查 strategy 服务
+    if ! docker-compose -f deploy/docker-compose.strategy.yml ps | grep -q "Up"; then
+        print_error "Strategy services are not running"
+        exit 1
+    fi
+    
+    print_success "All services are running"
 }
 
 # 主函数
