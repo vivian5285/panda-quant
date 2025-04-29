@@ -23,16 +23,22 @@ services:
 
   strategy-engine:
     build:
-      context: ../strategy-engine
-      dockerfile: ../docker/Dockerfile.strategy-engine
+      context: ..
+      dockerfile: docker/Dockerfile.strategy-engine
     container_name: panda-quant-strategy-engine
     ports:
       - "3004:3004"
-    environment:
-      - NODE_ENV=production
-    restart: unless-stopped
+    restart: always
     networks:
       - panda-quant-network
+    environment:
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/admin
+      - REDIS_URI=redis://:${REDIS_PASSWORD}@redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    depends_on:
+      - mongodb
+      - redis
     deploy:
       resources:
         limits:
@@ -45,16 +51,23 @@ services:
 
   server:
     build:
-      context: ../server
-      dockerfile: ../docker/Dockerfile.server
+      context: ..
+      dockerfile: docker/Dockerfile.server
     container_name: panda-quant-server
     ports:
       - "3005:3005"
-    environment:
-      - NODE_ENV=production
-    restart: unless-stopped
+    restart: always
     networks:
       - panda-quant-network
+    environment:
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/admin
+      - REDIS_URI=redis://:${REDIS_PASSWORD}@redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    depends_on:
+      - mongodb
+      - redis
+      - strategy-engine
     deploy:
       resources:
         limits:
