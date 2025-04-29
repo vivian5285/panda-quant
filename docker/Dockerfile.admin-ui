@@ -1,224 +1,73 @@
 # 构建阶段
-FROM node:20-alpine AS builder
+FROM node:18-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
 
-# 复制 package.json 和 package-lock.json
-COPY package*.json ./
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git \
+    curl
 
-# 安装依赖和 TypeScript
+# Install TypeScript and Vite globally
+RUN npm install -g typescript vite terser
+
+# Copy admin-ui source code
+COPY admin-ui/package*.json ./
+COPY admin-ui/ ./
+
+# Install dependencies and type declarations
 RUN npm install --legacy-peer-deps && \
-    npm install -g typescript@latest && \
-    npm install @mui/material@latest && \
-    npm install @mui/x-data-grid@latest && \
-    npm install web-vitals@2.1.4 && \
-    npm install @types/babel__core@7.1.20 --save-dev && \
-    npm install @babel/core@7.23.7 --save-dev && \
-    chmod +x /usr/local/bin/tsc
+    npm install --save-dev \
+    @types/react \
+    @types/react-dom \
+    @types/react-router-dom \
+    @types/react-i18next \
+    @types/date-fns \
+    @types/recharts \
+    @types/socket.io-client \
+    @types/antd \
+    @types/i18next-browser-languagedetector \
+    @types/react-toastify \
+    @types/node \
+    @types/jest \
+    @typescript-eslint/eslint-plugin \
+    @typescript-eslint/parser \
+    eslint \
+    eslint-plugin-react \
+    eslint-plugin-react-hooks \
+    jest \
+    ts-jest \
+    ts-node \
+    @vitejs/plugin-react \
+    vite \
+    vite-plugin-svgr \
+    vitest \
+    terser && \
+    npm install @mui/material@5.15.14 @mui/icons-material@5.15.14 @mui/x-data-grid@6.19.5 @mui/x-date-pickers@6.19.5 --legacy-peer-deps
 
-# 创建 tsconfig.json
-RUN echo '{\
-  "compilerOptions": {\
-    "target": "es5",\
-    "lib": ["dom", "dom.iterable", "esnext"],\
-    "allowJs": true,\
-    "skipLibCheck": true,\
-    "esModuleInterop": true,\
-    "allowSyntheticDefaultImports": true,\
-    "strict": true,\
-    "forceConsistentCasingInFileNames": true,\
-    "noFallthroughCasesInSwitch": true,\
-    "module": "esnext",\
-    "moduleResolution": "node",\
-    "resolveJsonModule": true,\
-    "isolatedModules": true,\
-    "noEmit": true,\
-    "jsx": "react-jsx",\
-    "noUnusedLocals": false,\
-    "noUnusedParameters": false,\
-    "noImplicitAny": false,\
-    "strictNullChecks": false,\
-    "paths": {\
-      "@/*": ["src/*"],\
-      "@/utils/*": ["src/utils/*"]\
-    }\
-  },\
-  "include": ["src"],\
-  "exclude": ["node_modules"]\
-}' > tsconfig.json
+# Set permissions for TypeScript and Vite
+RUN chmod -R 777 /usr/local/bin/tsc && \
+    chmod -R 777 /usr/local/bin/vite
 
-# 创建类型声明文件
-RUN mkdir -p src && \
-    echo 'declare module "@mui/x-data-grid";\
-declare module "web-vitals" {\
-  export function onCLS(callback: (metric: any) => void): void;\
-  export function onFID(callback: (metric: any) => void): void;\
-  export function onFCP(callback: (metric: any) => void): void;\
-  export function onLCP(callback: (metric: any) => void): void;\
-  export function onTTFB(callback: (metric: any) => void): void;\
-}\
-declare module "@mui/material/styles" {\
-  export interface TypographyVariants {\
-    [key: string]: any;\
-  }\
-  export interface TypographyVariantsOptions {\
-    [key: string]: any;\
-  }\
-  export interface TypographyOptions {\
-    fontFamily?: string;\
-    fontSize?: number;\
-    fontWeightLight?: number;\
-    fontWeightRegular?: number;\
-    fontWeightMedium?: number;\
-    fontWeightBold?: number;\
-    htmlFontSize?: number;\
-    allVariants?: any;\
-    pxToRem?: (size: number) => string;\
-    [key: string]: any;\
-  }\
-  export function createTypography(palette: any, typography: TypographyOptions): TypographyOptions;\
-}\
-declare module "@babel/core" {\
-  export interface TransformOptions {\
-    filename?: string;\
-    sourceType?: "script" | "module" | "unambiguous";\
-    sourceMaps?: boolean | "inline" | "both";\
-    sourceFileName?: string;\
-    sourceRoot?: string;\
-    moduleRoot?: string;\
-    moduleIds?: boolean;\
-    moduleId?: string;\
-    comments?: boolean;\
-    compact?: boolean | "auto";\
-    minified?: boolean;\
-    ast?: boolean;\
-    code?: boolean;\
-    [key: string]: any;\
-  }\
-  export interface TransformResult {\
-    code?: string | null;\
-    map?: object | null;\
-    ast?: object | null;\
-  }\
-  export function transform(code: string, options?: TransformOptions): Promise<TransformResult>;\
-  export function transformSync(code: string, options?: TransformOptions): TransformResult;\
-  export function transformFile(filename: string, options?: TransformOptions): Promise<TransformResult>;\
-  export function transformFileSync(filename: string, options?: TransformOptions): TransformResult;\
-}\
-declare module "@/utils/api";\
-declare module "@/utils/date";\
-declare module "@/utils/currency";\
-interface ImportMetaEnv {\
-  VITE_API_URL: string;\
-  VITE_WS_URL: string;\
-}\
-interface ImportMeta {\
-  readonly env: ImportMetaEnv;\
-}\
-interface Order {\
-  id: string;\
-  tradingPair: string;\
-  amount: number;\
-  total: number;\
-  timestamp: string;\
-}\
-interface User {\
-  id: string;\
-  name: string;\
-  email: string;\
-  status: string;\
-}\
-interface Theme {\
-  primary: {\
-    main: string;\
-    light: string;\
-    dark: string;\
-  };\
-  text: {\
-    primary: string;\
-    secondary: string;\
-  };\
-  success: string;\
-  warning: string;\
-  error: string;\
-}\
-interface PageLayoutProps {\
-  title: string;\
-  children: React.ReactNode;\
-  actions?: React.ReactNode;\
-  filters?: React.ReactNode;\
-  content?: React.ReactNode;\
-}\
-interface ChipProps {\
-  label: string;\
-  color?: "primary" | "secondary" | "error" | "info" | "success" | "warning";\
-  variant?: "filled" | "outlined";\
-  size?: "small" | "medium";\
-  icon?: React.ReactNode;\
-  onClick?: () => void;\
-}\
-interface DatePickerProps {\
-  label: string;\
-  value: Date | null;\
-  onChange: (date: any) => void;\
-  renderInput?: (params: any) => React.ReactElement;\
-}' > src/types.d.ts
-
-# 创建必要的工具目录和文件
-RUN mkdir -p src/utils && \
-    echo 'export const formatDate = (date: Date) => date.toISOString();\
-export const formatCurrency = (amount: number) => amount.toFixed(2);\
-export const api = {\
-  get: async (url: string) => ({}),\
-  post: async (url: string, data: any) => ({}),\
-  put: async (url: string, data: any) => ({}),\
-  delete: async (url: string) => ({})\
-};\
-export const themeUtils = {\
-  getColor: (theme: any, color: string) => theme[color] || color,\
-  getTextColor: (theme: any, color: string) => theme.text[color] || color\
-};\
-export const motion = {\
-  variants: {\
-    container: {},\
-    item: {}\
-  },\
-  transition: {}\
-};' > src/utils/index.ts
-
-# 复制源代码
-COPY . .
-
-# 构建应用
+# Build the application
 RUN npm run build
 
 # 生产阶段
 FROM nginx:alpine
 
-# 复制构建产物
+# Copy built files from builder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# 创建默认的 Nginx 配置
-RUN echo 'server { \
-    listen 80; \
-    server_name localhost; \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    location / { \
-        try_files $uri $uri/ /index.html; \
-    } \
-    location /api { \
-        proxy_pass http://admin-api:3001; \
-        proxy_http_version 1.1; \
-        proxy_set_header Upgrade $http_upgrade; \
-        proxy_set_header Connection "upgrade"; \
-        proxy_set_header Host $host; \
-        proxy_set_header X-Real-IP $remote_addr; \
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-        proxy_set_header X-Forwarded-Proto $scheme; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# Copy nginx configuration
+COPY deploy/nginx/admin.conf /etc/nginx/conf.d/default.conf
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
 
 # 暴露端口
 EXPOSE 80
