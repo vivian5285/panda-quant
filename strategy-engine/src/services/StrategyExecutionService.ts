@@ -1,6 +1,7 @@
 import { logger } from '../utils/logger';
 import { CommissionService } from './CommissionService';
 import { StrategyMonitorService } from './StrategyMonitorService';
+import { Order } from '../types/order';
 
 export interface StrategyExecutionResult {
   executionId: string;
@@ -11,6 +12,7 @@ export interface StrategyExecutionResult {
   dailyReturn?: number;
   totalTrades?: number;
   winRate?: number;
+  trades: Order[];
 }
 
 export class StrategyExecutionService {
@@ -59,11 +61,12 @@ export class StrategyExecutionService {
 
       return result;
     } catch (error) {
-      logger.error(`Error executing strategy: ${error}`);
+      logger.error('Strategy execution failed:', error);
       return {
-        executionId: '',
+        executionId: this.generateExecutionId(),
         status: 'failed',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
+        trades: []
       };
     }
   }
@@ -84,11 +87,12 @@ export class StrategyExecutionService {
       maxDrawdown: 5,
       dailyReturn: 2,
       totalTrades: 10,
-      winRate: 0.8
+      winRate: 0.8,
+      trades: []
     };
   }
 
   private generateExecutionId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    return `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 } 

@@ -41,6 +41,12 @@ RUN chmod -R 777 /usr/local/bin/tsc
 # Copy source code
 COPY server/ ./
 
+# Add type checking script to package.json
+RUN npm pkg set scripts.type-check="tsc --noEmit"
+
+# Run type checking
+RUN npm run type-check
+
 # Build the application
 RUN npm run build
 

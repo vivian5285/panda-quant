@@ -1,6 +1,6 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 
-export interface ICommissionRule {
+export interface ICommissionRule extends Document {
   level: number;
   rate: number;
   minAmount: number;
@@ -18,4 +18,14 @@ const commissionRuleSchema = new Schema<ICommissionRule>({
   updatedAt: { type: Date, default: Date.now }
 });
 
-export const CommissionRule = model<ICommissionRule>('CommissionRule', commissionRuleSchema); 
+// 添加索引
+commissionRuleSchema.index({ level: 1 }, { unique: true });
+
+// 添加中间件
+commissionRuleSchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  next();
+});
+
+export const CommissionRule = model<ICommissionRule>('CommissionRule', commissionRuleSchema);
+export default CommissionRule; 

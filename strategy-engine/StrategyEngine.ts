@@ -1,7 +1,8 @@
 import { Strategy, StrategyPreset, OHLCV, Trade } from './types';
 import { SuperTrendStrategy } from './strategies/superTrendStrategy';
 import config from './config';
-import { DatabaseService } from '../user-api/services/databaseService';
+import { DatabaseService } from './services/databaseService';
+import { Order } from './types/order';
 
 export class StrategyEngine {
   private strategies: Map<string, Strategy>;
@@ -48,6 +49,25 @@ export class StrategyEngine {
       throw new Error(`策略不存在: ${strategyId}`);
     }
     this.strategies.delete(strategyId);
+  }
+
+  public async executeStrategy(strategy: StrategyPreset, parameters: Record<string, any>): Promise<Order[]> {
+    if (!this.strategies.has(strategy.id)) {
+      throw new Error(`策略不存在: ${strategy.id}`);
+    }
+
+    const strategyInstance = this.strategies.get(strategy.id);
+    if (!strategyInstance) {
+      throw new Error(`策略实例不存在: ${strategy.id}`);
+    }
+
+    try {
+      const orders = await strategyInstance.execute(parameters);
+      return orders;
+    } catch (error) {
+      console.error(`执行策略失败: ${strategy.id}`, error);
+      throw error;
+    }
   }
 
   public async updateMarketData(data: OHLCV): Promise<void> {

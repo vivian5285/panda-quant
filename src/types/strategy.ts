@@ -18,4 +18,14 @@ export interface StrategyResult {
   };
 }
 
-export type StrategyStatus = 'success' | 'failed' | 'running' | 'pending'; 
+export type StrategyStatus = 'success' | 'failed' | 'running' | 'pending';
+
+export interface StrategyPerformance {
+  currentReturn: number;
+  maxDrawdown: number;
+  dailyReturn: number;
+  totalTrades: number;
+  winRate: number;
+  startDate: Date;
+  endDate: Date;
+} 

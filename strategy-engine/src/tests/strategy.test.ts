@@ -131,6 +131,7 @@ describe('Strategy Tests', () => {
       });
 
       expect(execution.status).toBe('success');
+      expect(execution.trades).toBeDefined();
       expect(execution.trades.length).toBeGreaterThan(0);
     });
 
@@ -154,7 +155,13 @@ describe('Strategy Tests', () => {
       parameters: {}
     };
 
-    const result = await strategyEngine.executeStrategy(strategy);
+    const parameters = {
+      symbol: 'BTC/USDT',
+      amount: 1000,
+      leverage: 1
+    };
+
+    const result = await strategyEngine.executeStrategy(strategy, parameters);
     expect(result).toBeDefined();
   });
 
