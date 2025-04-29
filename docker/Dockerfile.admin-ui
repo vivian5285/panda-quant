@@ -10,7 +10,54 @@ COPY package*.json ./
 # 安装依赖和 TypeScript
 RUN npm install --legacy-peer-deps && \
     npm install -g typescript@latest && \
+    npm install @mui/x-data-grid@latest && \
+    npm install web-vitals@2.1.4 && \
     chmod +x /usr/local/bin/tsc
+
+# 创建 tsconfig.json
+RUN echo '{\
+  "compilerOptions": {\
+    "target": "es5",\
+    "lib": ["dom", "dom.iterable", "esnext"],\
+    "allowJs": true,\
+    "skipLibCheck": true,\
+    "esModuleInterop": true,\
+    "allowSyntheticDefaultImports": true,\
+    "strict": true,\
+    "forceConsistentCasingInFileNames": true,\
+    "noFallthroughCasesInSwitch": true,\
+    "module": "esnext",\
+    "moduleResolution": "node",\
+    "resolveJsonModule": true,\
+    "isolatedModules": true,\
+    "noEmit": true,\
+    "jsx": "react-jsx",\
+    "noUnusedLocals": false,\
+    "noUnusedParameters": false,\
+    "noImplicitAny": false,\
+    "strictNullChecks": false,\
+    "paths": {\
+      "@/*": ["src/*"]\
+    }\
+  },\
+  "include": ["src"],\
+  "exclude": ["node_modules"]\
+}' > tsconfig.json
+
+# 创建类型声明文件
+RUN echo 'declare module "@mui/x-data-grid";\
+declare module "web-vitals" {\
+  export function onCLS(callback: (metric: any) => void): void;\
+  export function onFID(callback: (metric: any) => void): void;\
+  export function onFCP(callback: (metric: any) => void): void;\
+  export function onLCP(callback: (metric: any) => void): void;\
+  export function onTTFB(callback: (metric: any) => void): void;\
+}\
+declare module "@mui/material/styles/createTypography" {\
+  export interface TypographyVariantsOptions {\
+    [key: string]: any;\
+  }\
+}' > src/types.d.ts
 
 # 复制源代码
 COPY . .
