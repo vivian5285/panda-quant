@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 RUN npm install -g typescript
 
 # Copy package files first to leverage Docker cache
-COPY ../admin-api/package*.json ./
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install --legacy-peer-deps && \
@@ -55,7 +55,7 @@ RUN npm install --save \
 RUN chmod -R 777 /usr/local/bin/tsc
 
 # Copy source code
-COPY ../admin-api/ .
+COPY . .
 
 # Build the application
 RUN npm run build

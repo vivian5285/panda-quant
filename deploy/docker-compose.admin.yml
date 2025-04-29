@@ -3,7 +3,7 @@ version: '3.8'
 services:
   nginx-admin:
     build:
-      context: ..
+      context: .
       dockerfile: deploy/Dockerfile.admin-ui
     container_name: panda-quant-nginx-admin
     ports:
@@ -21,10 +21,8 @@ services:
 
   admin-api:
     build:
-      context: ../admin-api
-      dockerfile: ../deploy/Dockerfile.admin-api
-      args:
-        - NODE_ENV=production
+      context: admin-api
+      dockerfile: deploy/Dockerfile.admin-api
     container_name: panda-quant-admin-api
     ports:
       - "3001:3001"
