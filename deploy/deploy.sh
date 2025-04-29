@@ -62,7 +62,7 @@ check_env() {
     required_vars=(
         "JWT_SECRET"
         "ENCRYPTION_KEY"
-        "MONGODB_PASSWORD"
+        "MONGO_INITDB_ROOT_PASSWORD"
         "REDIS_PASSWORD"
     )
     
