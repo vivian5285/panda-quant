@@ -32,13 +32,39 @@ fi
 install_dependencies() {
     print_message "Installing required packages..."
     apt-get update
+    
+    # 先移除可能冲突的包
+    apt-get remove -y containerd || true
+    
+    # 安装 Docker 相关包
     apt-get install -y \
-        docker.io \
-        docker-compose \
+        apt-transport-https \
+        ca-certificates \
+        curl \
+        gnupg \
+        lsb-release
+    
+    # 添加 Docker 官方 GPG 密钥
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    
+    # 设置 Docker 仓库
+    echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    
+    # 更新包索引
+    apt-get update
+    
+    # 安装 Docker 引擎
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+    
+    # 安装其他必要包
+    apt-get install -y \
         curl \
         jq \
         certbot \
         python3-certbot-nginx
+    
     check_result "Failed to install packages"
 }
 
