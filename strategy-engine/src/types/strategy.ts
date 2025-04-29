@@ -1,9 +1,24 @@
+export interface StrategyParameters {
+  userId: string;
+  symbol: string;
+  amount: number;
+  leverage: number;
+  maxDrawdown: number;
+}
+
+export enum StrategyStatus {
+  RUNNING = 'running',
+  PAUSED = 'paused',
+  STOPPED = 'stopped',
+  FAILED = 'failed'
+}
+
 export interface Strategy {
   id: string;
-  userId: string;
   name: string;
   description: string;
-  riskLevel: 'high' | 'medium' | 'low';
-  active: boolean;
-  parameters: Record<string, any>;
+  parameters: StrategyParameters;
+  status: StrategyStatus;
+  createdAt: Date;
+  updatedAt: Date;
 } 

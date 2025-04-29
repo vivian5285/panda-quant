@@ -1,16 +1,21 @@
 import { UserLevel } from '../models/userLevel';
 import { NotFoundError } from '../utils/errors';
+import { Model } from 'mongoose';
+import { IUserLevel } from '../interfaces/userLevel';
 
 export class UserLevelService {
   private static instance: UserLevelService;
-
-  private constructor() {}
+  private userLevelModel: Model<IUserLevel>;
 
   public static getInstance(): UserLevelService {
     if (!UserLevelService.instance) {
       UserLevelService.instance = new UserLevelService();
     }
     return UserLevelService.instance;
+  }
+
+  constructor() {
+    this.userLevelModel = UserLevel;
   }
 
   // 获取所有用户等级

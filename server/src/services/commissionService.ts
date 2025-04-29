@@ -1,17 +1,25 @@
 import { User } from '../models/User';
 import { CommissionRecord } from '../models/commissionRecord';
 import { StrategyPerformance } from '../models/StrategyPerformance';
+import { Model } from 'mongoose';
+import { ICommission } from '../interfaces/ICommission';
+import { IUser } from '../interfaces/IUser';
 
 export class CommissionService {
   private static instance: CommissionService;
-
-  private constructor() {}
+  private commissionModel: Model<ICommission>;
+  private userModel: Model<IUser>;
 
   public static getInstance(): CommissionService {
     if (!CommissionService.instance) {
       CommissionService.instance = new CommissionService();
     }
     return CommissionService.instance;
+  }
+
+  constructor() {
+    this.commissionModel = Commission;
+    this.userModel = User;
   }
 
   // 平台佣金比例

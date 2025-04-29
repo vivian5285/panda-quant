@@ -4,24 +4,23 @@ import { Deposit } from '../types/deposit';
 import { logger } from '../utils/logger';
 import { EventEmitter } from 'events';
 
-export class DepositNotificationService extends EventEmitter {
+export class DepositNotificationService {
   private static instance: DepositNotificationService;
   private wss: WebSocketServer;
   private notificationService: NotificationService;
   private largeDepositThreshold = 10000;
-
-  private constructor() {
-    super();
-    this.wss = new WebSocketServer({ port: 8081 });
-    this.notificationService = new NotificationService();
-    this.initializeWebSocket();
-  }
 
   public static getInstance(): DepositNotificationService {
     if (!DepositNotificationService.instance) {
       DepositNotificationService.instance = new DepositNotificationService();
     }
     return DepositNotificationService.instance;
+  }
+
+  constructor() {
+    this.wss = new WebSocketServer({ port: 8081 });
+    this.notificationService = NotificationService.getInstance();
+    this.initializeWebSocket();
   }
 
   private initializeWebSocket() {

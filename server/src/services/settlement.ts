@@ -6,17 +6,23 @@ import { Commission } from '../models/Commission';
 import { UserEarning } from '../models/UserEarning';
 import { User } from '../models/User';
 import { format } from 'date-fns';
+import { Model } from 'mongoose';
 
 export class SettlementService {
   private static instance: SettlementService;
-
-  private constructor() {}
+  private settlementModel: Model<ISettlement>;
+  private commissionModel: Model<ICommission>;
 
   public static getInstance(): SettlementService {
     if (!SettlementService.instance) {
       SettlementService.instance = new SettlementService();
     }
     return SettlementService.instance;
+  }
+
+  constructor() {
+    this.settlementModel = Settlement;
+    this.commissionModel = Commission;
   }
 
   async getSettlements(filter: SettlementFilter): Promise<SettlementResponse> {

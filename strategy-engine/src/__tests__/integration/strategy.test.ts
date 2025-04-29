@@ -2,6 +2,8 @@ import { StrategyEngine } from '../../engine/StrategyEngine';
 import { OrderQueueService } from '../../services/OrderQueueService';
 import { RiskManagementService } from '../../services/RiskManagementService';
 import { StrategyMonitorService } from '../../services/StrategyMonitorService';
+import { OrderType, OrderSide, OrderStatus } from '../../types/order';
+import { StrategyStatus } from '../../types/strategy';
 
 describe('Strategy Integration Tests', () => {
   let engine: StrategyEngine;
@@ -21,11 +23,15 @@ describe('Strategy Integration Tests', () => {
       const strategyId = 'test-strategy';
       const userId = 'test-user';
       const parameters = {
+        userId,
         symbol: 'BTC/USDT',
         amount: 1,
         leverage: 5,
         maxDrawdown: 0.05,
       };
+
+      // 开始监控
+      monitor.startMonitoring(strategyId, userId);
 
       // 执行策略
       const result = await engine.executeStrategy(strategyId, parameters);
@@ -40,16 +46,22 @@ describe('Strategy Integration Tests', () => {
       // 验证监控
       const performance = monitor.getPerformance(strategyId, userId);
       expect(performance).toBeDefined();
+      expect(result.status).toBe(StrategyStatus.RUNNING);
     });
 
     it('should handle strategy execution failure', async () => {
       const strategyId = 'test-strategy';
+      const userId = 'test-user';
       const parameters = {
+        userId,
         symbol: 'BTC/USDT',
         amount: 1000, // 超出风险限制
         leverage: 50, // 超出风险限制
         maxDrawdown: 0.5, // 超出风险限制
       };
+
+      // 开始监控
+      monitor.startMonitoring(strategyId, userId);
 
       // 验证风险检查失败
       expect(riskManager.checkStrategyRisk(strategyId, parameters)).toBe(false);
@@ -58,7 +70,7 @@ describe('Strategy Integration Tests', () => {
       try {
         await engine.executeStrategy(strategyId, parameters);
         fail('Should have thrown an error');
-      } catch (error) {
+      } catch (error: any) {
         expect(error.message).toContain('exceeds risk limits');
       }
     });
@@ -71,8 +83,8 @@ describe('Strategy Integration Tests', () => {
         strategyId: 'test-strategy',
         exchange: 'binance',
         symbol: 'BTC/USDT',
-        type: 'market',
-        side: 'buy',
+        type: OrderType.MARKET,
+        side: OrderSide.BUY,
         amount: 1,
         retryCount: 0,
       };
@@ -88,7 +100,7 @@ describe('Strategy Integration Tests', () => {
 
       // 验证重试状态
       const status = orderQueue.getOrderStatus(orderId);
-      expect(status).toBe('retrying');
+      expect(status).toBe(OrderStatus.RETRYING);
     });
   });
 
@@ -102,7 +114,7 @@ describe('Strategy Integration Tests', () => {
 
       // 更新性能指标
       monitor.updatePerformance(strategyId, userId, {
-        status: 'running',
+        status: StrategyStatus.RUNNING,
         currentReturn: 0.05,
         maxDrawdown: 0.02,
         dailyReturn: 0.01,
@@ -113,12 +125,16 @@ describe('Strategy Integration Tests', () => {
       // 获取性能数据
       const performance = monitor.getPerformance(strategyId, userId);
       expect(performance).toEqual({
-        status: 'running',
+        strategyId,
+        userId,
+        status: StrategyStatus.RUNNING,
+        startTime: expect.any(Date),
         currentReturn: 0.05,
         maxDrawdown: 0.02,
         dailyReturn: 0.01,
         totalTrades: 10,
         winRate: 0.8,
+        lastUpdate: expect.any(Date)
       });
     });
   });

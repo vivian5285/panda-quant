@@ -5,15 +5,15 @@ export class MonitoringService {
   private static instance: MonitoringService;
   private alertService: AlertService;
 
-  private constructor() {
-    this.alertService = AlertService.getInstance();
-  }
-
   public static getInstance(): MonitoringService {
     if (!MonitoringService.instance) {
       MonitoringService.instance = new MonitoringService();
     }
     return MonitoringService.instance;
+  }
+
+  constructor() {
+    this.alertService = AlertService.getInstance();
   }
 
   async createAlert(alertData: {

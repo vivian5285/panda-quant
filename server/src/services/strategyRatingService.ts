@@ -1,6 +1,21 @@
 import { StrategyRating, IStrategyRating } from '../models/strategyRating';
+import { Model } from 'mongoose';
 
 export class StrategyRatingService {
+  private static instance: StrategyRatingService;
+  private strategyRatingModel: Model<IStrategyRating>;
+
+  public static getInstance(): StrategyRatingService {
+    if (!StrategyRatingService.instance) {
+      StrategyRatingService.instance = new StrategyRatingService();
+    }
+    return StrategyRatingService.instance;
+  }
+
+  constructor() {
+    this.strategyRatingModel = StrategyRating;
+  }
+
   // 创建评价
   async createRating(ratingData: Partial<IStrategyRating>): Promise<IStrategyRating> {
     const rating = new StrategyRating(ratingData);

@@ -3,23 +3,27 @@ import { NetworkConfig, NetworkStatus } from '../types/network';
 import { logger } from '../utils/logger';
 import { EventEmitter } from 'events';
 
-export class NetworkStatusService extends EventEmitter {
+export class NetworkStatusService {
   private static instance: NetworkStatusService;
   private statusMap: Map<string, NetworkStatus> = new Map();
   private wsConnections: Map<string, WebSocket> = new Map();
   private monitoringInterval: NodeJS.Timeout | null = null;
-
-  private constructor() {
-    super();
-    this.initializeNetworks();
-    this.startMonitoring();
-  }
+  private wsServer: WebSocket.Server;
+  private clients: Map<string, WebSocket>;
 
   public static getInstance(): NetworkStatusService {
     if (!NetworkStatusService.instance) {
       NetworkStatusService.instance = new NetworkStatusService();
     }
     return NetworkStatusService.instance;
+  }
+
+  constructor() {
+    this.wsServer = new WebSocket.Server({ port: 8082 });
+    this.clients = new Map();
+    this.setupWebSocketServer();
+    this.initializeNetworks();
+    this.startMonitoring();
   }
 
   private initializeNetworks() {

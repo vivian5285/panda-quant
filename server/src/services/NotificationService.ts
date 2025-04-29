@@ -1,20 +1,26 @@
 import { DepositNotification, LargeDepositAlert } from '../types/deposit';
 import { logger } from '../utils/logger';
 import { Database } from '../database';
+import WebSocket from 'ws';
 
 export class NotificationService {
   private static instance: NotificationService;
   private db: Database;
-
-  private constructor() {
-    this.db = Database.getInstance();
-  }
+  private wsServer: WebSocket.Server;
+  private clients: Map<string, WebSocket>;
 
   public static getInstance(): NotificationService {
     if (!NotificationService.instance) {
       NotificationService.instance = new NotificationService();
     }
     return NotificationService.instance;
+  }
+
+  constructor() {
+    this.db = Database.getInstance();
+    this.wsServer = new WebSocket.Server({ port: 8080 });
+    this.clients = new Map();
+    this.setupWebSocketServer();
   }
 
   public async sendInAppNotification(notification: DepositNotification): Promise<void> {
@@ -68,5 +74,9 @@ export class NotificationService {
 
   private async sendAdminNotification(adminId: string, alert: LargeDepositAlert): Promise<void> {
     // TODO: 实现管理员通知发送
+  }
+
+  private setupWebSocketServer() {
+    // TODO: 实现WebSocket服务器设置
   }
 } 
