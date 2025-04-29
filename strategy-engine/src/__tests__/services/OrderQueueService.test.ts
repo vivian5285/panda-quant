@@ -1,11 +1,11 @@
 import { OrderQueueService } from '../../services/OrderQueueService';
-import { OrderType, OrderSide } from '../../types/order';
+import { OrderType, OrderSide, OrderStatus } from '../../types/order';
 
 describe('OrderQueueService', () => {
   let orderQueueService: OrderQueueService;
 
   beforeEach(() => {
-    orderQueueService = new OrderQueueService();
+    orderQueueService = OrderQueueService.getInstance();
   });
 
   it('should add order to queue', async () => {
@@ -36,12 +36,13 @@ describe('OrderQueueService', () => {
       retryCount: 0
     };
 
-    await orderQueueService.addOrder(order);
-    const processedOrder = await orderQueueService.processNextOrder();
-    expect(processedOrder).toBeDefined();
+    const orderId = await orderQueueService.addOrder(order);
+    await orderQueueService.processOrder(orderId);
+    const status = orderQueueService.getOrderStatus(orderId);
+    expect(status).toBe(OrderStatus.COMPLETED);
   });
 
-  it('should retry failed order', async () => {
+  it('should handle order processing failure', async () => {
     const order = {
       userId: 'user1',
       strategyId: '1',
@@ -53,8 +54,13 @@ describe('OrderQueueService', () => {
       retryCount: 0
     };
 
-    await orderQueueService.addOrder(order);
-    const result = await orderQueueService.retryFailedOrder(order);
-    expect(result).toBeDefined();
+    const orderId = await orderQueueService.addOrder(order);
+    
+    // 模拟订单执行失败
+    jest.spyOn(orderQueueService as any, 'executeOrder').mockRejectedValueOnce(new Error('Network error'));
+    
+    await orderQueueService.processOrder(orderId);
+    const status = orderQueueService.getOrderStatus(orderId);
+    expect(status).toBe(OrderStatus.RETRYING);
   });
 }); 

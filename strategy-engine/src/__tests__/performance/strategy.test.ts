@@ -1,6 +1,8 @@
 import { StrategyEngine } from '../../engine/StrategyEngine';
 import { OrderQueueService } from '../../services/OrderQueueService';
 import { performance } from 'perf_hooks';
+import { OrderType, OrderSide, OrderStatus } from '../../types/order';
+import { StrategyStatus } from '../../types/strategy';
 
 describe('Strategy Performance Tests', () => {
   let engine: StrategyEngine;
@@ -17,6 +19,7 @@ describe('Strategy Performance Tests', () => {
       const strategies = Array.from({ length: numStrategies }, (_, i) => ({
         id: `strategy-${i}`,
         parameters: {
+          userId: `user-${i}`,
           symbol: 'BTC/USDT',
           amount: 1,
           leverage: 5,
@@ -37,7 +40,7 @@ describe('Strategy Performance Tests', () => {
       const duration = endTime - startTime;
 
       // 验证所有策略都执行成功
-      expect(results.every(result => result.status === 'success')).toBe(true);
+      expect(results.every(result => result.status === StrategyStatus.RUNNING)).toBe(true);
 
       // 验证执行时间在可接受范围内
       expect(duration).toBeLessThan(5000); // 5秒内完成
@@ -50,8 +53,8 @@ describe('Strategy Performance Tests', () => {
         strategyId: 'test-strategy',
         exchange: 'binance',
         symbol: 'BTC/USDT',
-        type: 'market',
-        side: 'buy',
+        type: OrderType.MARKET,
+        side: OrderSide.BUY,
         amount: 1,
         retryCount: 0,
       }));
@@ -73,7 +76,7 @@ describe('Strategy Performance Tests', () => {
 
       // 验证所有订单都处理完成
       const statuses = orderIds.map(orderId => orderQueue.getOrderStatus(orderId));
-      expect(statuses.every(status => status === 'completed')).toBe(true);
+      expect(statuses.every(status => status === OrderStatus.COMPLETED)).toBe(true);
 
       // 验证处理时间在可接受范围内
       expect(duration).toBeLessThan(10000); // 10秒内完成
@@ -87,6 +90,7 @@ describe('Strategy Performance Tests', () => {
 
       for (let i = 0; i < numIterations; i++) {
         await engine.executeStrategy(`strategy-${i}`, {
+          userId: `user-${i}`,
           symbol: 'BTC/USDT',
           amount: 1,
           leverage: 5,
@@ -110,6 +114,7 @@ describe('Strategy Performance Tests', () => {
       for (let i = 0; i < numRequests; i++) {
         const startTime = performance.now();
         await engine.executeStrategy(`strategy-${i}`, {
+          userId: `user-${i}`,
           symbol: 'BTC/USDT',
           amount: 1,
           leverage: 5,

@@ -12,11 +12,6 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/mongoose": "^5.11.97",
-    "@types/node": "^20.11.19",
-    "@types/ws": "^8.5.10",
     "cors": "^2.8.5",
     "date-fns": "^3.3.1",
     "dotenv": "^16.4.1",
@@ -32,9 +27,15 @@
     "ws": "^8.16.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/mongoose": "^5.11.97",
+    "@types/node": "^20.11.19",
+    "@types/redis": "^4.0.11",
+    "@types/ws": "^8.5.10",
     "@typescript-eslint/eslint-plugin": "^7.0.1",
     "@typescript-eslint/parser": "^7.0.1",
-    "@types/vitest": "^1.2.9",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",
