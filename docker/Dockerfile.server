@@ -37,7 +37,9 @@ RUN npm install --save-dev \
     @types/cors@2.8.17 \
     @types/express@4.17.21 \
     @types/mongoose@5.11.97 \
-    @types/jest@29.5.12
+    @types/jest@29.5.12 \
+    @types/axios@0.14.0 \
+    @types/winston@2.4.4
 
 # Copy source code
 COPY server/ ./
