@@ -6,9 +6,6 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
-# Install yarn
-RUN npm install -g yarn
-
 # Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
@@ -31,9 +28,6 @@ RUN yarn build
 FROM node:20-alpine
 
 WORKDIR /app
-
-# Install yarn
-RUN npm install -g yarn
 
 # Install production dependencies
 COPY package*.json ./
