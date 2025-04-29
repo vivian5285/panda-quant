@@ -12,7 +12,7 @@ COPY prisma ./prisma/
 COPY tsconfig.json ./
 
 # Install dependencies
-RUN npm install -g npm@10.8.2 && \
+RUN npm config set registry https://registry.npmmirror.com && \
     npm install --legacy-peer-deps && \
     npm install -g typescript && \
     npm install prisma --save-dev
@@ -41,8 +41,8 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm install -g npm@10.8.2 && \
-    npm install --production --legacy-peer-deps && \
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm install --omit=dev --legacy-peer-deps && \
     npm install prisma --save-dev
 
 # Copy built files from build stage
