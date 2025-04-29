@@ -18,6 +18,20 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install --legacy-peer-deps
 
+# Install type declarations
+RUN npm install --save-dev \
+    @types/react \
+    @types/react-dom \
+    @types/node \
+    @types/react-router-dom \
+    @types/react-i18next \
+    @types/framer-motion \
+    @types/date-fns \
+    @types/web-vitals \
+    @types/antd \
+    @types/recharts \
+    @types/socket.io-client
+
 # Copy source code
 COPY . .
 
