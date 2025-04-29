@@ -5,6 +5,8 @@ import { commissionService } from '../services/commissionService';
 import { validateObjectId } from '../middleware/validation';
 import { CommissionService } from '../services/commissionService';
 import { AuthRequest } from '../types';
+import { validateRequest } from '../middleware/validation';
+import { body } from 'express-validator';
 
 const commissionServiceInstance = new CommissionService();
 
@@ -440,6 +442,27 @@ export const commissionController = {
       } else {
         res.status(500).json({ error: 'Unknown error occurred' });
       }
+    }
+  },
+
+  async getCommission(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      const commission = await commissionService.getCommission(userId);
+      res.json({ success: true, data: commission });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to get commission' });
+    }
+  },
+
+  async updateCommission(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      const { rate } = req.body;
+      const commission = await commissionService.updateCommission(userId, rate);
+      res.json({ success: true, data: commission });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to update commission' });
     }
   }
 }; 

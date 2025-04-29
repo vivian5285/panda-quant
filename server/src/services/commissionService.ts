@@ -1,10 +1,11 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { ICommission } from '../interfaces/ICommission';
 import { IUser } from '../interfaces/IUser';
 import { CommissionRecord } from '../models/commissionRecord';
-import { StrategyPerformance } from '../models/strategyPerformance';
-import { Commission } from '../models/commission';
-import { User } from '../models/user';
+import { StrategyPerformance } from '../models/StrategyPerformance';
+import { Commission } from '../models/Commission';
+import { User } from '../models/User';
+import { NotFoundError } from '../utils/errors';
 
 export class CommissionService {
   private static instance: CommissionService;
@@ -34,7 +35,7 @@ export class CommissionService {
    * 计算并分配佣金
    * @param performance 策略收益记录
    */
-  async calculateAndDistributeCommission(performance: StrategyPerformance) {
+  async calculateAndDistributeCommission(performance: InstanceType<typeof StrategyPerformance>) {
     const { userId, profit, strategyId } = performance;
 
     // 1. 计算平台佣金
@@ -96,18 +97,18 @@ export class CommissionService {
    * 创建佣金记录
    */
   private async createCommissionRecord(data: {
-    userId: string | null;
-    fromUserId: string;
+    userId: Types.ObjectId | null;
+    fromUserId: Types.ObjectId;
     amount: number;
     level: number;
-    strategyId: string;
-    performanceId: string;
+    strategyId: Types.ObjectId;
+    performanceId: Types.ObjectId;
   }) {
-    return await CommissionRecord.create({
+    const commission = new Commission({
       ...data,
-      status: 'pending',
-      createdAt: new Date()
+      status: 'pending'
     });
+    return await commission.save();
   }
 
   /**
@@ -175,6 +176,23 @@ export class CommissionService {
   async getCommissionTrend(userId: string): Promise<any[]> {
     // Implementation
     return [];
+  }
+
+  async getCommission(userId: string) {
+    const commission = await Commission.findOne({ userId });
+    if (!commission) {
+      throw new NotFoundError('Commission not found');
+    }
+    return commission;
+  }
+
+  async updateCommission(userId: string, rate: number) {
+    const commission = await Commission.findOneAndUpdate(
+      { userId },
+      { rate },
+      { new: true, upsert: true }
+    );
+    return commission;
   }
 }
 
