@@ -18,80 +18,55 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install --legacy-peer-deps
 
-# Install type declarations and UI dependencies
+# Install type declarations and dev dependencies
 RUN npm install --save-dev \
-    @types/node \
     @types/react \
     @types/react-dom \
-    @types/react-toastify \
-    @types/web3 \
+    @types/react-router-dom \
+    @types/react-i18next \
+    @types/framer-motion \
+    @types/date-fns \
     @types/recharts \
+    @types/socket.io-client \
+    @types/web-vitals \
+    @types/antd \
+    @types/i18next-browser-languagedetector \
+    @types/react-toastify \
+    @types/node \
+    @types/jest \
     @typescript-eslint/eslint-plugin \
     @typescript-eslint/parser \
-    @vitejs/plugin-react \
-    chalk \
     eslint \
     eslint-plugin-react \
     eslint-plugin-react-hooks \
-    eslint-plugin-react-refresh \
-    png2icons \
-    sass \
+    jest \
+    ts-jest \
     ts-node \
-    typescript \
-    vite \
-    vite-plugin-checker \
-    vite-plugin-compression \
-    vite-plugin-eslint \
-    vite-plugin-svgr \
-    web-vitals \
-    @babel/core \
-    @babel/preset-env \
-    @babel/preset-react \
-    @babel/preset-typescript \
-    @playwright/test
+    typescript
 
 # Install production dependencies
 RUN npm install --save \
+    @ant-design/icons \
     @emotion/react \
     @emotion/styled \
-    @ethersproject/providers \
     @mui/icons-material \
-    @mui/lab \
     @mui/material \
-    @mui/system \
     @mui/x-data-grid \
     @mui/x-date-pickers \
-    @tanstack/react-query \
-    @web3modal/wagmi \
+    antd \
     axios \
-    chart.js \
-    chartjs-chart-financial \
-    chartjs-plugin-gradient \
     date-fns \
-    ethers \
     framer-motion \
     i18next \
     i18next-browser-languagedetector \
-    i18next-http-backend \
-    lightweight-charts \
-    qrcode.react \
     react \
-    react-chartjs-2 \
     react-dom \
-    react-hook-form \
-    react-hot-toast \
     react-i18next \
-    react-is \
     react-router-dom \
-    react-swipeable \
     react-toastify \
     recharts \
-    sharp \
     socket.io-client \
-    viem \
-    wagmi \
-    web3 \
-    yup
+    web-vitals
 
 # Set permissions for TypeScript
 RUN chmod -R 777 /usr/local/bin/tsc
@@ -108,7 +83,7 @@ FROM node:18-slim
 WORKDIR /app
 
 # Copy built files from builder
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 
@@ -117,10 +92,10 @@ RUN npm install --production --legacy-peer-deps
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=3001
 
 # Expose the application port
-EXPOSE 3000
+EXPOSE 3001
 
 # Start the application
 CMD ["npm", "start"] 

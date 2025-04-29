@@ -18,27 +18,31 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install --legacy-peer-deps
 
-# Install type declarations and UI dependencies
+# Install type declarations and dev dependencies
 RUN npm install --save-dev \
     @types/react \
     @types/react-dom \
-    @types/node \
     @types/react-router-dom \
     @types/react-i18next \
+    @types/framer-motion \
     @types/date-fns \
-    @types/antd \
     @types/recharts \
     @types/socket.io-client \
+    @types/web-vitals \
+    @types/antd \
+    @types/i18next-browser-languagedetector \
+    @types/react-toastify \
+    @types/node \
     @types/jest \
-    @testing-library/jest-dom \
-    @testing-library/react \
-    @testing-library/user-event \
-    @vitejs/plugin-react \
-    vite \
-    vite-plugin-svgr \
-    vitest \
-    @babel/plugin-transform-react-jsx \
-    @jridgewell/source-map
+    @typescript-eslint/eslint-plugin \
+    @typescript-eslint/parser \
+    eslint \
+    eslint-plugin-react \
+    eslint-plugin-react-hooks \
+    jest \
+    ts-jest \
+    ts-node \
+    typescript
 
 # Install production dependencies
 RUN npm install --save \
@@ -47,8 +51,8 @@ RUN npm install --save \
     @emotion/styled \
     @mui/icons-material \
     @mui/material \
-    @mui/x-date-pickers \
     @mui/x-data-grid \
+    @mui/x-date-pickers \
     antd \
     axios \
     date-fns \
@@ -59,10 +63,10 @@ RUN npm install --save \
     react-dom \
     react-i18next \
     react-router-dom \
+    react-toastify \
     recharts \
     socket.io-client \
-    web-vitals \
-    react-toastify
+    web-vitals
 
 # Set permissions for TypeScript
 RUN chmod -R 777 /usr/local/bin/tsc
@@ -79,7 +83,7 @@ FROM node:18-slim
 WORKDIR /app
 
 # Copy built files from builder
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 
@@ -88,10 +92,10 @@ RUN npm install --production --legacy-peer-deps
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=3000
 
 # Expose the application port
-EXPOSE 3001
+EXPOSE 3000
 
 # Start the application
 CMD ["npm", "start"] 
