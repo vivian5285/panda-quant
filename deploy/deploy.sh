@@ -4,6 +4,14 @@
 export COMPOSE_HTTP_TIMEOUT=300
 export DOCKER_BUILDKIT=1
 
+# 加载环境变量
+if [ -f ../.env ]; then
+    print_message "Loading environment variables from .env file..." "$YELLOW"
+    export $(grep -v '^#' ../.env | xargs)
+else
+    handle_error ".env file not found"
+fi
+
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
