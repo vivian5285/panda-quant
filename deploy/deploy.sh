@@ -77,10 +77,6 @@ check_env() {
 install_dependencies() {
     print_message "Installing dependencies..." "$YELLOW"
     
-    # 安装部署依赖
-    cd deploy
-    npm install || handle_error "Failed to install deploy dependencies"
-    
     # 安装用户API依赖
     cd ../user-api
     npm install || handle_error "Failed to install user-api dependencies"
@@ -97,7 +93,7 @@ install_dependencies() {
     cd ../admin-ui
     npm install || handle_error "Failed to install admin-ui dependencies"
     
-    cd ..
+    cd ../deploy
 }
 
 # 配置 SSL 证书
@@ -143,7 +139,7 @@ stop_services() {
     print_message "Stopping services..." "$YELLOW"
     
     # 停止所有服务
-    docker-compose -f docker-compose.network.yml -f docker-compose.admin.yml -f docker-compose.user.yml down || print_message "No services to stop" "$YELLOW"
+    docker-compose -f ./docker-compose.network.yml -f ./docker-compose.admin.yml -f ./docker-compose.user.yml down || print_message "No services to stop" "$YELLOW"
 }
 
 # 启动服务
@@ -151,7 +147,7 @@ start_services() {
     print_message "Starting services..." "$YELLOW"
     
     # 启动所有服务
-    docker-compose -f docker-compose.network.yml -f docker-compose.admin.yml -f docker-compose.user.yml up -d || handle_error "Failed to start services"
+    docker-compose -f ./docker-compose.network.yml -f ./docker-compose.admin.yml -f ./docker-compose.user.yml up -d || handle_error "Failed to start services"
 }
 
 # 检查服务状态
