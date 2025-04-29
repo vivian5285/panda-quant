@@ -1,15 +1,47 @@
-import { Schema, model } from 'mongoose';
-import { User } from '../types/user';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
-const userSchema = new Schema<User>({
-  id: { type: String, required: true },
-  role: { type: String, required: true },
-  permissions: [{ type: String }],
-  email: { type: String, required: true, unique: true },
-  username: { type: String, required: true, unique: true },
-  referrerId: { type: String },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+export interface IUser extends Document {
+  _id: Types.ObjectId;
+  id: string;
+  email: string;
+  password: string;
+  role: string;
+  permissions: string[];
+  referrerId?: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const userSchema = new Schema<IUser>({
+  id: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  role: {
+    type: String,
+    required: true,
+    default: 'user'
+  },
+  permissions: {
+    type: [String],
+    default: []
+  },
+  referrerId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }
+}, {
+  timestamps: true
 });
 
-export const UserModel = model<User>('User', userSchema); 
+export const User = mongoose.model<IUser>('User', userSchema); 

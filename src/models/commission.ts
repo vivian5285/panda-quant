@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 import { ICommission } from '../interfaces/ICommission';
 
 export interface ICommissionDocument extends ICommission, Document {}
@@ -13,6 +13,8 @@ const commissionSchema = new Schema<ICommissionDocument>({
   type: { type: String, enum: ['direct', 'indirect'], required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true
 });
 
 // 添加索引
@@ -26,5 +28,5 @@ commissionSchema.pre('save', function(next) {
   next();
 });
 
-export const Commission = model<ICommissionDocument>('Commission', commissionSchema);
+export const Commission = mongoose.model<ICommissionDocument>('Commission', commissionSchema);
 export default Commission; 

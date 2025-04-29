@@ -1,16 +1,14 @@
 import { Document } from 'mongoose';
 
-export interface User extends Document {
+export interface User {
+  _id: string;
   id: string;
   role: string;
   permissions: string[];
-  _id: string;
-  email: string;
-  password: string;
-  referrerId?: string;
+  [key: string]: any;
 }
 
-export interface AuthRequest {
+export interface AuthRequest extends Request {
   user?: User;
 }
 

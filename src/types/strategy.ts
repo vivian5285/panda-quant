@@ -28,4 +28,22 @@ export interface StrategyPerformance {
   winRate: number;
   startDate: Date;
   endDate: Date;
+}
+
+export interface StrategyExecutionResult {
+  success: boolean;
+  message: string;
+  trades: Array<{
+    symbol: string;
+    side: 'buy' | 'sell';
+    price: number;
+    quantity: number;
+    timestamp: Date;
+  }>;
+  metrics: {
+    totalProfit: number;
+    winRate: number;
+    maxDrawdown: number;
+    sharpeRatio: number;
+  };
 } 

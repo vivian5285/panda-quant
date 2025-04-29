@@ -1,6 +1,11 @@
 import { Model } from 'mongoose';
 import { User, ICommission, IUserLevel, ICommissionRecord } from '../types';
 import { StrategyPerformance } from '../models/strategyPerformance';
+import { Commission } from '../models/commission';
+import { IUser } from '../models/user';
+import { CommissionRecord } from '../models/commissionRecord';
+import { ICommission as ICommissionInterface } from '../interfaces/ICommission';
+import { IUser as IUserInterface } from '../interfaces/IUser';
 
 export interface ICommissionService {
   calculateCommission(performance: number, userLevel: IUserLevel): number;
@@ -9,20 +14,25 @@ export interface ICommissionService {
 
 export class CommissionService implements ICommissionService {
   private readonly baseCommissionRate = 0.1; // 10% base commission rate
-  private commissionModel: Model<ICommission>;
-  private userModel: Model<User>;
-  private commissionRecordModel: Model<ICommissionRecord>;
-  private strategyPerformanceModel: Model<any>;
+  private commissionModel: typeof Commission;
+  private userModel: typeof User;
+  private commissionRecordModel: typeof CommissionRecord;
+  private strategyPerformanceModel: typeof StrategyPerformance;
 
-  constructor(
-    commissionModel: Model<ICommission>,
-    userModel: Model<User>,
-    commissionRecordModel: Model<ICommissionRecord>
-  ) {
-    this.commissionModel = commissionModel;
-    this.userModel = userModel;
-    this.commissionRecordModel = commissionRecordModel;
+  private static instance: CommissionService;
+
+  private constructor() {
+    this.commissionModel = Commission;
+    this.userModel = User;
+    this.commissionRecordModel = CommissionRecord;
     this.strategyPerformanceModel = StrategyPerformance;
+  }
+
+  public static getInstance(): CommissionService {
+    if (!CommissionService.instance) {
+      CommissionService.instance = new CommissionService();
+    }
+    return CommissionService.instance;
   }
 
   /**
@@ -73,15 +83,8 @@ export class CommissionService implements ICommissionService {
     }
   }
 
-  public async createCommissionRecord(userId: string, referrerId: string, amount: number): Promise<ICommissionRecord> {
-    const record = new this.commissionRecordModel({
-      userId,
-      referrerId,
-      amount,
-      type: 'commission',
-      status: 'pending'
-    });
-    return await record.save();
+  public async createCommissionRecord(data: Partial<ICommissionInterface>): Promise<ICommissionInterface> {
+    return await this.commissionModel.create(data);
   }
 
   public async distributeCommissionRecord(recordId: string): Promise<void> {
@@ -107,11 +110,12 @@ export class CommissionService implements ICommissionService {
     await record.save();
   }
 
-  public async getCommissionHistory(userId: string): Promise<ICommission[]> {
+  public async getCommissionHistory(userId: string): Promise<ICommissionInterface[]> {
     return await this.commissionModel.find({ userId });
   }
 
   public async getTotalCommission(userId: string): Promise<number> {
+    const records = await this.getCommissionHistory(userId);
     const commissions = await this.commissionModel.find({ userId });
     return commissions.reduce((total, commission) => total + commission.amount, 0);
   }
@@ -140,4 +144,4 @@ export class CommissionService implements ICommissionService {
   }
 }
 
-export const commissionService = new CommissionService(); 
+export const commissionService = CommissionService.getInstance(); 
