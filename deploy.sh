@@ -24,9 +24,12 @@ export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
 
 # 检查 .env 文件
-if [ ! -f .env ]; then
-    print_error ".env file not found"
+if [ ! -f deploy/.env ]; then
+    print_error "deploy/.env file not found"
 fi
+
+# 加载环境变量
+source deploy/.env
 
 # 安装必要的软件包
 install_dependencies() {
@@ -71,6 +74,12 @@ install_dependencies() {
 # 检查环境变量
 check_env_variables() {
     print_message "Checking environment variables..."
+    
+    # 确保环境变量已加载
+    if [ -z "$MONGO_INITDB_ROOT_USERNAME" ]; then
+        print_error "Environment variables not loaded. Please check deploy/.env file"
+    fi
+    
     required_vars=(
         "MONGO_INITDB_ROOT_USERNAME"
         "MONGO_INITDB_ROOT_PASSWORD"
@@ -81,7 +90,7 @@ check_env_variables() {
     
     for var in "${required_vars[@]}"; do
         if [ -z "${!var}" ]; then
-            print_error "$var is not set in .env file"
+            print_error "$var is not set in deploy/.env file"
         fi
     done
 }
