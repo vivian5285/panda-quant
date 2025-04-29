@@ -23,6 +23,9 @@ RUN mkdir -p prisma
 # Copy source code
 COPY . .
 
+# Set permissions for Prisma
+RUN chmod -R 777 /app/node_modules/.bin/prisma
+
 # Generate Prisma client
 RUN npx prisma generate
 
@@ -44,6 +47,9 @@ COPY --from=builder /app/prisma ./prisma
 RUN npm install --production --legacy-peer-deps
 RUN npm install prisma --save-dev
 RUN npm install @prisma/client
+
+# Set permissions for Prisma
+RUN chmod -R 777 /app/node_modules/.bin/prisma
 
 # Generate Prisma client for production
 RUN npx prisma generate
