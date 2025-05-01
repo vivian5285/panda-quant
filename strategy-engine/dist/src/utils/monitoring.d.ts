@@ -2,7 +2,7 @@ import { Counter, Gauge, Histogram } from 'prom-client';
 import { OrderStatus } from '../interfaces/order';
 export declare const strategyExecutionCounter: Counter<"status" | "strategy_id">;
 export declare const strategyExecutionDuration: Histogram<"strategy_id">;
-export declare const orderCounter: Counter<"status" | "type" | "side">;
+export declare const orderCounter: Counter<"type" | "status" | "side">;
 export declare const orderExecutionDuration: Histogram<"type" | "side">;
 export declare const orderRetryCounter: Counter<"order_id">;
 export declare const memoryUsage: Gauge<"type">;

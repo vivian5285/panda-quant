@@ -53,6 +53,12 @@ EOF
 
 # 设置权限
 chmod 600 .env
+if [ -f ssl/private.key ]; then
+  chmod 600 ssl/private.key
+fi
+if [ -f ssl/certificate.crt ]; then
+  chmod 644 ssl/certificate.crt
+fi
 
 # 创建必要的目录并设置权限
 mkdir -p $PROJECT_ROOT/user-api/logs
@@ -60,10 +66,7 @@ chmod 755 $PROJECT_ROOT/user-api/logs
 
 # 2. 构建用户端镜像
 echo "2. 构建用户端镜像..."
-echo "构建 user-api 镜像..."
-docker build -t panda-quant-user-api -f $CURRENT_DIR/Dockerfile.user-api $PROJECT_ROOT
-echo "构建 user-ui 镜像..."
-docker build -t panda-quant-user-ui -f $CURRENT_DIR/Dockerfile.user-ui $PROJECT_ROOT
+docker-compose -f $CURRENT_DIR/docker-compose.user.yml build
 
 # 3. 启动用户端服务
 echo "3. 启动用户端服务..."
@@ -74,38 +77,212 @@ echo "4. 检查服务状态..."
 echo "检查 Docker 容器状态："
 docker-compose -f $CURRENT_DIR/docker-compose.user.yml ps
 
-# 5. 配置 Nginx
-echo "5. 配置 Nginx..."
-if [ -f /etc/nginx/nginx.conf ]; then
-    echo "备份现有 Nginx 配置..."
-    sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
-    sudo mkdir -p /etc/nginx/conf.d.bak
-    sudo cp /etc/nginx/conf.d/* /etc/nginx/conf.d.bak/ 2>/dev/null || true
+# 5. 配置 SSL 证书
+echo "5. 配置 SSL 证书..."
+if [ ! -f /etc/letsencrypt/live/pandatrade.space/fullchain.pem ]; then
+    echo "配置用户端域名证书..."
+    sudo certbot --nginx -d pandatrade.space -d api.pandatrade.space
+else
+    echo "SSL 证书已存在，跳过配置"
 fi
 
-echo "复制 Nginx 配置文件..."
-sudo cp $CURRENT_DIR/nginx/nginx.conf /etc/nginx/nginx.conf
-sudo cp $CURRENT_DIR/nginx/user.conf /etc/nginx/conf.d/
+# 6. 配置 Nginx
+echo "6. 配置 Nginx..."
+if [ -f $CURRENT_DIR/nginx/user.conf ]; then
+  echo "Nginx 配置文件已存在，跳过配置"
+else
+  echo "配置 Nginx..."
+  mkdir -p $CURRENT_DIR/nginx
+  cat > $CURRENT_DIR/nginx/user.conf << EOF
+# 用户端 API 服务器
+upstream user-api {
+    server 194.164.149.214:8083;
+    keepalive 32;
+}
 
-# 6. 测试并重启 Nginx
-echo "6. 测试并重启 Nginx..."
+# 用户端 UI 服务器
+upstream user-ui {
+    server 194.164.149.214:8082;
+    keepalive 32;
+}
+
+# 主站域名配置
+server {
+    listen 80;
+    server_name pandatrade.space;
+    return 301 https://\$server_name\$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name pandatrade.space;
+
+    # SSL证书配置
+    ssl_certificate /etc/letsencrypt/live/pandatrade.space/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/pandatrade.space/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/pandatrade.space/chain.pem;
+
+    # SSL优化配置
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    # 安全头
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://*.pandatrade.space;" always;
+
+    # 前端应用
+    location / {
+        proxy_pass http://user-ui;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # API代理
+    location /api {
+        proxy_pass http://user-api;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # 健康检查
+    location /health {
+        access_log off;
+        return 200 'healthy\n';
+        add_header Content-Type text/plain;
+    }
+}
+
+# API域名配置
+server {
+    listen 80;
+    server_name api.pandatrade.space;
+    return 301 https://\$server_name\$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name api.pandatrade.space;
+
+    # SSL证书配置
+    ssl_certificate /etc/letsencrypt/live/api.pandatrade.space/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.pandatrade.space/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/api.pandatrade.space/chain.pem;
+
+    # SSL优化配置
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    # 安全头
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; connect-src 'self' https://*.pandatrade.space;" always;
+
+    # API代理
+    location / {
+        proxy_pass http://user-api;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # 健康检查
+    location /health {
+        access_log off;
+        return 200 'healthy\n';
+        add_header Content-Type text/plain;
+    }
+}
+EOF
+fi
+
+# 7. 测试并重启 Nginx
+echo "7. 测试并重启 Nginx..."
 sudo nginx -t
 sudo systemctl restart nginx
 
-# 7. 等待服务启动
-echo "7. 等待服务启动..."
-sleep 10
+# 8. 等待服务启动并检查健康状态
+echo "8. 等待服务启动并检查健康状态..."
+MAX_RETRIES=30
+RETRY_INTERVAL=5
+retry_count=0
 
-# 8. 检查服务健康状态
-echo "8. 检查服务健康状态..."
-echo "检查 User API 服务..."
-curl -f http://localhost:8083/health || echo "User API 服务未就绪"
-echo "检查 User UI 服务..."
-curl -f http://localhost:8082/health || echo "User UI 服务未就绪"
+while [ $retry_count -lt $MAX_RETRIES ]; do
+    echo "尝试检查服务健康状态 (尝试 $((retry_count + 1))/$MAX_RETRIES)..."
+    
+    # 检查 User API 服务
+    if curl -f https://api.pandatrade.space/health > /dev/null 2>&1; then
+        echo "User API 服务已就绪"
+    else
+        echo "User API 服务未就绪，等待重试..."
+        sleep $RETRY_INTERVAL
+        retry_count=$((retry_count + 1))
+        continue
+    fi
+    
+    # 检查 User UI 服务
+    if curl -f https://pandatrade.space/health > /dev/null 2>&1; then
+        echo "User UI 服务已就绪"
+        break
+    else
+        echo "User UI 服务未就绪，等待重试..."
+        sleep $RETRY_INTERVAL
+        retry_count=$((retry_count + 1))
+    fi
+done
+
+if [ $retry_count -eq $MAX_RETRIES ]; then
+    echo "错误：服务在 $((MAX_RETRIES * RETRY_INTERVAL)) 秒后仍未就绪"
+    exit 1
+fi
 
 echo "用户端服务部署完成！"
 echo "请确保以下域名已正确配置 DNS 记录："
 echo "- pandatrade.space"
-echo "- api.pandatrade.space"
-echo ""
-echo "注意：SSL 证书将在后续单独配置，请运行 deploy-ssl.sh 脚本进行配置" 
+echo "- api.pandatrade.space" 

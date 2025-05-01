@@ -78,51 +78,161 @@ echo "4. 检查服务状态..."
 echo "检查 Docker 容器状态："
 docker-compose -f $CURRENT_DIR/docker-compose.admin.yml ps
 
-# 5. 配置 Nginx
-echo "5. 配置 Nginx..."
+# 5. 配置 SSL 证书
+echo "5. 配置 SSL 证书..."
+if [ ! -f /etc/letsencrypt/live/admin.pandatrade.space/fullchain.pem ]; then
+    echo "配置管理端域名证书..."
+    sudo certbot --nginx -d admin.pandatrade.space -d admin-api.pandatrade.space
+else
+    echo "SSL 证书已存在，跳过配置"
+fi
+
+# 6. 配置 Nginx
+echo "6. 配置 Nginx..."
 if [ -f $CURRENT_DIR/nginx/admin.conf ]; then
   echo "Nginx 配置文件已存在，跳过配置"
 else
   echo "配置 Nginx..."
   mkdir -p $CURRENT_DIR/nginx
   cat > $CURRENT_DIR/nginx/admin.conf << EOF
+# 管理端 API 服务器
+upstream admin-api {
+    server 194.164.149.214:3001;
+    keepalive 32;
+}
+
+# 管理后台域名配置
 server {
     listen 80;
     server_name admin.pandatrade.space;
+    return 301 https://\$server_name\$request_uri;
+}
 
+server {
+    listen 443 ssl http2;
+    server_name admin.pandatrade.space;
+
+    # SSL证书配置
+    ssl_certificate /etc/letsencrypt/live/admin.pandatrade.space/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/admin.pandatrade.space/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/admin.pandatrade.space/chain.pem;
+
+    # SSL优化配置
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    # 安全头
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://*.pandatrade.space;" always;
+
+    # 前端应用
     location / {
-        proxy_pass http://admin-ui:8084;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        root /var/www/admin-ui;
+        try_files \$uri \$uri/ /index.html;
+        add_header Cache-Control "no-cache";
     }
 
+    # API代理
     location /api {
-        proxy_pass http://admin-api:3001;
+        proxy_pass http://admin-api;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
         proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
     }
 
     # 健康检查
     location /health {
         access_log off;
+        return 200 'healthy\n';
         add_header Content-Type text/plain;
-        return 200 "healthy\n";
+    }
+}
+
+# 管理API域名配置
+server {
+    listen 80;
+    server_name admin-api.pandatrade.space;
+    return 301 https://\$server_name\$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name admin-api.pandatrade.space;
+
+    # SSL证书配置
+    ssl_certificate /etc/letsencrypt/live/admin-api.pandatrade.space/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/admin-api.pandatrade.space/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/admin-api.pandatrade.space/chain.pem;
+
+    # SSL优化配置
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    # 安全头
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; connect-src 'self' https://*.pandatrade.space;" always;
+
+    # API代理
+    location / {
+        proxy_pass http://admin-api;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    # 健康检查
+    location /health {
+        access_log off;
+        return 200 'healthy\n';
+        add_header Content-Type text/plain;
     }
 }
 EOF
 fi
 
-# 6. 测试并重启 Nginx
-echo "6. 测试并重启 Nginx..."
+# 7. 测试并重启 Nginx
+echo "7. 测试并重启 Nginx..."
 sudo nginx -t
 sudo systemctl restart nginx
 
-# 7. 等待服务启动并检查健康状态
-echo "7. 等待服务启动并检查健康状态..."
+# 8. 等待服务启动并检查健康状态
+echo "8. 等待服务启动并检查健康状态..."
 MAX_RETRIES=30
 RETRY_INTERVAL=5
 retry_count=0
@@ -131,7 +241,7 @@ while [ $retry_count -lt $MAX_RETRIES ]; do
     echo "尝试检查服务健康状态 (尝试 $((retry_count + 1))/$MAX_RETRIES)..."
     
     # 检查 Admin API 服务
-    if curl -f http://localhost:3001/health > /dev/null 2>&1; then
+    if curl -f https://admin-api.pandatrade.space/health > /dev/null 2>&1; then
         echo "Admin API 服务已就绪"
     else
         echo "Admin API 服务未就绪，等待重试..."
@@ -141,7 +251,7 @@ while [ $retry_count -lt $MAX_RETRIES ]; do
     fi
     
     # 检查 Admin UI 服务
-    if curl -f http://localhost:8084/health > /dev/null 2>&1; then
+    if curl -f https://admin.pandatrade.space/health > /dev/null 2>&1; then
         echo "Admin UI 服务已就绪"
         break
     else
@@ -154,17 +264,6 @@ done
 if [ $retry_count -eq $MAX_RETRIES ]; then
     echo "错误：服务在 $((MAX_RETRIES * RETRY_INTERVAL)) 秒后仍未就绪"
     exit 1
-fi
-
-# 8. 配置 SSL 证书（可选）
-read -p "是否需要配置 SSL 证书？(y/n): " need_ssl
-if [ "$need_ssl" = "y" ]; then
-    echo "8. 配置 SSL 证书..."
-    echo "为 admin.pandatrade.space 和 admin-api.pandatrade.space 配置证书..."
-    sudo certbot --nginx -d admin.pandatrade.space -d admin-api.pandatrade.space
-
-    echo "设置证书自动续期..."
-    sudo certbot renew --dry-run
 fi
 
 echo "管理端服务部署完成！"
