@@ -111,11 +111,10 @@ const AdminNavbar: React.FC = () => {
   };
 
   const Logo = () => (
-    <Box
-      component={motion.div}
+    <motion.div
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      sx={{ cursor: 'pointer' }}
+      style={{ cursor: 'pointer' }}
       onClick={() => navigate('/admin/dashboard')}
     >
       <Typography
@@ -129,7 +128,7 @@ const AdminNavbar: React.FC = () => {
       >
         PANDA QUANT ADMIN
       </Typography>
-    </Box>
+    </motion.div>
   );
 
   const UserMenu = () => (
