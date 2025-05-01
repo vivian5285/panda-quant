@@ -129,28 +129,136 @@ fi
 mkdir -p $PROJECT_ROOT/admin-api/logs
 chmod 755 $PROJECT_ROOT/admin-api/logs
 
-# 2. 构建管理端镜像
-log "2. 构建管理端镜像..."
+# 2. 安装依赖和类型定义
+log "2. 安装依赖和类型定义..."
+cd $PROJECT_ROOT/admin-api
+
+# 安装生产依赖
+log "安装生产依赖..."
+npm install --production
+
+# 安装开发依赖和类型定义
+log "安装开发依赖和类型定义..."
+npm install --save-dev @types/node @types/redis @types/express @types/mongoose typescript @typescript-eslint/parser @typescript-eslint/eslint-plugin
+
+# 创建缺失的类型定义文件
+log "创建缺失的类型定义文件..."
+mkdir -p src/types
+
+# 创建 Blacklist 类型定义
+cat > src/types/Blacklist.d.ts << EOF
+export interface Blacklist {
+    _id: string;
+    userId: string;
+    reason: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+EOF
+
+# 创建 CommissionRule 类型定义
+cat > src/types/CommissionRule.d.ts << EOF
+export interface CommissionRule {
+    _id: string;
+    level: number;
+    rate: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
+EOF
+
+# 创建 Order 类型定义
+cat > src/types/Order.d.ts << EOF
+export interface Order {
+    _id: string;
+    userId: string;
+    strategyId: string;
+    amount: number;
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+EOF
+
+# 创建 StrategyRating 类型定义
+cat > src/types/StrategyRating.d.ts << EOF
+export interface StrategyRating {
+    _id: string;
+    strategyId: string;
+    userId: string;
+    rating: number;
+    comment?: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+EOF
+
+# 创建 UserLevel 类型定义
+cat > src/types/UserLevel.d.ts << EOF
+export interface UserLevel {
+    _id: string;
+    userId: string;
+    level: number;
+    points: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
+EOF
+
+# 3. 构建管理端镜像
+log "3. 构建管理端镜像..."
 if ! docker-compose -f $CURRENT_DIR/docker-compose.admin.yml build; then
     handle_error "构建镜像失败"
 fi
 
-# 3. 启动管理端服务
-log "3. 启动管理端服务..."
+# 4. 启动管理端服务
+log "4. 启动管理端服务..."
 if ! docker-compose -f $CURRENT_DIR/docker-compose.admin.yml up -d; then
     handle_error "启动服务失败"
 fi
 
-# 4. 检查服务状态
-log "4. 检查服务状态..."
+# 等待服务启动
+log "等待服务启动..."
+sleep 30
+
+# 检查服务状态
+log "检查服务状态..."
 echo "检查 Docker 容器状态："
 docker-compose -f $CURRENT_DIR/docker-compose.admin.yml ps
+
+# 检查服务日志
+log "检查服务日志..."
+docker-compose -f $CURRENT_DIR/docker-compose.admin.yml logs --tail=100
 
 # 5. 配置 SSL 证书
 log "5. 配置 SSL 证书..."
 if [ ! -f /etc/letsencrypt/live/${ADMIN_DOMAIN}/fullchain.pem ]; then
     log "配置管理端域名证书..."
-    if ! sudo certbot --nginx -d ${ADMIN_DOMAIN} -d ${ADMIN_API_DOMAIN}; then
+    
+    # 创建临时 Nginx 配置
+    mkdir -p /etc/nginx/conf.d
+    cat > /etc/nginx/conf.d/admin.conf << EOF
+server {
+    listen 80;
+    server_name ${ADMIN_DOMAIN} ${ADMIN_API_DOMAIN};
+    location / {
+        return 301 https://\$host\$request_uri;
+    }
+}
+EOF
+    
+    # 验证 Nginx 配置
+    if ! nginx -t; then
+        handle_error "Nginx 配置验证失败"
+    fi
+    
+    # 重启 Nginx
+    if ! systemctl restart nginx; then
+        handle_error "Nginx 重启失败"
+    fi
+    
+    # 申请证书
+    if ! certbot --nginx -d ${ADMIN_DOMAIN} -d ${ADMIN_API_DOMAIN} --email pandaspace0001@gmail.com --agree-tos --no-eff-email; then
         handle_error "SSL证书配置失败"
     fi
     
@@ -174,185 +282,165 @@ fi
 log "配置 Nginx..."
 mkdir -p $CURRENT_DIR/nginx
 cat > $CURRENT_DIR/nginx/admin.conf << EOF
-user nginx;
-worker_processes auto;
-error_log /var/log/nginx/error.log warn;
-pid /var/run/nginx.pid;
-
-events {
-    worker_connections 1024;
+# 管理端 API 服务器
+upstream admin-api {
+    server localhost:3001;
+    keepalive 32;
 }
 
-http {
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
-    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
-                    '$status $body_bytes_sent "$http_referer" '
-                    '"$http_user_agent" "$http_x_forwarded_for"';
-    access_log /var/log/nginx/access.log main;
-    sendfile on;
-    keepalive_timeout 65;
+# 管理后台域名配置
+server {
+    listen 80;
+    server_name ${ADMIN_DOMAIN};
+    return 301 https://\$server_name\$request_uri;
+}
 
-    # 管理端 API 服务器
-    upstream admin-api {
-        server localhost:3001;
-        keepalive 32;
+server {
+    listen 443 ssl http2;
+    server_name ${ADMIN_DOMAIN};
+
+    # SSL证书配置
+    ssl_certificate /etc/letsencrypt/live/${ADMIN_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${ADMIN_DOMAIN}/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/${ADMIN_DOMAIN}/chain.pem;
+
+    # SSL优化配置
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    # 安全头
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://*.${DOMAIN};" always;
+
+    # 前端应用
+    location / {
+        root /var/www/admin-ui;
+        try_files \$uri \$uri/ /index.html;
+        add_header Cache-Control "no-cache";
+        
+        # 启用 gzip 压缩
+        gzip on;
+        gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+        gzip_min_length 1000;
+        gzip_proxied any;
+        gzip_vary on;
     }
 
-    # 管理后台域名配置
-    server {
-        listen 80;
-        server_name ${ADMIN_DOMAIN};
-        return 301 https://\$server_name\$request_uri;
+    # API代理
+    location /api {
+        proxy_pass http://admin-api;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # 启用 gzip 压缩
+        gzip on;
+        gzip_types application/json;
+        gzip_min_length 1000;
+        gzip_proxied any;
     }
 
-    server {
-        listen 443 ssl http2;
-        server_name ${ADMIN_DOMAIN};
-
-        # SSL证书配置
-        ssl_certificate /etc/letsencrypt/live/${ADMIN_DOMAIN}/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/${ADMIN_DOMAIN}/privkey.pem;
-        ssl_trusted_certificate /etc/letsencrypt/live/${ADMIN_DOMAIN}/chain.pem;
-
-        # SSL优化配置
-        ssl_session_timeout 1d;
-        ssl_session_cache shared:SSL:50m;
-        ssl_session_tickets off;
-        ssl_protocols TLSv1.2 TLSv1.3;
-        ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
-        ssl_prefer_server_ciphers off;
-
-        # 安全头
-        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
-        add_header X-Frame-Options "SAMEORIGIN" always;
-        add_header X-XSS-Protection "1; mode=block" always;
-        add_header X-Content-Type-Options "nosniff" always;
-        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://*.${DOMAIN};" always;
-
-        # 前端应用
-        location / {
-            root /var/www/admin-ui;
-            try_files \$uri \$uri/ /index.html;
-            add_header Cache-Control "no-cache";
-            
-            # 启用 gzip 压缩
-            gzip on;
-            gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-            gzip_min_length 1000;
-            gzip_proxied any;
-            gzip_vary on;
-        }
-
-        # API代理
-        location /api {
-            proxy_pass http://admin-api;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade \$http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host \$host;
-            proxy_cache_bypass \$http_upgrade;
-            proxy_set_header X-Real-IP \$remote_addr;
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$scheme;
-            
-            # 超时设置
-            proxy_connect_timeout 60s;
-            proxy_send_timeout 60s;
-            proxy_read_timeout 60s;
-            
-            # 启用 gzip 压缩
-            gzip on;
-            gzip_types application/json;
-            gzip_min_length 1000;
-            gzip_proxied any;
-        }
-
-        # 健康检查
-        location /health {
-            access_log off;
-            return 200 'healthy\n';
-            add_header Content-Type text/plain;
-        }
-
-        # 错误页面
-        error_page 404 /404.html;
-        error_page 500 502 503 504 /50x.html;
-        location = /50x.html {
-            root /usr/share/nginx/html;
-        }
+    # 健康检查
+    location /health {
+        access_log off;
+        return 200 'healthy\n';
+        add_header Content-Type text/plain;
     }
 
-    # 管理API域名配置
-    server {
-        listen 80;
-        server_name ${ADMIN_API_DOMAIN};
-        return 301 https://\$server_name\$request_uri;
+    # 错误页面
+    error_page 404 /404.html;
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+}
+
+# 管理API域名配置
+server {
+    listen 80;
+    server_name ${ADMIN_API_DOMAIN};
+    return 301 https://\$server_name\$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name ${ADMIN_API_DOMAIN};
+
+    # SSL证书配置
+    ssl_certificate /etc/letsencrypt/live/${ADMIN_API_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${ADMIN_API_DOMAIN}/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/${ADMIN_API_DOMAIN}/chain.pem;
+
+    # SSL优化配置
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    # 安全头
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "default-src 'self'; connect-src 'self' https://*.${DOMAIN};" always;
+
+    # API代理
+    location / {
+        proxy_pass http://admin-api;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # 启用 gzip 压缩
+        gzip on;
+        gzip_types application/json;
+        gzip_min_length 1000;
+        gzip_proxied any;
     }
 
-    server {
-        listen 443 ssl http2;
-        server_name ${ADMIN_API_DOMAIN};
+    # 健康检查
+    location /health {
+        access_log off;
+        return 200 'healthy\n';
+        add_header Content-Type text/plain;
+    }
 
-        # SSL证书配置
-        ssl_certificate /etc/letsencrypt/live/${ADMIN_API_DOMAIN}/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/${ADMIN_API_DOMAIN}/privkey.pem;
-        ssl_trusted_certificate /etc/letsencrypt/live/${ADMIN_API_DOMAIN}/chain.pem;
-
-        # SSL优化配置
-        ssl_session_timeout 1d;
-        ssl_session_cache shared:SSL:50m;
-        ssl_session_tickets off;
-        ssl_protocols TLSv1.2 TLSv1.3;
-        ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
-        ssl_prefer_server_ciphers off;
-
-        # 安全头
-        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
-        add_header X-Frame-Options "SAMEORIGIN" always;
-        add_header X-XSS-Protection "1; mode=block" always;
-        add_header X-Content-Type-Options "nosniff" always;
-        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-        add_header Content-Security-Policy "default-src 'self'; connect-src 'self' https://*.${DOMAIN};" always;
-
-        # API代理
-        location / {
-            proxy_pass http://admin-api;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade \$http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host \$host;
-            proxy_cache_bypass \$http_upgrade;
-            proxy_set_header X-Real-IP \$remote_addr;
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$scheme;
-            
-            # 超时设置
-            proxy_connect_timeout 60s;
-            proxy_send_timeout 60s;
-            proxy_read_timeout 60s;
-            
-            # 启用 gzip 压缩
-            gzip on;
-            gzip_types application/json;
-            gzip_min_length 1000;
-            gzip_proxied any;
-        }
-
-        # 健康检查
-        location /health {
-            access_log off;
-            return 200 'healthy\n';
-            add_header Content-Type text/plain;
-        }
-
-        # 错误页面
-        error_page 404 /404.html;
-        error_page 500 502 503 504 /50x.html;
-        location = /50x.html {
-            root /usr/share/nginx/html;
-        }
+    # 错误页面
+    error_page 404 /404.html;
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
     }
 }
 EOF

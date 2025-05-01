@@ -220,11 +220,35 @@ log "5. 检查服务状态..."
 echo "检查 Docker 容器状态："
 docker-compose -f $CURRENT_DIR/docker-compose.user.yml ps
 
-# 6. 配置 SSL 证书
-log "6. 配置 SSL 证书..."
+# 5. 配置 SSL 证书
+log "5. 配置 SSL 证书..."
 if [ ! -f /etc/letsencrypt/live/${USER_DOMAIN}/fullchain.pem ]; then
     log "配置用户端域名证书..."
-    if ! sudo certbot --nginx -d ${USER_DOMAIN} -d ${USER_API_DOMAIN}; then
+    
+    # 创建临时 Nginx 配置
+    mkdir -p /etc/nginx/conf.d
+    cat > /etc/nginx/conf.d/user.conf << EOF
+server {
+    listen 80;
+    server_name ${USER_DOMAIN} ${USER_API_DOMAIN};
+    location / {
+        return 301 https://\$host\$request_uri;
+    }
+}
+EOF
+    
+    # 验证 Nginx 配置
+    if ! nginx -t; then
+        handle_error "Nginx 配置验证失败"
+    fi
+    
+    # 重启 Nginx
+    if ! systemctl restart nginx; then
+        handle_error "Nginx 重启失败"
+    fi
+    
+    # 申请证书
+    if ! certbot --nginx -d ${USER_DOMAIN} -d ${USER_API_DOMAIN} --email pandaspace0001@gmail.com --agree-tos --no-eff-email; then
         handle_error "SSL证书配置失败"
     fi
     
