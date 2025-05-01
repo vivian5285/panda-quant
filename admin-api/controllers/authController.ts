@@ -2,13 +2,9 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model';
 import bcrypt from 'bcrypt';
+import { AuthRequest } from '../types/auth';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-// 生成随机推荐码
-const generateReferralCode = () => {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-};
 
 // 初始化管理员账户
 export const initAdmin = async () => {
@@ -31,14 +27,15 @@ export const initAdmin = async () => {
   }
 };
 
-export const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
     // 检查邮箱是否已存在
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'Email already exists' });
+      res.status(400).json({ message: 'Email already exists' });
+      return;
     }
 
     // 创建新用户
@@ -74,20 +71,22 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
     // 查找用户
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ message: 'Invalid email or password' });
+      return;
     }
 
     // 验证密码
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ message: 'Invalid email or password' });
+      return;
     }
 
     // 生成 JWT token
@@ -117,17 +116,18 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const requestPasswordReset = async (req: Request, res: Response) => {
+export const requestPasswordReset = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
     
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
     // 生成重置令牌
-    jwt.sign(
+    const resetToken = jwt.sign(
       { userId: user._id },
       JWT_SECRET,
       { expiresIn: '1h' }
@@ -135,6 +135,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 
     // TODO: 发送包含重置令牌的邮件
     // 这里应该实现邮件发送逻辑
+    console.log('Password reset token:', resetToken);
 
     res.json({ message: 'Password reset email sent' });
   } catch (error) {
@@ -143,7 +144,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
   }
 };
 
-export const resetPassword = async (req: Request, res: Response) => {
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
   try {
     const { token, newPassword } = req.body;
 
@@ -152,11 +153,13 @@ export const resetPassword = async (req: Request, res: Response) => {
     const user = await User.findById(decoded.userId);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
     // 更新密码
-    user.password = newPassword;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
     await user.save();
 
     res.json({ message: 'Password reset successfully' });
@@ -166,18 +169,20 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
-export const updateUserProfile = async (req: Request, res: Response) => {
+export const updateUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const user = req.user;
     if (!user || !user._id) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
     }
 
     const { email, password, status } = req.body;
 
     const existingUser = await User.findById(user._id);
     if (!existingUser) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
     // 更新可修改的字段
@@ -196,11 +201,11 @@ export const updateUserProfile = async (req: Request, res: Response) => {
   }
 };
 
-export const logout = async (req: Request, res: Response) => {
+export const logout = async (_req: Request, res: Response): Promise<void> => {
   res.json({ message: 'Logged out successfully' });
 };
 
-export const createAdmin = async (req: Request, res: Response) => {
+export const createAdmin = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);

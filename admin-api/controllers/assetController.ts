@@ -2,20 +2,12 @@ import { Request, Response } from 'express';
 import { Transaction } from '../models/Transaction';
 import { feeService } from '../services/feeService';
 import { UserAsset } from '../models/UserAsset';
-import { Asset } from '../models/Asset';
+import { Asset, IAsset } from '../models/Asset';
 import { User } from '../models/user.model';
-
-// 定义本地类型
-interface AuthRequest extends Request {
-    user?: {
-        _id: string;
-        email: string;
-        role: string;
-    };
-}
+import { AuthRequest } from '../types/auth';
 
 // 获取所有用户资产
-export const getAllAssets = async (req: Request, res: Response) => {
+export const getAllAssets = async (_req: Request, res: Response): Promise<void> => {
   try {
     const assets = await UserAsset.find()
       .populate('userId', 'email')
@@ -29,14 +21,15 @@ export const getAllAssets = async (req: Request, res: Response) => {
 };
 
 // 更新资产状态
-export const updateAssetStatus = async (req: Request, res: Response) => {
+export const updateAssetStatus = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
     const asset = await UserAsset.findById(id);
     if (!asset) {
-      return res.status(404).json({ message: '资产不存在' });
+      res.status(404).json({ message: '资产不存在' });
+      return;
     }
 
     asset.status = status;
@@ -50,7 +43,7 @@ export const updateAssetStatus = async (req: Request, res: Response) => {
 };
 
 // 处理月度托管费
-export const processMonthlyFees = async (req: Request, res: Response) => {
+export const processMonthlyFees = async (_req: Request, res: Response): Promise<void> => {
   try {
     const users = await User.find({ isNewUser: false });
     const currentDate = new Date();
@@ -81,7 +74,7 @@ export const processMonthlyFees = async (req: Request, res: Response) => {
   }
 };
 
-export const getAssetSummary = async (req: Request, res: Response) => {
+export const getAssetSummary = async (_req: Request, res: Response): Promise<void> => {
   try {
     const summary = await UserAsset.aggregate([
       {
@@ -100,7 +93,7 @@ export const getAssetSummary = async (req: Request, res: Response) => {
   }
 };
 
-export const getDepositHistory = async (req: Request, res: Response) => {
+export const getDepositHistory = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.params.userId;
     const deposits = await Transaction.find({
@@ -115,7 +108,7 @@ export const getDepositHistory = async (req: Request, res: Response) => {
   }
 };
 
-export const getFeeHistory = async (req: Request, res: Response) => {
+export const getFeeHistory = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.params.userId;
     const fees = await Transaction.find({
@@ -130,18 +123,20 @@ export const getFeeHistory = async (req: Request, res: Response) => {
   }
 };
 
-export const confirmDeposit = async (req: Request, res: Response) => {
+export const confirmDeposit = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
     const { txHash, amount, chain } = req.body;
 
     if (!txHash || !amount || !chain) {
-      return res.status(400).json({ message: 'Missing required fields' });
+      res.status(400).json({ message: 'Missing required fields' });
+      return;
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
     await feeService.confirmDeposit(userId, txHash, amount, chain);
@@ -153,7 +148,7 @@ export const confirmDeposit = async (req: Request, res: Response) => {
   }
 };
 
-export const getAssets = async (req: Request, res: Response) => {
+export const getAssets = async (_req: Request, res: Response): Promise<void> => {
     try {
         const assets = await Asset.find();
         res.json(assets);
@@ -162,7 +157,7 @@ export const getAssets = async (req: Request, res: Response) => {
     }
 };
 
-export const getUserAssets = async (req: AuthRequest, res: Response) => {
+export const getUserAssets = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const userAssets = await UserAsset.find({ userId: req.user?._id });
         res.json(userAssets);
@@ -171,13 +166,14 @@ export const getUserAssets = async (req: AuthRequest, res: Response) => {
     }
 };
 
-export const updateUserAsset = async (req: AuthRequest, res: Response) => {
+export const updateUserAsset = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { assetId, amount } = req.body;
         const userId = req.user?._id;
 
         if (!userId) {
-            return res.status(401).json({ error: 'User not authenticated' });
+            res.status(401).json({ error: 'User not authenticated' });
+            return;
         }
 
         const userAsset = await UserAsset.findOneAndUpdate(
@@ -192,12 +188,13 @@ export const updateUserAsset = async (req: AuthRequest, res: Response) => {
     }
 };
 
-export const calculateTotalValue = async (req: AuthRequest, res: Response) => {
+export const calculateTotalValue = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?._id;
 
         if (!userId) {
-            return res.status(401).json({ error: 'User not authenticated' });
+            res.status(401).json({ error: 'User not authenticated' });
+            return;
         }
 
         const userAssets = await UserAsset.find({ userId });
@@ -205,7 +202,10 @@ export const calculateTotalValue = async (req: AuthRequest, res: Response) => {
 
         let totalValue = 0;
         for (const userAsset of userAssets) {
-            const asset = assets.find(a => a._id.toString() === userAsset.assetId);
+            const asset = assets.find((a: IAsset) => {
+                const assetId = a._id?.toString();
+                return assetId === userAsset.assetId;
+            });
             if (asset) {
                 totalValue += userAsset.amount * asset.price;
             }

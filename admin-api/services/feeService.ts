@@ -1,7 +1,6 @@
 import { Fee } from '../models/fee.model';
 import { User } from '../models/user.model';
-import { UserAsset } from '../models/userAsset.model';
-import { Asset } from '../models/asset.model';
+import { Asset, IAsset } from '../models/Asset';
 import { Transaction } from '../models/Transaction';
 import cron from 'node-cron';
 
@@ -10,13 +9,6 @@ const FEE_SCHEDULE = '0 0 1 * *';
 
 // 基础托管费
 const BASE_FEE = 100;
-
-// 扩展IAsset接口，添加chain属性
-interface IAssetWithChain {
-    chain: string;
-    balance: number;
-    userId: string;
-}
 
 export class FeeService {
   private static instance: FeeService;
@@ -54,7 +46,7 @@ export class FeeService {
         if (assets.length === 0) continue;
 
         // 计算总资产
-        const totalBalance = assets.reduce((sum, asset) => sum + asset.balance, 0);
+        const totalBalance = assets.reduce((sum: number, asset: IAsset) => sum + asset.balance, 0);
         
         // 计算托管费（新用户首月有30美元折扣）
         const isNewUser = await this.isNewUser(userId);
@@ -77,10 +69,7 @@ export class FeeService {
         });
 
         // 更新用户资产
-        const mainAsset = assets.find(asset => {
-          const assetWithChain = asset as unknown as IAssetWithChain;
-          return assetWithChain.chain === 'BSC';
-        });
+        const mainAsset = assets.find((asset: IAsset) => asset.chain === 'BSC');
         if (mainAsset) {
           mainAsset.balance -= feeAmount;
           await mainAsset.save();
@@ -92,12 +81,12 @@ export class FeeService {
     }
   }
 
-  private async isNewUser(userId: unknown): Promise<boolean> {
+  private async isNewUser(userId: string): Promise<boolean> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
     const recentFees = await Fee.find({
-      userId: (userId as string).toString(),
+      userId,
       type: 'monthly',
       createdAt: { $gte: thirtyDaysAgo }
     });
@@ -131,7 +120,11 @@ export class FeeService {
           userId,
           chain,
           address: '', // 需要从用户信息中获取
-          balance: amount
+          balance: amount,
+          name: 'Default Asset',
+          symbol: 'DA',
+          price: 1,
+          status: 'active'
         });
       } else {
         asset.balance += amount;
@@ -161,18 +154,12 @@ export class FeeService {
       throw new Error('User asset not found');
     }
 
-    // 确保 userAsset 有 chain 属性
-    const assetWithChain = userAsset as unknown as IAssetWithChain;
-    if (!assetWithChain.chain) {
-      throw new Error('Asset chain information is missing');
-    }
-
     const fee = new Fee({
       userId,
       amount,
       type,
       status: 'completed',
-      chain: assetWithChain.chain
+      chain: userAsset.chain
     });
 
     return await fee.save();
@@ -196,19 +183,16 @@ export class FeeService {
     await Fee.findByIdAndUpdate(feeId, { status: 'completed' });
   }
 
-  async getMainAsset(userId: string): Promise<IAssetWithChain | null> {
+  async getMainAsset(userId: string): Promise<IAsset | null> {
     const assets = await Asset.find({ userId });
     if (!assets || assets.length === 0) {
       return null;
     }
 
     // 查找 BSC 链上的资产
-    const mainAsset = assets.find(asset => {
-      const assetWithChain = asset as unknown as IAssetWithChain;
-      return assetWithChain.chain === 'BSC';
-    });
+    const mainAsset = assets.find((asset: IAsset) => asset.chain === 'BSC');
 
-    return mainAsset as unknown as IAssetWithChain;
+    return mainAsset || null;
   }
 }
 

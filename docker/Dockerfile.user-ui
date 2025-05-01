@@ -1,4 +1,4 @@
-FROM node:18-slim AS builder
+FROM node:18 AS builder
 
 WORKDIR /app
 
@@ -11,9 +11,6 @@ RUN apt-get update && apt-get install -y \
 
 # Install TypeScript globally
 RUN npm install -g typescript@5.3.3
-
-# Set permissions for TypeScript
-RUN chmod -R 777 /usr/local/bin/tsc
 
 # Create a non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
@@ -31,8 +28,8 @@ COPY user-ui/ ./
 
 # Set proper permissions
 RUN chown -R appuser:appuser /app && \
-    chmod -R 755 /app && \
-    chmod -R 755 /app/node_modules/.bin
+    chmod -R 777 /app && \
+    chmod -R 777 /app/node_modules/.bin
 
 # Switch to non-root user
 USER appuser
@@ -51,6 +48,9 @@ FROM nginx:stable
 RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
+
+# Create nginx user and group
+RUN groupadd -r nginxuser && useradd -r -g nginxuser nginxuser
 
 # Copy built files from builder
 COPY --from=builder /app/dist /usr/share/nginx/html
@@ -78,11 +78,18 @@ RUN echo 'server { \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
+# Set proper permissions
+RUN chown -R nginxuser:nginxuser /usr/share/nginx/html && \
+    chmod -R 777 /usr/share/nginx/html
+
+# Switch to non-root user
+USER nginxuser
+
 # Expose the application port
 EXPOSE 8082
 
 # Add health check
-HEALTHCHECK --interval=30s --timeout=3s \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8082/ || exit 1
 
 # Start nginx

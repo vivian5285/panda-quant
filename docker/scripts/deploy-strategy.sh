@@ -78,7 +78,7 @@ chmod 600 .env
 
 # 2. 安装依赖
 log "2. 安装依赖..."
-cd $PROJECT_ROOT/strategy-api
+cd $PROJECT_ROOT/strategy-engine
 
 if [ ! -d "node_modules" ]; then
     log "安装依赖..."
@@ -109,10 +109,6 @@ sleep 10
 
 # 检查服务状态
 log "检查服务状态..."
-if ! docker ps | grep -q "panda-quant-strategy-api"; then
-    handle_error "strategy-api 服务未启动"
-fi
-
 if ! docker ps | grep -q "panda-quant-strategy-engine"; then
     handle_error "strategy-engine 服务未启动"
 fi

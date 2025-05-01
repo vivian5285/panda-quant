@@ -2,10 +2,10 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { authRoutes } from './routes/auth.routes';
-import { userRoutes } from './routes/user.routes';
-import { assetRoutes } from './routes/asset.routes';
-import { orderRoutes } from './routes/order.routes';
+import authRoutes from './routes/authRoutes';
+import userRoutes from './routes/user';
+import assetRoutes from './routes/assetRoutes';
+import orderRoutes from './routes/order.routes';
 import { authenticateToken } from './middleware/auth';
 
 dotenv.config();
