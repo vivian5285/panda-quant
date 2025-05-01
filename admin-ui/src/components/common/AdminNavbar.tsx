@@ -18,7 +18,7 @@ import {
   Badge,
   styled,
 } from '@mui/material';
-import { motion } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import {
   Menu as MenuIcon,
   Language as LanguageIcon,
@@ -35,7 +35,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
-const AnimatedBox = styled(motion.div)(({ theme }) => ({
+const AnimatedBox = styled(motion.div)<HTMLMotionProps<'div'>>(({ theme }) => ({
   cursor: 'pointer',
 }));
 
@@ -126,7 +126,7 @@ const AdminNavbar: React.FC = () => {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         style={{ cursor: 'pointer' }}
-        onClick={handleClick as any}
+        onClick={handleClick}
       >
         <Typography
           variant="h6"

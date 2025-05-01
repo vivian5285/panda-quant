@@ -7,7 +7,7 @@ services:
       dockerfile: docker/Dockerfile.user-ui
     container_name: panda-quant-user-ui
     ports:
-      - "8083:8083"
+      - "3000:3000"
     restart: always
     networks:
       - panda-quant-network
@@ -27,17 +27,18 @@ services:
       dockerfile: docker/Dockerfile.user-api
     container_name: panda-quant-user-api
     ports:
-      - "8082:8082"
+      - "3001:3001"
     restart: always
     networks:
       - panda-quant-network
     environment:
-      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/admin
-      - REDIS_URI=redis://:${REDIS_PASSWORD}@redis:6379
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/panda_quant?schema=public
       - JWT_SECRET=${JWT_SECRET}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - REDIS_URL=redis://redis:6379
     depends_on:
-      - mongodb
+      - postgres
       - redis
     user: "1000:1000"
     security_opt:
@@ -47,6 +48,33 @@ services:
     cap_add:
       - NET_BIND_SERVICE
 
+  postgres:
+    image: postgres:15
+    container_name: panda-quant-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=panda_quant
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - panda-quant-network
+    restart: always
+
+  redis:
+    image: redis:7
+    container_name: panda-quant-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - panda-quant-network
+    restart: always
+
 networks:
   panda-quant-network:
-    external: true 
+    external: true
+
+volumes:
+  postgres_data: 

@@ -13,37 +13,25 @@ RUN apt-get update && apt-get install -y \
 # Install TypeScript globally
 RUN npm install -g typescript
 
-# Copy package files
+# Copy package files first to leverage Docker cache
 COPY user-api/package*.json ./
 COPY user-api/tsconfig.json ./
 COPY user-api/prisma ./prisma/
 
-# Install dependencies
+# Install all dependencies
 RUN npm install --legacy-peer-deps
 
-# Install type declarations and dev dependencies
+# Install additional type definitions
 RUN npm install --save-dev \
     @types/bcrypt \
     @types/bcryptjs \
     @types/cors \
     @types/express \
-    @types/jest \
     @types/jsonwebtoken \
-    @types/mongoose \
-    @types/morgan \
     @types/node \
-    @types/node-cron \
-    @types/node-schedule \
-    @types/nodemailer \
     @types/pg \
-    @types/swagger-ui-express \
-    jest \
-    mongodb-memory-server \
-    nodemon \
-    prisma \
-    swagger-ui-express \
-    ts-node \
-    typescript
+    @types/swagger-jsdoc \
+    @types/swagger-ui-express
 
 # Install production dependencies
 RUN npm install --save \
@@ -51,24 +39,16 @@ RUN npm install --save \
     axios \
     bcrypt \
     bcryptjs \
-    class-transformer \
-    class-validator \
     cors \
     dotenv \
-    ethers \
     express \
     express-rate-limit \
+    express-validator \
     helmet \
     jsonwebtoken \
-    mongoose \
-    morgan \
-    nanoid \
-    node-cron \
-    node-schedule \
-    nodemailer \
     pg \
-    winston \
-    zod
+    swagger-jsdoc \
+    swagger-ui-express
 
 # Set permissions for TypeScript
 RUN chmod -R 777 /usr/local/bin/tsc
@@ -82,7 +62,7 @@ RUN chmod -R 777 /app/node_modules/prisma
 RUN chmod -R 777 /app/node_modules/@prisma/client
 
 # Generate Prisma client
-RUN /app/node_modules/.bin/prisma generate
+RUN npx prisma generate
 
 # Build the application
 RUN npm run build
@@ -99,26 +79,33 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma ./prisma/
 
-# Install production dependencies
+# Install production dependencies only
 RUN npm install --production --legacy-peer-deps
 
-# Set permissions for Prisma
-RUN chmod -R 777 /app/node_modules/.bin/prisma
-RUN chmod -R 777 /app/node_modules/prisma
-RUN chmod -R 777 /app/node_modules/@prisma/client
+# Create necessary directories
+RUN mkdir -p /app/logs
+
+# Set proper permissions
+RUN chown -R node:node /app
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=8083
+ENV PORT=3001
+ENV DATABASE_URL="postgresql://postgres:postgres@postgres:5432/panda_quant?schema=public"
+ENV JWT_SECRET="your-secret-key"
+ENV REDIS_URL="redis://redis:6379"
+
+# Switch to non-root user
+USER node
 
 # Expose the application port
-EXPOSE 8083
+EXPOSE 3001
 
 # Add health check
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:8083/health || exit 1
+  CMD curl -f http://localhost:3001/health || exit 1
 
 # Start the application
 CMD ["npm", "start"] 
