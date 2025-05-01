@@ -3,10 +3,22 @@
 # 设置错误时退出
 set -e
 
-echo "开始部署 PandaQuant 系统..."
+# 显示当前目录
+echo "当前部署目录: $(pwd)"
+echo "项目根目录: $(pwd)/.."
+
+# 检查目录结构
+echo "检查目录结构..."
+echo "├── docker/"
+echo "│   ├── scripts/"
+echo "│   ├── nginx/"
+echo "│   ├── Dockerfile.*"
+echo "│   ├── docker-compose.*.yml"
+echo "│   └── .env"
+echo "└── ... (其他项目文件)"
 
 # 1. 配置环境变量
-echo "配置环境变量..."
+echo "1. 配置环境变量 (在 $(pwd)/.env)..."
 cat > .env << 'EOF'
 # Database
 DB_HOST=postgres
@@ -79,22 +91,31 @@ CDN_SECRET=your_cdn_secret
 EOF
 
 # 2. 构建所有镜像
-echo "构建所有镜像..."
+echo "2. 构建所有镜像 (在 $(pwd))..."
+echo "构建 admin-api 镜像..."
 docker build -t panda-quant-admin-api -f Dockerfile.admin-api ..
+echo "构建 admin-ui 镜像..."
 docker build -t panda-quant-admin-ui -f Dockerfile.admin-ui ..
+echo "构建 user-api 镜像..."
 docker build -t panda-quant-user-api -f Dockerfile.user-api ..
+echo "构建 user-ui 镜像..."
 docker build -t panda-quant-user-ui -f Dockerfile.user-ui ..
+echo "构建 strategy-engine 镜像..."
 docker build -t panda-quant-strategy-engine -f Dockerfile.strategy-engine ..
+echo "构建 server 镜像..."
 docker build -t panda-quant-server -f Dockerfile.server ..
 
 # 3. 启动所有服务
-echo "启动所有服务..."
+echo "3. 启动所有服务 (使用 $(pwd)/docker-compose.*.yml)..."
+echo "启动管理端服务..."
 docker-compose -f docker-compose.admin.yml up -d
+echo "启动用户端服务..."
 docker-compose -f docker-compose.user.yml up -d
+echo "启动策略引擎服务..."
 docker-compose -f docker-compose.strategy.yml up -d
 
 # 4. 检查服务状态和端口
-echo "检查服务状态和端口..."
+echo "4. 检查服务状态和端口..."
 echo "检查 Docker 容器状态："
 docker-compose -f docker-compose.admin.yml ps
 docker-compose -f docker-compose.user.yml ps
@@ -104,15 +125,16 @@ echo "检查端口占用情况："
 netstat -tulpn | grep -E '8081|8082|8083|8084|8085|8086|80|443'
 
 # 5. 检查 Nginx 配置
-echo "检查 Nginx 配置..."
+echo "5. 检查 Nginx 配置..."
 if [ -f /etc/nginx/nginx.conf ]; then
-    echo "备份现有 Nginx 配置..."
+    echo "备份现有 Nginx 配置到 /etc/nginx/nginx.conf.bak..."
     sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
     sudo cp /etc/nginx/conf.d/* /etc/nginx/conf.d.bak/ 2>/dev/null || sudo mkdir -p /etc/nginx/conf.d.bak
 fi
 
 # 6. 配置 Nginx
-echo "配置 Nginx..."
+echo "6. 配置 Nginx (从 $(pwd)/nginx/ 复制配置文件)..."
+echo "复制 Nginx 配置文件..."
 sudo cp nginx/nginx.conf /etc/nginx/nginx.conf
 sudo cp nginx/admin.conf /etc/nginx/conf.d/
 sudo cp nginx/user.conf /etc/nginx/conf.d/
@@ -120,37 +142,46 @@ sudo cp nginx/strategy.conf /etc/nginx/conf.d/
 sudo cp nginx/server.conf /etc/nginx/conf.d/
 
 # 7. 测试 Nginx 配置
-echo "测试 Nginx 配置..."
+echo "7. 测试 Nginx 配置..."
 sudo nginx -t
 
 # 8. 重启 Nginx
-echo "重启 Nginx..."
+echo "8. 重启 Nginx..."
 sudo systemctl restart nginx
 
 # 9. 等待服务启动
-echo "等待服务启动..."
+echo "9. 等待服务启动 (10秒)..."
 sleep 10
 
 # 10. 检查服务健康状态
-echo "检查服务健康状态..."
+echo "10. 检查服务健康状态..."
+echo "检查 Admin API 服务..."
 curl -f http://localhost:8081/health || echo "Admin API 服务未就绪"
+echo "检查 User API 服务..."
 curl -f http://localhost:8082/health || echo "User API 服务未就绪"
+echo "检查 Strategy Engine 服务..."
 curl -f http://localhost:8083/health || echo "Strategy Engine 服务未就绪"
 
 # 11. 配置 SSL 证书（可选，如果需要）
 read -p "是否需要配置 SSL 证书？(y/n): " need_ssl
 if [ "$need_ssl" = "y" ]; then
-    echo "配置 SSL 证书..."
+    echo "11. 配置 SSL 证书..."
+    echo "为 admin.pandatrade.space 和 admin-api.pandatrade.space 配置证书..."
     sudo certbot --nginx -d admin.pandatrade.space -d admin-api.pandatrade.space
+    echo "为 pandatrade.space 和 api.pandatrade.space 配置证书..."
     sudo certbot --nginx -d pandatrade.space -d api.pandatrade.space
+    echo "为 strategy.pandatrade.space 配置证书..."
     sudo certbot --nginx -d strategy.pandatrade.space
+    echo "为 server.pandatrade.space 配置证书..."
     sudo certbot --nginx -d server.pandatrade.space
 
     echo "设置证书自动续期..."
     sudo certbot renew --dry-run
 fi
 
-echo "PandaQuant 系统部署完成！"
+echo "部署完成！"
+echo "当前目录: $(pwd)"
+echo "项目根目录: $(pwd)/.."
 echo "请确保以下域名已正确配置 DNS 记录："
 echo "- admin.pandatrade.space"
 echo "- admin-api.pandatrade.space"
