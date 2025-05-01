@@ -4,7 +4,7 @@ import { CommissionRule } from '../models/CommissionRule';
 import { CommissionRecord } from '../models/CommissionRecord';
 import { User } from '../models/User';
 import { Order } from '../models/Order';
-import { CommissionService } from '../services/commissionService';
+import { CommissionService } from '../services/CommissionService';
 
 describe('Commission Service', () => {
   let testUser: any;

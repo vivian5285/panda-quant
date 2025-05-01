@@ -5,6 +5,7 @@ const BlacklistService_1 = require("../services/BlacklistService");
 const errorHandler_1 = require("../utils/errorHandler");
 const Blacklist_1 = require("../models/Blacklist");
 const logger_1 = require("../utils/logger");
+const blacklistService = BlacklistService_1.BlacklistService.getInstance();
 exports.blacklistController = {
     // 获取所有黑名单条目
     async getAllEntries(_req, res) {
@@ -21,7 +22,7 @@ exports.blacklistController = {
     async getEntryById(req, res) {
         try {
             const { id } = req.params;
-            const entry = await BlacklistService_1.blacklistService.getBlacklistEntryById(id);
+            const entry = await blacklistService.getBlacklistEntryById(id);
             if (!entry) {
                 res.status(404).json({ error: 'Entry not found' });
                 return;
@@ -66,7 +67,7 @@ exports.blacklistController = {
     async deleteEntry(req, res) {
         try {
             const { id } = req.params;
-            const success = await BlacklistService_1.blacklistService.deleteBlacklistEntry(id);
+            const success = await blacklistService.deleteBlacklistEntry(id);
             if (!success) {
                 res.status(404).json({ error: 'Entry not found' });
                 return;
@@ -97,7 +98,37 @@ exports.blacklistController = {
     // 获取单个黑名单条目
     async getBlacklistEntry(req, res) {
         try {
-            const entry = await BlacklistService_1.blacklistService.getBlacklistEntryById(req.params['id']);
+            const { id } = req.params;
+            const entry = await blacklistService.getBlacklistEntryById(id);
+            if (!entry) {
+                res.status(404).json({ error: 'Entry not found' });
+                return;
+            }
+            res.json(entry);
+        }
+        catch (error) {
+            (0, errorHandler_1.handleError)(res, error);
+        }
+    },
+    // 删除黑名单条目
+    async deleteBlacklistEntry(req, res) {
+        try {
+            const { id } = req.params;
+            const success = await blacklistService.deleteBlacklistEntry(id);
+            if (!success) {
+                res.status(404).json({ error: 'Entry not found' });
+                return;
+            }
+            res.json({ message: 'Entry deleted successfully' });
+        }
+        catch (error) {
+            (0, errorHandler_1.handleError)(res, error);
+        }
+    },
+    // 更新黑名单条目
+    async updateBlacklistEntry(req, res) {
+        try {
+            const entry = await blacklistService.updateBlacklistEntryById(req.params['id'], req.body);
             if (!entry) {
                 res.status(404).json({ message: 'Blacklist entry not found' });
                 return;
@@ -105,14 +136,28 @@ exports.blacklistController = {
             res.json(entry);
         }
         catch (error) {
-            res.status(500).json({ message: 'Error getting blacklist entry', error });
+            (0, errorHandler_1.handleError)(res, error);
+        }
+    },
+    // 获取单个黑名单条目
+    async getBlacklistEntryById(req, res) {
+        try {
+            const entry = await blacklistService.getBlacklistEntryById(req.params['id']);
+            if (!entry) {
+                res.status(404).json({ message: 'Blacklist entry not found' });
+                return;
+            }
+            res.json(entry);
+        }
+        catch (error) {
+            (0, errorHandler_1.handleError)(res, error);
         }
     },
     // 删除黑名单条目
-    async deleteBlacklistEntry(req, res) {
+    async deleteBlacklistEntryById(req, res) {
         try {
             const { id } = req.params;
-            const success = await BlacklistService_1.blacklistService.deleteBlacklistEntry(id);
+            const success = await blacklistService.deleteBlacklistEntry(id);
             if (!success) {
                 res.status(404).json({ message: 'Blacklist entry not found' });
                 return;
@@ -120,21 +165,7 @@ exports.blacklistController = {
             res.json({ message: 'Blacklist entry deleted successfully' });
         }
         catch (error) {
-            res.status(500).json({ message: 'Error deleting blacklist entry', error });
-        }
-    },
-    // 更新黑名单条目
-    async updateBlacklistEntry(req, res) {
-        try {
-            const entry = await BlacklistService_1.blacklistService.updateBlacklistEntryById(req.params['id'], req.body);
-            if (!entry) {
-                res.status(404).json({ message: 'Blacklist entry not found' });
-                return;
-            }
-            res.json(entry);
-        }
-        catch (error) {
-            res.status(500).json({ message: 'Error updating blacklist entry', error });
+            (0, errorHandler_1.handleError)(res, error);
         }
     }
 };

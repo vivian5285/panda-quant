@@ -23,6 +23,7 @@ COPY user-ui/package*.json ./
 
 # Install dependencies including esbuild
 RUN npm install --legacy-peer-deps && \
+    npm uninstall esbuild && \
     npm install --save-dev esbuild@0.25.3 && \
     npm cache clean --force
 

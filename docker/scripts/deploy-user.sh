@@ -198,9 +198,22 @@ if [ ! -d "node_modules" ]; then
         typescript@5.3.3 \
         @typescript-eslint/parser \
         @typescript-eslint/eslint-plugin \
-        esbuild@0.18.20
+        esbuild@0.25.3
+    
+    # 确保 esbuild 版本正确
+    if [ "$(npm list esbuild | grep -o '0.25.3')" != "0.25.3" ]; then
+        log "WARN" "esbuild 版本不正确，重新安装..."
+        npm uninstall esbuild
+        npm install --save-dev esbuild@0.25.3
+    fi
 else
-    log "INFO" "node_modules 已存在，跳过依赖安装"
+    log "INFO" "node_modules 已存在，检查依赖版本..."
+    # 检查 esbuild 版本
+    if [ "$(npm list esbuild | grep -o '0.25.3')" != "0.25.3" ]; then
+        log "INFO" "更新 esbuild 版本..."
+        npm uninstall esbuild
+        npm install --save-dev esbuild@0.25.3
+    fi
 fi
 
 # 检查类型定义文件是否存在

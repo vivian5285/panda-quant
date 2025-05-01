@@ -14,11 +14,20 @@ RUN apk add --no-cache \
 RUN npm install -g typescript@5.4.2
 
 # Copy package files first to leverage Docker cache
-COPY admin-api/package*.json ./
-COPY admin-api/tsconfig.json ./
+COPY admin-api/package*.json ./admin-api/tsconfig.json ./
 
 # Install all dependencies
-RUN npm install --legacy-peer-deps
+RUN npm cache clean --force && \
+    npm install --legacy-peer-deps && \
+    npm install --save-dev \
+        @types/node@18.19.3 \
+        @types/express@4.17.21 \
+        @types/mongoose@5.11.97 \
+        @types/redis@4.0.11 \
+        typescript@5.4.2 \
+        @typescript-eslint/parser \
+        @typescript-eslint/eslint-plugin && \
+    npm cache clean --force
 
 # Set permissions for TypeScript
 RUN chmod -R 777 /usr/local/bin/tsc

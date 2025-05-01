@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import mongoose, { Types } from 'mongoose';
 import { CommissionWithdrawal, ICommissionWithdrawal } from '../models/commissionWithdrawal';
 import { User } from '../models/User';
-import { WithdrawalService } from '../services/withdrawalService';
+import { WithdrawalService } from '../services/WithdrawalService';
 import { ICommissionWithdrawal as ICommissionWithdrawalInterface } from '../types/ICommissionWithdrawal';
 
 describe('Withdrawal Service', () => {

@@ -1,2 +1,1 @@
-import rateLimit from 'express-rate-limit';
-export declare const rateLimiter: rateLimit.RateLimit;
+export declare const rateLimiter: import("express-rate-limit").RateLimitRequestHandler;

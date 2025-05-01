@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import mongoose, { Types } from 'mongoose';
 import { UserLevel } from '../models/UserLevel';
-import { UserLevelService } from '../services/userLevelService';
+import { UserLevelService } from '../services/UserLevelService';
 
 describe('UserLevel Service', () => {
   let userLevelService: UserLevelService;

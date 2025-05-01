@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthController = void 0;
 const logger_1 = require("../utils/logger");
-const authService_1 = require("../services/authService");
+const AuthService_1 = require("../services/AuthService");
 class AuthController {
     constructor() {
         this.login = async (req, res) => {
@@ -51,7 +51,7 @@ class AuthController {
                 res.status(500).json({ message: 'Error getting current user', error: error.message });
             }
         };
-        this.authService = new authService_1.AuthService();
+        this.authService = new AuthService_1.AuthService();
     }
 }
 exports.AuthController = AuthController;

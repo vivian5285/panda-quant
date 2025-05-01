@@ -3,6 +3,17 @@ import { Withdrawal, IWithdrawalDocument } from '../models/Withdrawal';
 import { logger } from '../utils/logger';
 
 export class WithdrawalService {
+  private static instance: WithdrawalService;
+
+  private constructor() {}
+
+  public static getInstance(): WithdrawalService {
+    if (!WithdrawalService.instance) {
+      WithdrawalService.instance = new WithdrawalService();
+    }
+    return WithdrawalService.instance;
+  }
+
   async createWithdrawal(data: {
     userId: Types.ObjectId;
     amount: number;

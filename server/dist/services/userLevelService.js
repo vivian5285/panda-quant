@@ -26,4 +26,4 @@ class UserLevelService {
     }
 }
 exports.UserLevelService = UserLevelService;
-//# sourceMappingURL=userLevelService.js.map
+//# sourceMappingURL=UserLevelService.js.map

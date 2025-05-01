@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserLevelController = void 0;
-const userLevelService_1 = require("../services/userLevelService");
+const UserLevelService_1 = require("../services/UserLevelService");
 const logger_1 = require("../utils/logger");
 class UserLevelController {
     constructor() {
-        this.userLevelService = new userLevelService_1.UserLevelService();
+        this.userLevelService = new UserLevelService_1.UserLevelService();
     }
     // 获取所有用户等级
     async getAllLevels(_req, res) {

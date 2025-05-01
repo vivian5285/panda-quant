@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.up = up;
-exports.down = down;
+exports.down = exports.up = void 0;
 async function up(knex) {
     // 创建用户表
     await knex.schema.createTable('users', (table) => {
@@ -64,6 +63,7 @@ async function up(knex) {
         table.foreign('settlement_id').references('id').inTable('settlements');
     });
 }
+exports.up = up;
 async function down(knex) {
     // 按依赖关系顺序删除表
     await knex.schema.dropTable('user_earnings');
@@ -72,4 +72,5 @@ async function down(knex) {
     await knex.schema.dropTable('commissions');
     await knex.schema.dropTable('users');
 }
+exports.down = down;
 //# sourceMappingURL=20240320000000_create_settlement_tables.js.map

@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProfitController = void 0;
 const logger_1 = require("../utils/logger");
 const CommissionService_1 = require("../services/CommissionService");
-const profitService_1 = require("../services/profitService");
+const ProfitService_1 = require("../services/ProfitService");
 class ProfitController {
     constructor() {
         this.getProfitSummary = async (_req, res) => {
@@ -40,7 +40,7 @@ class ProfitController {
             }
         };
         this.commissionService = CommissionService_1.CommissionService.getInstance();
-        this.profitService = profitService_1.ProfitService.getInstance();
+        this.profitService = ProfitService_1.ProfitService.getInstance();
     }
 }
 exports.ProfitController = ProfitController;

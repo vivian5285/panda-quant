@@ -66,4 +66,4 @@ class ProfitService {
     }
 }
 exports.ProfitService = ProfitService;
-//# sourceMappingURL=profitService.js.map
+//# sourceMappingURL=ProfitService.js.map

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { INetworkStatus } from '../types/network';
 import { EventEmitter } from 'events';
 import { IHealth } from '../types/health';

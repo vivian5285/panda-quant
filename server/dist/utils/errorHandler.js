@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.errorHandlerMiddleware = void 0;
-exports.handleError = handleError;
+exports.errorHandlerMiddleware = exports.handleError = void 0;
 const mongoose_1 = require("mongoose");
 const errors_1 = require("./errors");
 const logger_1 = require("./logger");
@@ -39,6 +38,7 @@ function handleError(res, error) {
         res.status(500).json({ error: '服务器内部错误' });
     }
 }
+exports.handleError = handleError;
 const errorHandlerMiddleware = (err, _req, res, _next) => {
     logger_1.logger.error('Error:', err);
     const statusCode = res.statusCode === 200 ? 500 : res.statusCode;

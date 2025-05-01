@@ -169,77 +169,47 @@ if [ ! -d "node_modules" ]; then
         typescript@5.3.3 \
         @typescript-eslint/parser \
         @typescript-eslint/eslint-plugin
+    
+    # 检查 TypeScript 版本
+    if [ "$(npm list typescript | grep -o '5.3.3')" != "5.3.3" ]; then
+        log "WARN" "TypeScript 版本不正确，重新安装..."
+        npm uninstall typescript
+        npm install --save-dev typescript@5.3.3
+    fi
 else
-    log "INFO" "node_modules 已存在，跳过依赖安装"
+    log "INFO" "node_modules 已存在，检查依赖版本..."
+    # 检查 TypeScript 版本
+    if [ "$(npm list typescript | grep -o '5.3.3')" != "5.3.3" ]; then
+        log "INFO" "更新 TypeScript 版本..."
+        npm uninstall typescript
+        npm install --save-dev typescript@5.3.3
+    fi
 fi
 
 # 检查类型定义文件是否存在
 if [ ! -d "src/types" ]; then
     log "INFO" "创建缺失的类型定义文件..."
     mkdir -p src/types
-    
-    # 创建 Blacklist 类型定义
-    cat > src/types/Blacklist.d.ts << EOF
-export interface Blacklist {
-    _id: string;
-    userId: string;
-    reason: string;
-    createdAt: Date;
-    updatedAt: Date;
-}
-EOF
-    
-    # 创建 CommissionRule 类型定义
-    cat > src/types/CommissionRule.d.ts << EOF
-export interface CommissionRule {
-    _id: string;
-    level: number;
-    rate: number;
-    createdAt: Date;
-    updatedAt: Date;
-}
-EOF
-    
-    # 创建 Order 类型定义
-    cat > src/types/Order.d.ts << EOF
-export interface Order {
-    _id: string;
-    userId: string;
-    strategyId: string;
-    amount: number;
-    status: string;
-    createdAt: Date;
-    updatedAt: Date;
-}
-EOF
-    
-    # 创建 StrategyRating 类型定义
-    cat > src/types/StrategyRating.d.ts << EOF
-export interface StrategyRating {
-    _id: string;
-    strategyId: string;
-    userId: string;
-    rating: number;
-    comment?: string;
-    createdAt: Date;
-    updatedAt: Date;
-}
-EOF
-    
-    # 创建 UserLevel 类型定义
-    cat > src/types/UserLevel.d.ts << EOF
-export interface UserLevel {
-    _id: string;
-    userId: string;
-    level: number;
-    points: number;
-    createdAt: Date;
-    updatedAt: Date;
-}
-EOF
 else
-    log "INFO" "类型定义文件已存在，跳过创建"
+    log "INFO" "检查类型定义文件..."
 fi
+
+# 创建或更新类型定义文件
+create_or_update_type_file() {
+    local file=$1
+    local content=$2
+    if [ ! -f "$file" ] || ! diff <(echo "$content") "$file" > /dev/null 2>&1; then
+        log "INFO" "更新类型定义文件: $file"
+        echo "$content" > "$file"
+    fi
+}
+
+# 创建或更新类型定义
+create_or_update_type_file "src/types/Blacklist.d.ts" 'export interface Blacklist { _id: string; userId: string; reason: string; createdAt: Date; updatedAt: Date; }'
+create_or_update_type_file "src/types/CommissionRule.d.ts" 'export interface CommissionRule { _id: string; level: number; rate: number; createdAt: Date; updatedAt: Date; }'
+create_or_update_type_file "src/types/Order.d.ts" 'export interface Order { _id: string; userId: string; strategyId: string; amount: number; status: string; createdAt: Date; updatedAt: Date; }'
+create_or_update_type_file "src/types/StrategyRating.d.ts" 'export interface StrategyRating { _id: string; strategyId: string; userId: string; rating: number; comment?: string; createdAt: Date; updatedAt: Date; }'
+create_or_update_type_file "src/types/UserLevel.d.ts" 'export interface UserLevel { _id: string; userId: string; level: number; points: number; createdAt: Date; updatedAt: Date; }'
 
 # 3. 构建策略端镜像
 log "INFO" "3. 构建策略端镜像..."

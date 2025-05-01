@@ -4,6 +4,13 @@ exports.WithdrawalService = void 0;
 const Withdrawal_1 = require("../models/Withdrawal");
 const logger_1 = require("../utils/logger");
 class WithdrawalService {
+    constructor() { }
+    static getInstance() {
+        if (!WithdrawalService.instance) {
+            WithdrawalService.instance = new WithdrawalService();
+        }
+        return WithdrawalService.instance;
+    }
     async createWithdrawal(data) {
         try {
             const withdrawal = new Withdrawal_1.Withdrawal({

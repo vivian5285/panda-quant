@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import mongoose from 'mongoose';
 import { BlacklistEntry } from '../models/blacklist';
-import { blacklistService } from '../services/blacklistService';
+import { BlacklistService } from '../services/BlacklistService';
 import { IBlacklistEntry } from '../types/IBlacklistEntry';
 import { Blacklist } from '../models/Blacklist';
 
@@ -27,7 +27,7 @@ describe('Blacklist Service', () => {
       notes: 'First offense'
     };
 
-    const entry = await blacklistService.createEntry(entryData);
+    const entry = await BlacklistService.createEntry(entryData);
     expect(entry).toBeDefined();
     expect(entry.userId).toBe(entryData.userId);
     expect(entry.type).toBe(entryData.type);
@@ -45,8 +45,8 @@ describe('Blacklist Service', () => {
       notes: 'First offense'
     };
 
-    await blacklistService.createEntry(entryData);
-    const entries = await blacklistService.getAllEntries();
+    await BlacklistService.createEntry(entryData);
+    const entries = await BlacklistService.getAllEntries();
     expect(entries).toHaveLength(1);
   });
 
@@ -62,8 +62,8 @@ describe('Blacklist Service', () => {
       notes: 'First offense'
     };
 
-    const createdEntry = await blacklistService.createEntry(entryData);
-    const entry = await blacklistService.getEntryById(createdEntry._id);
+    const createdEntry = await BlacklistService.createEntry(entryData);
+    const entry = await BlacklistService.getEntryById(createdEntry._id);
     expect(entry).toBeDefined();
     expect(entry.userId).toBe(entryData.userId);
   });
@@ -80,8 +80,8 @@ describe('Blacklist Service', () => {
       notes: 'First offense'
     };
 
-    const createdEntry = await blacklistService.createEntry(entryData);
-    const updatedEntry = await blacklistService.updateEntry(createdEntry._id, {
+    const createdEntry = await BlacklistService.createEntry(entryData);
+    const updatedEntry = await BlacklistService.updateEntry(createdEntry._id, {
       status: 'expired'
     });
     expect(updatedEntry.status).toBe('expired');
@@ -99,9 +99,9 @@ describe('Blacklist Service', () => {
       notes: 'First offense'
     };
 
-    const createdEntry = await blacklistService.createEntry(entryData);
-    await blacklistService.deleteEntry(createdEntry._id);
-    const entries = await blacklistService.getAllEntries();
+    const createdEntry = await BlacklistService.createEntry(entryData);
+    await BlacklistService.deleteEntry(createdEntry._id);
+    const entries = await BlacklistService.getAllEntries();
     expect(entries).toHaveLength(0);
   });
 
@@ -117,8 +117,8 @@ describe('Blacklist Service', () => {
       notes: 'First offense'
     };
 
-    await blacklistService.createEntry(entryData);
-    const entries = await blacklistService.searchEntries({ type: 'spam' });
+    await BlacklistService.createEntry(entryData);
+    const entries = await BlacklistService.searchEntries({ type: 'spam' });
     expect(entries).toHaveLength(1);
   });
 });

@@ -9,4 +9,6 @@ export declare const blacklistController: {
     getBlacklistEntry(req: Request, res: Response): Promise<void>;
     deleteBlacklistEntry(req: Request, res: Response): Promise<void>;
     updateBlacklistEntry(req: Request, res: Response): Promise<void>;
+    getBlacklistEntryById(req: Request, res: Response): Promise<void>;
+    deleteBlacklistEntryById(req: Request, res: Response): Promise<void>;
 };
