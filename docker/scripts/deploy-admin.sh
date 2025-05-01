@@ -130,24 +130,31 @@ mkdir -p $PROJECT_ROOT/admin-api/logs
 chmod 755 $PROJECT_ROOT/admin-api/logs
 
 # 2. 安装依赖和类型定义
-log "2. 安装依赖和类型定义..."
+log "2. 检查依赖和类型定义..."
 cd $PROJECT_ROOT/admin-api
 
-# 清理 npm 缓存和 node_modules
-log "清理 npm 缓存和 node_modules..."
-rm -rf node_modules package-lock.json
-npm cache clean --force
+# 检查 node_modules 是否存在
+if [ ! -d "node_modules" ]; then
+    log "node_modules 不存在，安装依赖..."
+    # 清理 npm 缓存
+    npm cache clean --force
+    
+    # 安装生产依赖
+    npm install --production
+    
+    # 安装开发依赖和类型定义
+    npm install --save-dev @types/node @types/redis @types/express @types/mongoose typescript @typescript-eslint/parser @typescript-eslint/eslint-plugin
+else
+    log "node_modules 已存在，跳过依赖安装"
+fi
 
-# 安装所有依赖
-log "安装所有依赖..."
-npm install
-
-# 创建缺失的类型定义文件
-log "创建缺失的类型定义文件..."
-mkdir -p src/types
-
-# 创建 Blacklist 类型定义
-cat > src/types/Blacklist.d.ts << EOF
+# 检查类型定义文件是否存在
+if [ ! -d "src/types" ]; then
+    log "创建缺失的类型定义文件..."
+    mkdir -p src/types
+    
+    # 创建 Blacklist 类型定义
+    cat > src/types/Blacklist.d.ts << EOF
 export interface Blacklist {
     _id: string;
     userId: string;
@@ -156,9 +163,9 @@ export interface Blacklist {
     updatedAt: Date;
 }
 EOF
-
-# 创建 CommissionRule 类型定义
-cat > src/types/CommissionRule.d.ts << EOF
+    
+    # 创建 CommissionRule 类型定义
+    cat > src/types/CommissionRule.d.ts << EOF
 export interface CommissionRule {
     _id: string;
     level: number;
@@ -167,9 +174,9 @@ export interface CommissionRule {
     updatedAt: Date;
 }
 EOF
-
-# 创建 Order 类型定义
-cat > src/types/Order.d.ts << EOF
+    
+    # 创建 Order 类型定义
+    cat > src/types/Order.d.ts << EOF
 export interface Order {
     _id: string;
     userId: string;
@@ -180,9 +187,9 @@ export interface Order {
     updatedAt: Date;
 }
 EOF
-
-# 创建 StrategyRating 类型定义
-cat > src/types/StrategyRating.d.ts << EOF
+    
+    # 创建 StrategyRating 类型定义
+    cat > src/types/StrategyRating.d.ts << EOF
 export interface StrategyRating {
     _id: string;
     strategyId: string;
@@ -193,9 +200,9 @@ export interface StrategyRating {
     updatedAt: Date;
 }
 EOF
-
-# 创建 UserLevel 类型定义
-cat > src/types/UserLevel.d.ts << EOF
+    
+    # 创建 UserLevel 类型定义
+    cat > src/types/UserLevel.d.ts << EOF
 export interface UserLevel {
     _id: string;
     userId: string;
@@ -205,6 +212,9 @@ export interface UserLevel {
     updatedAt: Date;
 }
 EOF
+else
+    log "类型定义文件已存在，跳过创建"
+fi
 
 # 3. 构建管理端镜像
 log "3. 构建管理端镜像..."
