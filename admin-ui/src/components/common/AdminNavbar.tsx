@@ -17,7 +17,7 @@ import {
   useTheme,
   Badge,
 } from '@mui/material';
-import { motion, HTMLMotionProps } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Menu as MenuIcon,
   Language as LanguageIcon,
@@ -110,30 +110,27 @@ const AdminNavbar: React.FC = () => {
     navigate('/admin/login');
   };
 
-  const Logo = () => {
-    const motionProps: HTMLMotionProps<"div"> = {
-      whileHover: { scale: 1.05 },
-      whileTap: { scale: 0.95 },
-      style: { cursor: 'pointer' },
-      onClick: () => navigate('/admin/dashboard')
-    };
-
-    return (
-      <motion.div {...motionProps}>
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 'bold',
-            background: 'linear-gradient(45deg, #FF6B6B, #4ECDC4)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}
-        >
-          PANDA QUANT ADMIN
-        </Typography>
-      </motion.div>
-    );
-  };
+  const Logo = () => (
+    <Box
+      component={motion.div}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      sx={{ cursor: 'pointer' }}
+      onClick={() => navigate('/admin/dashboard')}
+    >
+      <Typography
+        variant="h6"
+        sx={{
+          fontWeight: 'bold',
+          background: 'linear-gradient(45deg, #FF6B6B, #4ECDC4)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+        }}
+      >
+        PANDA QUANT ADMIN
+      </Typography>
+    </Box>
+  );
 
   const UserMenu = () => (
     <Menu
