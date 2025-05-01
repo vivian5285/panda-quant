@@ -14,7 +14,8 @@ RUN apk add --no-cache \
 RUN npm install -g typescript@5.4.2
 
 # Copy package files first to leverage Docker cache
-COPY admin-api/package*.json ./admin-api/tsconfig.json ./
+COPY admin-api/package*.json ./
+COPY admin-api/tsconfig.json ./
 
 # Install all dependencies
 RUN npm cache clean --force && \
