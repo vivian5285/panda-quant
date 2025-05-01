@@ -1,5 +1,16 @@
-import { Schema, model } from 'mongoose';
-import { IUserAsset } from '../../shared/models/asset';
+import { Schema, model, Document } from 'mongoose';
+
+export interface IUserAsset extends Document {
+    userId: string;
+    assetId: string;
+    amount: number;
+    balance: number;
+    status: 'active' | 'inactive';
+    lastFeeDeduction?: Date;
+    lastUpdated: Date;
+    createdAt: Date;
+    updatedAt: Date;
+}
 
 const userAssetSchema = new Schema<IUserAsset>({
   userId: { type: String, required: true },

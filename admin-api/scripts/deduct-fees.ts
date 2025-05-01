@@ -22,7 +22,7 @@ const deductHostingFees = async () => {
         });
       } else {
         // 余额不足，暂停用户
-        user.status = 'suspended';
+        user.status = 'inactive';
         await user.save();
       }
     }

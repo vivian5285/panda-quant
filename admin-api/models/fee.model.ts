@@ -1,5 +1,13 @@
-import { Schema, model } from 'mongoose';
-import { IFee } from '../../shared/models/fee';
+import { Schema, model, Document } from 'mongoose';
+
+export interface IFee extends Document {
+    userId: string;
+    amount: number;
+    type: string;
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
 
 const feeSchema = new Schema<IFee>({
   userId: { type: String, required: true },

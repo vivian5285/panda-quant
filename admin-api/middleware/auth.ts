@@ -35,7 +35,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     }
 
     req.user = user;
-    next();
+    return next();
   } catch (error) {
     return res.status(403).json({ message: 'Invalid token' });
   }
@@ -45,7 +45,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   if (!req.user || req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Access denied. Admin only.' });
   }
-  next();
+  return next();
 };
 
 export const authenticateAdmin = (req: Request, res: Response, next: NextFunction) => {
@@ -62,7 +62,7 @@ export const authenticateAdmin = (req: Request, res: Response, next: NextFunctio
       return res.status(403).json({ message: '无权限访问' });
     }
 
-    next();
+    return next();
   } catch (error) {
     return res.status(401).json({ message: '无效的认证令牌' });
   }

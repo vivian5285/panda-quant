@@ -8,7 +8,7 @@ import { validateObjectId } from '../middleware/validateObjectId';
 const router = express.Router();
 
 // 获取订单列表（带分页和筛选）
-router.get('/', authenticateAdmin, async (req: Request, res: Response) => {
+router.get('/', authenticateAdmin, async (req: Request, res: Response): Promise<Response> => {
   try {
     const { page = 1, limit = 10, type, status } = req.query;
     const query: any = {};
@@ -24,33 +24,33 @@ router.get('/', authenticateAdmin, async (req: Request, res: Response) => {
 
     const total = await Order.countDocuments(query);
 
-    res.json({
+    return res.json({
       orders,
       total,
       page: Number(page),
       totalPages: Math.ceil(total / Number(limit)),
     });
   } catch (error) {
-    res.status(500).json({ message: '获取订单列表失败' });
+    return res.status(500).json({ message: '获取订单列表失败' });
   }
 });
 
 // 获取单个订单
-router.get('/:id', [authenticateAdmin, validateObjectId], async (req: Request, res: Response) => {
+router.get('/:id', [authenticateAdmin, validateObjectId], async (req: Request, res: Response): Promise<Response> => {
   try {
     const order = await Order.findById(req.params.id)
       .populate('userId', 'email');
     if (!order) {
       return res.status(404).json({ message: '订单不存在' });
     }
-    res.json(order);
+    return res.json(order);
   } catch (error) {
-    res.status(500).json({ message: '获取订单详情失败' });
+    return res.status(500).json({ message: '获取订单详情失败' });
   }
 });
 
 // 创建订单
-router.post('/', authenticateAdmin, async (req: Request, res: Response) => {
+router.post('/', authenticateAdmin, async (req: Request, res: Response): Promise<Response> => {
   try {
     const { userId, strategyId, amount, months } = req.body;
 
@@ -70,14 +70,14 @@ router.post('/', authenticateAdmin, async (req: Request, res: Response) => {
     });
 
     await order.save();
-    res.status(201).json(order);
+    return res.status(201).json(order);
   } catch (error) {
-    res.status(500).json({ message: '创建订单失败' });
+    return res.status(500).json({ message: '创建订单失败' });
   }
 });
 
 // 更新订单状态
-router.patch('/:id/status', [authenticateAdmin, validateObjectId], async (req: Request, res: Response) => {
+router.patch('/:id/status', [authenticateAdmin, validateObjectId], async (req: Request, res: Response): Promise<Response> => {
   try {
     const { status } = req.body;
     const order = await Order.findByIdAndUpdate(
@@ -88,47 +88,44 @@ router.patch('/:id/status', [authenticateAdmin, validateObjectId], async (req: R
     if (!order) {
       return res.status(404).json({ message: '订单不存在' });
     }
-    res.json(order);
+    return res.json(order);
   } catch (error) {
-    res.status(500).json({ message: '更新订单状态失败' });
+    return res.status(500).json({ message: '更新订单状态失败' });
   }
 });
 
 // 审核提现请求
-router.put('/withdrawal/:id/approve', [authenticateAdmin, validateObjectId], async (req: Request, res: Response) => {
+router.put('/withdrawal/:id/approve', [authenticateAdmin, validateObjectId], async (req: Request, res: Response): Promise<Response> => {
   try {
     const { id } = req.params;
-    const { status, remark } = req.body;
+    const { status } = req.body;
 
-    const order = await Order.findById(id);
+    const order = await Order.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+
     if (!order) {
       return res.status(404).json({ message: '订单不存在' });
     }
 
-    if (order.type !== 'withdrawal') {
-      return res.status(400).json({ message: '非提现订单' });
-    }
-
-    order.status = status;
-    order.remark = remark;
-    await order.save();
-
-    res.json({ message: '审核成功' });
+    return res.json(order);
   } catch (error) {
-    res.status(500).json({ message: '审核失败' });
+    return res.status(500).json({ message: '审核提现请求失败' });
   }
 });
 
 // 删除订单
-router.delete('/:id', [authenticateAdmin, validateObjectId], async (req: Request, res: Response) => {
+router.delete('/:id', [authenticateAdmin, validateObjectId], async (req: Request, res: Response): Promise<Response> => {
   try {
     const order = await Order.findByIdAndDelete(req.params.id);
     if (!order) {
       return res.status(404).json({ message: '订单不存在' });
     }
-    res.json({ message: '订单已删除' });
+    return res.json({ message: '订单已删除' });
   } catch (error) {
-    res.status(500).json({ message: '删除订单失败' });
+    return res.status(500).json({ message: '删除订单失败' });
   }
 });
 

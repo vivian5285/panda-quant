@@ -1,15 +1,9 @@
 import { Fee } from '../models/fee.model';
 import { User } from '../models/user.model';
-import { IUser } from '../../shared/models/user';
-import { UserAsset } from '@shared/models/asset';
+import { UserAsset } from '../models/userAsset.model';
+import { Asset } from '../models/asset.model';
 import { Transaction } from '../models/Transaction';
-import { Asset } from '../models/Asset';
 import cron from 'node-cron';
-import { PrismaClient } from '@prisma/client';
-import { IAsset } from '../../shared/models/asset';
-import { IFee } from '../../shared/models/fee';
-
-const prisma = new PrismaClient();
 
 // 每月1号凌晨执行
 const FEE_SCHEDULE = '0 0 1 * *';
@@ -18,8 +12,10 @@ const FEE_SCHEDULE = '0 0 1 * *';
 const BASE_FEE = 100;
 
 // 扩展IAsset接口，添加chain属性
-interface IAssetWithChain extends IAsset {
+interface IAssetWithChain {
     chain: string;
+    balance: number;
+    userId: string;
 }
 
 export class FeeService {
@@ -149,12 +145,12 @@ export class FeeService {
     }
   }
 
-  async calculateFee(user: IUser, asset: IAsset, amount: number): Promise<number> {
+  async calculateFee(_user: unknown, _asset: unknown, amount: number): Promise<number> {
     // 这里实现费用计算逻辑
     return amount * 0.01; // 示例：1% 的费用
   }
 
-  async createFee(userId: string, amount: number, type: 'monthly' | 'withdrawal'): Promise<IFee> {
+  async createFee(userId: string, amount: number, type: 'monthly' | 'withdrawal') {
     const user = await User.findById(userId);
     if (!user) {
       throw new Error('User not found');

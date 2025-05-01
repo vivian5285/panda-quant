@@ -2,7 +2,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import userRoutes from './routes/user';
+import { authRoutes } from './routes/auth.routes';
+import { userRoutes } from './routes/user.routes';
+import { assetRoutes } from './routes/asset.routes';
+import { orderRoutes } from './routes/order.routes';
+import { authenticateToken } from './middleware/auth';
 
 dotenv.config();
 
@@ -17,24 +21,21 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/panda-qua
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// 路由
-app.use('/api/admin/users', userRoutes);
-
-// 健康检查端点
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    message: 'Panda Quant Admin API is running'
-  });
+// 健康检查
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
 });
 
+// 路由
+app.use('/api/auth', authRoutes);
+app.use('/api/users', authenticateToken, userRoutes);
+app.use('/api/assets', authenticateToken, assetRoutes);
+app.use('/api/orders', authenticateToken, orderRoutes);
+
 // 错误处理中间件
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 3002;
-app.listen(PORT, () => {
-  console.log(`Admin API server is running on port ${PORT}`);
-}); 
+export default app; 

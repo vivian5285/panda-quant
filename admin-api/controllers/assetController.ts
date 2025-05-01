@@ -1,13 +1,18 @@
 import { Request, Response } from 'express';
-import { AuthRequest } from '../../shared/types/auth';
-import { IAsset, IUserAsset } from '../../shared/models/asset';
-import { IUser } from '../../shared/models/user';
 import { Transaction } from '../models/Transaction';
 import { feeService } from '../services/feeService';
-import { IFee } from '../../shared/models/fee';
 import { UserAsset } from '../models/UserAsset';
 import { Asset } from '../models/Asset';
 import { User } from '../models/user.model';
+
+// 定义本地类型
+interface AuthRequest extends Request {
+    user?: {
+        _id: string;
+        email: string;
+        role: string;
+    };
+}
 
 // 获取所有用户资产
 export const getAllAssets = async (req: Request, res: Response) => {
@@ -60,7 +65,7 @@ export const processMonthlyFees = async (req: Request, res: Response) => {
 
       if (monthsSinceLastDeduction >= 1) {
         // 创建托管费记录
-        const fee = await feeService.createFee((user._id as string).toString(), 30, 'monthly');
+        await feeService.createFee((user._id as string).toString(), 30, 'monthly');
         
         // 更新用户资产
         userAsset.balance -= 30;
@@ -198,10 +203,13 @@ export const calculateTotalValue = async (req: AuthRequest, res: Response) => {
         const userAssets = await UserAsset.find({ userId });
         const assets = await Asset.find();
 
-        const totalValue = userAssets.reduce((sum: number, userAsset: any) => {
-            const asset = assets.find((a: any) => a._id.toString() === userAsset.assetId);
-            return sum + (asset ? asset.price * userAsset.amount : 0);
-        }, 0);
+        let totalValue = 0;
+        for (const userAsset of userAssets) {
+            const asset = assets.find(a => a._id.toString() === userAsset.assetId);
+            if (asset) {
+                totalValue += userAsset.amount * asset.price;
+            }
+        }
 
         res.json({ totalValue });
     } catch (error) {

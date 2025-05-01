@@ -1,5 +1,13 @@
-import { Schema, model } from 'mongoose';
-import { IAsset } from '../../shared/models/asset';
+import { Schema, model, Document } from 'mongoose';
+
+export interface IAsset extends Document {
+    name: string;
+    symbol: string;
+    price: number;
+    status: 'active' | 'inactive';
+    createdAt: Date;
+    updatedAt: Date;
+}
 
 const assetSchema = new Schema<IAsset>({
   name: { type: String, required: true },

@@ -3,16 +3,16 @@ import { User } from '../models/user.model';
 import Transaction from '../models/transaction.model';
 
 // 获取所有用户
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (_req: Request, res: Response) => {
   try {
     const users = await User.find()
       .select('email balance deductionCredit status')
       .sort({ createdAt: -1 });
 
-    res.json(users);
+    return res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -37,10 +37,10 @@ export const updateUserStatus = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json(user);
+    return res.json(user);
   } catch (error) {
     console.error('Error updating user status:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -82,7 +82,7 @@ export const rewardUser = async (req: Request, res: Response) => {
       await session.commitTransaction();
       session.endSession();
 
-      res.json({ message: 'Reward successful', user });
+      return res.json({ message: 'Reward successful', user });
     } catch (error) {
       // 回滚事务
       await session.abortTransaction();
@@ -91,6 +91,6 @@ export const rewardUser = async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error('Error rewarding user:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }; 

@@ -8,5 +8,5 @@ export const validateObjectId = (req: Request, res: Response, next: NextFunction
         return res.status(400).json({ error: 'Invalid ID format' });
     }
     
-    next();
+    return next();
 }; 

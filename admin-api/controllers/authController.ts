@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model';
 import bcrypt from 'bcrypt';
-import { IUser } from '../../shared/models/user';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -34,7 +33,7 @@ export const initAdmin = async () => {
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password, referralCode } = req.body;
+    const { email, password } = req.body;
 
     // 检查邮箱是否已存在
     const existingUser = await User.findOne({ email });
@@ -128,7 +127,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
     }
 
     // 生成重置令牌
-    const resetToken = jwt.sign(
+    jwt.sign(
       { userId: user._id },
       JWT_SECRET,
       { expiresIn: '1h' }
@@ -169,7 +168,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
 export const updateUserProfile = async (req: Request, res: Response) => {
   try {
-    const user = req.user as IUser;
+    const user = req.user;
     if (!user || !user._id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -198,14 +197,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 };
 
 export const logout = async (req: Request, res: Response) => {
-  try {
-    // 由于我们使用 JWT，客户端需要自行删除 token
-    // 这里可以添加一些清理逻辑，比如记录登出时间等
-    res.json({ message: 'Logged out successfully' });
-  } catch (error) {
-    console.error('Logout error:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+  res.json({ message: 'Logged out successfully' });
 };
 
 export const createAdmin = async (req: Request, res: Response) => {
