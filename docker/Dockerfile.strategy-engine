@@ -29,7 +29,7 @@ RUN npm install --legacy-peer-deps && \
     prettier \
     ts-node \
     typescript \
-    @types/redis
+    @types/redis@4.0.11
 
 # Install production dependencies
 RUN npm install --save \

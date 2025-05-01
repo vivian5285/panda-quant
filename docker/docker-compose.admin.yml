@@ -7,7 +7,7 @@ services:
       dockerfile: docker/Dockerfile.admin-ui
     container_name: panda-quant-admin-ui
     ports:
-      - "8084:8084"
+      - "8084:80"
     restart: always
     networks:
       - panda-quant-network

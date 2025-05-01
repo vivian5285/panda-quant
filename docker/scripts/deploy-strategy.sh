@@ -10,15 +10,58 @@ touch $LOG_FILE
 
 # 日志函数
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a $LOG_FILE
+    local level=$1
+    local message=$2
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $message" | tee -a $LOG_FILE
 }
 
 # 错误处理函数
 handle_error() {
-    log "错误: $1"
-    log "部署失败，正在回滚..."
+    log "ERROR" "错误: $1"
+    log "ERROR" "部署失败，正在回滚..."
+    
+    # 回滚到上一个版本
+    if [ -f "$CURRENT_DIR/docker-compose.strategy.yml.bak" ]; then
+        log "INFO" "正在恢复上一个版本的配置..."
+        cp "$CURRENT_DIR/docker-compose.strategy.yml.bak" "$CURRENT_DIR/docker-compose.strategy.yml"
+    fi
+    
+    # 停止并移除当前容器
     docker-compose -f $CURRENT_DIR/docker-compose.strategy.yml down
+    
+    # 清理临时文件
+    rm -rf $CURRENT_DIR/tmp/*
+    
     exit 1
+}
+
+# 健康检查函数
+check_health() {
+    local url=$1
+    local max_retries=5
+    local retry_count=0
+    local sleep_time=10
+    
+    while [ $retry_count -lt $max_retries ]; do
+        if curl -s $url | grep -q "healthy"; then
+            log "INFO" "健康检查通过: $url"
+            return 0
+        fi
+        log "WARN" "健康检查失败 (尝试 $((retry_count + 1))/$max_retries): $url"
+        retry_count=$((retry_count + 1))
+        sleep $sleep_time
+    done
+    
+    return 1
+}
+
+# 备份当前配置
+backup_config() {
+    log "INFO" "备份当前配置..."
+    cp "$CURRENT_DIR/docker-compose.strategy.yml" "$CURRENT_DIR/docker-compose.strategy.yml.bak"
+    if [ -f "$CURRENT_DIR/nginx/strategy.conf" ]; then
+        cp "$CURRENT_DIR/nginx/strategy.conf" "$CURRENT_DIR/nginx/strategy.conf.bak"
+    fi
 }
 
 # 域名配置
@@ -31,7 +74,7 @@ STRATEGY_API_DOMAIN="${STRATEGY_API_SUBDOMAIN}.${DOMAIN}"
 # 检查DNS解析
 check_dns() {
     local domain=$1
-    log "检查域名 $domain 的DNS解析..."
+    log "INFO" "检查域名 $domain 的DNS解析..."
     
     # 检查A记录
     if ! dig +short A $domain | grep -q '^[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}$'; then
@@ -40,23 +83,23 @@ check_dns() {
     
     # 检查CNAME记录
     if ! dig +short CNAME $domain > /dev/null; then
-        log "域名 $domain 没有CNAME记录"
+        log "WARN" "域名 $domain 没有CNAME记录"
     fi
     
-    log "域名 $domain 的DNS解析正常"
+    log "INFO" "域名 $domain 的DNS解析正常"
 }
 
 # 检查域名解析
 check_domain_resolution() {
     local domain=$1
-    log "检查域名 $domain 的解析..."
+    log "INFO" "检查域名 $domain 的解析..."
     
     if ! curl -s -m 5 "http://$domain" > /dev/null; then
-        log "警告: 域名 $domain 无法通过HTTP访问，请确保域名已正确解析到服务器IP"
+        log "WARN" "域名 $domain 无法通过HTTP访问，请确保域名已正确解析到服务器IP"
     fi
     
     if ! curl -s -m 5 "https://$domain" > /dev/null; then
-        log "警告: 域名 $domain 无法通过HTTPS访问，请确保SSL证书已正确配置"
+        log "WARN" "域名 $domain 无法通过HTTPS访问，请确保SSL证书已正确配置"
     fi
 }
 
@@ -64,56 +107,29 @@ check_domain_resolution() {
 CURRENT_DIR=$(pwd)
 PROJECT_ROOT=$(dirname "$CURRENT_DIR")
 
-log "当前部署目录: $CURRENT_DIR"
-log "项目根目录: $PROJECT_ROOT"
+log "INFO" "当前部署目录: $CURRENT_DIR"
+log "INFO" "项目根目录: $PROJECT_ROOT"
+
+# 创建临时目录
+mkdir -p $CURRENT_DIR/tmp
+
+# 备份当前配置
+backup_config
 
 # 检查DNS解析
 check_dns $STRATEGY_DOMAIN
 check_dns $STRATEGY_API_DOMAIN
 
 # 1. 配置环境变量
-log "1. 配置环境变量..."
+log "INFO" "1. 配置环境变量..."
 if [ ! -f .env ]; then
-    cat > .env << EOF
-# 应用配置
-NODE_ENV=production
-
-# 端口配置
-STRATEGY_API_PORT=3002
-
-# 域名配置
-DOMAIN=${DOMAIN}
-STRATEGY_SUBDOMAIN=${STRATEGY_SUBDOMAIN}
-STRATEGY_API_SUBDOMAIN=${STRATEGY_API_SUBDOMAIN}
-STRATEGY_DOMAIN=${STRATEGY_DOMAIN}
-STRATEGY_API_DOMAIN=${STRATEGY_API_DOMAIN}
-
-# 数据库配置
-MONGO_INITDB_ROOT_USERNAME=admin
-MONGO_INITDB_ROOT_PASSWORD=Wl528586*
-MONGO_URI=mongodb://admin:Wl528586*@mongodb:27017/admin
-
-# Redis配置
-REDIS_PASSWORD=Wl528586*
-REDIS_URI=redis://:Wl528586*@redis:6380
-
-# JWT配置
-JWT_SECRET=Wl528586*
-
-# Encryption key
-ENCRYPTION_KEY=Wl528586*
-
-# Network Configuration
-NETWORK_NAME=panda-quant-network
-
-# Logging
-LOG_LEVEL=info
-LOG_FORMAT=json
-LOG_RETENTION_DAYS=30
-EOF
-    log "环境变量文件创建成功"
-else
-    log "环境变量文件已存在，跳过创建"
+    if [ ! -f .env.example ]; then
+        handle_error "缺少环境变量示例文件 .env.example"
+    fi
+    log "INFO" "从 .env.example 创建环境变量文件..."
+    cp .env.example .env
+    log "INFO" "请编辑 .env 文件并设置必要的环境变量"
+    exit 1
 fi
 
 # 设置权限
@@ -130,29 +146,36 @@ mkdir -p $PROJECT_ROOT/strategy-api/logs
 chmod 755 $PROJECT_ROOT/strategy-api/logs
 
 # 2. 安装依赖和类型定义
-log "2. 检查依赖和类型定义..."
+log "INFO" "2. 检查依赖和类型定义..."
 cd $PROJECT_ROOT/strategy-api
 
 # 检查 node_modules 是否存在
 if [ ! -d "node_modules" ]; then
-    log "node_modules 不存在，安装依赖..."
+    log "INFO" "node_modules 不存在，安装依赖..."
     # 清理 npm 缓存
     npm cache clean --force
     
     # 安装所有依赖
-    log "安装所有依赖..."
-    npm install
+    log "INFO" "安装所有依赖..."
+    npm install --prefer-offline --no-audit --legacy-peer-deps
     
     # 安装开发依赖和类型定义
-    log "安装开发依赖和类型定义..."
-    npm install --save-dev @types/node @types/redis@4.0.11 @types/express @types/mongoose typescript@5.3.3 @typescript-eslint/parser @typescript-eslint/eslint-plugin
+    log "INFO" "安装开发依赖和类型定义..."
+    npm install --save-dev --prefer-offline --no-audit \
+        @types/node \
+        @types/redis@4.0.11 \
+        @types/express \
+        @types/mongoose \
+        typescript@5.3.3 \
+        @typescript-eslint/parser \
+        @typescript-eslint/eslint-plugin
 else
-    log "node_modules 已存在，跳过依赖安装"
+    log "INFO" "node_modules 已存在，跳过依赖安装"
 fi
 
 # 检查类型定义文件是否存在
 if [ ! -d "src/types" ]; then
-    log "创建缺失的类型定义文件..."
+    log "INFO" "创建缺失的类型定义文件..."
     mkdir -p src/types
     
     # 创建 Blacklist 类型定义
@@ -215,30 +238,30 @@ export interface UserLevel {
 }
 EOF
 else
-    log "类型定义文件已存在，跳过创建"
+    log "INFO" "类型定义文件已存在，跳过创建"
 fi
 
 # 3. 构建策略端镜像
-log "3. 构建策略端镜像..."
-if ! docker-compose -f $CURRENT_DIR/docker-compose.strategy.yml build; then
+log "INFO" "3. 构建策略端镜像..."
+if ! docker-compose -f $CURRENT_DIR/docker-compose.strategy.yml build --no-cache; then
     handle_error "构建镜像失败"
 fi
 
 # 4. 启动策略端服务
-log "4. 启动策略端服务..."
+log "INFO" "4. 启动策略端服务..."
 if ! docker-compose -f $CURRENT_DIR/docker-compose.strategy.yml up -d; then
     handle_error "启动服务失败"
 fi
 
 # 5. 检查服务状态
-log "5. 检查服务状态..."
+log "INFO" "5. 检查服务状态..."
 echo "检查 Docker 容器状态："
 docker-compose -f $CURRENT_DIR/docker-compose.strategy.yml ps
 
-# 5. 配置 SSL 证书
-log "5. 配置 SSL 证书..."
+# 6. 配置 SSL 证书
+log "INFO" "6. 配置 SSL 证书..."
 if [ ! -f /etc/letsencrypt/live/${STRATEGY_DOMAIN}/fullchain.pem ]; then
-    log "配置策略端域名证书..."
+    log "INFO" "配置策略端域名证书..."
     
     # 创建临时 Nginx 配置
     mkdir -p /etc/nginx/conf.d
@@ -268,23 +291,23 @@ EOF
     fi
     
     # 配置证书自动续期
-    log "配置证书自动续期..."
+    log "INFO" "配置证书自动续期..."
     if ! grep -q "certbot renew" /etc/crontab; then
         echo "0 0 1 * * root certbot renew --quiet --deploy-hook 'systemctl reload nginx'" >> /etc/crontab
-        log "证书自动续期配置成功"
+        log "INFO" "证书自动续期配置成功"
     fi
 else
-    log "SSL 证书已存在，跳过配置"
+    log "INFO" "SSL 证书已存在，跳过配置"
 fi
 
 # 7. 配置 Nginx
-log "7. 配置 Nginx..."
+log "INFO" "7. 配置 Nginx..."
 if [ -f $CURRENT_DIR/nginx/strategy.conf ]; then
-    log "Nginx 配置文件已存在，备份原配置..."
+    log "INFO" "Nginx 配置文件已存在，备份原配置..."
     cp $CURRENT_DIR/nginx/strategy.conf $CURRENT_DIR/nginx/strategy.conf.bak
 fi
 
-log "配置 Nginx..."
+log "INFO" "配置 Nginx..."
 mkdir -p $CURRENT_DIR/nginx
 cat > $CURRENT_DIR/nginx/strategy.conf << EOF
 user nginx;
@@ -471,34 +494,37 @@ http {
 EOF
 
 # 8. 验证Nginx配置
-log "8. 验证Nginx配置..."
+log "INFO" "8. 验证Nginx配置..."
 if ! sudo nginx -t; then
-    log "Nginx配置验证失败，恢复备份配置..."
+    log "ERROR" "Nginx配置验证失败，恢复备份配置..."
     cp $CURRENT_DIR/nginx/strategy.conf.bak $CURRENT_DIR/nginx/strategy.conf
     handle_error "Nginx配置验证失败"
 fi
 
 # 9. 重启Nginx服务
-log "9. 重启Nginx服务..."
+log "INFO" "9. 重启Nginx服务..."
 if ! sudo systemctl restart nginx; then
     handle_error "Nginx服务重启失败"
 fi
 
 # 10. 检查域名解析
-log "10. 检查域名解析..."
+log "INFO" "10. 检查域名解析..."
 check_domain_resolution $STRATEGY_DOMAIN
 check_domain_resolution $STRATEGY_API_DOMAIN
 
 # 11. 健康检查
-log "11. 执行健康检查..."
-sleep 10  # 等待服务启动
-if ! curl -s https://${STRATEGY_DOMAIN}/health | grep -q "healthy"; then
+log "INFO" "11. 执行健康检查..."
+if ! check_health "https://${STRATEGY_DOMAIN}/health"; then
     handle_error "策略后台健康检查失败"
 fi
-if ! curl -s https://${STRATEGY_API_DOMAIN}/health | grep -q "healthy"; then
+if ! check_health "https://${STRATEGY_API_DOMAIN}/health"; then
     handle_error "策略API健康检查失败"
 fi
 
-log "部署完成！"
-log "策略后台地址: https://${STRATEGY_DOMAIN}"
-log "策略API地址: https://${STRATEGY_API_DOMAIN}" 
+# 12. 清理临时文件
+log "INFO" "12. 清理临时文件..."
+rm -rf $CURRENT_DIR/tmp/*
+
+log "INFO" "部署完成！"
+log "INFO" "策略后台地址: https://${STRATEGY_DOMAIN}"
+log "INFO" "策略API地址: https://${STRATEGY_API_DOMAIN}" 
