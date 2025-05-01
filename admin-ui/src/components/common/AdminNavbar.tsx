@@ -18,7 +18,7 @@ import {
   Badge,
   styled,
 } from '@mui/material';
-import { motion } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import {
   Menu as MenuIcon,
   Language as LanguageIcon,
@@ -115,26 +115,33 @@ const AdminNavbar: React.FC = () => {
     navigate('/admin/login');
   };
 
-  const Logo = () => (
-    <AnimatedBox
-      initial={{ scale: 1 }}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={() => navigate('/admin/dashboard')}
-    >
-      <Typography
-        variant="h6"
-        sx={{
-          fontWeight: 'bold',
-          background: 'linear-gradient(45deg, #FF6B6B, #4ECDC4)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-        }}
+  const Logo = () => {
+    const handleClick = () => {
+      navigate('/admin/dashboard');
+    };
+
+    return (
+      <motion.div
+        initial={{ scale: 1 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        style={{ cursor: 'pointer' }}
+        onClick={handleClick}
       >
-        PANDA QUANT ADMIN
-      </Typography>
-    </AnimatedBox>
-  );
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 'bold',
+            background: 'linear-gradient(45deg, #FF6B6B, #4ECDC4)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
+          PANDA QUANT ADMIN
+        </Typography>
+      </motion.div>
+    );
+  };
 
   const UserMenu = () => (
     <Menu
