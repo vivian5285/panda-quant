@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
-import { AuthRequest } from '../types/auth';
+import { Response } from 'express';
+import { AuthRequest } from '../types/express.d';
 import { depositService } from '../services/deposit';
 
-export const createDeposit = async (req: AuthRequest, res: Response) => {
+export const createDeposit = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { chain } = req.body;
     const address = await depositService.getDepositAddress(req.user!.id, chain);
@@ -12,7 +12,7 @@ export const createDeposit = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getDeposits = async (req: AuthRequest, res: Response) => {
+export const getDeposits = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const deposits = await depositService.getDepositsByUserId(req.user!.id);
     res.json(deposits);
@@ -21,12 +21,13 @@ export const getDeposits = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getDeposit = async (req: AuthRequest, res: Response) => {
+export const getDeposit = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const deposit = await depositService.getDepositById(id);
     if (!deposit) {
-      return res.status(404).json({ error: 'Deposit not found' });
+      res.status(404).json({ error: 'Deposit not found' });
+      return;
     }
     res.json(deposit);
   } catch (error) {
@@ -34,13 +35,14 @@ export const getDeposit = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const updateDeposit = async (req: AuthRequest, res: Response) => {
+export const updateDeposit = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { status } = req.body;
     const deposit = await depositService.updateDeposit(id, { status });
     if (!deposit) {
-      return res.status(404).json({ error: 'Deposit not found' });
+      res.status(404).json({ error: 'Deposit not found' });
+      return;
     }
     res.json(deposit);
   } catch (error) {
@@ -48,12 +50,13 @@ export const updateDeposit = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const deleteDeposit = async (req: AuthRequest, res: Response) => {
+export const deleteDeposit = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const deposit = await depositService.deleteDeposit(id);
     if (!deposit) {
-      return res.status(404).json({ error: 'Deposit not found' });
+      res.status(404).json({ error: 'Deposit not found' });
+      return;
     }
     res.json({ message: 'Deposit deleted successfully' });
   } catch (error) {

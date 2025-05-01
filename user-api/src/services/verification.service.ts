@@ -2,13 +2,15 @@ import { ValidationError } from '../utils/errors';
 import { generateToken, verifyToken } from '../utils/jwt';
 import { sendEmail } from '../utils/email';
 import { Verification } from '../models/verification.model';
-import { User } from '../models/user.model';
+import { User, IUser } from '../models/User';
 import { VerificationCode } from '../models/verification.model';
+import { VerificationUser, VerificationType } from '../types/verification.types';
+import mongoose from 'mongoose';
 
 const VERIFICATION_CODE_LENGTH = 6;
 
 export class VerificationService {
-  async generateCode(type: 'register' | 'reset-password', email: string): Promise<string> {
+  async generateCode(type: VerificationType, email: string): Promise<string> {
     try {
       const code = Math.random().toString().slice(2, 2 + VERIFICATION_CODE_LENGTH);
       await Verification.create(email, code, type);
@@ -19,7 +21,7 @@ export class VerificationService {
     }
   }
 
-  async verifyCode(email: string, code: string, type: 'register' | 'reset-password'): Promise<boolean> {
+  async verifyCode(email: string, code: string, type: VerificationType): Promise<boolean> {
     try {
       const verification = await Verification.findByEmailAndCode(email, code, type);
       if (!verification) {
@@ -36,11 +38,10 @@ export class VerificationService {
     }
   }
 
-  async sendVerificationEmail(user: User): Promise<void> {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  async sendVerificationEmail(user: VerificationUser): Promise<void> {
     await VerificationCode.create({
       email: user.email,
-      code,
+      code: user.verificationCode,
       type: 'register',
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
     });
@@ -48,12 +49,7 @@ export class VerificationService {
     await sendEmail({
       to: user.email,
       subject: 'Verify your email',
-      text: `Your verification code is: ${code}`,
-      html: `
-        <h1>Email Verification</h1>
-        <p>Your verification code is: <strong>${code}</strong></p>
-        <p>This code will expire in 24 hours.</p>
-      `
+      text: `Your verification code is: ${user.verificationCode}`
     });
   }
 
@@ -76,11 +72,11 @@ export class VerificationService {
     await VerificationCode.deleteOne({ _id: verification._id });
   }
 
-  async sendPasswordResetEmail(user: User): Promise<void> {
+  async sendPasswordResetEmail(user: IUser): Promise<void> {
     const token = generateToken({ 
-      id: user._id.toString(), 
+      id: (user._id as mongoose.Types.ObjectId).toString(), 
       email: user.email,
-      role: user.role as 'user' | 'admin'
+      role: user.role
     });
     await VerificationCode.create({
       email: user.email,

@@ -7,14 +7,15 @@ const depositRequestSchema = z.object({
   transactionHash: z.string()
 });
 
-export const validateDepositRequest = async (req: Request, res: Response, next: NextFunction) => {
+export const validateDepositRequest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     depositRequestSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: 'Invalid request data', errors: error.errors });
+      res.status(400).json({ message: 'Invalid request data', errors: error.errors });
+      return;
     }
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 }; 

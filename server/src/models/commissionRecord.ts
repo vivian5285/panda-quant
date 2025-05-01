@@ -1,65 +1,33 @@
-import { Schema, model, Document, Types } from 'mongoose';
+import { Schema, model, Document } from 'mongoose';
 
-export interface ICommissionRecord extends Document {
-  userId: Types.ObjectId | null; // null 表示平台佣金
-  fromUserId: Types.ObjectId; // 产生佣金的用户
+export interface ICommissionRecordDocument extends Document {
+  userId: string;
   amount: number;
-  level: number; // 0: 平台佣金, 1: 一级推荐, 2: 二级推荐
-  status: 'pending' | 'paid';
-  strategyId: Types.ObjectId;
-  performanceId: Types.ObjectId;
+  type: string;
+  status: string;
   createdAt: Date;
-  paidAt?: Date;
+  updatedAt: Date;
 }
 
-const commissionRecordSchema = new Schema<ICommissionRecord>({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: false
-  },
-  fromUserId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  amount: {
-    type: Number,
-    required: true
-  },
-  level: {
-    type: Number,
-    required: true,
-    enum: [0, 1, 2]
-  },
-  status: {
-    type: String,
-    required: true,
-    enum: ['pending', 'paid'],
-    default: 'pending'
-  },
-  strategyId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Strategy',
-    required: true
-  },
-  performanceId: {
-    type: Schema.Types.ObjectId,
-    ref: 'StrategyPerformance',
-    required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  paidAt: {
-    type: Date
-  }
+const commissionRecordSchema = new Schema<ICommissionRecordDocument>({
+  userId: { type: String, required: true },
+  amount: { type: Number, required: true },
+  type: { type: String, required: true },
+  status: { type: String, required: true }
+}, {
+  timestamps: true
 });
 
-// 索引
-commissionRecordSchema.index({ userId: 1, status: 1 });
-commissionRecordSchema.index({ fromUserId: 1 });
+// 添加索引
+commissionRecordSchema.index({ userId: 1 });
+commissionRecordSchema.index({ status: 1 });
 commissionRecordSchema.index({ createdAt: -1 });
 
-export const CommissionRecord = model<ICommissionRecord>('CommissionRecord', commissionRecordSchema); 
+// 在保存前更新 updatedAt
+commissionRecordSchema.pre('save', function(next) {
+  this['updatedAt'] = new Date();
+  next();
+});
+
+export const CommissionRecord = model<ICommissionRecordDocument>('CommissionRecord', commissionRecordSchema);
+export default CommissionRecord; 

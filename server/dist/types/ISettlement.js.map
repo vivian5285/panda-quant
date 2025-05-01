@@ -1,0 +1,1 @@
+{"version":3,"file":"ISettlement.js","sourceRoot":"","sources":["../../src/types/ISettlement.ts"],"names":[],"mappings":";;;AAEA,IAAY,cAGX;AAHD,WAAY,cAAc;IACxB,qCAAmB,CAAA;IACnB,uCAAqB,CAAA;AACvB,CAAC,EAHW,cAAc,8BAAd,cAAc,QAGzB;AAED,IAAY,gBAKX;AALD,WAAY,gBAAgB;IAC1B,uCAAmB,CAAA;IACnB,2CAAuB,CAAA;IACvB,qCAAiB,CAAA;IACjB,2CAAuB,CAAA;AACzB,CAAC,EALW,gBAAgB,gCAAhB,gBAAgB,QAK3B"}

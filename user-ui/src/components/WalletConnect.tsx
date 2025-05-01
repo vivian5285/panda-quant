@@ -15,8 +15,9 @@ import {
 } from '@mui/icons-material';
 
 const WalletConnect: React.FC = () => {
-  const { account, connect, disconnect, isConnecting, error } = useWeb3();
+  const { account, connect, disconnect, error } = useWeb3();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -28,7 +29,12 @@ const WalletConnect: React.FC = () => {
 
   const handleConnect = async (walletType: string) => {
     handleMenuClose();
-    await connect(walletType);
+    setIsConnecting(true);
+    try {
+      await connect(walletType);
+    } finally {
+      setIsConnecting(false);
+    }
   };
 
   const handleDisconnect = () => {

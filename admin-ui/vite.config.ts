@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import svgr from 'vite-plugin-svgr'
-import { splitVendorChunkPlugin } from 'vite'
 import path from 'path'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -23,8 +22,7 @@ export default defineConfig({
         ]
       }
     }),
-    svgr(),
-    splitVendorChunkPlugin()
+    svgr()
   ],
   resolve: {
     alias: {
@@ -36,9 +34,16 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          mui: ['@mui/material', '@mui/icons-material'],
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'vendor'
+            }
+            if (id.includes('@mui')) {
+              return 'mui'
+            }
+            return 'vendor'
+          }
         },
       }
     },

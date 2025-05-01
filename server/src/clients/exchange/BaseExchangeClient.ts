@@ -1,37 +1,37 @@
-import { ExchangeCredentials, ExchangeBalance, ExchangeOrder, ExchangePosition, ExchangeTrade, ExchangeMarketData } from '../../interfaces/exchange';
+import { IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData } from '../../types/exchange';
 
 export abstract class BaseExchangeClient {
-  protected credentials: ExchangeCredentials;
+  protected credentials: IExchangeCredentials;
   protected exchange: string;
 
-  constructor(exchange: string, credentials: ExchangeCredentials) {
+  constructor(exchange: string, credentials: IExchangeCredentials) {
     this.exchange = exchange;
     this.credentials = credentials;
   }
 
   // 获取账户余额
-  abstract getBalance(): Promise<ExchangeBalance[]>;
+  abstract getBalance(): Promise<IExchangeBalance[]>;
 
   // 获取订单
-  abstract getOrder(orderId: string): Promise<ExchangeOrder>;
-  abstract getOrders(symbol?: string): Promise<ExchangeOrder[]>;
+  abstract getOrder(orderId: string): Promise<IExchangeOrder>;
+  abstract getOrders(symbol?: string): Promise<IExchangeOrder[]>;
 
   // 创建订单
-  abstract createOrder(symbol: string, type: 'market' | 'limit', side: 'buy' | 'sell', amount: number, price?: number): Promise<ExchangeOrder>;
+  abstract createOrder(symbol: string, type: 'market' | 'limit', side: 'buy' | 'sell', amount: number, price?: number): Promise<IExchangeOrder>;
 
   // 取消订单
   abstract cancelOrder(orderId: string): Promise<void>;
   abstract cancelOrders(symbol?: string): Promise<void>;
 
   // 获取持仓
-  abstract getPositions(symbol?: string): Promise<ExchangePosition[]>;
+  abstract getPositions(symbol?: string): Promise<IExchangePosition[]>;
 
   // 获取交易历史
-  abstract getTrades(symbol?: string, startTime?: Date, endTime?: Date): Promise<ExchangeTrade[]>;
+  abstract getTrades(symbol?: string, startTime?: Date, endTime?: Date): Promise<IExchangeTrade[]>;
 
   // 获取市场数据
-  abstract getMarketData(symbol: string): Promise<ExchangeMarketData>;
-  abstract getMarketDataList(symbols: string[]): Promise<ExchangeMarketData[]>;
+  abstract getMarketData(symbol: string): Promise<IExchangeMarketData>;
+  abstract getMarketDataList(symbols: string[]): Promise<IExchangeMarketData[]>;
 
   // 获取K线数据
   abstract getKlines(symbol: string, interval: string, startTime?: Date, endTime?: Date): Promise<any[]>;

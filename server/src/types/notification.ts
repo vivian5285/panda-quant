@@ -1,13 +1,26 @@
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
+
+export type NotificationType = 'trade' | 'deposit' | 'withdrawal' | 'commission' | 'alert' | 'admin' | 'risk';
+
+export interface IDepositNotification {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed';
+  txHash?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export interface INotification extends Document {
-  _id: string;
-  userId: string;
-  type: 'trade' | 'deposit' | 'withdrawal' | 'commission' | 'alert';
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  type: 'deposit' | 'withdrawal' | 'trade' | 'system';
   title: string;
   message: string;
   read: boolean;
-  data?: Record<string, any>;
+  metadata?: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 interface PandaChipProps {
   label: string;
-  color?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error';
+  color?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'default';
   variant?: 'filled' | 'outlined';
   size?: 'small' | 'medium';
   icon?: React.ReactElement;

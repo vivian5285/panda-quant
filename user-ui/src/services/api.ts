@@ -75,6 +75,13 @@ export const authApi = {
     });
     return response.data;
   },
+
+  loginWithWallet: async (walletAddress: string) => {
+    const response = await api.post('/auth/wallet-login', {
+      walletAddress,
+    });
+    return response.data;
+  },
   
   logout: async () => {
     const response = await api.post('/auth/logout');

@@ -115,7 +115,7 @@ const LanguageSwitcher: React.FC = () => {
               PaperProps={{
                 sx: {
                   mt: 1,
-                  background: themeUtils.glassEffect(theme),
+                  ...themeUtils.glassEffect(0.8),
                   backdropFilter: 'blur(10px)',
                   border: `1px solid ${theme.palette.border.main}`,
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
@@ -134,21 +134,18 @@ const LanguageSwitcher: React.FC = () => {
                     '&:hover': {
                       background: themeUtils.createGradient(
                         theme.palette.primary.main,
-                        theme.palette.secondary.main,
-                        0.1
+                        theme.palette.secondary.main
                       ),
                     },
                     '&.Mui-selected': {
                       background: themeUtils.createGradient(
                         theme.palette.primary.main,
-                        theme.palette.secondary.main,
-                        0.2
+                        theme.palette.secondary.main
                       ),
                       '&:hover': {
                         background: themeUtils.createGradient(
                           theme.palette.primary.main,
-                          theme.palette.secondary.main,
-                          0.3
+                          theme.palette.secondary.main
                         ),
                       },
                     },

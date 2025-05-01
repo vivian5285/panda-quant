@@ -1,308 +1,230 @@
-import { Request, Response } from 'express';
-import { CommissionRule } from '../models/commissionRule';
-import { CommissionRecord } from '../models/commissionRecord';
-import { commissionService } from '../services/commissionService';
-import { validateObjectId } from '../middleware/validation';
-import { CommissionService } from '../services/commissionService';
-import { AuthRequest } from '../types';
-import { validateRequest } from '../middleware/validation';
-import { body } from 'express-validator';
-import { Error as MongooseError } from 'mongoose';
+import { Response } from 'express';
+import { CommissionService } from '../services/CommissionService';
+import { AuthenticatedRequest } from '../types/auth';
+import { logger } from '../utils/logger';
+import { Types } from 'mongoose';
 
-const commissionServiceInstance = new CommissionService();
+export class CommissionController {
+  private commissionService: CommissionService;
 
-export const commissionController = {
-  // Commission Rules
-  async createRule(req: Request, res: Response) {
+  constructor() {
+    this.commissionService = CommissionService.getInstance();
+  }
+
+  public getCommissionById = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const rule = new CommissionRule(req.body);
-      await rule.save();
-      res.status(201).json(rule);
-    } catch (error: unknown) {
-      if (error instanceof MongooseError.ValidationError) {
-        return res.status(400).json({ error: error.message });
-      }
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  async getRules(req: Request, res: Response) {
-    try {
-      const rules = await CommissionRule.find();
-      res.json(rules);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  async getRuleById(req: Request, res: Response) {
-    try {
-      const rule = await CommissionRule.findById(req.params.id);
-      if (!rule) {
-        return res.status(404).json({ error: 'Rule not found' });
-      }
-      res.json(rule);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  async updateRule(req: Request, res: Response) {
-    try {
-      const rule = await CommissionRule.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true }
-      );
-      if (!rule) {
-        return res.status(404).json({ error: 'Rule not found' });
-      }
-      res.json(rule);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  async deleteRule(req: Request, res: Response) {
-    try {
-      const rule = await CommissionRule.findByIdAndDelete(req.params.id);
-      if (!rule) {
-        return res.status(404).json({ error: 'Rule not found' });
-      }
-      res.json({ message: 'Rule deleted successfully' });
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  // Commission Records
-  async getCommissionHistory(req: Request, res: Response) {
-    try {
-      const history = await commissionService.getCommissionHistory(req.params.userId);
-      res.json(history);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  async getTotalCommission(req: Request, res: Response) {
-    try {
-      const total = await commissionService.getTotalCommission(req.params.userId);
-      res.json({ total });
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  async distributeCommission(req: Request, res: Response) {
-    try {
-      const commission = await commissionService.distributeCommission(req.params.id);
-      res.json(commission);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  /**
-   * 获取用户的佣金记录
-   */
-  async getCommissions(req: AuthRequest, res: Response) {
-    try {
-      if (!req.user?._id) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      const commissions = await commissionService.getUserCommissions(req.user._id.toString());
-      res.json(commissions);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  /**
-   * 获取用户的佣金统计
-   */
-  async getUserCommissionStats(req: Request, res: Response) {
-    try {
-      const stats = await commissionService.getUserCommissionStats(req.params.userId);
-      res.json(stats);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  /**
-   * 管理员获取所有佣金记录
-   */
-  async getAllCommissions(req: Request, res: Response) {
-    try {
-      const commissions = await CommissionRecord.find()
-        .populate('userId', 'username')
-        .populate('fromUserId', 'username')
-        .sort({ createdAt: -1 });
-      res.json(commissions);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  /**
-   * 管理员更新佣金状态
-   */
-  async updateCommissionStatus(req: Request, res: Response) {
-    try {
-      const commission = await CommissionRecord.findByIdAndUpdate(
-        req.params.id,
-        { status: req.body.status },
-        { new: true }
-      );
+      const { id } = req.params;
+      const commission = await this.commissionService.getCommissionById(id.toString());
       if (!commission) {
-        return res.status(404).json({ error: 'Commission not found' });
+        res.status(404).json({ message: 'Commission not found' });
+        return;
       }
       res.json(commission);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
+    } catch (error) {
+      logger.error('Error getting commission details:', error);
+      res.status(500).json({ message: 'Error getting commission details', error });
     }
-  },
+  };
 
-  /**
-   * 获取佣金统计
-   */
-  async getCommissionStats(req: Request, res: Response) {
+  public getCommissionByUserId = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const stats = await CommissionRecord.aggregate([
-        {
-          $group: {
-            _id: null,
-            total: { $sum: '$amount' },
-            pending: {
-              $sum: {
-                $cond: [{ $eq: ['$status', 'pending'] }, '$amount', 0]
-              }
-            },
-            paid: {
-              $sum: {
-                $cond: [{ $eq: ['$status', 'paid'] }, '$amount', 0]
-              }
-            }
-          }
-        }
-      ]);
-      res.json(stats[0] || { total: 0, pending: 0, paid: 0 });
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  /**
-   * 获取佣金分布统计
-   */
-  async getCommissionDistribution(req: Request, res: Response) {
-    try {
-      const distribution = await CommissionRecord.aggregate([
-        {
-          $group: {
-            _id: '$level',
-            total: { $sum: '$amount' },
-            count: { $sum: 1 }
-          }
-        }
-      ]);
-      res.json(distribution);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  /**
-   * 获取用户佣金排行
-   */
-  async getCommissionRanking(req: Request, res: Response) {
-    try {
-      const ranking = await CommissionRecord.aggregate([
-        {
-          $group: {
-            _id: '$userId',
-            total: { $sum: '$amount' }
-          }
-        },
-        { $sort: { total: -1 } },
-        { $limit: 10 }
-      ]);
-      res.json(ranking);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  async createCommission(req: AuthRequest, res: Response) {
-    try {
-      if (!req.user?._id) {
-        return res.status(401).json({ error: 'Unauthorized' });
+      const { userId } = req.params;
+      const commission = await this.commissionService.getCommissionByUserId(userId.toString());
+      if (!commission) {
+        res.status(404).json({ message: 'Commission not found' });
+        return;
       }
-      const commission = await commissionService.createCommission({
-        ...req.body,
-        userId: req.user._id
+      res.json(commission);
+    } catch (error) {
+      logger.error('Error getting commission by user id:', error);
+      res.status(500).json({ message: 'Error getting commission by user id', error });
+    }
+  };
+
+  public createCommission = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { userId, amount, type, metadata } = req.body;
+      const commission = await this.commissionService.createCommission({
+        userId: userId.toString(),
+        amount,
+        type,
+        metadata
       });
       res.status(201).json(commission);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
+    } catch (error) {
+      logger.error('Error creating commission:', error);
+      res.status(500).json({ message: 'Error creating commission', error });
     }
-  },
+  };
 
-  async getTeamInfo(req: AuthRequest, res: Response) {
+  public updateCommission = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      if (!req.user?._id) {
-        return res.status(401).json({ error: 'Unauthorized' });
+      const { id } = req.params;
+      const commission = await this.commissionService.updateCommission(id.toString(), req.body);
+      if (!commission) {
+        res.status(404).json({ message: 'Commission not found' });
+        return;
       }
-      const teamInfo = await commissionService.getTeamInfo(req.user._id.toString());
-      res.json(teamInfo);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  async getCommissionRecords(req: AuthRequest, res: Response) {
-    try {
-      if (!req.user?._id) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      const records = await commissionService.getCommissionRecords(req.user._id.toString());
-      res.json(records);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  async getCommissionTrend(req: AuthRequest, res: Response) {
-    try {
-      if (!req.user?._id) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      const trend = await commissionService.getCommissionTrend(req.user._id.toString());
-      res.json(trend);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-
-  async getCommission(req: Request, res: Response) {
-    try {
-      const commission = await commissionService.getCommission(req.params.userId);
       res.json(commission);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
+    } catch (error) {
+      logger.error('Error updating commission:', error);
+      res.status(500).json({ message: 'Error updating commission', error });
     }
-  },
+  };
 
-  async updateCommission(req: Request, res: Response) {
+  public deleteCommission = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const commission = await commissionService.updateCommission(
-        req.params.userId,
-        req.body.rate
+      const { id } = req.params;
+      const success = await this.commissionService.deleteCommission(id.toString());
+      if (!success) {
+        res.status(404).json({ message: 'Commission not found' });
+        return;
+      }
+      res.json({ message: 'Commission deleted successfully' });
+    } catch (error) {
+      logger.error('Error deleting commission:', error);
+      res.status(500).json({ message: 'Error deleting commission', error });
+    }
+  };
+
+  public getCommissionRules = async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const rules = await this.commissionService.getCommissionRules();
+      res.json(rules);
+    } catch (error) {
+      logger.error('Error getting commission rules:', error);
+      res.status(500).json({ message: 'Error getting commission rules', error });
+    }
+  };
+
+  public createCommissionRule = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const rule = await this.commissionService.createCommissionRule(req.body);
+      res.status(201).json(rule);
+    } catch (error) {
+      logger.error('Error creating commission rule:', error);
+      res.status(500).json({ message: 'Error creating commission rule', error });
+    }
+  };
+
+  public updateCommissionRule = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const rule = await this.commissionService.updateCommissionRule({
+        _id: new Types.ObjectId(id),
+        ...req.body
+      });
+      if (!rule) {
+        res.status(404).json({ message: 'Commission rule not found' });
+        return;
+      }
+      res.json(rule);
+    } catch (error) {
+      logger.error('Error updating commission rule:', error);
+      res.status(500).json({ message: 'Error updating commission rule', error });
+    }
+  };
+
+  public deleteCommissionRule = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const success = await this.commissionService.deleteCommissionRule(new Types.ObjectId(id));
+      if (!success) {
+        res.status(404).json({ message: 'Commission rule not found' });
+        return;
+      }
+      res.json({ message: 'Commission rule deleted successfully' });
+    } catch (error) {
+      logger.error('Error deleting commission rule:', error);
+      res.status(500).json({ message: 'Error deleting commission rule', error });
+    }
+  };
+
+  public getCommissionsByType = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { type } = req.params;
+      const commissions = await this.commissionService.getCommissionsByType(type);
+      res.json(commissions);
+    } catch (error) {
+      logger.error('Error getting commissions by type:', error);
+      res.status(500).json({ message: 'Error getting commissions by type', error });
+    }
+  };
+
+  public getCommissionsByStatusAndTypeAndAmount = async (
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { status, type, amount } = req.query;
+      const commissions = await this.commissionService.getCommissionsByStatusAndTypeAndAmount(
+        status as string,
+        type as string,
+        Number(amount)
       );
-      res.json(commission);
-    } catch (error: unknown) {
-      res.status(500).json({ error: 'Internal server error' });
+      res.json(commissions);
+    } catch (error) {
+      logger.error('Error getting commissions by status, type and amount:', error);
+      res.status(500).json({ message: 'Error getting commissions by status, type and amount', error });
     }
-  }
-}; 
+  };
+
+  public getCommissionsByStatusAndTypeAndAmountAndCurrency = async (
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { status, type, amount, currency } = req.query;
+      const commissions = await this.commissionService.getCommissionsByStatusAndTypeAndAmountAndCurrency(
+        status as string,
+        type as string,
+        Number(amount),
+        currency as string
+      );
+      res.json(commissions);
+    } catch (error) {
+      logger.error('Error getting commissions by status, type, amount and currency:', error);
+      res.status(500).json({ message: 'Error getting commissions by status, type, amount and currency', error });
+    }
+  };
+
+  public getCommissionsByUserAndStatusAndTypeAndAmountAndCurrency = async (
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { userId, status, type, amount, currency } = req.query;
+      const commissions = await this.commissionService.getCommissionsByUserAndStatusAndTypeAndAmountAndCurrency(
+        userId as string,
+        status as string,
+        type as string,
+        Number(amount),
+        currency as string
+      );
+      res.json(commissions);
+    } catch (error) {
+      logger.error('Error getting commissions by user, status, type, amount and currency:', error);
+      res.status(500).json({ message: 'Error getting commissions by user, status, type, amount and currency', error });
+    }
+  };
+
+  public getCommissionsByStatusAndTypeAndAmountAndCurrencyAndDescription = async (
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { status, type, amount, currency, description } = req.query;
+      const commissions = await this.commissionService.getCommissionsByStatusAndTypeAndAmountAndCurrencyAndDescription(
+        status as string,
+        type as string,
+        Number(amount),
+        currency as string,
+        description as string
+      );
+      res.json(commissions);
+    } catch (error) {
+      logger.error('Error getting commissions by status, type, amount, currency and description:', error);
+      res.status(500).json({ message: 'Error getting commissions by status, type, amount, currency and description', error });
+    }
+  };
+} 

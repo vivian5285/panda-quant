@@ -1,8 +1,9 @@
-import { User } from '../models/user.model';
+import { IUser, User } from '../models/User';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateToken } from '../utils/jwt';
 import { VerificationService } from './verification.service';
 import { AuthUser } from '../types/auth.types';
+import { VerificationUser } from '../types/verification.types';
 
 export class AuthService {
   private verificationService: VerificationService;
@@ -11,7 +12,7 @@ export class AuthService {
     this.verificationService = new VerificationService();
   }
 
-  async register(email: string, password: string, name: string): Promise<User> {
+  async register(email: string, password: string, name: string): Promise<IUser> {
     const hashedPassword = await hashPassword(password);
     const user = await User.create({
       email,
@@ -20,7 +21,11 @@ export class AuthService {
       role: 'user'
     });
 
-    await this.verificationService.sendVerificationEmail(user);
+    const verificationUser: VerificationUser = {
+      email: user.email,
+      verificationCode: user.verificationCode || ''
+    };
+    await this.verificationService.sendVerificationEmail(verificationUser);
     return user;
   }
 
@@ -40,9 +45,9 @@ export class AuthService {
     }
 
     const authUser: AuthUser = {
-      id: user._id.toString(),
+      id: user.id,
       email: user.email,
-      role: user.role as 'user' | 'admin'
+      role: user.role
     };
 
     return generateToken(authUser);
@@ -57,10 +62,14 @@ export class AuthService {
     if (!user) {
       throw new Error('User not found');
     }
-    await this.verificationService.sendVerificationEmail(user);
+    const verificationUser: VerificationUser = {
+      email: user.email,
+      verificationCode: user.verificationCode || ''
+    };
+    await this.verificationService.sendVerificationEmail(verificationUser);
   }
 
-  async getProfile(userId: string): Promise<User> {
+  async getProfile(userId: string): Promise<IUser> {
     const user = await User.findById(userId);
     if (!user) {
       throw new Error('User not found');
@@ -68,7 +77,7 @@ export class AuthService {
     return user;
   }
 
-  async updateProfile(userId: string, data: Partial<User>): Promise<User> {
+  async updateProfile(userId: string, data: Partial<IUser>): Promise<IUser> {
     const user = await User.findByIdAndUpdate(
       userId,
       { $set: data },
@@ -115,8 +124,13 @@ export class AuthService {
       throw new Error('User not found');
     }
 
+    const verificationUser: VerificationUser = {
+      email: user.email,
+      verificationCode: user.verificationCode || ''
+    };
+
     if (type === 'register') {
-      await this.verificationService.sendVerificationEmail(user);
+      await this.verificationService.sendVerificationEmail(verificationUser);
     } else {
       await this.verificationService.sendPasswordResetEmail(user);
     }

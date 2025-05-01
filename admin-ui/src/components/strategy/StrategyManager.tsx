@@ -44,7 +44,9 @@ import {
   Warning as WarningIcon,
   BarChart as BarChartIcon,
   Timeline as TimelineIcon,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Cancel as CancelIcon,
+  Info as InfoIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -104,16 +106,16 @@ const StrategyManager: React.FC = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string): React.ReactElement => {
     switch (status) {
       case 'active':
         return <CheckCircleIcon />;
       case 'inactive':
-        return <WarningIcon />;
+        return <CancelIcon />;
       case 'pending':
         return <PendingIcon />;
       default:
-        return null;
+        return <InfoIcon />;
     }
   };
 

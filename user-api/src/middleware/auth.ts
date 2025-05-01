@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { User } from '../models/user.model';
+import { User } from '../models/User';
 import { verifyToken } from '../utils/jwt';
 import { AuthUser } from '../types/auth.types';
+import jwt from 'jsonwebtoken';
 
 declare global {
   namespace Express {
@@ -11,27 +12,29 @@ declare global {
   }
 }
 
-export const auth = async (req: Request, res: Response, next: NextFunction) => {
+export const auth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
+      res.status(401).json({ message: 'No token provided' });
+      return;
     }
 
     const decoded = verifyToken(token);
     const user = await User.findById(decoded.id);
     if (!user) {
-      return res.status(401).json({ message: 'User not found' });
+      res.status(401).json({ message: 'User not found' });
+      return;
     }
 
     req.user = {
-      id: user._id.toString(),
+      id: user.id,
       email: user.email,
-      role: user.role as 'user' | 'admin'
+      role: user.role
     };
     next();
   } catch (error) {
-    return res.status(401).json({ message: 'Invalid token' });
+    res.status(401).json({ message: 'Invalid token' });
   }
 };
 
@@ -44,33 +47,45 @@ export const generateToken = (user: AuthUser): string => {
 };
 
 export const authenticate = async (
-  req: AuthRequest,
-  res: AuthResponse,
+  req: Request,
+  res: Response,
   next: NextFunction
-): Promise<void | AuthResponse> => {
+): Promise<void> => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
-    
     if (!token) {
-      return res.status(401).json({ message: 'No token provided' });
+      res.status(401).json({ message: 'No token provided' });
+      return;
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || '');
-    req.user = decoded as AuthUser;
+    const decoded = verifyToken(token);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      res.status(401).json({ message: 'User not found' });
+      return;
+    }
+
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role
+    };
     next();
   } catch (error) {
-    return res.status(401).json({ message: 'Invalid token' });
+    res.status(401).json({ message: 'Invalid token' });
   }
 };
 
 export const authorize = (roles: string[]) => {
-  return (req: AuthRequest, res: AuthResponse, next: NextFunction): void | AuthResponse => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
     }
 
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Forbidden' });
+      res.status(403).json({ message: 'Forbidden' });
+      return;
     }
 
     next();

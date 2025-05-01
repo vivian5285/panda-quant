@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Error as ErrorIcon } from '@mui/icons-material';
-import { theme } from '../theme';
+import theme from '../theme';
 import { animationConfig } from '../theme/animation';
 
 const NotFound: React.FC = () => {

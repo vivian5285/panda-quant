@@ -1,70 +1,69 @@
 import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import { User } from '../models/User';
+import { IUser } from '../types/user';
+import { logger } from '../utils/logger';
+import { Types } from 'mongoose';
 
-export interface User {
-  id: string;
-  role: string;
-  permissions: string[];
+const JWT_SECRET = process.env['JWT_SECRET'] || 'your-secret-key';
+
+export interface AuthenticatedRequest extends Request {
+  user?: IUser;
 }
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: User;
-    }
-  }
-}
-
-export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      error: 'Authentication required'
-    });
-  }
-
+export const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // TODO: 实现JWT验证逻辑
-    const user = {
-      id: 'user-id',
-      role: 'user',
-      permissions: ['read']
-    };
-    req.user = user;
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      res.status(401).json({ message: 'No token provided' });
+      return;
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      res.status(401).json({ message: 'User not found' });
+      return;
+    }
+
+    // Convert Mongoose document to plain object and ensure _id is ObjectId
+    const userObject = user.toObject();
+    const userId = user._id as Types.ObjectId;
+    req.user = {
+      ...userObject,
+      _id: userId,
+      id: userId.toString(),
+      isAdmin: userObject.role === 'admin'
+    } as IUser;
+
     next();
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      error: 'Invalid token'
-    });
+    logger.error('Authentication error:', error);
+    res.status(401).json({ message: 'Invalid token' });
   }
 };
 
-export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({
-      success: false,
-      error: 'Access denied. Admin only.'
-    });
+export const isAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Not authenticated' });
+    return;
   }
+
+  if (req.user.role !== 'admin') {
+    res.status(403).json({ message: 'Not authorized' });
+    return;
+  }
+
   next();
 };
 
 export const hasPermission = (permission: string) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     if (!req.user || !req.user.permissions.includes(permission)) {
-      return res.status(403).json({
-        success: false,
-        error: 'Forbidden',
-        message: 'Insufficient permissions'
-      });
+      res.status(403).json({ message: 'Access denied' });
+      return;
     }
     next();
   };
-};
-
-export const auth = authenticateToken;
-export const requireModerator = hasPermission('moderate');
-export const requireAdmin = isAdmin;
-export const authorize = hasPermission; 
+}; 

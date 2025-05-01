@@ -1,12 +1,4 @@
-export interface User {
-  id: string;
-  email: string;
-  username?: string;
-  name?: string;
-  role: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { User } from './user';
 
 export interface AuthState {
   isAuthenticated: boolean;

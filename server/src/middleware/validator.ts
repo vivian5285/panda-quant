@@ -1,28 +1,66 @@
 import { Request, Response, NextFunction } from 'express';
-import { body, validationResult } from 'express-validator';
-import { ValidationError } from './error';
+import { validationResult } from 'express-validator';
 
-export const validateRequest = (rules: any[]) => {
-  return [
-    ...rules,
-    (req: Request, res: Response, next: NextFunction) => {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        throw new ValidationError(errors.array());
-      }
-      next();
+export const validateRequest = (validations: any[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    await Promise.all(validations.map(validation => validation.run(req)));
+
+    const errors = validationResult(req);
+    if (errors.isEmpty()) {
+      return next();
     }
-  ];
+
+    res.status(400).json({ errors: errors.array() });
+  };
 };
 
-// 常用的验证规则
 export const commonValidators = {
-  email: body('email').isEmail().withMessage('Invalid email format'),
-  password: body('password')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
-  requiredString: (field: string) => 
-    body(field).notEmpty().withMessage(`${field} is required`),
-  optionalString: (field: string) => 
-    body(field).optional().isString().withMessage(`${field} must be a string`)
+  email: (field = 'email') => {
+    return {
+      field,
+      validators: [
+        (value: string) => {
+          if (!value) {
+            throw new Error('Email is required');
+          }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+            throw new Error('Invalid email format');
+          }
+          return true;
+        }
+      ]
+    };
+  },
+  password: (field = 'password') => {
+    return {
+      field,
+      validators: [
+        (value: string) => {
+          if (!value) {
+            throw new Error('Password is required');
+          }
+          if (value.length < 6) {
+            throw new Error('Password must be at least 6 characters long');
+          }
+          return true;
+        }
+      ]
+    };
+  },
+  requiredString: (field: string) => {
+    return {
+      field,
+      validators: [
+        (value: string) => {
+          if (!value) {
+            throw new Error(`${field} is required`);
+          }
+          if (typeof value !== 'string') {
+            throw new Error(`${field} must be a string`);
+          }
+          return true;
+        }
+      ]
+    };
+  }
 }; 

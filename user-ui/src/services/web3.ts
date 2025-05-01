@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { EthereumProvider } from '../types/window';
+import { EthereumProvider } from '../types/ethereum';
 
 declare global {
   interface Window {
     ethereum?: EthereumProvider;
     okxwallet?: EthereumProvider;
     tokenpocket?: EthereumProvider;
+    trustwallet?: EthereumProvider;
+    bitkeep?: EthereumProvider;
+    mathwallet?: EthereumProvider;
+    safepal?: EthereumProvider;
+    imToken?: EthereumProvider;
   }
 }
 
@@ -20,6 +25,16 @@ const getInjectedProvider = (walletType: string): EthereumProvider | null => {
       return window.okxwallet || null;
     case 'tokenpocket':
       return window.tokenpocket || null;
+    case 'trustwallet':
+      return window.trustwallet || null;
+    case 'bitkeep':
+      return window.bitkeep || null;
+    case 'mathwallet':
+      return window.mathwallet || null;
+    case 'safepal':
+      return window.safepal || null;
+    case 'imtoken':
+      return window.imToken || null;
     default:
       return window.ethereum || null;
   }
@@ -53,32 +68,47 @@ export const useWeb3 = () => {
     initProvider();
   }, []);
 
-  const connect = async () => {
-    if (!window.ethereum) {
-      throw new Error('No Ethereum provider found');
+  const connect = async (walletType: string = 'metamask') => {
+    const provider = getInjectedProvider(walletType);
+    if (!provider) {
+      throw new Error(`${walletType} wallet not found`);
     }
 
     try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }) as string[];
-      setAccount(accounts[0]);
+      const accounts = await provider.request({ method: 'eth_requestAccounts' }) as string[];
+      if (accounts.length > 0) {
+        setAccount(accounts[0]);
+      }
 
-      const chainId = await window.ethereum.request({ method: 'eth_chainId' }) as string;
+      const chainId = await provider.request({ method: 'eth_chainId' }) as string;
       setChainId(parseInt(chainId, 16));
 
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      setProvider(provider);
-      return provider;
+      const ethersProvider = new ethers.BrowserProvider(provider);
+      setProvider(ethersProvider);
+      return ethersProvider;
     } catch (error) {
       console.error('Error connecting to wallet:', error);
       throw error;
     }
   };
 
+  const disconnect = () => {
+    setProvider(null);
+    setAccount(null);
+    setChainId(null);
+  };
+
+  const isConnected = () => {
+    return !!account;
+  };
+
   return {
     provider,
     account,
     chainId,
-    connect
+    connect,
+    disconnect,
+    isConnected,
   };
 };
 

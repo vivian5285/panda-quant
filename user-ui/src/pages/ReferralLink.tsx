@@ -14,7 +14,8 @@ import {
   Chip,
   useTheme,
   IconButton,
-  Tooltip
+  Tooltip,
+  Button
 } from '@mui/material';
 import {
   ContentCopy as CopyIcon,
@@ -25,6 +26,10 @@ import {
 import axios from 'axios';
 import { format } from 'date-fns';
 import Layout from '../components/Layout';
+import { GradientTitle } from '../components/common/GradientTitle';
+import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
+import { slideUp } from '../animations';
 
 interface Referral {
   id: string;
@@ -58,6 +63,7 @@ const ReferralLink: React.FC = () => {
   });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchData();
@@ -117,175 +123,58 @@ const ReferralLink: React.FC = () => {
   }
 
   return (
-    <Layout>
+    <Box sx={{ py: 8 }}>
       <Container maxWidth="lg">
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Referral Center
-          </Typography>
+        <motion.div variants={slideUp}>
+          <GradientTitle 
+            title={t('referral.title', '推荐链接')} 
+            variant="h2" 
+            align="center" 
+            sx={{ mb: 6 }}
+          >
+            {t('referral.title', '推荐链接')}
+          </GradientTitle>
+        </motion.div>
 
-          <Grid container spacing={3}>
-            {/* 推荐链接卡片 */}
-            <Grid item xs={12}>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Your Referral Link
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      flex: 1,
-                      p: 1,
-                      bgcolor: theme.palette.grey[100],
-                      borderRadius: 1,
-                      wordBreak: 'break-all'
-                    }}
-                  >
-                    {referralLink}
-                  </Typography>
-                  <Tooltip title="Copy Link">
-                    <IconButton onClick={handleCopyLink} color="primary">
-                      <CopyIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Share">
-                    <IconButton onClick={handleShare} color="primary">
-                      <ShareIcon />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Paper>
-            </Grid>
-
-            {/* 统计卡片 */}
-            <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  First Generation
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <PersonIcon color="primary" />
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Referrals
-                        </Typography>
-                        <Typography variant="h4">
-                          {stats.firstGen.count}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <MoneyIcon color="primary" />
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Commission
-                        </Typography>
-                        <Typography variant="h4" color="primary">
-                          ${stats.firstGen.totalCommission.toFixed(2)}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Second Generation
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <PersonIcon color="secondary" />
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Referrals
-                        </Typography>
-                        <Typography variant="h4">
-                          {stats.secondGen.count}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <MoneyIcon color="secondary" />
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary">
-                          Commission
-                        </Typography>
-                        <Typography variant="h4" color="secondary">
-                          ${stats.secondGen.totalCommission.toFixed(2)}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Grid>
-
-            {/* 推荐人列表 */}
-            <Grid item xs={12}>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Referral History
-                </Typography>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Name</TableCell>
-                        <TableCell>Email</TableCell>
-                        <TableCell>Level</TableCell>
-                        <TableCell>Commission</TableCell>
-                        <TableCell>Status</TableCell>
-                        <TableCell>Date</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {referrals.map((referral) => (
-                        <TableRow key={referral.id}>
-                          <TableCell>{referral.name}</TableCell>
-                          <TableCell>{referral.email}</TableCell>
-                          <TableCell>
-                            <Chip
-                              label={`Level ${referral.level}`}
-                              color={referral.level === 1 ? 'primary' : 'secondary'}
-                              size="small"
-                            />
-                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                              {referral.level === 1 ? '20%' : '10%'}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>${referral.commission.toFixed(2)}</TableCell>
-                          <TableCell>
-                            <Chip
-                              label={referral.status}
-                              color={referral.status === 'paid' ? 'success' : 'warning'}
-                              size="small"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            {format(new Date(referral.referredAt), 'MMM dd, yyyy')}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Paper>
-            </Grid>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="h6" gutterBottom>
+                {t('referral.yourLink', '您的推荐链接')}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                {referralLink}
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleCopyLink}
+              >
+                {t('referral.copy', '复制链接')}
+              </Button>
+            </Paper>
           </Grid>
-        </Box>
+
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 4 }}>
+              <Typography variant="h6" gutterBottom>
+                {t('referral.howItWorks', '推荐奖励机制')}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" paragraph>
+                {t('referral.description', '邀请好友注册并使用我们的服务，您和您的好友都将获得奖励。')}
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                {t('referral.reward', '每成功推荐一位好友，您将获得：')}
+              </Typography>
+              <ul>
+                <li>{t('referral.reward1', '好友首笔交易金额的 10% 作为奖励')}</li>
+                <li>{t('referral.reward2', '好友交易手续费的 20% 作为持续奖励')}</li>
+              </ul>
+            </Paper>
+          </Grid>
+        </Grid>
       </Container>
-    </Layout>
+    </Box>
   );
 };
 

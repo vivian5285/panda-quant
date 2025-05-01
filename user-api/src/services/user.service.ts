@@ -1,19 +1,19 @@
-import { User } from '../models/user.model';
+import { User, IUser } from '../models/User';
 import bcrypt from 'bcrypt';
 import { DatabaseError } from '../utils/errors';
 
 export class UserService {
   private userModel = User;
 
-  async getUserByEmail(email: string): Promise<User | null> {
+  async getUserByEmail(email: string): Promise<IUser | null> {
     try {
       return await this.userModel.findOne({ email });
     } catch (error) {
-      throw new DatabaseError('Error finding user by email');
+      throw new DatabaseError('Failed to get user by email', error);
     }
   }
 
-  async createUser(userData: Partial<User>): Promise<User> {
+  async createUser(userData: Partial<IUser>): Promise<IUser> {
     try {
       // Hash password before saving
       if (userData.password) {
@@ -24,23 +24,23 @@ export class UserService {
       const user = new this.userModel(userData);
       return await user.save();
     } catch (error) {
-      throw new DatabaseError('Error creating user');
+      throw new DatabaseError('Failed to create user', error);
     }
   }
 
-  async updateUser(id: string, updateData: Partial<User>): Promise<User | null> {
+  async updateUser(id: string, userData: Partial<IUser>): Promise<IUser | null> {
     try {
       return await this.userModel.findByIdAndUpdate(
         id,
-        { $set: updateData },
-        { new: true }
+        { $set: userData },
+        { new: true, runValidators: true }
       );
     } catch (error) {
-      throw new DatabaseError('Error updating user');
+      throw new DatabaseError('Failed to update user', error);
     }
   }
 
-  async verifyEmail(email: string): Promise<User | null> {
+  async verifyEmail(email: string): Promise<IUser | null> {
     try {
       return await this.userModel.findOneAndUpdate(
         { email },
@@ -56,7 +56,7 @@ export class UserService {
     return bcrypt.compare(password, hash);
   }
 
-  async validateUser(email: string, password: string): Promise<User | null> {
+  async validateUser(email: string, password: string): Promise<IUser | null> {
     try {
       const user = await this.getUserByEmail(email);
       if (!user) return null;
@@ -70,14 +70,14 @@ export class UserService {
 
   async deleteUser(id: string): Promise<boolean> {
     try {
-      const result = await this.userModel.deleteOne({ _id: id });
-      return result.deletedCount > 0;
+      const result = await this.userModel.findByIdAndDelete(id);
+      return !!result;
     } catch (error) {
       throw new DatabaseError('Failed to delete user', error);
     }
   }
 
-  async getUserById(id: string): Promise<User | null> {
+  async getUserById(id: string): Promise<IUser | null> {
     try {
       const user = await this.userModel.findById(id);
       if (!user) {
@@ -90,13 +90,11 @@ export class UserService {
     }
   }
 
-  async getAllUsers(page: number = 1, limit: number = 10): Promise<{ users: User[]; total: number }> {
+  async getAllUsers(page: number = 1, limit: number = 10): Promise<{ users: IUser[]; total: number }> {
     try {
       const skip = (page - 1) * limit;
-      const [users, total] = await Promise.all([
-        this.userModel.find().skip(skip).limit(limit),
-        this.userModel.countDocuments()
-      ]);
+      const users = await this.userModel.find().skip(skip).limit(limit);
+      const total = await this.userModel.countDocuments();
       return { users, total };
     } catch (error) {
       throw new DatabaseError('Failed to get users', error);

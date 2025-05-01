@@ -369,53 +369,121 @@ export const createCustomTheme = (mode: 'light' | 'dark' = 'light') => {
 };
 
 // 导出主题工具函数
-export const themeUtils = {
+export interface ThemeUtils {
   animationConfig: {
     duration: {
-      short: 0.2,
-      medium: 0.4,
-      long: 0.6
+      short: number;
+      medium: number;
+      long: number;
+      slow: number;
+    };
+    easing: {
+      easeInOut: string;
+      easeOut: string;
+      easeIn: string;
+      sharp: string;
+    };
+  };
+  createGradient: (color1: string, color2: string) => string;
+  createRadialGradient: (color: string, opacity: number) => string;
+  createTextGradient: (color1: string, color2: string) => string;
+  glassEffect: (opacity?: number) => {
+    background: string;
+    backdropFilter: string;
+    border: string;
+  };
+  spacing: {
+    grid: number;
+  };
+  textStyles: TypographyOptions;
+  cardStyle: {
+    borderRadius: number;
+    boxShadow: string;
+    padding: number;
+  };
+  buttonStyles: {
+    borderRadius: number;
+    textTransform: string;
+    fontWeight: number;
+  };
+  backgroundStyles: {
+    card: (theme: any) => {
+      background: string;
+      backdropFilter: string;
+      border: string;
+    };
+    section: (theme: any) => {
+      background: string;
+      backdropFilter: string;
+      border: string;
+    };
+  };
+  gradients: {
+    primary: string;
+    secondary: string;
+    accent: string;
+  };
+}
+
+export const themeUtils: ThemeUtils = {
+  animationConfig: {
+    duration: {
+      short: 200,
+      medium: 400,
+      long: 600,
+      slow: 1000,
     },
     easing: {
       easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
       easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
       easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
-      sharp: 'cubic-bezier(0.4, 0, 0.6, 1)'
-    }
+      sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
+    },
   },
   createGradient: (color1: string, color2: string) => {
     return `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
   },
+  createRadialGradient: (color: string, opacity: number) => {
+    return `radial-gradient(circle at center, ${color}${Math.floor(opacity * 255).toString(16).padStart(2, '0')} 0%, transparent 100%)`;
+  },
+  createTextGradient: (color1: string, color2: string) => {
+    return `linear-gradient(45deg, ${color1}, ${color2})`;
+  },
+  glassEffect: (opacity = 0.1) => ({
+    background: `rgba(255, 255, 255, ${opacity})`,
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+  }),
+  spacing: {
+    grid: 8,
+  },
   textStyles: typography,
   cardStyle: {
-    borderRadius: '12px',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-    transition: 'all 0.2s ease',
-    '&:hover': {
-      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-    },
+    borderRadius: 2,
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    padding: 2,
   },
   buttonStyles: {
-    contained: {
-      backgroundColor: themeConfig.light.primary.main,
-      color: themeConfig.light.primary.contrastText,
-      '&:hover': {
-        backgroundColor: themeConfig.light.primary.dark,
-      },
-    },
-    outlined: {
-      borderColor: themeConfig.light.primary.main,
-      color: themeConfig.light.primary.main,
-      '&:hover': {
-        backgroundColor: alpha(themeConfig.light.primary.main, 0.1),
-      },
-    },
-    text: {
-      color: themeConfig.light.primary.main,
-      '&:hover': {
-        backgroundColor: alpha(themeConfig.light.primary.main, 0.1),
-      },
-    },
+    borderRadius: 2,
+    textTransform: 'none',
+    fontWeight: 600,
+  },
+  backgroundStyles: {
+    card: (theme) => ({
+      background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.9)} 0%, ${alpha(theme.palette.background.default, 0.9)} 100%)`,
+      backdropFilter: 'blur(10px)',
+      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+    }),
+    section: (theme) => ({
+      background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.9)} 0%, ${alpha(theme.palette.background.default, 0.9)} 100%)`,
+      backdropFilter: 'blur(10px)',
+      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+    }),
+  },
+  gradients: {
+    primary: `linear-gradient(135deg, ${themeConfig.light.primary.main} 0%, ${themeConfig.light.secondary.main} 100%)`,
+    secondary: `linear-gradient(135deg, ${themeConfig.light.secondary.main} 0%, ${themeConfig.light.primary.main} 100%)`,
+    accent: `linear-gradient(135deg, ${themeConfig.light.accent.main} 0%, ${themeConfig.light.accent.dark} 100%)`,
   },
 };
 

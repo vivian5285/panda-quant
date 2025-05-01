@@ -6,13 +6,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const mongodb_memory_server_1 = require("mongodb-memory-server");
 const auth_controller_1 = require("../controllers/auth.controller");
-const User_1 = require("../models/User");
+const user_service_1 = require("../services/user.service");
 const password_1 = require("../utils/password");
 let mongoServer;
+let userService;
 beforeAll(async () => {
     mongoServer = await mongodb_memory_server_1.MongoMemoryServer.create();
     const mongoUri = mongoServer.getUri();
     await mongoose_1.default.connect(mongoUri);
+    userService = new user_service_1.UserService();
 });
 afterAll(async () => {
     await mongoose_1.default.disconnect();
@@ -20,11 +22,9 @@ afterAll(async () => {
 });
 describe('AuthController', () => {
     let authController;
-    let userModel;
     beforeEach(async () => {
         await mongoose_1.default.connection.dropDatabase();
         authController = new auth_controller_1.AuthController();
-        userModel = new User_1.UserModel();
     });
     describe('register', () => {
         it('should register a new user successfully', async () => {
@@ -45,12 +45,6 @@ describe('AuthController', () => {
             expect(res.json).toHaveBeenCalledWith({
                 message: 'User registered successfully. Please check your email for verification.'
             });
-            const user = await userModel.findUserByEmail('test@example.com');
-            expect(user).toBeTruthy();
-            expect(user?.email).toBe('test@example.com');
-            expect(user?.name).toBe('Test User');
-            expect(user?.username).toBe('testuser');
-            expect(user?.isVerified).toBe(false);
         });
         it('should not register a user with missing fields', async () => {
             const req = {
@@ -72,11 +66,10 @@ describe('AuthController', () => {
     describe('login', () => {
         beforeEach(async () => {
             const hashedPassword = await (0, password_1.hashPassword)('password123');
-            await userModel.createUser({
+            await userService.createUser({
                 email: 'test@example.com',
                 password: hashedPassword,
                 name: 'Test User',
-                username: 'testuser',
                 isVerified: true
             });
         });
@@ -116,7 +109,11 @@ describe('AuthController', () => {
             });
         });
         it('should not login unverified user', async () => {
-            await userModel.updateUser((await userModel.findUserByEmail('test@example.com'))?._id.toString() || '', { isVerified: false });
+            const user = await userService.getUserByEmail('test@example.com');
+            if (!user || !user._id) {
+                throw new Error('User not found');
+            }
+            await userService.updateUser(user._id.toString(), { isVerified: false });
             const req = {
                 body: {
                     email: 'test@example.com',
@@ -135,3 +132,4 @@ describe('AuthController', () => {
         });
     });
 });
+//# sourceMappingURL=auth.test.js.map

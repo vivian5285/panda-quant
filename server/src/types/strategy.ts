@@ -1,37 +1,56 @@
-import { Document } from 'mongoose';
-import { Types } from 'mongoose';
-import { IStrategy } from '../interfaces/IStrategy';
+import { Types, Document } from 'mongoose';
+import { StrategyType, StrategyStatus } from './enums';
+import { IPerformanceMetrics } from './performance';
 
-export type Strategy = IStrategy;
+export interface IStrategyPerformanceMetrics {
+  totalTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  winRate: number;
+  profitFactor: number;
+  averageWin: number;
+  averageLoss: number;
+  maxDrawdown: number;
+  sharpeRatio: number;
+  sortinoRatio: number;
+  totalProfit: number;
+  monthlyReturns: number[];
+  dailyReturns: number[];
+}
 
-export interface StrategyCreateInput extends Omit<IStrategy, '_id' | 'createdAt' | 'updatedAt'> {}
-export interface StrategyUpdateInput extends Partial<StrategyCreateInput> {}
-
-export interface IStrategyPerformance extends Document {
-  _id: Types.ObjectId;
-  strategyId: Types.ObjectId;
+export interface IStrategy {
   userId: Types.ObjectId;
+  name: string;
+  description?: string;
+  type: StrategyType;
+  status: StrategyStatus;
+  parameters: Record<string, any>;
+  performance?: {
+    totalTrades: number;
+    winRate: number;
+    profit: number;
+    metrics: Record<string, any>;
+  };
+  metadata?: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IStrategyDocument extends IStrategy, Document {}
+
+export interface IStrategyPerformance {
+  strategyId: string;
+  userId: string;
   period: {
     start: Date;
     end: Date;
   };
   metrics: {
-    totalTrades: number;
-    winningTrades: number;
-    losingTrades: number;
-    winRate: number;
-    profitFactor: number;
-    averageTradeDuration: number;
     totalProfit: number;
-    maxDrawdown: number;
-    sharpeRatio: number;
-    sortinoRatio: number;
+    largestLoss: number;
+    winRate: number;
     averageWin: number;
     averageLoss: number;
-    largestWin: number;
-    largestLoss: number;
-    consecutiveWins: number;
-    consecutiveLosses: number;
   };
   trades: {
     entryTime: Date;
@@ -47,20 +66,22 @@ export interface IStrategyPerformance extends Document {
   updatedAt: Date;
 }
 
-export interface IStrategyRating extends Document {
-  _id: Types.ObjectId;
-  strategyId: Types.ObjectId;
-  userId: Types.ObjectId;
+export interface IStrategyPerformanceDocument extends IStrategyPerformance, Document {}
+
+export interface IStrategyRating {
+  strategyId: string;
+  userId: string;
   rating: number;
   comment?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface IStrategyBacktest extends Document {
-  _id: Types.ObjectId;
-  strategyId: Types.ObjectId;
-  userId: Types.ObjectId;
+export interface IStrategyRatingDocument extends IStrategyRating, Document {}
+
+export interface IStrategyBacktest {
+  strategyId: string;
+  userId: string;
   period: {
     start: Date;
     end: Date;
@@ -77,23 +98,7 @@ export interface IStrategyBacktest extends Document {
     timeframes: string[];
     pairs: string[];
   };
-  results: {
-    totalTrades: number;
-    winningTrades: number;
-    losingTrades: number;
-    winRate: number;
-    profitFactor: number;
-    averageTradeDuration: number;
-    totalProfit: number;
-    maxDrawdown: number;
-    sharpeRatio: number;
-    sortinoRatio: number;
-    averageWin: number;
-    averageLoss: number;
-    largestWin: number;
-    largestLoss: number;
-    consecutiveWins: number;
-    consecutiveLosses: number;
+  results: IPerformanceMetrics & {
     finalBalance: number;
     return: number;
     annualizedReturn: number;
@@ -113,19 +118,12 @@ export interface IStrategyBacktest extends Document {
   updatedAt: Date;
 }
 
-export interface IStrategy extends Document {
-  _id: string;
-  userId: string;
-  name: string;
-  description: string;
-  exchange: string;
-  symbol: string;
-  timeframe: string;
-  parameters: Record<string, any>;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  lastExecutedAt?: Date;
-  error?: string;
-  metadata?: Record<string, any>;
-} 
+export interface IStrategyBacktestDocument extends IStrategyBacktest, Document {}
+
+export type Strategy = IStrategy;
+
+export interface StrategyCreateInput extends Omit<IStrategy, 'createdAt' | 'updatedAt'> {}
+
+export interface StrategyUpdateInput extends Partial<StrategyCreateInput> {}
+
+export { StrategyType, StrategyStatus }; 

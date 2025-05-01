@@ -1,4 +1,4 @@
-import { User } from '../models/user.model';
+import { User } from '../models/User';
 import { Transaction } from '../models/transaction.model';
 
 export async function deductFees() {

@@ -132,7 +132,7 @@ const Withdraw: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): 'error' | 'info' | 'success' | 'warning' => {
     switch (status) {
       case 'pending':
         return 'warning';
@@ -141,7 +141,7 @@ const Withdraw: React.FC = () => {
       case 'rejected':
         return 'error';
       default:
-        return 'default';
+        return 'info';
     }
   };
 
@@ -164,7 +164,7 @@ const Withdraw: React.FC = () => {
     return (
       <Layout>
         <Box sx={{ p: 3 }}>
-          <PandaAlert severity="warning">{t('withdraw.authRequired')}</PandaAlert>
+          <PandaAlert severity="warning" message={t('withdraw.authRequired')} />
         </Box>
       </Layout>
     );
@@ -177,7 +177,7 @@ const Withdraw: React.FC = () => {
           minHeight: '100vh',
           pt: 8,
           pb: 4,
-          background: themeUtils.createGradient('background.default', 'background.paper'),
+          background: themeUtils.gradients.primary,
           position: 'relative',
           '&::before': {
             content: '""',
@@ -205,7 +205,7 @@ const Withdraw: React.FC = () => {
               sx={{
                 mb: 6,
                 fontWeight: 700,
-                background: themeUtils.createGradient('primary'),
+                background: themeUtils.gradients.primary,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 textAlign: 'center',
@@ -239,15 +239,11 @@ const Withdraw: React.FC = () => {
                     </Typography>
 
                     {error && (
-                      <PandaAlert severity="error" sx={{ mb: 3 }}>
-                        {error}
-                      </PandaAlert>
+                      <PandaAlert severity="error" message={t('withdraw.error')} />
                     )}
 
                     {success && (
-                      <PandaAlert severity="success" sx={{ mb: 3 }}>
-                        {success}
-                      </PandaAlert>
+                      <PandaAlert severity="success" message={t('withdraw.success')} />
                     )}
 
                     <Box component="form" onSubmit={handleSubmit}>
@@ -256,31 +252,30 @@ const Withdraw: React.FC = () => {
                         label={t('withdraw.form.amount')}
                         type="number"
                         value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
+                        onChange={setAmount}
                         required
                         sx={{ mb: 3 }}
                       />
 
                       <PandaSelect
                         fullWidth
-                        label={t('withdraw.form.chain')}
+                        label={t('withdraw.chain')}
                         value={chain}
-                        onChange={(e) => setChain(e.target.value)}
+                        options={[
+                          { value: 'ethereum', label: 'Ethereum' },
+                          { value: 'bsc', label: 'BSC' },
+                          { value: 'polygon', label: 'Polygon' },
+                        ]}
+                        onChange={(value) => setChain(value)}
                         required
                         sx={{ mb: 3 }}
-                      >
-                        {CHAINS.map((chain) => (
-                          <option key={chain.name} value={chain.name}>
-                            {chain.name}
-                          </option>
-                        ))}
-                      </PandaSelect>
+                      />
 
                       <PandaInput
                         fullWidth
                         label={t('withdraw.form.address')}
                         value={address}
-                        onChange={(e) => setAddress(e.target.value)}
+                        onChange={setAddress}
                         required
                         sx={{ mb: 3 }}
                       />
@@ -302,9 +297,8 @@ const Withdraw: React.FC = () => {
                         fullWidth
                         disabled={loading}
                         animate
-                        glow
                       >
-                        {loading ? <PandaProgress size={24} /> : t('withdraw.form.submit')}
+                        {loading ? <PandaProgress size={24} value={loading ? 50 : 0} /> : t('withdraw.form.submit')}
                       </PandaButton>
                     </Box>
                   </PandaCard>
@@ -333,30 +327,21 @@ const Withdraw: React.FC = () => {
                       {t('withdraw.records.title')}
                     </Typography>
 
-                    <PandaTable>
-                      <thead>
-                        <tr>
-                          <th>{t('withdraw.records.amount')}</th>
-                          <th>{t('withdraw.records.chain')}</th>
-                          <th>{t('withdraw.records.status')}</th>
-                          <th>{t('withdraw.records.date')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {records.map((record) => (
-                          <tr key={record.id}>
-                            <td>{record.amount} USDT</td>
-                            <td>{record.chain}</td>
-                            <td>
-                              <PandaAlert severity={getStatusColor(record.status)}>
-                                {getStatusText(record.status)}
-                              </PandaAlert>
-                            </td>
-                            <td>{new Date(record.createdAt).toLocaleDateString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </PandaTable>
+                    <PandaTable
+                      columns={[
+                        { id: 'amount', label: t('withdraw.records.amount') },
+                        { id: 'chain', label: t('withdraw.records.chain') },
+                        { id: 'status', label: t('withdraw.records.status') },
+                        { id: 'date', label: t('withdraw.records.date') }
+                      ]}
+                      data={records.map(record => ({
+                        id: record.id,
+                        amount: `${record.amount} USDT`,
+                        chain: record.chain,
+                        status: getStatusText(record.status),
+                        date: new Date(record.createdAt).toLocaleDateString()
+                      }))}
+                    />
                   </PandaCard>
                 </motion.div>
               </Grid>

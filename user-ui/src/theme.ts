@@ -4,6 +4,31 @@ import { themeUtils } from './theme/index';
 
 export { themeUtils };
 
+const buttonStyles: ThemeOptions['components'] = {
+  MuiButton: {
+    styleOverrides: {
+      root: {
+        borderRadius: 8,
+        textTransform: 'none',
+        fontWeight: 600,
+        padding: '8px 24px',
+      },
+      contained: {
+        boxShadow: 'none',
+        '&:hover': {
+          boxShadow: 'none',
+        },
+      },
+      outlined: {
+        borderWidth: 2,
+      },
+      text: {
+        padding: '8px 16px',
+      },
+    },
+  },
+};
+
 export const createCustomTheme = (mode: 'light' | 'dark' = 'light') => {
   return createTheme({
     palette: {
@@ -44,18 +69,7 @@ export const createCustomTheme = (mode: 'light' | 'dark' = 'light') => {
       },
       MuiButton: {
         styleOverrides: {
-          contained: {
-            ...themeUtils.buttonStyles.contained,
-            variants: [],
-          },
-          outlined: {
-            ...themeUtils.buttonStyles.outlined,
-            variants: [],
-          },
-          text: {
-            ...themeUtils.buttonStyles.text,
-            variants: [],
-          },
+          ...buttonStyles.MuiButton?.styleOverrides,
         },
       },
     },

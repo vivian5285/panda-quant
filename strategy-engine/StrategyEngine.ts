@@ -1,18 +1,32 @@
-import { Strategy, StrategyPreset, OHLCV, Trade } from './types';
+import { Strategy, StrategyPreset, OHLCV, Trade, Order, OrderStatus, StrategyExecutionResult } from './types';
 import { SuperTrendStrategy } from './strategies/superTrendStrategy';
 import config from './config';
 import { DatabaseService } from './services/databaseService';
-import { Order } from './types/order';
+import { OrderQueueService } from './services/orderQueueService';
+import { MonitoringService } from './services/monitoringService';
+import { generateUUID } from './utils/uuid';
 
 export class StrategyEngine {
+  private static instance: StrategyEngine;
   private strategies: Map<string, Strategy>;
   private databaseService: DatabaseService;
+  private orderQueueService: OrderQueueService;
+  private monitoringService: MonitoringService;
   private updateInterval: NodeJS.Timeout | null;
 
-  constructor() {
+  private constructor() {
     this.strategies = new Map();
     this.databaseService = new DatabaseService();
+    this.orderQueueService = OrderQueueService.getInstance();
+    this.monitoringService = MonitoringService.getInstance();
     this.updateInterval = null;
+  }
+
+  public static getInstance(): StrategyEngine {
+    if (!StrategyEngine.instance) {
+      StrategyEngine.instance = new StrategyEngine();
+    }
+    return StrategyEngine.instance;
   }
 
   public async initialize(): Promise<void> {
@@ -21,6 +35,9 @@ export class StrategyEngine {
     
     // 创建必要的数据库表
     await this.databaseService.createTables();
+
+    // 初始化监控服务
+    await this.monitoringService.initialize();
   }
 
   public async addStrategy(preset: StrategyPreset): Promise<string> {
@@ -51,23 +68,44 @@ export class StrategyEngine {
     this.strategies.delete(strategyId);
   }
 
-  public async executeStrategy(strategy: StrategyPreset, parameters: Record<string, any>): Promise<Order[]> {
-    if (!this.strategies.has(strategy.id)) {
-      throw new Error(`策略不存在: ${strategy.id}`);
-    }
-
-    const strategyInstance = this.strategies.get(strategy.id);
-    if (!strategyInstance) {
-      throw new Error(`策略实例不存在: ${strategy.id}`);
-    }
+  public async executeStrategy(strategy: Strategy): Promise<StrategyExecutionResult> {
+    const result: StrategyExecutionResult = {
+      id: generateUUID(),
+      strategyId: strategy.id,
+      status: 'success',
+      startTime: new Date(),
+      endTime: new Date(),
+      trades: [],
+      performance: {
+        monthlyReturn: 0,
+        totalReturn: 0,
+        maxDrawdown: 0,
+        sharpeRatio: 0
+      }
+    };
 
     try {
-      const orders = await strategyInstance.execute(parameters);
-      return orders;
+      // 执行策略
+      const orders = await this.executeStrategy(strategy, {});
+      
+      // 将订单添加到队列
+      for (const order of orders) {
+        await this.createOrder(order);
+      }
+
+      // 更新监控
+      await this.monitoringService.updateStrategyExecution(strategy.id, result);
+
+      return result;
     } catch (error) {
-      console.error(`执行策略失败: ${strategy.id}`, error);
+      result.status = 'failed';
+      await this.monitoringService.logError(strategy.id, error);
       throw error;
     }
+  }
+
+  async createOrder(orderData: Omit<Order, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<void> {
+    await this.orderQueueService.addOrder(orderData);
   }
 
   public async updateMarketData(data: OHLCV): Promise<void> {
@@ -131,5 +169,6 @@ export class StrategyEngine {
   public async cleanup(): Promise<void> {
     this.stop();
     await this.databaseService.close();
+    await this.monitoringService.cleanup();
   }
 } 

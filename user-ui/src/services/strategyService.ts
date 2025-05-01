@@ -1,34 +1,70 @@
 import axios from 'axios';
-import { API_BASE_URL } from '@/config';
+import { API_BASE_URL } from '../config';
 
 export interface Strategy {
-  id: number;
+  id: string;
   name: string;
-  description: string;
   type: string;
   status: 'active' | 'paused' | 'stopped';
   riskLevel: 'low' | 'medium' | 'high';
-}
-
-export interface StrategyConfig {
-  [key: string]: string | number;
-}
-
-export interface StrategyPerformance {
-  totalReturn: number;
-  annualizedReturn: number;
-  maxDrawdown: number;
-  history: {
-    labels: string[];
-    data: number[];
+  performance: {
+    monthlyReturn: number;
+    totalReturn: number;
+    annualizedReturn: number;
+    winRate: number;
+    maxDrawdown: number;
+    sharpeRatio: number;
+    volatility: number;
+    profitFactor: number;
   };
+  targetReturn: {
+    monthly: number;
+    annual: number;
+  };
+  parameters: Record<string, any>;
+  returns: Array<{
+    date: string;
+    value: number;
+  }>;
+  trades: Array<{
+    date: string;
+    type: 'buy' | 'sell';
+    amount: number;
+    price: number;
+  }>;
+  backtestResults: Array<{
+    equityCurve: Array<{
+      date: string;
+      value: number;
+    }>;
+    metrics: {
+      totalReturn: number;
+      sharpeRatio: number;
+      maxDrawdown: number;
+      winRate: number;
+    };
+  }>;
+  optimizationResults: Array<{
+    parameters: Record<string, any>;
+    metrics: {
+      totalReturn: number;
+      monthlyReturn: number;
+      annualizedReturn: number;
+      sharpeRatio: number;
+      maxDrawdown: number;
+      winRate: number;
+    };
+  }>;
+  lastUpdated: string;
 }
 
 class StrategyService {
   private static instance: StrategyService;
+  private baseUrl = '/api/strategies';
+
   private constructor() {}
 
-  public static getInstance(): StrategyService {
+  static getInstance(): StrategyService {
     if (!StrategyService.instance) {
       StrategyService.instance = new StrategyService();
     }
@@ -37,7 +73,7 @@ class StrategyService {
 
   async getStrategies(): Promise<Strategy[]> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/strategies`);
+      const response = await axios.get(`${API_BASE_URL}${this.baseUrl}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching strategies:', error);
@@ -45,61 +81,33 @@ class StrategyService {
     }
   }
 
-  async getStrategyConfig(strategyId: number): Promise<StrategyConfig> {
+  async updateStrategy(strategy: Strategy): Promise<void> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/strategies/${strategyId}/config`);
+      await axios.put(`${API_BASE_URL}${this.baseUrl}/${strategy.id}`, strategy);
+    } catch (error) {
+      console.error('Error updating strategy:', error);
+      throw error;
+    }
+  }
+
+  async createStrategy(strategy: Omit<Strategy, 'id'>): Promise<Strategy> {
+    try {
+      const response = await axios.post(`${API_BASE_URL}${this.baseUrl}`, strategy);
       return response.data;
     } catch (error) {
-      console.error('Error fetching strategy config:', error);
+      console.error('Error creating strategy:', error);
       throw error;
     }
   }
 
-  async getStrategyPerformance(strategyId: number): Promise<StrategyPerformance> {
+  async deleteStrategy(id: string): Promise<void> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/strategies/${strategyId}/performance`);
-      return response.data;
+      await axios.delete(`${API_BASE_URL}${this.baseUrl}/${id}`);
     } catch (error) {
-      console.error('Error fetching strategy performance:', error);
-      throw error;
-    }
-  }
-
-  async updateStrategyConfig(strategyId: number, config: StrategyConfig): Promise<void> {
-    try {
-      await axios.put(`${API_BASE_URL}/strategies/${strategyId}/config`, config);
-    } catch (error) {
-      console.error('Error updating strategy config:', error);
-      throw error;
-    }
-  }
-
-  async startStrategy(strategyId: number): Promise<void> {
-    try {
-      await axios.post(`${API_BASE_URL}/strategies/${strategyId}/start`);
-    } catch (error) {
-      console.error('Error starting strategy:', error);
-      throw error;
-    }
-  }
-
-  async stopStrategy(strategyId: number): Promise<void> {
-    try {
-      await axios.post(`${API_BASE_URL}/strategies/${strategyId}/stop`);
-    } catch (error) {
-      console.error('Error stopping strategy:', error);
-      throw error;
-    }
-  }
-
-  async pauseStrategy(strategyId: number): Promise<void> {
-    try {
-      await axios.post(`${API_BASE_URL}/strategies/${strategyId}/pause`);
-    } catch (error) {
-      console.error('Error pausing strategy:', error);
+      console.error('Error deleting strategy:', error);
       throw error;
     }
   }
 }
 
-export default StrategyService.getInstance(); 
+export const strategyService = StrategyService.getInstance(); 

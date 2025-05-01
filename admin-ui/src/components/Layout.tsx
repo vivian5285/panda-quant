@@ -3,7 +3,7 @@ import { Box, CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from '../theme';
 import AdminNavbar from './common/AdminNavbar';
-import Sidebar from './common/Sidebar';
+import Sidebar from './common/Sidebar/Sidebar';
 
 interface LayoutProps {
   children: React.ReactNode;

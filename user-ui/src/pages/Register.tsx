@@ -34,6 +34,7 @@ const Register: React.FC = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    code: '',
   });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -55,7 +56,7 @@ const Register: React.FC = () => {
     setError(null);
 
     try {
-      await register(formData.email, formData.password, formData.username);
+      await register(formData.email, formData.password, formData.username, formData.code);
       showNotification('注册成功', 'success');
       navigate('/dashboard');
     } catch (error: any) {

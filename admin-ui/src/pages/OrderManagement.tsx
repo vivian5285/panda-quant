@@ -44,22 +44,10 @@ import {
   Pending as PendingIcon,
 } from '@mui/icons-material';
 import { getOrders, createOrder, updateOrder, deleteOrder } from '../api/orders';
-import { theme } from '../theme';
+import { Order } from '../types/order';
+import theme from '../theme';
 import { animationConfig } from '../theme/animation';
 import PageLayout from '../components/common/PageLayout';
-
-interface Order {
-  id: string;
-  symbol: string;
-  type: 'buy' | 'sell';
-  status: 'pending' | 'completed' | 'cancelled' | 'failed';
-  quantity: number;
-  price: number;
-  total: number;
-  timestamp: string;
-  strategy?: string;
-  userId: string;
-}
 
 const OrderManagement: React.FC = () => {
   const { t } = useTranslation();
@@ -74,6 +62,8 @@ const OrderManagement: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogType, setDialogType] = useState<'create' | 'edit'>('create');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     fetchOrders();
@@ -81,11 +71,25 @@ const OrderManagement: React.FC = () => {
 
   const fetchOrders = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await getOrders();
-      setOrders(response as Order[]);
-      setLoading(false);
+      if (response && response.data) {
+        const ordersData = response.data.data || [];
+        const processedOrders = ordersData.map(order => ({
+          ...order,
+          totalAmount: order.totalAmount ?? order.price * order.amount
+        }));
+        setOrders(processedOrders);
+        setTotalPages(Math.ceil(response.data.total / pageSize));
+      } else {
+        setOrders([]);
+        setTotalPages(1);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error fetching orders:', err);
+    } finally {
       setLoading(false);
     }
   };
@@ -140,9 +144,10 @@ const OrderManagement: React.FC = () => {
     }
   };
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch = order.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.id.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = searchTerm === '' || 
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order._id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     const matchesType = typeFilter === 'all' || order.type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
@@ -237,130 +242,105 @@ const OrderManagement: React.FC = () => {
   );
 
   const renderContent = () => (
-    <Card
-      sx={{
-        backgroundColor: theme.palette.background.paper,
-        boxShadow: theme.shadows[2],
-      }}
+    <motion.div
+      initial={animationConfig.variants.fadeIn.initial}
+      animate={animationConfig.variants.fadeIn.animate}
+      transition={{ duration: animationConfig.duration.medium }}
     >
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('orderManagement.orderId')}</TableCell>
-              <TableCell>{t('orderManagement.symbol')}</TableCell>
-              <TableCell>{t('orderManagement.type')}</TableCell>
-              <TableCell>{t('orderManagement.status')}</TableCell>
-              <TableCell>{t('orderManagement.quantity')}</TableCell>
-              <TableCell>{t('orderManagement.price')}</TableCell>
-              <TableCell>{t('orderManagement.total')}</TableCell>
-              <TableCell>{t('orderManagement.timestamp')}</TableCell>
-              <TableCell align="right">{t('orderManagement.actions')}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredOrders
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((order) => (
-                <motion.tr
-                  key={order.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: animationConfig.duration.medium }}
-                >
-                  <TableCell>{order.id}</TableCell>
-                  <TableCell>{order.symbol}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={t(`orderManagement.${order.type}`)}
-                      sx={{
-                        backgroundColor: `${getTypeColor(order.type)}20`,
-                        color: getTypeColor(order.type),
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      icon={getStatusIcon(order.status)}
-                      label={t(`orderManagement.${order.status}`)}
-                      sx={{
-                        backgroundColor: `${getStatusColor(order.status)}20`,
-                        color: getStatusColor(order.status),
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>{order.quantity}</TableCell>
-                  <TableCell>{order.price.toFixed(2)}</TableCell>
-                  <TableCell>{order.total.toFixed(2)}</TableCell>
-                  <TableCell>{new Date(order.timestamp).toLocaleString()}</TableCell>
-                  <TableCell align="right">
-                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                      <Tooltip title={t('orderManagement.edit')}>
-                        <IconButton
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setDialogType('edit');
-                            setOpenDialog(true);
-                          }}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title={t('orderManagement.delete')}>
-                        <IconButton
-                          onClick={() => {
-                            // Handle delete
-                          }}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </TableCell>
-                </motion.tr>
-              ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={filteredOrders.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-    </Card>
+      <Card>
+        <CardContent>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('orderManagement.id')}</TableCell>
+                  <TableCell>{t('orderManagement.tradingPair')}</TableCell>
+                  <TableCell>{t('orderManagement.type')}</TableCell>
+                  <TableCell>{t('orderManagement.status')}</TableCell>
+                  <TableCell>{t('orderManagement.price')}</TableCell>
+                  <TableCell>{t('orderManagement.amount')}</TableCell>
+                  <TableCell>{t('orderManagement.totalAmount')}</TableCell>
+                  <TableCell>{t('orderManagement.createdAt')}</TableCell>
+                  <TableCell>{t('orderManagement.actions')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredOrders.map((order) => (
+                  <TableRow key={order._id}>
+                    <TableCell>{order._id}</TableCell>
+                    <TableCell>{order.tradingPair}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={t(`orderManagement.${order.type}`)}
+                        color={order.type === 'buy' ? 'success' : 'error'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {getStatusIcon(order.status)}
+                        <Typography>{t(`orderManagement.${order.status}`)}</Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>{order.price.toFixed(2)}</TableCell>
+                    <TableCell>{order.amount}</TableCell>
+                    <TableCell>{order.totalAmount.toFixed(2)}</TableCell>
+                    <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Tooltip title={t('orderManagement.edit')}>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleEditOrder(order)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title={t('orderManagement.delete')}>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteOrder(order)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            component="div"
+            count={filteredOrders.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 
-  const renderActions = () => (
-    <Button
-      variant="contained"
-      startIcon={<AddIcon />}
-      onClick={() => {
-        setSelectedOrder(null);
-        setDialogType('create');
-        setOpenDialog(true);
-      }}
-      sx={{
-        background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-        '&:hover': {
-          background: `linear-gradient(45deg, ${theme.palette.primary.dark}, ${theme.palette.secondary.dark})`,
-        },
-      }}
-    >
-      {t('orderManagement.addOrder')}
-    </Button>
-  );
+  const handleEditOrder = (order: Order) => {
+    setSelectedOrder(order);
+    setDialogType('edit');
+    setOpenDialog(true);
+  };
+
+  const handleDeleteOrder = (order: Order) => {
+    // Handle delete
+  };
 
   return (
     <PageLayout
       title={t('orderManagement.title')}
-      actions={renderActions()}
       filters={renderFilters()}
-      content={renderContent()}
-    />
+    >
+      {renderContent()}
+    </PageLayout>
   );
 };
 

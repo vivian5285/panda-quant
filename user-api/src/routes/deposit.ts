@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { authenticate } from '../middlewares/auth';
-import { AuthRequest } from '../types/auth';
+import { AuthRequest } from '../types/express.d';
 import {
   createDeposit,
   getDeposits,

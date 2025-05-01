@@ -1,84 +1,90 @@
-import { Document } from 'mongoose';
-import { Types } from 'mongoose';
-import { ICommission } from '../interfaces/ICommission';
+import { Document, Types } from 'mongoose';
+import { CommissionType, CommissionStatus } from './enums';
 
-export interface ICommission extends Document {
-  _id: Types.ObjectId;
-  userId: Types.ObjectId;
+export interface ICommissionBase {
+  userId: Types.ObjectId | string;
   amount: number;
-  status: 'pending' | 'paid';
-  type: 'trade' | 'referral' | 'team';
-  level: number;
-  createdAt: Date;
-  updatedAt: Date;
-  paidAt?: Date;
-  reference?: {
-    type: string;
-    id: Types.ObjectId;
-  };
-  metadata?: {
-    tradeVolume?: number;
-    profit?: number;
-    teamSize?: number;
-    level?: number;
-  };
+  type: CommissionType;
+  status: CommissionStatus;
+  description?: string;
+  referenceId: string;
+  referenceType: string;
+  metadata?: Record<string, any>;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export interface ICommissionRule extends Document {
-  _id: Types.ObjectId;
-  level: number;
-  rate: number;
-  minVolume: number;
-  maxVolume?: number;
-  type: 'trade' | 'referral' | 'team';
-  status: 'active' | 'inactive';
+export interface ICommission extends ICommissionBase, Document {}
+
+export interface ICommissionRule {
+  _id: string;
+  name: string;
+  description: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  conditions: {
+    minVolume?: number;
+    maxVolume?: number;
+    maxTrades?: number;
+    minProfit?: number;
+    maxProfit?: number;
+    timeframes?: string[];
+    pairs?: string[];
+  };
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface ICommissionWithdrawal extends Document {
-  _id: Types.ObjectId;
-  userId: Types.ObjectId;
+export interface ICommissionWithdrawal {
+  _id: string;
+  userId: string;
   amount: number;
-  status: 'pending' | 'approved' | 'rejected' | 'paid';
+  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  walletAddress: string;
+  paymentMethod: 'crypto' | 'bank' | 'paypal';
+  paymentDetails: Record<string, any>;
+  adminComment?: string;
   createdAt: Date;
   updatedAt: Date;
-  approvedAt?: Date;
-  paidAt?: Date;
-  rejectedAt?: Date;
-  rejectionReason?: string;
-  paymentDetails?: {
-    method: string;
-    account: string;
-    reference?: string;
-  };
+  completedAt?: Date;
+  metadata?: Record<string, any>;
 }
 
 export interface ICommissionStats {
-  totalEarned: number;
-  totalPending: number;
-  totalPaid: number;
-  totalWithdrawn: number;
-  totalAvailable: number;
+  totalCommission: number;
+  pendingCommission: number;
+  paidCommission: number;
+  rejectedCommission: number;
   monthlyStats: {
     month: string;
-    earned: number;
-    pending: number;
-    paid: number;
+    commission: number;
+    trades: number;
+    volume: number;
   }[];
-  levelStats: {
-    level: number;
-    count: number;
-    amount: number;
+  userStats: {
+    userId: string;
+    commission: number;
+    trades: number;
+    volume: number;
   }[];
-  typeStats: {
-    type: string;
-    count: number;
-    amount: number;
+  referrerStats: {
+    referrerId: string;
+    commission: number;
+    referrals: number;
+    volume: number;
   }[];
+}
+
+export interface ICommissionPerformance {
+  userId: Types.ObjectId;
+  strategyId: Types.ObjectId;
+  totalProfit: number;
+  commissionAmount: number;
 }
 
 export type Commission = ICommission;
 
-export interface CommissionCreateInput extends Omit<ICommission, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface CommissionCreateInput extends Omit<ICommissionBase, 'createdAt' | 'updatedAt'> {}
+
 export interface CommissionUpdateInput extends Partial<CommissionCreateInput> {} 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import { EthereumProvider } from '../types/window';
 
 export const useEthereum = () => {
   const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
@@ -42,8 +43,8 @@ export const useEthereum = () => {
       setProvider(web3Provider);
 
       return () => {
-        window.ethereum?.removeListener('accountsChanged', handleAccountsChanged);
-        window.ethereum?.removeListener('chainChanged', handleChainChanged);
+        window.ethereum?.removeAllListeners('accountsChanged');
+        window.ethereum?.removeAllListeners('chainChanged');
       };
     }
   }, []);

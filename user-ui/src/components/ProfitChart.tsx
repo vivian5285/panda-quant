@@ -15,6 +15,8 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { useTranslation } from 'react-i18next';
+import { Strategy as StrategyType } from '../types/strategy';
+import { Strategy as ServiceStrategy } from '../services/strategyService';
 
 // 注册 Chart.js 组件
 ChartJS.register(
@@ -27,18 +29,23 @@ ChartJS.register(
   Legend
 );
 
-interface ProfitData {
-  amount: number;
-  period: number;
-  strategy: string;
-  profit: number;
-}
+type Strategy = StrategyType & ServiceStrategy;
 
 interface ProfitChartProps {
-  data: ProfitData;
+  data: Array<{
+    date: string;
+    value: number;
+    strategy: Strategy['riskLevel'];
+  }>;
+  initialAmount?: number;
+  period?: number;
 }
 
-const ProfitChart: React.FC<ProfitChartProps> = ({ data }) => {
+const ProfitChart: React.FC<ProfitChartProps> = ({ 
+  data, 
+  initialAmount = 10000,
+  period = 12 
+}) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const chartRef = useRef<ChartJS<'line', (number | null)[], unknown>>(null);
@@ -55,13 +62,16 @@ const ProfitChart: React.FC<ProfitChartProps> = ({ data }) => {
   const generateChartData = () => {
     const labels = [];
     const values = [];
-    const monthlyRate = data.strategy === 'low' ? 0.5 : data.strategy === 'medium' ? 1.5 : 3.0;
-    let currentAmount = data.amount;
+    // 使用第一个数据点的策略类型
+    const strategy = data[0]?.strategy || 'medium';
+    const monthlyRate = strategy === 'low' ? 0.5 : strategy === 'medium' ? 1.5 : 3.0;
+    let currentAmount = initialAmount;
 
-    for (let i = 0; i <= data.period; i += 30) {
-      labels.push(`第${i/30 + 1}个月`);
+    // 使用指定的周期
+    for (let i = 0; i <= period; i += 1) {
+      labels.push(`第${i + 1}个月`);
       values.push(currentAmount);
-      currentAmount += currentAmount * monthlyRate;
+      currentAmount += currentAmount * (monthlyRate / 100); // 转换为百分比
     }
 
     return { labels, values };
@@ -97,10 +107,6 @@ const ProfitChart: React.FC<ProfitChartProps> = ({ data }) => {
         mode: 'index',
         intersect: false,
         backgroundColor: theme.palette.background.paper,
-        titleColor: theme.palette.text.primary,
-        bodyColor: theme.palette.text.primary,
-        borderColor: theme.palette.divider,
-        borderWidth: 1,
       },
     },
     scales: {
@@ -126,21 +132,10 @@ const ProfitChart: React.FC<ProfitChartProps> = ({ data }) => {
 
   return (
     <Box sx={{ width: '100%', height: 400 }}>
-      <Typography 
-        variant="h6" 
-        sx={{
-          color: theme.palette.text.primary,
-          mb: 2,
-        }}
-      >
-        收益趋势
+      <Typography variant="h6" gutterBottom>
+        {t('profitChart.title')}
       </Typography>
-      <Line 
-        ref={chartRef}
-        data={chartData} 
-        options={options}
-        style={{ width: '100%', height: '100%' }}
-      />
+      <Line ref={chartRef} data={chartData} options={options} />
     </Box>
   );
 };

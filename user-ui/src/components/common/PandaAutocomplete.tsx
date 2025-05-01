@@ -158,9 +158,9 @@ const PandaAutocomplete: React.FC<PandaAutocompleteProps> = ({
           {...restTagProps}
           sx={{
             m: 0.5,
-            background: themeUtils.glassEffect(0.2).background,
-            backdropFilter: themeUtils.glassEffect().backdropFilter,
-            border: themeUtils.glassEffect().border,
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
             '& .MuiChip-deleteIcon': {
               color: theme.palette.primary.main,
             },
@@ -190,14 +190,12 @@ const PandaAutocomplete: React.FC<PandaAutocompleteProps> = ({
           variant={variant}
           sx={{
             '& .MuiOutlinedInput-root': {
-              background: themeUtils.glassEffect(0.1).background,
-              backdropFilter: themeUtils.glassEffect().backdropFilter,
-              border: themeUtils.glassEffect().border,
+              ...themeUtils.glassEffect(0.1),
               '&:hover': {
-                background: themeUtils.glassEffect(0.15).background,
+                ...themeUtils.glassEffect(0.15),
               },
               '&.Mui-focused': {
-                background: themeUtils.glassEffect(0.2).background,
+                ...themeUtils.glassEffect(0.2),
               },
             },
           }}

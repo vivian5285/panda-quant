@@ -1,55 +1,52 @@
-import { IUserLevel } from '../models/userLevel';
+import { IUserLevel } from '../types/userLevel';
+import { body, ValidationChain } from 'express-validator';
 
-export function validateUserLevel(levelData: Partial<IUserLevel>): string | null {
-  // 验证必填字段
-  if (!levelData.name) {
-    return '等级名称是必需的';
-  }
-  if (!levelData.description) {
-    return '等级描述是必需的';
-  }
-  if (!levelData.benefits || levelData.benefits.length === 0) {
-    return '至少需要一个等级权益';
-  }
-  if (!levelData.requirements) {
-    return '等级要求是必需的';
-  }
+export const userLevelValidator: ValidationChain[] = [
+  body('name').isString().notEmpty().withMessage('Name is required'),
+  body('level').isNumeric().withMessage('Level must be a number'),
+  body('experience').isNumeric().withMessage('Experience must be a number'),
+  body('requiredExperience').isNumeric().withMessage('Required experience must be a number'),
+  body('minCommission').isNumeric().withMessage('Min commission must be a number'),
+  body('maxCommission').isNumeric().withMessage('Max commission must be a number'),
+  body('benefits.commissionRate').isNumeric().withMessage('Commission rate must be a number'),
+  body('benefits.withdrawalLimit').isNumeric().withMessage('Withdrawal limit must be a number'),
+  body('benefits.strategyLimit').isNumeric().withMessage('Strategy limit must be a number'),
+  body('requirements').isObject().withMessage('Requirements must be an object'),
+  body('requirements.minBalance').optional().isNumeric().withMessage('Min balance must be a number'),
+  body('requirements.minTradingVolume').optional().isNumeric().withMessage('Min trading volume must be a number'),
+  body('requirements.minHoldingTime').optional().isNumeric().withMessage('Min holding time must be a number')
+];
 
-  // 验证名称长度
-  if (levelData.name && (levelData.name.length < 2 || levelData.name.length > 50)) {
-    return '等级名称长度必须在2-50个字符之间';
-  }
-
-  // 验证描述长度
-  if (levelData.description && (levelData.description.length < 10 || levelData.description.length > 500)) {
-    return '等级描述长度必须在10-500个字符之间';
+export function validateUserLevel(levelData: Partial<IUserLevel>): void {
+  if (!levelData.name || typeof levelData.name !== 'string') {
+    throw new Error('Invalid name');
   }
 
-  // 验证权益
-  if (levelData.benefits) {
-    for (const benefit of levelData.benefits) {
-      if (benefit.length < 2 || benefit.length > 100) {
-        return '权益描述长度必须在2-100个字符之间';
-      }
-    }
+  if (typeof levelData.level !== 'number') {
+    throw new Error('Invalid level');
   }
 
-  // 验证要求
-  if (levelData.requirements) {
-    const { minBalance, minTradingVolume, minHoldingTime } = levelData.requirements;
-
-    if (minBalance !== undefined && minBalance < 0) {
-      return '最低余额不能小于0';
-    }
-
-    if (minTradingVolume !== undefined && minTradingVolume < 0) {
-      return '最低交易量不能小于0';
-    }
-
-    if (minHoldingTime !== undefined && minHoldingTime < 0) {
-      return '最低持仓时间不能小于0';
-    }
+  if (typeof levelData.experience !== 'number') {
+    throw new Error('Invalid experience');
   }
 
-  return null;
+  if (typeof levelData.requiredExperience !== 'number') {
+    throw new Error('Invalid required experience');
+  }
+
+  if (typeof levelData.minCommission !== 'number') {
+    throw new Error('Invalid minimum commission');
+  }
+
+  if (typeof levelData.maxCommission !== 'number') {
+    throw new Error('Invalid maximum commission');
+  }
+
+  if (levelData.achievements && !Array.isArray(levelData.achievements)) {
+    throw new Error('Invalid achievements');
+  }
+
+  if (levelData.metadata && typeof levelData.metadata !== 'object') {
+    throw new Error('Invalid metadata');
+  }
 } 

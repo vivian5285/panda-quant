@@ -29,7 +29,6 @@ async function sendEmail(options) {
 }
 const sendVerificationEmail = async (email, code) => {
     try {
-        // 验证必要的环境变量
         const requiredEnvVars = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'SMTP_FROM'];
         const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
         if (missingVars.length > 0) {
@@ -58,3 +57,4 @@ const sendVerificationEmail = async (email, code) => {
     }
 };
 exports.sendVerificationEmail = sendVerificationEmail;
+//# sourceMappingURL=email.js.map

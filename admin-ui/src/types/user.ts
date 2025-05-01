@@ -26,13 +26,24 @@ export interface BlacklistEntry {
 }
 
 export interface User {
-  id: string;
+  _id: string;
   username: string;
   email: string;
+  password?: string;
+  role: string;
   status: 'active' | 'inactive' | 'suspended';
-  role: 'user' | 'admin' | 'moderator';
-  level: UserLevel;
   createdAt: string;
   lastLogin: string;
   avatar?: string;
+}
+
+export interface UserFormData {
+  _id?: string;
+  username: string;
+  email: string;
+  password?: string;
+  role: string;
+  status: 'active' | 'inactive' | 'suspended';
+  avatar?: string;
+  createdAt?: string;
 } 

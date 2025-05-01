@@ -25,10 +25,7 @@ const wagmiConfig = defaultWagmiConfig({
   enableWalletConnect: true,
   enableInjected: true,
   enableEIP6963: true,
-  enableCoinbase: true,
-  autoConnect: true,
-  reconnect: true,
-  disableAutoConnect: true
+  enableCoinbase: true
 });
 
 // 3. Create modal

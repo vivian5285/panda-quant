@@ -8,8 +8,11 @@ import { Timeline as TimelineIcon } from '@mui/icons-material';
 import SpeedIcon from '@mui/icons-material/Speed';
 import { GradientTitle } from '@/components/common/GradientTitle';
 import PandaCard from '@/components/common/PandaCard';
+import { useTranslation } from 'react-i18next';
 
 const QuantPage: React.FC = () => {
+  const { t } = useTranslation();
+
   const features = [
     {
       title: '智能策略',
@@ -118,8 +121,13 @@ const QuantPage: React.FC = () => {
   return (
     <Box sx={{ py: 8 }}>
       <Container maxWidth="lg">
-        <GradientTitle variant="h2" align="center" sx={{ mb: 6 }}>
-          量化交易
+        <GradientTitle 
+          title={t('quant.title', '量化交易')} 
+          variant="h2" 
+          align="center" 
+          sx={{ mb: 6 }}
+        >
+          {t('quant.title', '量化交易')}
         </GradientTitle>
         <Grid container spacing={4}>
           {features.map((feature, index) => (

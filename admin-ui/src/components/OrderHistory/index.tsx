@@ -24,7 +24,7 @@ import {
   Pending as PendingIcon,
 } from '@mui/icons-material';
 import { StyledCard, StyledBox, StyledTypography } from '../common/StyledComponents';
-import { themeUtils } from '../../theme';
+import theme from '../../theme';
 
 interface Order {
   id: string;
@@ -57,28 +57,29 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, success, warning, e
     setPage(0);
   };
 
-  const getStatusIcon = (status: Order['status']) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircleIcon sx={{ color: themeUtils.palette.success.main }} />;
+        return <CheckCircleIcon sx={{ color: theme.palette.success.main }} />;
       case 'pending':
-        return <PendingIcon sx={{ color: themeUtils.palette.warning.main }} />;
-      case 'cancelled':
-        return <CancelIcon sx={{ color: themeUtils.palette.error.main }} />;
+        return <PendingIcon sx={{ color: theme.palette.warning.main }} />;
+      case 'failed':
+        return <CancelIcon sx={{ color: theme.palette.error.main }} />;
+      default:
+        return null;
     }
   };
 
-  const getStatusColor = (status: Order['status']) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return themeUtils.palette.success.main;
+        return theme.palette.success.main;
       case 'pending':
-        return themeUtils.palette.warning.main;
-      case 'cancelled':
+        return theme.palette.warning.main;
       case 'failed':
-        return themeUtils.palette.error.main;
+        return theme.palette.error.main;
       default:
-        return themeUtils.palette.text.secondary;
+        return theme.palette.text.secondary;
     }
   };
 
@@ -89,10 +90,10 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, success, warning, e
   return (
     <Card
       sx={{
-        borderRadius: 2,
-        boxShadow: themeUtils.custom.shadows.card,
+        mb: 2,
+        boxShadow: theme.shadows[1],
         '&:hover': {
-          boxShadow: themeUtils.custom.shadows.cardHover,
+          boxShadow: theme.shadows[2],
         },
       }}
     >
@@ -101,7 +102,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, success, warning, e
           variant="h6"
           gutterBottom
           sx={{
-            color: themeUtils.palette.text.primary,
+            color: theme.palette.text.primary,
             fontWeight: 600,
           }}
         >
@@ -117,7 +118,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, success, warning, e
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: themeUtils.palette.primary.main }} />
+                  <SearchIcon sx={{ color: theme.palette.primary.main }} />
                 </InputAdornment>
               ),
               endAdornment: searchTerm && (

@@ -1,18 +1,56 @@
-import { Router } from 'express';
-import { withdrawalController } from '../controllers/withdrawalController';
-import { authMiddleware } from '../middleware/auth';
+import { Router, Request, Response, NextFunction } from 'express';
+import { WithdrawalController } from '../controllers/withdrawalController';
+import { authenticate, isAdmin } from '../middleware/auth';
+import { AuthenticatedRequest } from '../types/auth';
+import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
-
-// User routes
-router.post('/', authMiddleware, withdrawalController.createWithdrawal);
-router.get('/', authMiddleware, withdrawalController.getWithdrawals);
-router.patch('/:id/status', authMiddleware, withdrawalController.updateWithdrawalStatus);
+const withdrawalController = new WithdrawalController();
 
 // Admin routes
-router.get('/pending', authMiddleware, withdrawalController.getPendingWithdrawals);
-router.post('/:withdrawalId/process', authMiddleware, withdrawalController.processWithdrawal);
-router.post('/:withdrawalId/complete', authMiddleware, withdrawalController.completeWithdrawal);
-router.get('/stats', authMiddleware, withdrawalController.getWithdrawalStats);
+router.get('/admin/withdrawals', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await withdrawalController.getWithdrawals(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/admin/withdrawals/stats', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await withdrawalController.getWithdrawals(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/admin/withdrawals/:id', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await withdrawalController.updateWithdrawal(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// User routes
+router.get('/', authMiddleware, async (req, res) => {
+  await withdrawalController.getWithdrawals(req as AuthenticatedRequest, res);
+});
+
+router.post('/', authMiddleware, async (req, res) => {
+  await withdrawalController.createWithdrawal(req as AuthenticatedRequest, res);
+});
+
+router.get('/:id', authMiddleware, async (req, res) => {
+  await withdrawalController.getWithdrawals(req as AuthenticatedRequest, res);
+});
+
+router.put('/:id/status', authMiddleware, async (req, res) => {
+  await withdrawalController.updateWithdrawal(req as AuthenticatedRequest, res);
+});
+
+router.post('/:id/cancel', authMiddleware, async (req, res) => {
+  await withdrawalController.createWithdrawal(req as AuthenticatedRequest, res);
+});
 
 export default router; 

@@ -3,8 +3,11 @@ import { Box, Container, Typography, Grid, Card, CardContent, Button, Stepper, S
 import GlobalBackground from '@/components/common/GlobalBackground';
 import { GradientTitle } from '@/components/common/GradientTitle';
 import PandaCard from '@/components/common/PandaCard';
+import { useTranslation } from 'react-i18next';
 
 const ProfitPage: React.FC = () => {
+  const { t } = useTranslation();
+
   const steps = [
     {
       label: '选择交易方式',
@@ -62,8 +65,13 @@ const ProfitPage: React.FC = () => {
       
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <Box sx={{ mb: 6, textAlign: 'center' }}>
-          <GradientTitle>
-            收益榜
+          <GradientTitle 
+            title={t('profit.title', '收益分析')} 
+            variant="h2" 
+            align="center" 
+            sx={{ mb: 6 }}
+          >
+            {t('profit.title', '收益分析')}
           </GradientTitle>
           <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
             月化收益50%-300%，我们只收取收益的10%

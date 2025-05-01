@@ -11,3 +11,4 @@ const performanceMonitor = (req, res, next) => {
     next();
 };
 exports.performanceMonitor = performanceMonitor;
+//# sourceMappingURL=performanceMonitor.js.map

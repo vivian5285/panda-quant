@@ -7,7 +7,7 @@ import {
   Typography,
   LinearProgress,
 } from '@mui/material';
-import { themeUtils } from '../../theme';
+import theme from '../../theme';
 
 interface OrderStatsProps {
   totalOrders: number;
@@ -26,22 +26,22 @@ const OrderStats: React.FC<OrderStatsProps> = ({
     {
       label: '总订单数',
       value: totalOrders,
-      color: themeUtils.palette.primary.main,
+      color: theme.palette.primary.main,
     },
     {
       label: '已完成订单',
       value: completedOrders,
-      color: themeUtils.palette.success.main,
+      color: theme.palette.success.main,
     },
     {
       label: '待处理订单',
       value: pendingOrders,
-      color: themeUtils.palette.warning.main,
+      color: theme.palette.warning.main,
     },
     {
       label: '已取消订单',
       value: cancelledOrders,
-      color: themeUtils.palette.error.main,
+      color: theme.palette.error.main,
     },
   ];
 
@@ -49,9 +49,9 @@ const OrderStats: React.FC<OrderStatsProps> = ({
     <Card
       sx={{
         borderRadius: 2,
-        boxShadow: themeUtils.custom.shadows.card,
+        boxShadow: theme.shadows[1],
         '&:hover': {
-          boxShadow: themeUtils.custom.shadows.cardHover,
+          boxShadow: theme.shadows[2],
         },
       }}
     >
@@ -60,7 +60,7 @@ const OrderStats: React.FC<OrderStatsProps> = ({
           variant="h6"
           gutterBottom
           sx={{
-            color: themeUtils.palette.text.primary,
+            color: theme.palette.text.primary,
             fontWeight: 600,
           }}
         >
@@ -73,7 +73,7 @@ const OrderStats: React.FC<OrderStatsProps> = ({
                 sx={{
                   p: 2,
                   borderRadius: 1,
-                  backgroundColor: themeUtils.palette.card.main,
+                  backgroundColor: theme.palette.background.paper,
                 }}
               >
                 <Typography
@@ -99,9 +99,8 @@ const OrderStats: React.FC<OrderStatsProps> = ({
                   sx={{
                     height: 6,
                     borderRadius: 3,
-                    backgroundColor: themeUtils.palette.border.main,
+                    backgroundColor: theme.palette.background.default,
                     '& .MuiLinearProgress-bar': {
-                      borderRadius: 3,
                       backgroundColor: stat.color,
                     },
                   }}

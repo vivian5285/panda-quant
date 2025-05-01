@@ -1,13 +1,15 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Box, Container, Typography, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import GlobalBackground from '@/components/common/GlobalBackground';
 import Navbar from '@/components/common/Navbar';
-import Footer from '@/components/common/Footer';
-import { GradientTitle } from '@/components/common/GradientTitle';
+import Footer from '../components/common/Footer';
+import { GradientTitle } from '../components/common/GradientTitle';
 
 const UnauthorizedPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <Box sx={{ position: 'relative', minHeight: '100vh' }}>
@@ -23,8 +25,8 @@ const UnauthorizedPage: React.FC = () => {
           minHeight: '60vh',
           textAlign: 'center'
         }}>
-          <GradientTitle>
-            未授权访问
+          <GradientTitle title={t('unauthorized.title')}>
+            {t('unauthorized.message')}
           </GradientTitle>
           <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1, mb: 4 }}>
             抱歉，您没有权限访问此页面

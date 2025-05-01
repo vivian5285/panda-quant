@@ -1,20 +1,22 @@
 import React from 'react';
-import { Card, CardContent, Typography, Button, Box } from '@mui/material';
+import { Card, CardContent, Typography, Button, Box, Chip } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '@mui/material/styles';
+import { Strategy as StrategyType } from '../types/strategy';
+import { Strategy as ServiceStrategy } from '../services/strategyService';
+
+type Strategy = StrategyType & ServiceStrategy & {
+  description?: string;
+};
 
 interface StrategyCardProps {
-  strategy: {
-    id: string;
-    name: string;
-    description: string;
-    type: 'quantitative' | 'technical' | 'fundamental';
-    status: 'active' | 'inactive' | 'maintenance';
-  };
+  strategy: Strategy;
   onSelect: (id: string) => void;
 }
 
 const StrategyCard: React.FC<StrategyCardProps> = ({ strategy, onSelect }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
 
   return (
     <Card 
@@ -32,21 +34,21 @@ const StrategyCard: React.FC<StrategyCardProps> = ({ strategy, onSelect }) => {
           {strategy.name}
         </Typography>
         <Typography variant="body2" color="text.secondary" paragraph>
-          {strategy.description}
+          {strategy.description || t('strategy.noDescription')}
         </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="caption" color="text.secondary">
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Typography variant="body2" sx={{ mr: 2 }}>
             {t(`strategyType.${strategy.type}`)}
           </Typography>
-          <Typography 
-            variant="caption" 
-            sx={{ 
-              color: strategy.status === 'active' ? 'success.main' : 
-                    strategy.status === 'maintenance' ? 'warning.main' : 'error.main'
+          <Chip
+            label={t(`strategyStatus.${strategy.status}`)}
+            size="small"
+            sx={{
+              backgroundColor: strategy.status === 'active' ? 'success.main' :
+                strategy.status === 'paused' ? 'warning.main' : 'error.main',
+              color: 'white'
             }}
-          >
-            {t(`strategyStatus.${strategy.status}`)}
-          </Typography>
+          />
         </Box>
       </CardContent>
       <Box sx={{ p: 2 }}>

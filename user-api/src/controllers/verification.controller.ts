@@ -1,7 +1,7 @@
 import { VerificationService } from '../services/verification.service';
 import { ValidationError } from '../utils/errors';
 import { AuthRequest, AuthResponse } from '../types/express';
-import { User } from '../models/user.model';
+import { VerificationUser, VerificationType } from '../types/verification.types';
 
 export class VerificationController {
   private verificationService: VerificationService;
@@ -22,8 +22,9 @@ export class VerificationController {
         throw new ValidationError('Invalid verification type');
       }
 
-      const code = await this.verificationService.generateCode(type, email);
-      await this.verificationService.sendVerificationEmail({ email, verificationCode: code } as User);
+      const code = await this.verificationService.generateCode(type as VerificationType, email);
+      const verificationUser: VerificationUser = { email, verificationCode: code };
+      await this.verificationService.sendVerificationEmail(verificationUser);
 
       res.json({
         success: true,

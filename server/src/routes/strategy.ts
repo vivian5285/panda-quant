@@ -1,41 +1,56 @@
-import { Router } from 'express';
-import { authenticateToken } from '../middleware/auth';
-import { validateRequest } from '../middleware/validator';
-import { commonValidators } from '../middleware/validator';
+import { Router, Request, Response, NextFunction } from 'express';
+import { strategyController } from '../controllers/StrategyController';
+import { AuthenticatedRequest } from '../types/auth';
+import { authenticateToken } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// 所有策略路由都需要认证
+// 所有路由都需要认证
 router.use(authenticateToken);
 
-// 策略列表
-router.get('/', (req, res) => {
-  res.success({ strategies: [] });
+// 获取策略列表
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await strategyController.getAllStrategies(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
 });
 
 // 创建策略
-router.post('/', validateRequest([
-  commonValidators.requiredString('name'),
-  commonValidators.requiredString('description'),
-  commonValidators.requiredString('code')
-]));
+router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await strategyController.createStrategy(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 获取单个策略
+router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await strategyController.getStrategyById(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // 更新策略
-router.put('/:id', validateRequest([
-  commonValidators.optionalString('name'),
-  commonValidators.optionalString('description'),
-  commonValidators.optionalString('code')
-]));
+router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await strategyController.updateStrategy(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // 删除策略
-router.delete('/:id');
-
-// 执行策略
-router.post('/:id/execute', validateRequest([
-  commonValidators.requiredString('parameters')
-]));
-
-// 获取策略执行结果
-router.get('/:id/results');
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await strategyController.deleteStrategy(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default router; 

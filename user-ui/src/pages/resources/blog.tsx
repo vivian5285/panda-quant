@@ -62,7 +62,7 @@ const BlogPage: React.FC = () => {
     <Box sx={{ position: 'relative', minHeight: '100vh' }}>
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <Box sx={{ mb: 6 }}>
-          <GradientTitle variant="h4" sx={{ mb: 2 }}>
+          <GradientTitle title="Blog" variant="h4" sx={{ mb: 2 }}>
             博客
           </GradientTitle>
           <Typography variant="subtitle1" color="text.secondary">

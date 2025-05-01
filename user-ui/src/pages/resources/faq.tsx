@@ -20,6 +20,8 @@ import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
 import { GradientTitle } from '@/components/common/GradientTitle';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { slideUp } from '../../animations';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -51,6 +53,7 @@ const FAQPage: React.FC = () => {
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [tabValue, setTabValue] = useState(0);
+  const { t } = useTranslation();
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -121,11 +124,16 @@ const FAQPage: React.FC = () => {
       <Navbar />
       
       <Container maxWidth="lg" sx={{ py: 8 }}>
-        <GradientTitle
-          title="常见问题"
-          subtitle="查找您需要的答案"
-          sx={{ mb: 6 }}
-        />
+        <motion.div variants={slideUp}>
+          <GradientTitle
+            title={t('faq.title', '常见问题')}
+            variant="h2"
+            align="center"
+            sx={{ mb: 6 }}
+          >
+            {t('faq.title', '常见问题')}
+          </GradientTitle>
+        </motion.div>
 
         {/* 搜索框 */}
         <Box sx={{ mb: 6 }}>

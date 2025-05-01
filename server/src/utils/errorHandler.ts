@@ -1,9 +1,10 @@
-import { Response, ErrorRequestHandler } from 'express';
+import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 import { Error } from 'mongoose';
 import { NotFoundError, BadRequestError, UnauthorizedError, ForbiddenError } from './errors';
+import { logger } from './logger';
 
 export function handleError(res: Response, error: any): void {
-  console.error(error);
+  logger.error(error);
 
   if (error instanceof NotFoundError) {
     res.status(404).json({ error: error.message });
@@ -32,28 +33,18 @@ export function handleError(res: Response, error: any): void {
   }
 }
 
-export const errorHandlerMiddleware: ErrorRequestHandler = (err, req, res, next) => {
-  console.error(err);
+export const errorHandlerMiddleware: ErrorRequestHandler = (
+  err: Error,
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+): void => {
+  logger.error('Error:', err);
 
-  if (err instanceof Error.ValidationError) {
-    return res.status(400).json({
-      success: false,
-      errors: Object.values(err.errors).map(error => ({
-        field: error.path,
-        message: error.message
-      }))
-    });
-  }
-
-  if (err instanceof Error.CastError) {
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid ID format'
-    });
-  }
-
-  return res.status(500).json({
-    success: false,
-    message: 'Internal server error'
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  res.status(statusCode).json({
+    status: 'error',
+    message: err.message || 'Internal Server Error',
+    stack: process.env['NODE_ENV'] === 'development' ? err.stack : undefined
   });
 }; 

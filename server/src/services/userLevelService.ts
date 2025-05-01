@@ -1,59 +1,30 @@
-import { Model } from 'mongoose';
-import { IUserLevel } from '../interfaces/IUserLevel';
+import { Types } from 'mongoose';
 import { UserLevel } from '../models/UserLevel';
-import { NotFoundError } from '../utils/errors';
+import { IUserLevel } from '../types/userLevel';
 
 export class UserLevelService {
-  private static instance: UserLevelService;
-  private userLevelModel: Model<IUserLevel>;
-
-  public static getInstance(): UserLevelService {
-    if (!UserLevelService.instance) {
-      UserLevelService.instance = new UserLevelService();
-    }
-    return UserLevelService.instance;
+  async getUserLevelById(id: string): Promise<IUserLevel | null> {
+    return await UserLevel.findById(id);
   }
 
-  constructor() {
-    this.userLevelModel = UserLevel;
+  async updateUserLevel(id: string, data: Partial<IUserLevel>): Promise<IUserLevel | null> {
+    return await UserLevel.findByIdAndUpdate(id, data, { new: true });
   }
 
-  // 获取所有用户等级
-  async getLevels(): Promise<typeof UserLevel[]> {
-    return UserLevel.find();
+  async getAllUserLevels(): Promise<IUserLevel[]> {
+    return await UserLevel.find();
   }
 
-  // 获取单个用户等级
-  async getLevel(id: string): Promise<typeof UserLevel | null> {
-    return UserLevel.findById(id);
+  async createUserLevel(data: Partial<IUserLevel>): Promise<IUserLevel> {
+    const userLevel = new UserLevel({
+      ...data,
+      _id: new Types.ObjectId()
+    });
+    return await userLevel.save();
   }
 
-  // 创建用户等级
-  async createLevel(data: {
-    name: string;
-    description: string;
-    requirements: Record<string, any>;
-    benefits: Record<string, any>;
-  }): Promise<typeof UserLevel> {
-    const level = new UserLevel(data);
-    return level.save();
-  }
-
-  // 更新用户等级
-  async updateLevel(id: string, data: Partial<typeof UserLevel>): Promise<typeof UserLevel | null> {
-    return UserLevel.findByIdAndUpdate(id, data, { new: true });
-  }
-
-  // 删除用户等级
-  async deleteLevel(id: string): Promise<typeof UserLevel | null> {
-    return UserLevel.findByIdAndDelete(id);
-  }
-
-  async createUserLevel(data: Partial<IUserLevel>) {
-    return this.userLevelModel.create(data);
-  }
-
-  async getUserLevel(userId: string) {
-    return this.userLevelModel.findOne({ userId });
+  async deleteUserLevel(id: string): Promise<boolean> {
+    const result = await UserLevel.findByIdAndDelete(id);
+    return result !== null;
   }
 } 

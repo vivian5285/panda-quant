@@ -1,10 +1,11 @@
-import { BlacklistEntry, IBlacklistEntry } from '../models/blacklist';
-import { NotFoundError } from '../utils/errors';
-import { Model } from 'mongoose';
+import { Blacklist } from '../models/Blacklist';
+import { IBlacklist, IBlacklistEntryDocument, BlacklistStatus } from '../types/blacklist';
+import { logger } from '../utils/logger';
 
 export class BlacklistService {
   private static instance: BlacklistService;
-  private blacklistModel: Model<IBlacklistEntry>;
+
+  private constructor() {}
 
   public static getInstance(): BlacklistService {
     if (!BlacklistService.instance) {
@@ -13,91 +14,156 @@ export class BlacklistService {
     return BlacklistService.instance;
   }
 
-  constructor() {
-    this.blacklistModel = BlacklistEntry;
-  }
-
-  // 获取所有黑名单条目
-  async getAllEntries(): Promise<IBlacklistEntry[]> {
-    return await this.blacklistModel.find().sort({ createdAt: -1 });
-  }
-
-  // 获取单个黑名单条目
-  async getEntryById(id: string): Promise<IBlacklistEntry> {
-    const entry = await this.blacklistModel.findById(id);
-    if (!entry) {
-      throw new NotFoundError('Blacklist entry not found');
-    }
-    return entry;
-  }
-
-  // 创建黑名单条目
-  async createEntry(entryData: Partial<IBlacklistEntry>): Promise<IBlacklistEntry> {
-    const entry = new this.blacklistModel(entryData);
-    return await entry.save();
-  }
-
-  // 更新黑名单条目
-  async updateEntry(id: string, entryData: Partial<IBlacklistEntry>): Promise<IBlacklistEntry> {
-    const entry = await this.blacklistModel.findByIdAndUpdate(
-      id,
-      { ...entryData, updatedAt: new Date() },
-      { new: true, runValidators: true }
-    );
-    if (!entry) {
-      throw new NotFoundError('Blacklist entry not found');
-    }
-    return entry;
-  }
-
-  // 删除黑名单条目
-  async deleteEntry(id: string): Promise<void> {
-    const entry = await this.blacklistModel.findByIdAndDelete(id);
-    if (!entry) {
-      throw new NotFoundError('Blacklist entry not found');
+  public async addToBlacklist(entry: Omit<IBlacklist, '_id' | 'createdAt' | 'updatedAt'>): Promise<IBlacklistEntryDocument> {
+    try {
+      const blacklistEntry = new Blacklist(entry);
+      await blacklistEntry.save();
+      return blacklistEntry;
+    } catch (error) {
+      logger.error('Error adding to blacklist:', error);
+      throw error;
     }
   }
 
-  // 搜索黑名单条目
-  async searchEntries(query: string): Promise<IBlacklistEntry[]> {
-    return await this.blacklistModel.find({
-      $or: [
-        { userId: { $regex: query, $options: 'i' } },
-        { username: { $regex: query, $options: 'i' } },
-        { email: { $regex: query, $options: 'i' } },
-        { reason: { $regex: query, $options: 'i' } }
-      ]
-    }).sort({ createdAt: -1 });
+  public async removeFromBlacklist(id: string): Promise<void> {
+    try {
+      await Blacklist.findByIdAndDelete(id);
+    } catch (error) {
+      logger.error('Error removing from blacklist:', error);
+      throw error;
+    }
   }
 
-  async addToBlacklist(data: {
-    userId: string;
-    username: string;
-    email: string;
-    reason: string;
-    type: 'spam' | 'fraud' | 'abuse' | 'other';
-    status?: 'active' | 'expired';
-    expiresAt?: Date;
-    notes?: string;
-  }): Promise<IBlacklistEntry> {
-    const entry = new this.blacklistModel({
-      ...data,
-      status: data.status || 'active'
-    });
-    return entry.save();
+  public async getBlacklist(): Promise<IBlacklistEntryDocument[]> {
+    try {
+      return await Blacklist.find();
+    } catch (error) {
+      logger.error('Error getting blacklist:', error);
+      throw error;
+    }
   }
 
-  async removeFromBlacklist(id: string): Promise<IBlacklistEntry | null> {
-    return this.blacklistModel.findByIdAndDelete(id);
+  public async isBlacklisted(address: string): Promise<boolean> {
+    try {
+      const entry = await Blacklist.findOne({ 
+        address,
+        status: BlacklistStatus.ACTIVE
+      });
+      return !!entry;
+    } catch (error) {
+      logger.error('Error checking blacklist:', error);
+      throw error;
+    }
   }
 
-  async getBlacklist(): Promise<IBlacklistEntry[]> {
-    return this.blacklistModel.find();
+  public async getBlacklistEntry(address: string): Promise<IBlacklistEntryDocument | null> {
+    try {
+      return await Blacklist.findOne({ address });
+    } catch (error) {
+      logger.error('Error getting blacklist entry:', error);
+      throw error;
+    }
   }
 
-  async isBlacklisted(type: string, value: string): Promise<boolean> {
-    const entry = await this.blacklistModel.findOne({ type, value });
-    return !!entry;
+  public async updateBlacklistEntry(address: string, updates: Partial<IBlacklist>): Promise<boolean> {
+    try {
+      const result = await Blacklist.updateOne(
+        { address },
+        { ...updates, updatedAt: new Date() }
+      );
+      return result.modifiedCount > 0;
+    } catch (error) {
+      logger.error('Error updating blacklist entry:', error);
+      throw error;
+    }
+  }
+
+  public async getBlacklistEntries(): Promise<IBlacklistEntryDocument[]> {
+    try {
+      return await Blacklist.find();
+    } catch (error) {
+      logger.error('Error getting blacklist entries:', error);
+      throw error;
+    }
+  }
+
+  public async getBlacklistEntryById(id: string): Promise<IBlacklistEntryDocument | null> {
+    try {
+      return await Blacklist.findById(id);
+    } catch (error) {
+      logger.error('Error getting blacklist entry by id:', error);
+      throw error;
+    }
+  }
+
+  public async updateBlacklistEntryById(id: string, data: Partial<IBlacklist>): Promise<IBlacklistEntryDocument | null> {
+    try {
+      return await Blacklist.findByIdAndUpdate(id, data, { new: true });
+    } catch (error) {
+      logger.error('Error updating blacklist entry by id:', error);
+      throw error;
+    }
+  }
+
+  public async deleteBlacklistEntry(id: string): Promise<boolean> {
+    try {
+      const result = await Blacklist.findByIdAndDelete(id);
+      return result !== null;
+    } catch (error) {
+      logger.error('Error deleting blacklist entry:', error);
+      throw error;
+    }
+  }
+
+  async createBlacklist(data: Omit<IBlacklist, '_id' | 'createdAt' | 'updatedAt'>): Promise<IBlacklistEntryDocument> {
+    try {
+      const blacklist = new Blacklist(data);
+      const savedBlacklist = await blacklist.save();
+      return savedBlacklist;
+    } catch (error) {
+      logger.error('Error creating blacklist:', error);
+      throw error;
+    }
+  }
+
+  async getBlacklistById(id: string): Promise<IBlacklistEntryDocument | null> {
+    try {
+      const blacklist = await Blacklist.findById(id);
+      return blacklist;
+    } catch (error) {
+      logger.error('Error getting blacklist:', error);
+      throw error;
+    }
+  }
+
+  async getBlacklistByAddress(address: string): Promise<IBlacklistEntryDocument | null> {
+    try {
+      const blacklist = await Blacklist.findOne({ address });
+      return blacklist;
+    } catch (error) {
+      logger.error('Error getting blacklist by address:', error);
+      throw error;
+    }
+  }
+
+  async updateBlacklist(id: string, data: Partial<IBlacklist>): Promise<IBlacklistEntryDocument | null> {
+    try {
+      const blacklist = await Blacklist.findByIdAndUpdate(id, data, { new: true });
+      return blacklist;
+    } catch (error) {
+      logger.error('Error updating blacklist:', error);
+      throw error;
+    }
+  }
+
+  async deleteBlacklist(id: string): Promise<boolean> {
+    try {
+      const result = await Blacklist.findByIdAndDelete(id);
+      return result !== null;
+    } catch (error) {
+      logger.error('Error deleting blacklist:', error);
+      throw error;
+    }
   }
 }
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Container, Grid, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
 import { animationConfig } from '../../theme/animation';
-import { theme } from '../../theme';
+import theme from '../../theme';
 
 interface PageLayoutProps {
   title: string;

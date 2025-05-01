@@ -1,16 +1,17 @@
-import { MT4Account, MT4Position, MT4Order, MT4Balance, MT4MarketData } from '../../interfaces/mt4';
+import { IMT4Account, IMT4Position, IMT4Order, IMT4Balance, IMT4MarketData } from '../../types/mt4';
 import net from 'net';
 import { EventEmitter } from 'events';
+import { createLogger } from '../../utils/logger';
 
 export class MT4Connector extends EventEmitter {
   private socket: net.Socket;
-  private account: MT4Account;
-  private connected: boolean = false;
+  private account: IMT4Account;
   private reconnectAttempts: number = 0;
   private maxReconnectAttempts: number = 5;
   private reconnectInterval: number = 5000;
+  private logger = createLogger('MT4Connector');
 
-  constructor(account: MT4Account) {
+  constructor(account: IMT4Account) {
     super();
     this.account = account;
     this.socket = new net.Socket();
@@ -19,24 +20,21 @@ export class MT4Connector extends EventEmitter {
 
   private setupSocket() {
     this.socket.on('connect', () => {
-      console.log(`Connected to MT4 server ${this.account.server}`);
-      this.connected = true;
+      this.logger.info(`Connected to MT4 server ${this.account.server}`);
       this.reconnectAttempts = 0;
       this.emit('connected');
     });
 
     this.socket.on('data', (data) => {
-      this.handleData(data);
+      this.onData(data);
     });
 
     this.socket.on('error', (error) => {
-      console.error('MT4 connection error:', error);
-      this.emit('error', error);
+      this.onError(error);
     });
 
     this.socket.on('close', () => {
-      console.log('MT4 connection closed');
-      this.connected = false;
+      this.logger.info('MT4 connection closed');
       this.emit('disconnected');
       this.handleReconnect();
     });
@@ -45,15 +43,16 @@ export class MT4Connector extends EventEmitter {
   private handleReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+      this.logger.info(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
       setTimeout(() => this.connect(), this.reconnectInterval);
     } else {
-      console.error('Max reconnection attempts reached');
+      this.logger.error('Max reconnection attempts reached');
       this.emit('error', new Error('Max reconnection attempts reached'));
     }
   }
 
   connect(): Promise<void> {
+    this.logger.info('Connecting to MT4...');
     return new Promise((resolve, reject) => {
       const [host, port] = this.account.server.split(':');
       
@@ -68,6 +67,7 @@ export class MT4Connector extends EventEmitter {
   }
 
   disconnect(): void {
+    this.logger.info('Disconnecting from MT4...');
     this.socket.destroy();
   }
 
@@ -80,7 +80,8 @@ export class MT4Connector extends EventEmitter {
     this.socket.write(JSON.stringify(loginData) + '\n');
   }
 
-  private handleData(data: Buffer) {
+  private onData(data: Buffer) {
+    this.logger.debug('Received data from MT4:', data);
     try {
       const message = JSON.parse(data.toString());
       this.emit('message', message);
@@ -103,90 +104,94 @@ export class MT4Connector extends EventEmitter {
           break;
       }
     } catch (error) {
-      console.error('Error parsing MT4 message:', error);
+      this.logger.error('Error parsing MT4 message:', error);
     }
+  }
+
+  private onError(error: Error) {
+    this.logger.error('MT4 connection error:', error);
+    this.emit('error', error);
   }
 
   private handleLoginResponse(response: any) {
     if (response.success) {
-      console.log('Successfully logged in to MT4');
+      this.logger.info('Successfully logged in to MT4');
       this.emit('login_success');
     } else {
-      console.error('MT4 login failed:', response.error);
+      this.logger.error('MT4 login failed:', response.error);
       this.emit('login_failed', response.error);
     }
   }
 
-  private handlePosition(data: any): MT4Position {
-    const position: MT4Position = {
+  private handlePosition(data: any): IMT4Position {
+    const position: IMT4Position = {
       ticket: data.ticket,
       symbol: data.symbol,
       type: data.type,
-      lots: data.lots,
+      volume: data.lots,
       openPrice: data.openPrice,
-      openTime: new Date(data.openTime),
-      closePrice: data.closePrice,
-      closeTime: data.closeTime ? new Date(data.closeTime) : undefined,
-      profit: data.profit,
-      swap: data.swap,
-      commission: data.commission,
+      currentPrice: data.currentPrice,
       stopLoss: data.stopLoss,
       takeProfit: data.takeProfit,
+      swap: data.swap,
+      profit: data.profit,
+      openTime: new Date(data.openTime),
+      closeTime: data.closeTime ? new Date(data.closeTime) : undefined
     };
     this.emit('position', position);
     return position;
   }
 
-  private handleOrder(data: any): MT4Order {
-    const order: MT4Order = {
+  private handleOrder(data: any): IMT4Order {
+    const order: IMT4Order = {
       ticket: data.ticket,
       symbol: data.symbol,
       type: data.type,
-      lots: data.lots,
+      volume: data.lots,
       price: data.price,
       stopLoss: data.stopLoss,
       takeProfit: data.takeProfit,
-      comment: data.comment,
-      expiration: new Date(data.expiration),
+      openTime: new Date(data.openTime),
+      closeTime: data.closeTime ? new Date(data.closeTime) : undefined,
+      status: data.status
     };
     this.emit('order', order);
     return order;
   }
 
-  private handleBalance(data: any): MT4Balance {
-    const balance: MT4Balance = {
+  private handleBalance(data: any): IMT4Balance {
+    const balance: IMT4Balance = {
       balance: data.balance,
       equity: data.equity,
       margin: data.margin,
       freeMargin: data.freeMargin,
       marginLevel: data.marginLevel,
-      currency: data.currency,
+      timestamp: new Date()
     };
     this.emit('balance', balance);
     return balance;
   }
 
-  private handleMarketData(data: any): MT4MarketData {
-    const marketData: MT4MarketData = {
+  private handleMarketData(data: any): IMT4MarketData {
+    const marketData: IMT4MarketData = {
       symbol: data.symbol,
       bid: data.bid,
       ask: data.ask,
-      last: data.last,
-      volume: data.volume,
+      high: data.high,
+      low: data.low,
       time: new Date(data.time),
-      digits: data.digits,
-      point: data.point,
-      spread: data.spread,
+      volume: data.volume,
+      spread: data.ask - data.bid
     };
     this.emit('market_data', marketData);
     return marketData;
   }
 
   // 公共方法
-  async getPositions(): Promise<MT4Position[]> {
+  async getPositions(): Promise<IMT4Position[]> {
     return new Promise((resolve) => {
-      const positions: MT4Position[] = [];
-      const handler = (position: MT4Position) => {
+      const positions: IMT4Position[] = [];
+      const handler = (position: IMT4Position) => {
         positions.push(position);
       };
       this.on('position', handler);
@@ -198,10 +203,10 @@ export class MT4Connector extends EventEmitter {
     });
   }
 
-  async getOrders(): Promise<MT4Order[]> {
+  async getOrders(): Promise<IMT4Order[]> {
     return new Promise((resolve) => {
-      const orders: MT4Order[] = [];
-      const handler = (order: MT4Order) => {
+      const orders: IMT4Order[] = [];
+      const handler = (order: IMT4Order) => {
         orders.push(order);
       };
       this.on('order', handler);
@@ -213,9 +218,9 @@ export class MT4Connector extends EventEmitter {
     });
   }
 
-  async getBalance(): Promise<MT4Balance> {
+  async getBalance(): Promise<IMT4Balance> {
     return new Promise((resolve) => {
-      const handler = (balance: MT4Balance) => {
+      const handler = (balance: IMT4Balance) => {
         this.removeListener('balance', handler);
         resolve(balance);
       };
@@ -224,9 +229,9 @@ export class MT4Connector extends EventEmitter {
     });
   }
 
-  async getMarketData(symbol: string): Promise<MT4MarketData> {
+  async getMarketData(symbol: string): Promise<IMT4MarketData> {
     return new Promise((resolve) => {
-      const handler = (marketData: MT4MarketData) => {
+      const handler = (marketData: IMT4MarketData) => {
         if (marketData.symbol === symbol) {
           this.removeListener('market_data', handler);
           resolve(marketData);
@@ -237,10 +242,10 @@ export class MT4Connector extends EventEmitter {
     });
   }
 
-  async createOrder(order: Omit<MT4Order, 'ticket'>): Promise<MT4Order> {
+  async createOrder(order: Omit<IMT4Order, 'ticket'>): Promise<IMT4Order> {
     return new Promise((resolve) => {
-      const handler = (newOrder: MT4Order) => {
-        if (newOrder.symbol === order.symbol && newOrder.type === order.type) {
+      const handler = (newOrder: IMT4Order) => {
+        if (newOrder['symbol'] === order['symbol'] && newOrder['type'] === order['type']) {
           this.removeListener('order', handler);
           resolve(newOrder);
         }
@@ -257,7 +262,7 @@ export class MT4Connector extends EventEmitter {
     this.socket.write(JSON.stringify({ type: 'close_position', ticket }) + '\n');
   }
 
-  async modifyOrder(ticket: number, changes: Partial<MT4Order>): Promise<void> {
+  async modifyOrder(ticket: number, changes: Partial<IMT4Order>): Promise<void> {
     this.socket.write(JSON.stringify({ type: 'modify_order', ticket, ...changes }) + '\n');
   }
 } 

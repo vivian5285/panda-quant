@@ -1,9 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+}
+
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,15 +33,19 @@ export const useAuth = () => {
         });
 
         if (response.ok) {
+          const data = await response.json();
           setIsAuthenticated(true);
+          setUser(data.user);
         } else {
           localStorage.removeItem('admin_token');
           setIsAuthenticated(false);
+          setUser(null);
           navigate('/login');
         }
       } catch (error) {
         localStorage.removeItem('admin_token');
         setIsAuthenticated(false);
+        setUser(null);
         navigate('/login');
       } finally {
         setLoading(false);
@@ -59,18 +71,21 @@ export const useAuth = () => {
     const data = await response.json();
     localStorage.setItem('admin_token', data.token);
     setIsAuthenticated(true);
+    setUser(data.user);
     navigate('/');
   };
 
   const logout = () => {
     localStorage.removeItem('admin_token');
     setIsAuthenticated(false);
+    setUser(null);
     navigate('/login');
   };
 
   return {
     isAuthenticated,
     loading,
+    user,
     login,
     logout,
   };

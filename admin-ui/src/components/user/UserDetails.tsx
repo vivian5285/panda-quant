@@ -27,7 +27,10 @@ import {
   Warning as WarningIcon,
   AccountBalance as BalanceIcon,
   Timeline as TimelineIcon,
-  Security as SecurityIcon
+  Security as SecurityIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  Info as InfoIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -83,7 +86,7 @@ const UserDetails: React.FC<{ userId: string }> = ({ userId }) => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string): React.ReactElement => {
     switch (status) {
       case 'active':
         return <VerifiedIcon />;
@@ -92,7 +95,7 @@ const UserDetails: React.FC<{ userId: string }> = ({ userId }) => {
       case 'suspended':
         return <WarningIcon />;
       default:
-        return null;
+        return <InfoIcon />;
     }
   };
 

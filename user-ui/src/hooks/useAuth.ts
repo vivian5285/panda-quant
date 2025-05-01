@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { AuthState, User } from '../types/auth';
+import { AuthState } from '../types/auth';
+import { User } from '../types/user';
 import web3Service from '../services/web3';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

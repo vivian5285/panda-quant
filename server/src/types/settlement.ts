@@ -1,22 +1,54 @@
-export type SettlementStatus = 'pending' | 'completed' | 'failed';
+import { Document, Types } from 'mongoose';
+import { SettlementType } from './enums';
 
-export interface Settlement {
-  id: string;
-  userId: string;
+export enum SettlementStatus {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  CANCELLED = 'cancelled'
+}
+
+export interface ISettlementBase {
+  userId: Types.ObjectId;
   amount: number;
-  commissionIds: string[];
-  createdAt: Date;
+  type: SettlementType;
   status: SettlementStatus;
-  platformShare: number;
-  level1Share: number;
-  level2Share: number;
+  referenceId: Types.ObjectId;
+  referenceType: string;
+  description?: string;
+  metadata?: Record<string, any>;
+  completedAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface ISettlement extends ISettlementBase {
+  _id: Types.ObjectId;
+}
+
+export interface ISettlementDocument extends ISettlement, Document {
+  _id: Types.ObjectId;
+}
+
+export interface SettlementMetadata {
+  commissionIds?: Types.ObjectId[];
+  platformShare?: number;
+  level1Share?: number;
+  level2Share?: number;
+  [key: string]: any;
 }
 
 export interface SettlementFilter {
   startDate?: Date;
   endDate?: Date;
-  userId?: string;
+  userId?: Types.ObjectId;
   status?: SettlementStatus | 'all';
+}
+
+export interface SettlementResponse {
+  settlements: ISettlementDocument[];
+  total: number;
 }
 
 export interface SettlementSummary {
@@ -30,7 +62,7 @@ export interface SettlementSummary {
   level2Total: number;
 }
 
-export interface SettlementResponse {
-  settlements: Settlement[];
-  summary: SettlementSummary;
-} 
+export type Settlement = ISettlement;
+
+export interface SettlementCreateInput extends Omit<ISettlementBase, 'createdAt' | 'updatedAt'> {}
+export interface SettlementUpdateInput extends Partial<SettlementCreateInput> {} 

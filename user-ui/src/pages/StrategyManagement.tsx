@@ -28,6 +28,19 @@ import {
   ListItem,
   ListItemText,
   Container,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Paper,
+  Tooltip,
+  CircularProgress,
+  Alert,
+  Snackbar,
+  Card,
+  CardContent,
 } from '@mui/material';
 import {
   PlayArrow as PlayArrowIcon,
@@ -40,6 +53,7 @@ import {
   Assessment as AssessmentIcon,
   Tune as TuneIcon,
   Close as CloseIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import {
   LineChart,
@@ -47,7 +61,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -58,40 +71,60 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
-  Cell
+  Cell,
+  Tooltip as RechartsTooltip
 } from 'recharts';
 import PandaCard from '../components/common/PandaCard';
 import PandaButton from '../components/common/PandaButton';
 import PandaAlert from '../components/common/PandaAlert';
 import PandaProgress from '../components/common/PandaProgress';
 import { fadeIn, slideUp, staggerChildren } from '../animations';
+import { strategyService } from '../services/strategyService';
+import { Strategy as StrategyType } from '../types/strategy';
+import { Strategy as ServiceStrategy } from '../services/strategyService';
 
-interface Strategy {
-  id: string;
-  name: string;
-  type: string;
-  status: 'running' | 'paused' | 'stopped';
+// 合并两个 Strategy 类型，确保所有属性都是必需的
+type Strategy = StrategyType & Required<ServiceStrategy> & {
   riskLevel: 'low' | 'medium' | 'high';
+  lastUpdated: string;
   performance: {
     monthlyReturn: number;
+    totalReturn: number;
+    annualizedReturn: number;
     winRate: number;
     maxDrawdown: number;
     sharpeRatio: number;
-    totalReturn: number;
-    annualizedReturn: number;
+    volatility: number;
+    profitFactor: number;
   };
   targetReturn: {
     monthly: number;
     annual: number;
   };
-  parameters: Record<string, number>;
+  parameters: Record<string, any>;
+  returns: Array<{
+    date: string;
+    value: number;
+  }>;
+  trades: Array<{
+    date: string;
+    type: 'buy' | 'sell';
+    amount: number;
+    price: number;
+  }>;
   backtestResults: BacktestResult[];
-  optimizationResults: OptimizationResult[];
-  returns: number[];
-  volatility: number;
-  profitFactor: number;
-  trades: { time: string; frequency: number }[];
-}
+  optimizationResults: Array<{
+    parameters: Record<string, any>;
+    metrics: {
+      totalReturn: number;
+      monthlyReturn: number;
+      annualizedReturn: number;
+      sharpeRatio: number;
+      maxDrawdown: number;
+      winRate: number;
+    };
+  }>;
+};
 
 interface BacktestResult {
   id: string;
@@ -150,6 +183,8 @@ interface OptimizeConfig {
   };
 }
 
+type NestedStrategyKey = keyof Strategy | 'targetReturn.monthly' | 'targetReturn.annual';
+
 const StrategyManagement: React.FC = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
@@ -163,62 +198,34 @@ const StrategyManagement: React.FC = () => {
   const [optimizeStep, setOptimizeStep] = useState(0);
   const [isNewStrategyDialogOpen, setIsNewStrategyDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editStrategy, setEditStrategy] = useState<Strategy | null>(null);
+  const [editingStrategy, setEditingStrategy] = useState<Strategy | null>(null);
   const [strategies, setStrategies] = useState<Strategy[]>([
     {
       id: '1',
       name: 'Trend Following',
       type: 'trend',
-      status: 'running',
+      status: 'active',
       riskLevel: 'medium',
       performance: {
         monthlyReturn: 85.2,
+        totalReturn: 1022.4,
+        annualizedReturn: 1022.4,
         winRate: 65,
         maxDrawdown: 15.2,
         sharpeRatio: 1.5,
-        totalReturn: 1022.4,
-        annualizedReturn: 1022.4,
+        volatility: 0.2,
+        profitFactor: 2.1
       },
       targetReturn: {
-        monthly: 80,
-        annual: 960,
+        monthly: 0,
+        annual: 0,
       },
-      parameters: {
-        lookbackPeriod: 20,
-        entryThreshold: 0.02,
-        exitThreshold: 0.01,
-      },
-      backtestResults: [
-        {
-          id: '1',
-          strategyId: '1',
-          startDate: '2023-01-01',
-          endDate: '2023-12-31',
-          initialCapital: 100000,
-          finalCapital: 1122400,
-          totalReturn: 1022.4,
-          monthlyReturn: 85.2,
-          annualizedReturn: 1022.4,
-          sharpeRatio: 1.5,
-          maxDrawdown: 15.2,
-          winRate: 65,
-          totalTrades: 120,
-          winningTrades: 78,
-          losingTrades: 42,
-          avgTradeReturn: 8.52,
-          avgWinReturn: 12.45,
-          avgLossReturn: -8.28,
-          equityCurve: Array.from({ length: 12 }, (_, i) => ({
-            date: `2023-${String(i + 1).padStart(2, '0')}-01`,
-            value: 100000 * (1 + 0.852) ** (i + 1),
-          })),
-        },
-      ],
-      optimizationResults: [],
-      returns: [85.2, 85.2, 85.2, 85.2, 85.2, 85.2, 85.2, 85.2, 85.2, 85.2, 85.2, 85.2],
-      volatility: 0,
-      profitFactor: 1.5,
+      parameters: {},
+      returns: [],
       trades: [],
+      backtestResults: [],
+      optimizationResults: [],
+      lastUpdated: '2023-01-01',
     },
     {
       id: '2',
@@ -228,52 +235,24 @@ const StrategyManagement: React.FC = () => {
       riskLevel: 'low',
       performance: {
         monthlyReturn: 65.8,
-        winRate: 75,
-        maxDrawdown: 8.5,
-        sharpeRatio: 1.2,
         totalReturn: 789.6,
         annualizedReturn: 789.6,
+        winRate: 70,
+        maxDrawdown: 10.5,
+        sharpeRatio: 1.8,
+        volatility: 0.15,
+        profitFactor: 2.5
       },
       targetReturn: {
-        monthly: 60,
-        annual: 720,
+        monthly: 0,
+        annual: 0,
       },
-      parameters: {
-        meanPeriod: 20,
-        stdDevThreshold: 2,
-        positionSize: 0.1,
-      },
-      backtestResults: [
-        {
-          id: '2',
-          strategyId: '2',
-          startDate: '2023-01-01',
-          endDate: '2023-12-31',
-          initialCapital: 100000,
-          finalCapital: 889600,
-          totalReturn: 789.6,
-          monthlyReturn: 65.8,
-          annualizedReturn: 789.6,
-          sharpeRatio: 1.2,
-          maxDrawdown: 8.5,
-          winRate: 75,
-          totalTrades: 240,
-          winningTrades: 180,
-          losingTrades: 60,
-          avgTradeReturn: 3.29,
-          avgWinReturn: 5.12,
-          avgLossReturn: -3.08,
-          equityCurve: Array.from({ length: 12 }, (_, i) => ({
-            date: `2023-${String(i + 1).padStart(2, '0')}-01`,
-            value: 100000 * (1 + 0.658) ** (i + 1),
-          })),
-        },
-      ],
-      optimizationResults: [],
-      returns: [65.8, 65.8, 65.8, 65.8, 65.8, 65.8, 65.8, 65.8, 65.8, 65.8, 65.8, 65.8],
-      volatility: 0,
-      profitFactor: 1.2,
+      parameters: {},
+      returns: [],
       trades: [],
+      backtestResults: [],
+      optimizationResults: [],
+      lastUpdated: '2023-01-01',
     },
     {
       id: '3',
@@ -283,52 +262,24 @@ const StrategyManagement: React.FC = () => {
       riskLevel: 'high',
       performance: {
         monthlyReturn: 120.5,
+        totalReturn: 1446.0,
+        annualizedReturn: 1446.0,
         winRate: 55,
         maxDrawdown: 25.5,
         sharpeRatio: 1.0,
-        totalReturn: 1446.0,
-        annualizedReturn: 1446.0,
+        volatility: 0.25,
+        profitFactor: 1.8
       },
       targetReturn: {
-        monthly: 100,
-        annual: 1200,
+        monthly: 0,
+        annual: 0,
       },
-      parameters: {
-        spreadThreshold: 0.001,
-        maxPosition: 0.2,
-        cooldownPeriod: 5,
-      },
-      backtestResults: [
-        {
-          id: '3',
-          strategyId: '3',
-          startDate: '2023-01-01',
-          endDate: '2023-12-31',
-          initialCapital: 100000,
-          finalCapital: 1546000,
-          totalReturn: 1446.0,
-          monthlyReturn: 120.5,
-          annualizedReturn: 1446.0,
-          sharpeRatio: 1.0,
-          maxDrawdown: 25.5,
-          winRate: 55,
-          totalTrades: 480,
-          winningTrades: 264,
-          losingTrades: 216,
-          avgTradeReturn: 3.01,
-          avgWinReturn: 8.25,
-          avgLossReturn: -4.15,
-          equityCurve: Array.from({ length: 12 }, (_, i) => ({
-            date: `2023-${String(i + 1).padStart(2, '0')}-01`,
-            value: 100000 * (1 + 1.205) ** (i + 1),
-          })),
-        },
-      ],
-      optimizationResults: [],
-      returns: [120.5, 120.5, 120.5, 120.5, 120.5, 120.5, 120.5, 120.5, 120.5, 120.5, 120.5, 120.5],
-      volatility: 0,
-      profitFactor: 1.0,
+      parameters: {},
+      returns: [],
       trades: [],
+      backtestResults: [],
+      optimizationResults: [],
+      lastUpdated: '2023-01-01',
     },
   ]);
   const [newStrategy, setNewStrategy] = useState({
@@ -396,23 +347,21 @@ const StrategyManagement: React.FC = () => {
       riskLevel: newStrategy.riskLevel,
       performance: {
         monthlyReturn: 0,
+        totalReturn: 0,
+        annualizedReturn: 0,
         winRate: 0,
         maxDrawdown: 0,
         sharpeRatio: 0,
-        totalReturn: 0,
-        annualizedReturn: 0,
+        volatility: 0,
+        profitFactor: 0
       },
-      targetReturn: {
-        monthly: newStrategy.targetReturn.monthly,
-        annual: newStrategy.targetReturn.annual,
-      },
+      targetReturn: newStrategy.targetReturn,
       parameters: {},
+      returns: [],
+      trades: [],
       backtestResults: [],
       optimizationResults: [],
-      returns: [],
-      volatility: 0,
-      profitFactor: 0,
-      trades: [],
+      lastUpdated: new Date().toISOString()
     };
 
     setStrategies(prev => [...prev, strategy]);
@@ -481,7 +430,7 @@ const StrategyManagement: React.FC = () => {
     }
   };
 
-  const handleStrategyStatusChange = (strategyId: string, newStatus: 'running' | 'paused' | 'stopped') => {
+  const handleStrategyStatusChange = (strategyId: string, newStatus: 'active' | 'paused' | 'stopped') => {
     setStrategies(prev => prev.map(strategy => 
       strategy.id === strategyId ? { ...strategy, status: newStatus } : strategy
     ));
@@ -502,58 +451,63 @@ const StrategyManagement: React.FC = () => {
   };
 
   const handleEditStrategy = (strategy: Strategy) => {
-    setEditStrategy(strategy);
+    setEditingStrategy(strategy);
     setIsEditDialogOpen(true);
   };
 
-  const handleEditStrategyChange = (field: string, value: any) => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      setEditStrategy(prev => {
-        if (!prev) return null;
-        
-        // Create a new strategy object with explicit type
-        const newStrategy = {
-          ...prev,
-          parameters: { ...prev.parameters } as Record<string, any>,
-          targetReturn: { ...prev.targetReturn } as { monthly: number; annual: number },
-          performance: { ...prev.performance } as {
-            monthlyReturn: number;
-            winRate: number;
-            maxDrawdown: number;
-            sharpeRatio: number;
-          }
-        };
-
-        // Update the specific nested property
-        if (parent === 'parameters') {
-          newStrategy.parameters[child] = value;
-        } else if (parent === 'targetReturn') {
-          newStrategy.targetReturn[child] = value;
-        } else if (parent === 'performance') {
-          newStrategy.performance[child] = value;
-        }
-
-        return newStrategy as Strategy;
-      });
+  const handleEditStrategyChange = (field: NestedStrategyKey, value: any) => {
+    if (!editingStrategy) return;
+    
+    const updatedStrategy = { ...editingStrategy };
+    
+    if (field === 'targetReturn.monthly') {
+      updatedStrategy.targetReturn = {
+        ...updatedStrategy.targetReturn,
+        monthly: value
+      };
+    } else if (field === 'targetReturn.annual') {
+      updatedStrategy.targetReturn = {
+        ...updatedStrategy.targetReturn,
+        annual: value
+      };
     } else {
-      setEditStrategy(prev => {
-        if (!prev) return null;
-        return { ...prev, [field]: value } as Strategy;
-      });
+      (updatedStrategy as any)[field] = value;
+    }
+    
+    setEditingStrategy(updatedStrategy);
+  };
+
+  const handleSaveStrategy = async () => {
+    if (!editingStrategy) return;
+    
+    try {
+      await strategyService.updateStrategy(editingStrategy);
+      const updatedStrategies = strategies.map(s => 
+        s.id === editingStrategy.id ? editingStrategy : s
+      );
+      setStrategies(updatedStrategies);
+      setEditingStrategy(null);
+    } catch (error) {
+      console.error('Error saving strategy:', error);
     }
   };
 
-  const handleSaveStrategy = () => {
-    if (editStrategy) {
-      setStrategies(prev => prev.map(strategy => 
-        strategy.id === editStrategy.id ? editStrategy : strategy
-      ));
-      if (selectedStrategy?.id === editStrategy.id) {
-        setSelectedStrategy(editStrategy);
-      }
-      setIsEditDialogOpen(false);
-      setEditStrategy(null);
+  const handleStrategyUpdate = async (strategy: Strategy) => {
+    try {
+      await strategyService.updateStrategy(strategy);
+      const updatedStrategies = await strategyService.getStrategies();
+      setStrategies(updatedStrategies as Strategy[]);
+    } catch (error) {
+      console.error('Error updating strategy:', error);
+    }
+  };
+
+  const fetchStrategies = async () => {
+    try {
+      const data = await strategyService.getStrategies();
+      setStrategies(data as Strategy[]);
+    } catch (error) {
+      console.error('Error fetching strategies:', error);
     }
   };
 
@@ -580,7 +534,7 @@ const StrategyManagement: React.FC = () => {
                 <Chip
                   label={strategy.status}
                   color={
-                    strategy.status === 'running'
+                    strategy.status === 'active'
                       ? 'success'
                       : strategy.status === 'paused'
                       ? 'warning'
@@ -621,34 +575,42 @@ const StrategyManagement: React.FC = () => {
                 </Typography>
               </TableCell>
               <TableCell>
-                <IconButton
-                  size="small"
-                  onClick={() => handleStrategyStatusChange(strategy.id, 'running')}
-                  disabled={strategy.status === 'running'}
-                >
-                  <PlayArrowIcon />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => handleStrategyStatusChange(strategy.id, 'paused')}
-                  disabled={strategy.status === 'paused'}
-                >
-                  <PauseIcon />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => handleStrategyStatusChange(strategy.id, 'stopped')}
-                  disabled={strategy.status === 'stopped'}
-                >
-                  <StopIcon />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => handleDeleteStrategy(strategy.id)}
-                  color="error"
-                >
-                  <DeleteIcon />
-                </IconButton>
+                <Tooltip title={t('strategyManagement.startStrategy')}>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleStrategyStatusChange(strategy.id, 'active')}
+                    disabled={strategy.status === 'active'}
+                  >
+                    <PlayArrowIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={t('strategyManagement.pauseStrategy')}>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleStrategyStatusChange(strategy.id, 'paused')}
+                    disabled={strategy.status === 'paused'}
+                  >
+                    <PauseIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={t('strategyManagement.stopStrategy')}>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleStrategyStatusChange(strategy.id, 'stopped')}
+                    disabled={strategy.status === 'stopped'}
+                  >
+                    <StopIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={t('strategyManagement.deleteStrategy')}>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleDeleteStrategy(strategy.id)}
+                    color="error"
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Tooltip>
               </TableCell>
             </TableRow>
           ))}
@@ -670,35 +632,38 @@ const StrategyManagement: React.FC = () => {
           </Grid>
           <Grid item xs={12} md={6}>
             <RiskMetricsRadar metrics={{
-              sharpeRatio: strategy.sharpeRatio,
-              maxDrawdown: strategy.maxDrawdown,
-              volatility: strategy.volatility,
-              winRate: strategy.winRate,
-              profitFactor: strategy.profitFactor
+              sharpeRatio: strategy.performance.sharpeRatio,
+              maxDrawdown: strategy.performance.maxDrawdown,
+              volatility: strategy.performance.volatility,
+              winRate: strategy.performance.winRate,
+              profitFactor: strategy.performance.profitFactor
             }} />
           </Grid>
           <Grid item xs={12}>
-            <TradeFrequencyHeatmap trades={strategy.trades} />
+            <TradeFrequencyHeatmap trades={strategy.trades.map(trade => ({
+              time: trade.date,
+              frequency: 1
+            }))} />
           </Grid>
         </Grid>
       </Box>
     );
   };
 
-  const StrategyReturnDistribution: React.FC<{ returns: number[] }> = ({ returns }) => {
+  const StrategyReturnDistribution: React.FC<{ returns: Array<{ date: string; value: number }> }> = ({ returns }) => {
     const { t } = useTranslation();
     const theme = useTheme();
     
     // 计算收益分布
-    const minReturn = Math.min(...returns);
-    const maxReturn = Math.max(...returns);
+    const minReturn = Math.min(...returns.map(r => r.value));
+    const maxReturn = Math.max(...returns.map(r => r.value));
     const range = maxReturn - minReturn;
     const binCount = 10;
     const binSize = range / binCount;
     
     const distribution = Array(binCount).fill(0);
     returns.forEach(ret => {
-      const binIndex = Math.min(Math.floor((ret - minReturn) / binSize), binCount - 1);
+      const binIndex = Math.min(Math.floor((ret.value - minReturn) / binSize), binCount - 1);
       distribution[binIndex]++;
     });
 
@@ -719,7 +684,7 @@ const StrategyManagement: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="range" />
                 <YAxis />
-                <Tooltip />
+                <RechartsTooltip content={<CustomTooltip />} />
                 <Bar dataKey="count" fill={theme.palette.primary.main}>
                   {data.map((entry, index) => (
                     <Cell
@@ -744,7 +709,13 @@ const StrategyManagement: React.FC = () => {
     );
   };
 
-  const RiskMetricsRadar: React.FC<{ metrics: { [key: string]: number } }> = ({ metrics }) => {
+  const RiskMetricsRadar: React.FC<{ metrics: { 
+    sharpeRatio: number;
+    maxDrawdown: number;
+    volatility: number;
+    winRate: number;
+    profitFactor: number;
+  } }> = ({ metrics }) => {
     const { t } = useTranslation();
     
     const data = [
@@ -833,7 +804,7 @@ const StrategyManagement: React.FC = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="time" />
               <YAxis />
-              <Tooltip />
+              <RechartsTooltip content={<CustomTooltip />} />
               <Bar dataKey="frequency" fill={theme.palette.primary.main} />
             </BarChart>
           </ResponsiveContainer>
@@ -868,6 +839,8 @@ const StrategyManagement: React.FC = () => {
   };
 
   const BacktestResults: React.FC<{ results: BacktestResult[] }> = ({ results }) => {
+    if (!results || results.length === 0) return null;
+    
     const latestResult = results[results.length - 1];
     
     return (
@@ -887,7 +860,7 @@ const StrategyManagement: React.FC = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
                     <YAxis />
-                    <Tooltip />
+                    <RechartsTooltip content={<CustomTooltip />} />
                     <Area
                       type="monotone"
                       dataKey="value"
@@ -922,6 +895,12 @@ const StrategyManagement: React.FC = () => {
                         </TableCell>
                       </TableRow>
                       <TableRow>
+                        <TableCell>{t('strategyManagement.monthlyReturn')}</TableCell>
+                        <TableCell>
+                          {latestResult.monthlyReturn}%
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
                         <TableCell>{t('strategyManagement.annualizedReturn')}</TableCell>
                         <TableCell>
                           {latestResult.annualizedReturn}%
@@ -930,19 +909,19 @@ const StrategyManagement: React.FC = () => {
                       <TableRow>
                         <TableCell>{t('strategyManagement.maxDrawdown')}</TableCell>
                         <TableCell>
-                          {results[results.length - 1].maxDrawdown}%
+                          {latestResult.maxDrawdown}%
                         </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>{t('strategyManagement.sharpeRatio')}</TableCell>
                         <TableCell>
-                          {results[results.length - 1].sharpeRatio}
+                          {latestResult.sharpeRatio}
                         </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>{t('strategyManagement.winRate')}</TableCell>
                         <TableCell>
-                          {results[results.length - 1].winRate}%
+                          {latestResult.winRate}%
                         </TableCell>
                       </TableRow>
                     </TableBody>
@@ -963,37 +942,37 @@ const StrategyManagement: React.FC = () => {
                       <TableRow>
                         <TableCell>{t('strategyManagement.totalTrades')}</TableCell>
                         <TableCell>
-                          {results[results.length - 1].totalTrades}
+                          {latestResult.totalTrades}
                         </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>{t('strategyManagement.winningTrades')}</TableCell>
                         <TableCell>
-                          {results[results.length - 1].winningTrades}
+                          {latestResult.winningTrades}
                         </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>{t('strategyManagement.losingTrades')}</TableCell>
                         <TableCell>
-                          {results[results.length - 1].losingTrades}
+                          {latestResult.losingTrades}
                         </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>{t('strategyManagement.avgTradeReturn')}</TableCell>
                         <TableCell>
-                          {results[results.length - 1].avgTradeReturn}%
+                          {latestResult.avgTradeReturn}%
                         </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>{t('strategyManagement.avgWinReturn')}</TableCell>
                         <TableCell>
-                          {results[results.length - 1].avgWinReturn}%
+                          {latestResult.avgWinReturn}%
                         </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>{t('strategyManagement.avgLossReturn')}</TableCell>
                         <TableCell>
-                          {results[results.length - 1].avgLossReturn}%
+                          {latestResult.avgLossReturn}%
                         </TableCell>
                       </TableRow>
                     </TableBody>
@@ -1074,30 +1053,30 @@ const StrategyManagement: React.FC = () => {
                           <TableCell>
                             {Object.entries(result.parameters).map(([key, value]) => (
                               <Typography key={key} variant="body2">
-                                {key}: {value}
+                                {key}: {String(value)}
                               </Typography>
                             ))}
                           </TableCell>
                           <TableCell align="right">
                             <Typography
                               variant="body2"
-                              color={getReturnColor(result.performance.monthlyReturn)}
+                              color={getReturnColor(result.metrics.monthlyReturn)}
                               sx={{ fontWeight: 'bold' }}
                             >
-                              {result.performance.monthlyReturn}%
+                              {result.metrics.monthlyReturn}%
                             </Typography>
                           </TableCell>
                           <TableCell align="right">
-                            {result.performance.annualizedReturn}%
+                            {result.metrics.annualizedReturn}%
                           </TableCell>
                           <TableCell align="right">
-                            {result.performance.sharpeRatio.toFixed(2)}
+                            {result.metrics.sharpeRatio.toFixed(2)}
                           </TableCell>
                           <TableCell align="right">
-                            {result.performance.maxDrawdown}%
+                            {result.metrics.maxDrawdown}%
                           </TableCell>
                           <TableCell align="right">
-                            {result.performance.winRate}%
+                            {result.metrics.winRate}%
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1115,7 +1094,7 @@ const StrategyManagement: React.FC = () => {
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                           data={selectedStrategy.optimizationResults.map(result => ({
-                            ...result.performance,
+                            ...result.metrics,
                             parameters: JSON.stringify(result.parameters),
                           }))}
                           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
@@ -1123,7 +1102,7 @@ const StrategyManagement: React.FC = () => {
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="parameters" />
                           <YAxis />
-                          <Tooltip />
+                          <RechartsTooltip content={<CustomTooltip />} />
                           <Bar dataKey="monthlyReturn" name={t('strategyManagement.monthlyReturn')} fill="#8884d8" />
                           <Bar dataKey="sharpeRatio" name={t('strategyManagement.sharpeRatio')} fill="#82ca9d" />
                         </BarChart>
@@ -1492,14 +1471,14 @@ const StrategyManagement: React.FC = () => {
           <TextField
             fullWidth
             label={t('strategyManagement.name')}
-            value={editStrategy?.name || ''}
+            value={editingStrategy?.name || ''}
             onChange={(e) => handleEditStrategyChange('name', e.target.value)}
             sx={{ mb: 2 }}
           />
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel>{t('strategyManagement.type')}</InputLabel>
             <Select
-              value={editStrategy?.type || ''}
+              value={editingStrategy?.type || ''}
               label={t('strategyManagement.type')}
               onChange={(e) => handleEditStrategyChange('type', e.target.value)}
             >
@@ -1512,7 +1491,7 @@ const StrategyManagement: React.FC = () => {
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel>{t('strategyManagement.riskLevel')}</InputLabel>
             <Select
-              value={editStrategy?.riskLevel || 'medium'}
+              value={editingStrategy?.riskLevel || 'medium'}
               label={t('strategyManagement.riskLevel')}
               onChange={(e) => handleEditStrategyChange('riskLevel', e.target.value)}
             >
@@ -1525,7 +1504,7 @@ const StrategyManagement: React.FC = () => {
             fullWidth
             type="number"
             label={t('strategyManagement.monthlyTargetReturn')}
-            value={editStrategy?.targetReturn.monthly || 0}
+            value={editingStrategy?.targetReturn.monthly || 0}
             onChange={(e) => handleEditStrategyChange('targetReturn.monthly', parseFloat(e.target.value))}
             sx={{ mb: 2 }}
           />
@@ -1533,20 +1512,20 @@ const StrategyManagement: React.FC = () => {
             fullWidth
             type="number"
             label={t('strategyManagement.annualTargetReturn')}
-            value={editStrategy?.targetReturn.annual || 0}
+            value={editingStrategy?.targetReturn.annual || 0}
             onChange={(e) => handleEditStrategyChange('targetReturn.annual', parseFloat(e.target.value))}
             sx={{ mb: 2 }}
           />
           <Typography variant="subtitle1" sx={{ mb: 2 }}>
             {t('strategyManagement.parameters')}
           </Typography>
-          {editStrategy && Object.entries(editStrategy.parameters).map(([key, value]) => (
+          {editingStrategy && Object.entries(editingStrategy.parameters).map(([key, value]) => (
             <TextField
               key={key}
               fullWidth
               label={key}
               value={value}
-              onChange={(e) => handleEditStrategyChange(`parameters.${key}`, e.target.value)}
+              onChange={(e) => handleEditStrategyChange(key as NestedStrategyKey, e.target.value)}
               sx={{ mb: 2 }}
             />
           ))}
@@ -1559,7 +1538,7 @@ const StrategyManagement: React.FC = () => {
         <Button
           variant="contained"
           onClick={handleSaveStrategy}
-          disabled={!editStrategy?.name || !editStrategy?.type}
+          disabled={!editingStrategy?.name || !editingStrategy?.type}
         >
           {t('common.save')}
         </Button>
@@ -1578,13 +1557,13 @@ const StrategyManagement: React.FC = () => {
             <Box sx={{ height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={strategy.backtestResults?.[0]?.equityCurve || []}
+                  data={strategy.backtestResults[0]?.equityCurve || []}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
-                  <Tooltip />
+                  <RechartsTooltip content={<CustomTooltip />} />
                   <Area
                     type="monotone"
                     dataKey="value"
@@ -1626,7 +1605,7 @@ const StrategyManagement: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip />
+                  <RechartsTooltip content={<CustomTooltip />} />
                   <Bar
                     dataKey="value"
                     fill="#8884d8"
@@ -1647,7 +1626,7 @@ const StrategyManagement: React.FC = () => {
             <Box sx={{ height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={strategy.backtestResults?.[0]?.equityCurve.map((point, index, array) => ({
+                  data={strategy.backtestResults[0]?.equityCurve.map((point, index, array) => ({
                     date: point.date,
                     value: ((point.value - Math.max(...array.slice(0, index + 1).map(p => p.value))) / Math.max(...array.slice(0, index + 1).map(p => p.value))) * 100,
                   })) || []}
@@ -1656,7 +1635,7 @@ const StrategyManagement: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
-                  <Tooltip />
+                  <RechartsTooltip content={<CustomTooltip />} />
                   <Line
                     type="monotone"
                     dataKey="value"
@@ -1671,6 +1650,18 @@ const StrategyManagement: React.FC = () => {
       </Grid>
     </Grid>
   );
+
+  const CustomTooltip: React.FC<{ active?: boolean; payload?: any[]; label?: string }> = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="custom-tooltip">
+          <p className="label">{label}</p>
+          <p className="value">{payload[0].value}</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <Box

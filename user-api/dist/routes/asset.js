@@ -5,7 +5,8 @@ const asset_controller_1 = require("../controllers/asset.controller");
 const router = (0, express_1.Router)();
 const assetController = new asset_controller_1.AssetController();
 router.get('/', assetController.getAssets);
-router.post('/', assetController.createAsset);
+router.post('/', assetController.addAsset);
 router.put('/:id', assetController.updateAsset);
 router.delete('/:id', assetController.deleteAsset);
 exports.default = router;
+//# sourceMappingURL=asset.js.map

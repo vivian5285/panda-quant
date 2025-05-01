@@ -41,7 +41,7 @@ interface DepositRecord {
 }
 
 const DepositsPage: React.FC = () => {
-  const { user } = useAuth();
+  const { isAuthenticated, loading: authLoading, user } = useAuth();
   const [deposits, setDeposits] = useState<DepositRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

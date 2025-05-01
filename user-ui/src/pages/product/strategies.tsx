@@ -5,9 +5,11 @@ import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import SecurityIcon from '@mui/icons-material/Security';
 import { GradientTitle } from '@/components/common/GradientTitle';
 import PandaCard from '@/components/common/PandaCard';
+import { useTranslation } from 'react-i18next';
 
 const StrategiesPage: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
+  const { t } = useTranslation();
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -70,8 +72,13 @@ const StrategiesPage: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
       <Box sx={{ mb: 6, textAlign: 'center' }}>
-        <GradientTitle>
-          量化策略
+        <GradientTitle 
+          title={t('strategies.title', '交易策略')} 
+          variant="h2" 
+          align="center" 
+          sx={{ mb: 6 }}
+        >
+          {t('strategies.title', '交易策略')}
         </GradientTitle>
         <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
           智能交易策略，让您的投资更高效
@@ -187,9 +194,12 @@ const StrategiesPage: React.FC = () => {
       </Grid>
 
       <Box sx={{ mt: 8, mb: 6, textAlign: 'center' }}>
-        <GradientTitle>
-          支持交易平台
-        </GradientTitle>
+        <GradientTitle 
+          title="支持交易平台"
+          variant="h2"
+          align="center"
+          sx={{ mb: 6 }}
+        />
         <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
           支持主流加密货币交易所和MT4平台
         </Typography>

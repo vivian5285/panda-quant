@@ -36,7 +36,7 @@ import {
   Divider,
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import { theme } from '../theme';
+import theme from '../theme';
 import { animationConfig } from '../theme/animation';
 import PageLayout from '../components/common/PageLayout';
 

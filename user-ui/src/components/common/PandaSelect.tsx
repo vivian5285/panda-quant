@@ -14,6 +14,7 @@ import { themeUtils } from '../../theme';
 export interface Option {
   value: string;
   label: string;
+  disabled?: boolean;
 }
 
 export interface PandaSelectProps extends Omit<SelectProps, 'onChange'> {

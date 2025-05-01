@@ -2,27 +2,19 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { useTranslation } from 'react-i18next';
 import { useWeb3 } from './Web3Context';
 import { authApi } from '../services/api';
-
-interface User {
-  id?: string;
-  email?: string;
-  address?: string;
-  role?: string;
-  username?: string;
-  avatar?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import { User } from '../types/user';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
+  token: string | null;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   loginWithWallet: (walletType: string) => Promise<void>;
   register: (email: string, password: string, username: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
   error: string | null;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -68,6 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         role: 'user',
         username: email.split('@')[0],
+        walletAddress: '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -87,22 +80,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       setError(null);
-      await web3.connect(walletType);
-      const address = await web3.getAddress();
-      const mockUser: User = {
-        id: '2',
-        address,
-        role: 'user',
-        username: `${address.slice(0, 6)}...${address.slice(-4)}`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      
+      const address = await web3.connect(walletType);
+      if (!address) {
+        throw new Error(t('auth.walletConnectionFailed'));
+      }
+
+      const response = await authApi.loginWithWallet(address);
+      const { token, user: userData } = response.data;
+      
+      const user: User = {
+        id: userData._id,
+        email: userData.email,
+        username: userData.username || '',
+        walletAddress: address,
+        role: userData.role as 'user' | 'admin',
+        status: userData.status,
+        createdAt: userData.createdAt,
+        updatedAt: userData.updatedAt,
       };
-      localStorage.setItem('token', 'mock-token');
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      setUser(user);
       setIsAuthenticated(true);
-      setUser(mockUser);
     } catch (err) {
-      setError(t('auth.walletLoginError'));
+      setError(err instanceof Error ? err.message : t('auth.loginFailed'));
       throw err;
     } finally {
       setLoading(false);
@@ -115,14 +119,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(null);
       
       const response = await authApi.register(email, password, username, code);
+      const { token, user: userData } = response.data;
       
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      const user: User = {
+        id: userData._id,
+        email: userData.email,
+        username: userData.username || '',
+        walletAddress: userData.walletAddress || '',
+        role: userData.role as 'user' | 'admin',
+        status: userData.status,
+        createdAt: userData.createdAt,
+        updatedAt: userData.updatedAt,
+      };
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      setUser(user);
       setIsAuthenticated(true);
-      setUser(response.user);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || t('auth.registerError');
-      setError(errorMessage);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('auth.registerFailed'));
       throw err;
     } finally {
       setLoading(false);
@@ -146,15 +162,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [t]);
 
+  const updateUser = useCallback((user: User) => {
+    setUser(user);
+  }, []);
+
   const value: AuthContextType = {
     isAuthenticated,
     user,
+    token: localStorage.getItem('token'),
     loginWithEmail,
     loginWithWallet,
     register,
     logout,
     loading,
     error,
+    updateUser,
   };
 
   return (

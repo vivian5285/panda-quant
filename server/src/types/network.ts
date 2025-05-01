@@ -1,25 +1,36 @@
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
-export interface INetworkStatus extends Document {
-  _id: string;
-  type: 'api' | 'database' | 'redis' | 'websocket';
-  status: 'up' | 'down' | 'degraded';
+export interface INetworkStatusBase {
+  network: string;
+  status: 'online' | 'offline' | 'error' | 'checking';
   lastChecked: Date;
+  blockHeight?: number;
+  latency: number;
+  type: 'database' | 'api' | 'redis' | 'websocket';
   responseTime: number;
   error?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export type NetworkStatus = INetworkStatus;
+export interface INetworkStatus extends INetworkStatusBase {
+  _id: Types.ObjectId;
+}
 
-export interface NetworkStatusCreateInput extends Omit<INetworkStatus, '_id' | 'createdAt' | 'updatedAt'> {}
-export interface NetworkStatusUpdateInput extends Partial<NetworkStatusCreateInput> {}
+export interface INetworkStatusDocument extends INetworkStatusBase, Document {
+  _id: Types.ObjectId;
+}
 
 export interface NetworkConfig {
   name: string;
-  chainId: number | null;
-  rpcUrl: string;
-  explorerUrl: string;
-  symbol: string;
-} 
+  type: 'database' | 'api' | 'redis' | 'websocket';
+  url: string;
+  timeout: number;
+  retryCount: number;
+  retryDelay: number;
+}
+
+export type NetworkStatus = INetworkStatus;
+
+export interface NetworkStatusCreateInput extends Omit<INetworkStatus, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface NetworkStatusUpdateInput extends Partial<NetworkStatusCreateInput> {} 

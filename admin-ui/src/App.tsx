@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from "./theme";
@@ -32,7 +32,7 @@ function App() {
               <Router>
                 <Routes>
                   <Route path="/login" element={<Login />} />
-                  <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+                  <Route path="/" element={<PrivateRoute><Layout><Outlet /></Layout></PrivateRoute>}>
                     <Route index element={<Navigate to="/users" replace />} />
                     <Route path="users" element={<UserManagement />} />
                     <Route path="orders" element={<OrderManagement />} />

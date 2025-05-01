@@ -40,7 +40,12 @@ const PrivacyPage: React.FC = () => {
       
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <Box sx={{ mb: 6 }}>
-          <GradientTitle>
+          <GradientTitle 
+            title="隐私政策" 
+            variant="h3" 
+            align="center" 
+            gutterBottom
+          >
             隐私政策
           </GradientTitle>
           <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>

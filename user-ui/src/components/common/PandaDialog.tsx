@@ -53,10 +53,7 @@ const PandaDialog: React.FC<PandaDialogProps> = ({
       '& .MuiDialogTitle-root': {
         padding: theme.spacing(2),
         borderBottom: `1px solid ${theme.palette.divider}`,
-        background: themeUtils.createTextGradient(
-          theme.palette.primary.main,
-          theme.palette.primary.dark
-        ),
+        background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
       },

@@ -1,100 +1,110 @@
 import { Request, Response } from 'express';
 import { UserLevelService } from '../services/userLevelService';
-import { validateUserLevel } from '../validators/userLevelValidator';
-import { handleError } from '../utils/errorHandler';
-import { Types } from 'mongoose';
-import { UserLevel } from '../models/userLevel';
-import { IUserLevel } from '../interfaces/IUserLevel';
+import { logger } from '../utils/logger';
+import { AuthenticatedRequest } from '../types/express';
 
-const userLevelService = new UserLevelService();
+export class UserLevelController {
+  private userLevelService: UserLevelService;
 
-export const userLevelController = {
+  constructor() {
+    this.userLevelService = new UserLevelService();
+  }
+
   // 获取所有用户等级
-  async getAllLevels(req: Request, res: Response) {
+  async getAllLevels(_req: Request, res: Response): Promise<void> {
     try {
-      const levels = await userLevelService.getLevels();
+      const levels = await this.userLevelService.getAllUserLevels();
       res.json(levels);
-    } catch (error: unknown) {
-      handleError(res, error);
-    }
-  },
-
-  // 获取单个用户等级
-  async getLevelById(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const level = await userLevelService.getLevel(new Types.ObjectId(id));
-      res.json(level);
-    } catch (error: unknown) {
-      handleError(res, error);
-    }
-  },
-
-  // 创建用户等级
-  async createLevel(req: Request, res: Response) {
-    try {
-      const { name, description, requirements } = req.body;
-      const newLevel = new UserLevel({
-        name,
-        description,
-        requirements
-      });
-
-      const savedLevel = await newLevel.save();
-      return res.status(201).json(savedLevel);
     } catch (error) {
-      console.error('Error creating level:', error);
-      return res.status(500).json({ message: 'Internal server error' });
-    }
-  },
-
-  // 更新用户等级
-  async updateLevel(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const { name, description, requirements } = req.body;
-
-      const updatedLevel = await UserLevel.findByIdAndUpdate(
-        new Types.ObjectId(id),
-        { name, description, requirements },
-        { new: true }
-      );
-
-      if (!updatedLevel) {
-        return res.status(404).json({ message: 'Level not found' });
-      }
-
-      return res.json(updatedLevel);
-    } catch (error) {
-      console.error('Error updating level:', error);
-      return res.status(500).json({ message: 'Internal server error' });
-    }
-  },
-
-  // 删除用户等级
-  async deleteLevel(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      await userLevelService.deleteLevel(new Types.ObjectId(id));
-      res.status(204).send();
-    } catch (error: unknown) {
-      handleError(res, error);
-    }
-  },
-
-  async getLevel(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const level = await UserLevel.findById(new Types.ObjectId(id));
-
-      if (!level) {
-        return res.status(404).json({ message: 'Level not found' });
-      }
-
-      return res.json(level);
-    } catch (error) {
-      console.error('Error getting level:', error);
-      return res.status(500).json({ message: 'Internal server error' });
+      logger.error('Error getting all levels:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
-}; 
+
+  // 获取单个用户等级
+  async getUserLevel(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+      }
+      const userId = req.user._id.toString();
+      const userLevel = await this.userLevelService.getUserLevelById(userId);
+      res.json(userLevel);
+    } catch (error) {
+      res.status(500).json({ message: 'Error getting user level', error });
+    }
+  }
+
+  // 创建用户等级
+  async createLevel(req: Request, res: Response): Promise<void> {
+    try {
+      const level = await this.userLevelService.createUserLevel(req.body);
+      res.status(201).json(level);
+    } catch (error) {
+      logger.error('Error creating level:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  // 更新用户等级
+  async updateLevel(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const level = await this.userLevelService.updateUserLevel(id, req.body);
+      if (!level) {
+        res.status(404).json({ error: 'Level not found' });
+        return;
+      }
+      res.json(level);
+    } catch (error) {
+      logger.error('Error updating level:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  // 删除用户等级
+  async deleteLevel(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const success = await this.userLevelService.deleteUserLevel(id);
+      if (!success) {
+        res.status(404).json({ error: 'Level not found' });
+        return;
+      }
+      res.status(204).send();
+    } catch (error) {
+      logger.error('Error deleting level:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+
+  async addExperience(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+      }
+      const userId = req.user._id.toString();
+      const { amount } = req.body;
+      const updatedUserLevel = await this.userLevelService.updateUserLevel(userId, { experience: amount });
+      res.json(updatedUserLevel);
+    } catch (error) {
+      res.status(500).json({ message: 'Error adding experience', error });
+    }
+  }
+
+  async getUserLevelInfo(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+      }
+      const userId = req.user._id.toString();
+      const levelInfo = await this.userLevelService.getUserLevelById(userId);
+      res.json(levelInfo);
+    } catch (error) {
+      res.status(500).json({ message: 'Error getting user level info', error });
+    }
+  }
+} 

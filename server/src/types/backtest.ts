@@ -1,45 +1,23 @@
-import { Document } from 'mongoose';
+import { Types } from 'mongoose';
 
-export interface IBacktest extends Document {
-  _id: string;
-  userId: string;
-  strategyId: string;
-  exchange: string;
-  symbol: string;
-  timeframe: string;
-  startTime: Date;
-  endTime: Date;
-  initialBalance: number;
-  finalBalance: number;
-  totalReturn: number;
-  maxDrawdown: number;
-  sharpeRatio: number;
-  winRate: number;
+export interface IBacktest {
+  _id?: Types.ObjectId;
+  strategyId: Types.ObjectId;
+  userId: Types.ObjectId;
+  startDate: Date;
+  endDate: Date;
+  initialCapital: number;
+  finalCapital: number;
   totalTrades: number;
   winningTrades: number;
   losingTrades: number;
-  averageWin: number;
-  averageLoss: number;
-  parameters: Record<string, any>;
-  results: {
-    trades: Array<{
-      entryTime: Date;
-      exitTime: Date;
-      entryPrice: number;
-      exitPrice: number;
-      side: 'long' | 'short';
-      amount: number;
-      pnl: number;
-    }>;
-    equity: Array<{
-      time: Date;
-      value: number;
-    }>;
-  };
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  winRate: number;
+  profitFactor: number;
+  maxDrawdown: number;
+  sharpeRatio: number;
+  status: 'pending' | 'completed' | 'failed';
+  parameters: Map<string, any>;
+  results: Record<string, any>;
   createdAt: Date;
-  updatedAt: Date;
-  completedAt?: Date;
-  error?: string;
-  metadata?: Record<string, any>;
+  updatedAt?: Date;
 } 

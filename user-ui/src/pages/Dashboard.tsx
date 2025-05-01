@@ -3,7 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useWeb3 } from '../hooks/useWeb3';
 import AssetOverview from '../components/dashboard/AssetOverview';
-import { AssetData } from '../services/dashboardService';
+import { 
+  AssetData as DashboardAssetData, 
+  TimeRange as DashboardTimeRange, 
+  StrategyData as DashboardStrategyData, 
+  ApiStatus as DashboardApiStatus, 
+  ChartData as DashboardChartData, 
+  ProfitTarget as DashboardProfitTarget, 
+  DashboardData as DashboardServiceData,
+  AssetDistribution 
+} from '../services/dashboardService';
 import { StyledCard } from '../components/common/StyledCard';
 import { GradientTitle } from '../components/common/GradientTitle';
 import Layout from '../components/Layout';
@@ -87,14 +96,7 @@ import {
   Tooltip as ChartTooltip,
   Legend
 } from 'chart.js';
-import dashboardService, { 
-  TimeRange, 
-  StrategyData, 
-  ApiStatus, 
-  ChartData, 
-  ProfitTarget as ServiceProfitTarget,
-  DashboardData
-} from '../services/dashboardService';
+import dashboardService from '../services/dashboardService';
 import PandaAlert from '../components/common/PandaAlert';
 import PandaProgress from '../components/common/PandaProgress';
 import PandaButton from '../components/common/PandaButton';
@@ -109,6 +111,7 @@ import {
   AreaChart,
   Area,
   Tooltip as RechartsTooltip,
+  Line as RechartsLine,
 } from 'recharts';
 import { StrategyReturnDistribution, RiskMetricsRadar, TradeFrequencyHeatmap } from '../components/charts';
 import StrategyOverview from '../components/dashboard/StrategyOverview';
@@ -134,9 +137,23 @@ type ChartType = 'line' | 'bar' | 'pie';
 type TimeInterval = '1d' | '1w' | '1m' | '3m' | '1y';
 
 interface CurrencyData {
+  currency: string;
   amount: number;
-  valueInUSD: number;
-  change24h: number;
+  percentage: number;
+}
+
+interface LocalStrategyData {
+  id: string;
+  name: string;
+  type: string;
+  status: 'paused' | 'active' | 'stopped';
+  performance: {
+    monthlyReturn: number;
+    winRate: number;
+    maxDrawdown: number;
+  };
+  riskLevel: 'low' | 'medium' | 'high';
+  lastUpdated: string;
 }
 
 interface StrategyStatus {
@@ -157,6 +174,12 @@ interface StrategyStatus {
     amount: number;
     price: number;
   };
+}
+
+interface StrategyDistribution {
+  strategy: string;
+  amount: number;
+  percentage: number;
 }
 
 interface NewProfitTarget {
@@ -189,8 +212,148 @@ interface User {
 }
 
 interface DashboardProps {
-  user: User;
+  user?: User;
 }
+
+interface LocalAssetData {
+  total: number;
+  change24h: number;
+  currencies: Record<string, {
+    amount: number;
+    valueInUSD: number;
+    change24h: number;
+  }>;
+}
+
+interface ProfitTarget {
+  id: string;
+  strategyId: string;
+  target: number;
+  current: number;
+  status: 'active' | 'completed' | 'failed';
+  deadline: string;
+}
+
+interface StrategyData {
+  id: string;
+  name: string;
+  type: string;
+  status: 'paused' | 'active' | 'stopped';
+  performance: {
+    monthlyReturn: number;
+    winRate: number;
+    maxDrawdown: number;
+    totalReturn?: number;
+    annualizedReturn?: number;
+  };
+  riskLevel: 'low' | 'medium' | 'high';
+  lastUpdated: string;
+  percentage?: number;
+}
+
+interface LocalApiStatus {
+  id: string;
+  name: string;
+  status: 'online' | 'offline' | 'degraded';
+  lastChecked: string;
+  responseTime: number;
+}
+
+interface LocalDashboardData {
+  assets: DashboardAssetData;
+  strategies: LocalStrategyData[];
+  apiStatus: DashboardApiStatus[];
+  profitTargets: DashboardProfitTarget[];
+  chartData: Array<{ date: string; value: number }>;
+}
+
+interface TimeRange {
+  start: string;
+  end: string;
+  interval: TimeInterval;
+}
+
+interface ChartData {
+  date: string;
+  value: number;
+  change?: number;
+  dailyReturn?: number;
+  monthlyReturn?: number;
+  sharpeRatio?: number;
+  maxDrawdown?: number;
+}
+
+interface ApiStatus {
+  id: string;
+  name: string;
+  status: 'online' | 'offline' | 'degraded';
+  lastChecked: string;
+  responseTime: number;
+  exchange?: string;
+  lastSync?: string;
+  balance?: number;
+}
+
+interface DashboardData {
+  assets: {
+    total: number;
+    change24h: number;
+    currencies: Record<string, {
+      amount: number;
+      valueInUSD: number;
+      change24h: number;
+    }>;
+  };
+  strategies: StrategyData[];
+  apiStatus: ApiStatus[];
+  profitTargets: ProfitTarget[];
+  chartData: Array<{ date: string; value: number }>;
+}
+
+// 添加计算函数
+const calculateMonthlyReturn = (data: Array<{ value: number }>, currentValue: number): number => {
+  if (data.length === 0) return 0;
+  const firstValue = data[0].value;
+  return ((currentValue - firstValue) / firstValue) * 100;
+};
+
+const calculateAnnualizedReturn = (
+  data: Array<{ value: number }>,
+  currentValue: number,
+  startDate: Date,
+  endDate: Date
+): number => {
+  if (data.length === 0) return 0;
+  const firstValue = data[0].value;
+  const years = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
+  return (Math.pow(currentValue / firstValue, 1 / years) - 1) * 100;
+};
+
+const calculateSharpeRatio = (data: Array<{ value: number }>): number => {
+  if (data.length < 2) return 0;
+  const returns = data.slice(1).map((d, i) => (d.value - data[i].value) / data[i].value);
+  const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
+  const stdDev = Math.sqrt(returns.reduce((a, b) => a + Math.pow(b - avgReturn, 2), 0) / returns.length);
+  return avgReturn / stdDev;
+};
+
+const calculateMaxDrawdown = (data: Array<{ value: number }>, currentValue: number): number => {
+  if (data.length === 0) return 0;
+  let peak = data[0].value;
+  let maxDrawdown = 0;
+  
+  for (const point of data) {
+    if (point.value > peak) {
+      peak = point.value;
+    }
+    const drawdown = (peak - point.value) / peak;
+    if (drawdown > maxDrawdown) {
+      maxDrawdown = drawdown;
+    }
+  }
+  
+  return maxDrawdown * 100;
+};
 
 const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const { t } = useTranslation();
@@ -199,22 +362,42 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
   const { connect, disconnect, isConnected, account } = useWeb3();
+  const { user: authUser } = useAuth();
+  const [currencies, setCurrencies] = useState<Record<string, CurrencyData>>({});
+  const [timeRange, setTimeRange] = useState<TimeRange>({
+    start: '',
+    end: '',
+    interval: '1m'
+  });
+  const [assetDistribution, setAssetDistribution] = useState<AssetDistribution>({
+    total: 0,
+    byCurrency: {},
+    byStrategy: {}
+  });
   
   const [activeTab, setActiveTab] = useState(0);
   const [chartType, setChartType] = useState<ChartType>('line');
   const [timeInterval, setTimeInterval] = useState<TimeInterval>('1m');
-  const [chartData, setChartData] = useState<ChartData | null>(null);
-  const [assetDistribution, setAssetDistribution] = useState<AssetData[]>([]);
+  const [chartData, setChartData] = useState<Array<{ date: string; value: number }>>([]);
   const [strategyStatus, setStrategyStatus] = useState<StrategyStatus[]>([]);
   const [apiStatus, setApiStatus] = useState<ApiStatus[]>([]);
-  const [profitTargets, setProfitTargets] = useState<ServiceProfitTarget[]>([]);
+  const [profitTargets, setProfitTargets] = useState<ProfitTarget[]>([]);
   const [selectedCurrency, setSelectedCurrency] = useState('USDT');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(30);
-  const [timeRange, setTimeRange] = useState<TimeRange>('1m');
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [dashboardData, setDashboardData] = useState<LocalDashboardData>({
+    assets: {
+      total: 0,
+      change24h: 0,
+      currencies: {}
+    },
+    strategies: [],
+    apiStatus: [],
+    profitTargets: [],
+    chartData: []
+  });
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [showAddTargetDialog, setShowAddTargetDialog] = useState(false);
   const [newTarget, setNewTarget] = useState<NewProfitTarget>({
@@ -233,54 +416,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     beta: 0
   });
 
-  const [assets, setAssets] = useState<AssetData>({
+  const [assets, setAssets] = useState<DashboardAssetData>({
     total: 0,
     change24h: 0,
     currencies: {}
   });
 
-  const [strategies] = useState<Strategy[]>([
-    {
-      id: '1',
-      name: 'Trend Following',
-      type: 'trend',
-      status: 'active',
-      performance: {
-        monthlyReturn: 2.1,
-        winRate: 65,
-        maxDrawdown: 15.2,
-        totalReturn: 24,
-        annualizedReturn: 24,
-      },
-      targetReturn: {
-        monthly: 2,
-        annual: 24,
-      },
-    },
-    {
-      id: '2',
-      name: 'Mean Reversion',
-      type: 'meanReversion',
-      status: 'paused',
-      performance: {
-        monthlyReturn: 1.2,
-        winRate: 75,
-        maxDrawdown: 8.5,
-        totalReturn: 12,
-        annualizedReturn: 12,
-      },
-      targetReturn: {
-        monthly: 1,
-        annual: 12,
-      },
-    },
-  ]);
-
-  const [assetTrend] = useState([
-    { date: '2024-01', value: 900000 },
-    { date: '2024-02', value: 950000 },
-    { date: '2024-03', value: 1000000 },
-  ]);
+  const [strategies, setStrategies] = useState<LocalStrategyData[]>([]);
+  const [strategyDistribution, setStrategyDistribution] = useState<StrategyDistribution[]>([]);
+  const [assetTrend] = useState<Array<{ date: string; value: number }>>([]);
 
   // 添加新的状态用于可视化数据
   const [returnDistributionData, setReturnDistributionData] = useState({
@@ -305,6 +449,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [activeStrategies, setActiveStrategies] = useState(0);
   const [successRate, setSuccessRate] = useState(0);
   const [recentActivities, setRecentActivities] = useState([]);
+
+  const [assetData, setAssetData] = useState<LocalAssetData | null>(null);
+  const [currencyData, setCurrencyData] = useState<CurrencyData[]>([]);
+  const [strategyData, setStrategyData] = useState<StrategyData[]>([]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -339,20 +487,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   const fetchChartData = async (interval: TimeInterval) => {
     try {
-      const data = await dashboardService.getChartData({
+      const timeRange: DashboardTimeRange = {
         start: getStartDate(interval),
         end: new Date().toISOString(),
-        interval: interval,
-      });
-      setChartData(data);
-      
-      // Convert ChartData to PerformanceData
-      const performanceData = data.labels.map((date, index) => ({
+        interval
+      };
+      const data = await dashboardService.getChartData(timeRange);
+      const formattedData = data.labels.map((date, index) => ({
         date,
-        value: data.datasets[0].data[index],
-        change: index > 0 ? data.datasets[0].data[index] - data.datasets[0].data[index - 1] : 0,
+        value: data.datasets[0].data[index]
       }));
-      setPerformanceData(performanceData);
+      setChartData(formattedData);
     } catch (error) {
       console.error('Error fetching chart data:', error);
     }
@@ -362,7 +507,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     try {
       setLoading(true);
       const data = await dashboardService.getDashboardData();
-      setDashboardData(data);
+      setDashboardData({
+        assets: data.assets,
+        strategies: data.strategies.map(strategy => ({
+          ...strategy,
+          riskLevel: strategy.riskLevel || 'medium',
+          lastUpdated: new Date().toISOString()
+        })),
+        apiStatus: data.apiStatus,
+        profitTargets: data.profitTargets,
+        chartData: data.chartData
+      });
       setError(null);
     } catch (error) {
       setError(t('dashboard.errors.fetchFailed'));
@@ -375,7 +530,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const fetchProfitTargets = useCallback(async () => {
     try {
       const targets = await dashboardService.getProfitTargets();
-      setProfitTargets(targets);
+      const localTargets: ProfitTarget[] = targets.map(target => ({
+        ...target,
+        strategyId: target.strategyId || 'default'
+      }));
+      setProfitTargets(localTargets);
     } catch (error) {
       console.error('Error fetching profit targets:', error);
     }
@@ -392,13 +551,18 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   const fetchAssetDistribution = async () => {
     try {
-      setLoading(true);
-      const response = await dashboardService.getAssetDistribution();
-      setAssetDistribution(response);
-      setLoading(false);
+      const response = await fetch('/api/assets/distribution');
+      if (!response.ok) {
+        throw new Error('Failed to fetch asset distribution');
+      }
+      const data = await response.json();
+      setAssetDistribution({
+        total: data.total || 0,
+        byCurrency: data.byCurrency || {},
+        byStrategy: data.byStrategy || {}
+      });
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to fetch asset distribution');
-      setLoading(false);
+      console.error('Error fetching asset distribution:', error);
     }
   };
 
@@ -415,17 +579,35 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   // Add fetchAssets function
   const fetchAssets = useCallback(async () => {
     try {
-      // Mock data for now - replace with actual API call
-      const mockAssets: AssetData = {
-        total: 75000,
-        change24h: 1.3,
-        currencies: {
-          'BTC': { amount: 1.5, valueInUSD: 45000, change24h: 2.5 },
-          'ETH': { amount: 10, valueInUSD: 25000, change24h: -1.2 },
-          'USDT': { amount: 5000, valueInUSD: 5000, change24h: 0 }
-        }
-      };
-      setAssets(mockAssets);
+      const data = await dashboardService.getAssets();
+      setAssetData(data);
+      
+      // 转换货币数据
+      const currencyDataArray: CurrencyData[] = Object.entries(data.currencies).map(([currency, info]) => ({
+        currency,
+        amount: info.amount,
+        percentage: (info.valueInUSD / data.total) * 100
+      }));
+      setCurrencyData(currencyDataArray);
+      
+      // 转换策略数据
+      const strategies = await dashboardService.getStrategies();
+      const strategyDataArray: StrategyData[] = strategies.map(strategy => ({
+        id: strategy.id,
+        name: strategy.name,
+        type: strategy.type,
+        status: strategy.status,
+        performance: {
+          monthlyReturn: strategy.performance.monthlyReturn || 0,
+          winRate: strategy.performance.winRate || 0,
+          maxDrawdown: strategy.performance.maxDrawdown,
+          totalReturn: strategy.performance.totalReturn,
+          annualizedReturn: strategy.performance.annualizedReturn
+        },
+        riskLevel: strategy.riskLevel || 'medium',
+        lastUpdated: new Date().toISOString()
+      }));
+      setStrategyData(strategyDataArray);
     } catch (error) {
       console.error('Error fetching assets:', error);
     }
@@ -459,10 +641,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
   const handleTimeRangeChange = (event: SelectChangeEvent) => {
     const value = event.target.value as TimeRange['interval'];
-    setTimeRange(prev => ({
-      ...prev,
+    const newTimeRange: TimeRange = {
+      start: getStartDate(value),
+      end: new Date().toISOString(),
       interval: value
-    }));
+    };
+    setTimeRange(newTimeRange);
+    fetchChartData(value);
   };
 
   const handleAutoRefreshChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -510,12 +695,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         return;
       }
 
-      const target: Omit<ServiceProfitTarget, 'id'> = {
+      const target: ProfitTarget = {
+        id: Date.now().toString(),
+        strategyId: 'default',
         target: newTarget.targetAmount,
         current: currencies[newTarget.currency]?.amount || 0,
-        deadline: newTarget.deadline,
-        progress: 0,
-        status: 'active'
+        status: 'active',
+        deadline: newTarget.deadline
       };
 
       await dashboardService.createProfitTarget(target);
@@ -540,6 +726,20 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       setError(t('dashboard.errors.deleteTargetFailed'));
       console.error('Error deleting profit target:', error);
     }
+  };
+
+  const handleProfitTargetUpdate = (target: ProfitTarget) => {
+    setProfitTargets(prev => prev.map(t => 
+      t.id === target.id ? { ...t, ...target } : t
+    ));
+  };
+
+  const calculateStrategyMetrics = (strategy: LocalStrategyData) => {
+    return {
+      monthlyReturn: strategy.performance.monthlyReturn,
+      winRate: 0, // 需要从其他地方获取
+      maxDrawdown: 0 // 需要从其他地方获取
+    };
   };
 
   // 修复 user.name 错误
@@ -581,31 +781,65 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   }> = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="custom-tooltip">
-          <p className="label">{`${label}`}</p>
-          <p className="value">{`$${payload[0].value.toLocaleString()}`}</p>
+        <div className="custom-tooltip" style={{ 
+          backgroundColor: 'white',
+          padding: '10px',
+          border: '1px solid #ccc',
+          borderRadius: '4px'
+        }}>
+          <p className="label" style={{ margin: '0 0 5px 0' }}>{`${label}`}</p>
+          <p className="value" style={{ margin: 0 }}>{`$${payload[0].value.toLocaleString()}`}</p>
         </div>
       );
     }
     return null;
   };
 
-  const renderChart = () => {
-    return (
-      <AreaChart data={assetTrend}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis />
-        <RechartsTooltip content={<CustomTooltip />} />
-        <Area
-          type="monotone"
-          dataKey="value"
-          stroke="#8884d8"
-          fill="#8884d8"
-          fillOpacity={0.3}
-        />
-      </AreaChart>
-    );
+  const chartProps = {
+    dataKey: 'value',
+    stroke: '#8884d8',
+    fill: '#8884d8'
+  } as const;
+
+  const renderChart = (type: ChartType, data: Array<{ date: string; value: number }>) => {
+    const chartData = {
+      labels: data.map(item => item.date),
+      datasets: [
+        {
+          label: t('dashboard.chart.performance'),
+          data: data.map(item => item.value),
+          borderColor: theme.palette.primary.main,
+          backgroundColor: theme.palette.primary.light,
+          fill: false,
+          tension: 0.4
+        }
+      ]
+    };
+
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top' as const,
+        },
+        title: {
+          display: true,
+          text: t('dashboard.chart.performance')
+        }
+      }
+    };
+
+    switch (type) {
+      case 'line':
+        return <Line data={chartData} options={options} />;
+      case 'bar':
+        return <Bar data={chartData} options={options} />;
+      case 'pie':
+        return <Pie data={chartData} options={options} />;
+      default:
+        return null;
+    }
   };
 
   const renderCurrencyCard = (currency: string, data: { amount: number; valueInUSD: number; change24h: number }) => {
@@ -626,7 +860,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     );
   };
 
-  const renderProfitTargetCard = (target: ServiceProfitTarget) => (
+  const renderProfitTargetCard = (target: ProfitTarget) => (
     <motion.div
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.2 }}
@@ -746,18 +980,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   );
 
   const renderAssetDistribution = () => {
-    const { byCurrency, byStrategy } = assetDistribution;
-    const currencyData = Object.entries(byCurrency).map(([currency, amount]) => ({
-      currency,
-      amount,
-      percentage: (amount / assetDistribution.total) * 100
-    }));
-    const strategyData = Object.entries(byStrategy).map(([strategy, amount]) => ({
-      strategy,
-      amount,
-      percentage: (amount / assetDistribution.total) * 100
-    }));
-
+    if (!assetData) return null;
+    
     return (
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
@@ -810,9 +1034,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             <Box sx={{ height: 300 }}>
               <Pie
                 data={{
-                  labels: strategyData.map(item => item.strategy),
+                  labels: strategyData.map(item => item.name),
                   datasets: [{
-                    data: strategyData.map(item => item.amount),
+                    data: strategyData.map(item => item.performance.monthlyReturn),
                     backgroundColor: [
                       theme.palette.primary.main,
                       theme.palette.secondary.main,
@@ -841,9 +1065,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                   { id: 'percentage', label: t('dashboard.percentage') }
                 ]}
                 data={strategyData.map(item => ({
-                  strategy: item.strategy,
-                  amount: `$${item.amount.toFixed(2)}`,
-                  percentage: `${item.percentage.toFixed(2)}%`
+                  strategy: item.name,
+                  amount: `$${item.performance.monthlyReturn.toFixed(2)}%`,
+                  percentage: `${item.percentage?.toFixed(2) || ''}%`
                 }))}
                 loading={loading}
               />
@@ -854,13 +1078,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     );
   };
 
-  const getApiStatusColor = (status: ApiStatus['status']) => {
+  const getApiStatusColor = (status: 'online' | 'offline' | 'degraded') => {
     switch (status) {
-      case 'active':
+      case 'online':
         return 'success';
-      case 'inactive':
+      case 'degraded':
         return 'warning';
-      case 'error':
+      case 'offline':
         return 'error';
       default:
         return 'default';
@@ -1069,67 +1293,65 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   );
 
   // 添加新的渲染函数
-  const renderVisualizationSection = () => (
-    <Grid container spacing={4}>
-      <Grid item xs={12} md={6}>
-        <PandaCard title={t('dashboard.performance')}>
-          <PerformanceChart data={performanceData} />
-        </PandaCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <PandaCard title={t('dashboard.assetDistribution')}>
-          <AssetDistributionChart data={assetDistribution} />
-        </PandaCard>
-      </Grid>
-    </Grid>
-  );
+  const renderVisualizationSection = () => {
+    return (
+      <Box sx={{ p: 2 }}>
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart
+            data={generatePerformanceData()}
+            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <RechartsTooltip 
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div style={{ 
+                      backgroundColor: 'white',
+                      padding: '10px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px'
+                    }}>
+                      <p style={{ margin: '0 0 5px 0' }}>{`${label}`}</p>
+                      <p style={{ margin: 0 }}>{`$${payload[0].value.toLocaleString()}`}</p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+              cursor={{ fill: 'rgba(0, 0, 0, 0.1)' }}
+            />
+            <RechartsLine 
+              dataKey="value"
+              stroke={theme.palette.primary.main}
+              dot={false}
+              name="Value"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </Box>
+    );
+  };
 
-  useEffect(() => {
-    // 生成更多的性能数据点
-    const generatePerformanceData = () => {
-      const data: PerformanceData[] = [];
-      const startDate = new Date('2024-01-01');
-      const endDate = new Date('2024-03-31');
-      let currentValue = 1000000; // 初始资产 100 万
-      let previousValue = currentValue;
-
-      for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
-        // 生成每日波动
-        const dailyChange = (Math.random() * 2 - 1) * 0.02; // -2% 到 2% 之间的随机波动
-        currentValue = currentValue * (1 + dailyChange);
-
-        // 计算各项指标
-        const dailyReturn = (currentValue - previousValue) / previousValue * 100;
-        const monthlyReturn = calculateMonthlyReturn(data, currentValue);
-        const annualizedReturn = calculateAnnualizedReturn(data, currentValue, startDate, date);
-        const sharpeRatio = calculateSharpeRatio(data);
-        const maxDrawdown = calculateMaxDrawdown(data, currentValue);
-
-        data.push({
-          date: date.toISOString().split('T')[0],
-          value: Math.round(currentValue),
-          dailyReturn: parseFloat(dailyReturn.toFixed(2)),
-          monthlyReturn: parseFloat(monthlyReturn.toFixed(2)),
-          annualizedReturn: parseFloat(annualizedReturn.toFixed(2)),
-          sharpeRatio: parseFloat(sharpeRatio.toFixed(2)),
-          maxDrawdown: parseFloat(maxDrawdown.toFixed(2))
-        });
-
-        previousValue = currentValue;
-      }
-
-      setPerformanceData(data);
-    };
-
-    generatePerformanceData();
-  }, []);
+  const generatePerformanceData = () => {
+    if (!assetData) return [];
+    
+    return [
+      { date: '2024-01', value: assetData.total * 0.8 },
+      { date: '2024-02', value: assetData.total * 0.9 },
+      { date: '2024-03', value: assetData.total * 1.1 },
+      { date: '2024-04', value: assetData.total }
+    ];
+  };
 
   return (
     <Layout>
       <Box sx={{ flexGrow: 1, p: 3 }}>
         <Container maxWidth="lg" sx={{ py: 8 }}>
           <Box sx={{ mb: 6, textAlign: 'center' }}>
-            <GradientTitle>
+            <GradientTitle title="我的交易仪表盘" variant="h4" align="center">
               我的交易仪表盘
             </GradientTitle>
             <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
@@ -1248,11 +1470,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
             <Grid item xs={12} md={6}>
               <motion.div variants={slideUp}>
                 <PandaCard
-                  title="API 状态"
+                  title="策略状态"
                   gradient
                   animation
                 >
-                  {renderApiStatus()}
+                  {renderStrategyStatus()}
                 </PandaCard>
               </motion.div>
             </Grid>

@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import TronWeb from 'tronweb';
-import { User } from '../models/user.model';
+import { User } from '../models/User';
 import { Deposit } from '../models/deposit';
 import mongoose from 'mongoose';
 import { Transaction } from '../models/transaction.model';
@@ -80,7 +80,6 @@ export class DepositService {
         return account.address.base58;
       });
     } else {
-      const provider = new ethers.JsonRpcProvider(config.rpcUrl);
       const wallet = ethers.Wallet.createRandom();
       address = wallet.address;
     }

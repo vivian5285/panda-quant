@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { UserModel, User } from '../models/user.model';
+import { UserModel, IUser } from '../models/User';
 import { ValidationError } from '../utils/errors';
 
 export class AdminController {
-  static async getUsers(req: Request, res: Response) {
+  static async getUsers(_req: Request, res: Response) {
     try {
       const users = await UserModel.find({}, '-password');
       res.json(users);
@@ -15,7 +15,7 @@ export class AdminController {
   static async updateUser(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const userData: Partial<User> = req.body;
+      const userData: Partial<IUser> = req.body;
       
       const user = await UserModel.findByIdAndUpdate(
         id,

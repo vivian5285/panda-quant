@@ -26,12 +26,19 @@ import {
 } from '@mui/material';
 import { toast } from 'react-toastify';
 
+interface PaymentDetails {
+  accountNumber?: string;
+  bankName?: string;
+  swiftCode?: string;
+  paypalEmail?: string;
+}
+
 interface Withdrawal {
   _id: string;
   amount: number;
   status: 'pending' | 'approved' | 'rejected' | 'completed';
   paymentMethod: string;
-  paymentDetails: any;
+  paymentDetails: PaymentDetails;
   createdAt: string;
   processedAt?: string;
   completedAt?: string;
@@ -49,7 +56,8 @@ const UserWithdrawal: React.FC = () => {
     paymentDetails: {
       accountNumber: '',
       bankName: '',
-      swiftCode: ''
+      swiftCode: '',
+      paypalEmail: ''
     }
   });
 
@@ -90,7 +98,8 @@ const UserWithdrawal: React.FC = () => {
       paymentDetails: {
         accountNumber: '',
         bankName: '',
-        swiftCode: ''
+        swiftCode: '',
+        paypalEmail: ''
       }
     });
   };

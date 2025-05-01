@@ -1,36 +1,44 @@
-import mongoose, { Schema, Document, Types } from 'mongoose';
-
-export interface IStrategy extends Document {
-  _id: Types.ObjectId;
-  name: string;
-  description: string;
-  userId: Types.ObjectId;
-  status: 'active' | 'inactive' | 'paused';
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Schema, model } from 'mongoose';
+import { IStrategy, StrategyStatus } from '../types/strategy';
 
 const strategySchema = new Schema<IStrategy>({
-  name: {
-    type: String,
-    required: true
-  },
-  description: {
-    type: String,
-    required: true
-  },
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
+  name: {
+    type: String,
+    required: true
+  },
+  description: String,
+  type: {
+    type: String,
+    enum: Object.values(StrategyStatus),
+    required: true
+  },
   status: {
     type: String,
-    enum: ['active', 'inactive', 'paused'],
-    default: 'active'
+    enum: Object.values(StrategyStatus),
+    default: StrategyStatus.ACTIVE
+  },
+  parameters: {
+    type: Schema.Types.Mixed,
+    default: {}
+  },
+  performance: {
+    totalTrades: { type: Number, default: 0 },
+    winRate: { type: Number, default: 0 },
+    profit: { type: Number, default: 0 },
+    metrics: { type: Schema.Types.Mixed, default: {} }
+  },
+  metadata: {
+    type: Schema.Types.Mixed,
+    default: {}
   }
 }, {
   timestamps: true
 });
 
-export const Strategy = mongoose.model<IStrategy>('Strategy', strategySchema); 
+export const Strategy = model<IStrategy>('Strategy', strategySchema);
+export default Strategy; 

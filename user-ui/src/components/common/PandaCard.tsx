@@ -14,8 +14,8 @@ import {
 import { motion } from 'framer-motion';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-interface PandaCardProps extends Omit<CardProps, 'content'> {
-  title?: string;
+interface PandaCardProps extends Omit<CardProps, 'content' | 'title'> {
+  title?: React.ReactNode;
   subheader?: string;
   content?: React.ReactNode;
   actions?: React.ReactNode;

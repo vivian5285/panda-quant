@@ -36,7 +36,7 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
 } from '@mui/icons-material';
-import { theme } from '../theme';
+import theme from '../theme';
 import { animationConfig } from '../theme/animation';
 import PageLayout from '../components/common/PageLayout';
 

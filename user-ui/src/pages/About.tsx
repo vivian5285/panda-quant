@@ -92,6 +92,7 @@ const AboutPage: React.FC = () => {
           transition={{ duration: 0.5 }}
         >
           <GradientTitle 
+            title="关于我们"
             variant="h2" 
             align="center" 
             sx={{ 

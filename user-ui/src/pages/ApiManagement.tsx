@@ -236,7 +236,7 @@ const ApiManagement: React.FC = () => {
       case 'inactive':
         return 'warning';
       default:
-        return 'default';
+        return 'primary';
     }
   };
 

@@ -82,10 +82,7 @@ export const PandaDrawer: React.FC<PandaDrawerProps> = ({
                   component="div"
                   sx={{
                     fontWeight: 600,
-                    background: themeUtils.createTextGradient(
-                      theme.palette.primary.main,
-                      theme.palette.primary.dark
-                    ),
+                    background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                   }}

@@ -15,23 +15,14 @@ import {
   Pending as PendingIcon,
 } from '@mui/icons-material';
 import { getUsers, createUser, updateUser, deleteUser } from '../api/users';
-import { theme } from '../theme';
+import theme from '../theme';
 import { animationConfig } from '../theme/animation';
 import PageLayout from '../components/common/PageLayout';
 import UserList from '../components/user/UserList';
 import UserForm from '../components/user/UserForm';
 import UserLevelManager from '../components/user/UserLevelManager';
 import BlacklistManager from '../components/user/BlacklistManager';
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  status: string;
-  role: string;
-  lastLogin: string;
-  avatar?: string;
-}
+import { User, UserFormData } from '../types/user';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -75,19 +66,21 @@ const UserManagement: React.FC = () => {
       // Mock API call
       const mockUsers: User[] = [
         {
-          id: '1',
+          _id: '1',
           username: 'user1',
           email: 'user1@example.com',
           status: 'active',
           role: 'user',
+          createdAt: '2023-01-01T12:00:00Z',
           lastLogin: '2023-01-01T12:00:00Z',
         },
         {
-          id: '2',
+          _id: '2',
           username: 'user2',
           email: 'user2@example.com',
           status: 'inactive',
           role: 'admin',
+          createdAt: '2023-01-02T12:00:00Z',
           lastLogin: '2023-01-02T12:00:00Z',
         },
       ];
@@ -119,8 +112,34 @@ const UserManagement: React.FC = () => {
     // Handle view details
   };
 
-  const handleSubmit = (user: User) => {
-    // Handle submit
+  const handleSubmit = async (formData: UserFormData) => {
+    try {
+      setLoading(true);
+      if (selectedUser) {
+        // Update existing user
+        const { password, ...userData } = formData;
+        const updatedUser = await updateUser(selectedUser._id, {
+          ...userData,
+          _id: selectedUser._id,
+          createdAt: selectedUser.createdAt,
+        } as User);
+        setUsers(users.map(user => 
+          user._id === selectedUser._id ? updatedUser : user
+        ));
+      } else {
+        // Create new user
+        const newUser = await createUser({
+          ...formData,
+          createdAt: new Date().toISOString(),
+        } as User);
+        setUsers([...users, newUser]);
+      }
+      setSelectedUser(null);
+    } catch (error) {
+      console.error('Error saving user:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorHandler = void 0;
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, _req, res, _next) => {
     console.error(err.stack);
     res.status(500).json({
         error: 'Internal Server Error',
@@ -9,3 +9,4 @@ const errorHandler = (err, req, res, next) => {
     });
 };
 exports.errorHandler = errorHandler;
+//# sourceMappingURL=errorHandler.js.map

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { Web3Provider } from '@ethersproject/providers';
+import { EthereumProvider } from '../types/ethereum';
 
 declare global {
   interface Window {
@@ -14,15 +15,6 @@ declare global {
     imToken?: EthereumProvider;
     web3?: Web3Provider;
   }
-}
-
-export interface EthereumProvider {
-  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-  on: (event: string, callback: (...args: unknown[]) => void) => void;
-  removeListener: (event: string, callback: (...args: unknown[]) => void) => void;
-  isMetaMask?: boolean;
-  selectedAddress?: string;
-  chainId?: string;
 }
 
 export const useWeb3 = () => {
@@ -48,51 +40,24 @@ export const useWeb3 = () => {
           setProvider(provider);
 
           try {
-            const accounts = await provider.send('eth_accounts', []);
-            if (mounted && accounts.length > 0) {
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' }) as string[];
+            if (accounts.length > 0) {
               setAccount(accounts[0]);
             }
 
-            const chainId = await provider.send('eth_chainId', []);
-            if (mounted) {
-              setChainId(chainId);
-            }
-          } catch (err) {
-            console.warn('Failed to get initial accounts or chainId:', err);
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' }) as string;
+            setChainId(chainId);
+          } catch (error) {
+            console.error('Error initializing provider:', error);
+            setError('Failed to initialize provider');
           }
-
-          const handleAccountsChanged = (...args: unknown[]) => {
-            if (mounted) {
-              const accounts = args[0] as string[];
-              setAccount(accounts[0] || null);
-            }
-          };
-
-          const handleChainChanged = (...args: unknown[]) => {
-            if (mounted) {
-              const chainId = args[0] as string;
-              setChainId(chainId);
-              // 不要自动刷新页面，让用户决定是否刷新
-              // window.location.reload();
-            }
-          };
-
-          window.ethereum.on('accountsChanged', handleAccountsChanged);
-          window.ethereum.on('chainChanged', handleChainChanged);
-
-          setIsInitialized(true);
-
-          return () => {
-            if (window.ethereum) {
-              window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-              window.ethereum.removeListener('chainChanged', handleChainChanged);
-            }
-          };
         }
-      } catch (err) {
+      } catch (error) {
+        console.error('Error initializing web3:', error);
+        setError('Failed to initialize web3');
+      } finally {
         if (mounted) {
-          setError('Failed to initialize Web3');
-          console.error('Web3 initialization error:', err);
+          setIsInitialized(true);
         }
       }
     };
@@ -105,31 +70,37 @@ export const useWeb3 = () => {
   }, [isInitialized]);
 
   const connect = async () => {
+    if (!window.ethereum) {
+      setError('No Ethereum provider found');
+      return;
+    }
+
     try {
-      if (typeof window === 'undefined') {
-        throw new Error('Window is not defined');
-      }
-
-      if (typeof window.ethereum === 'undefined') {
-        throw new Error('Please install MetaMask or another Web3 wallet');
-      }
-
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts'
-      }) as string[];
-
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }) as string[];
       if (accounts.length > 0) {
         setAccount(accounts[0]);
-        return accounts[0];
-      } else {
-        throw new Error('No accounts found');
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to connect to Web3 wallet';
-      setError(errorMessage);
-      console.error('Web3 connection error:', err);
-      throw err;
+
+      const chainId = await window.ethereum.request({ method: 'eth_chainId' }) as string;
+      setChainId(chainId);
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      setProvider(provider);
+    } catch (error) {
+      console.error('Error connecting to wallet:', error);
+      setError('Failed to connect to wallet');
     }
+  };
+
+  const disconnect = () => {
+    setProvider(null);
+    setAccount(null);
+    setChainId(null);
+    setError(null);
+  };
+
+  const isConnected = () => {
+    return !!account;
   };
 
   return {
@@ -137,7 +108,9 @@ export const useWeb3 = () => {
     account,
     chainId,
     error,
-    connect,
     isInitialized,
+    connect,
+    disconnect,
+    isConnected,
   };
 }; 

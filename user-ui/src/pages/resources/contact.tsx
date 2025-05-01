@@ -24,6 +24,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import GlobalBackground from '@/components/common/GlobalBackground';
 import { GradientTitle } from '@/components/common/GradientTitle';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 const ContactPage: React.FC = () => {
   const theme = useTheme();
@@ -34,6 +35,7 @@ const ContactPage: React.FC = () => {
     message: ''
   });
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const { t } = useTranslation();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -88,8 +90,13 @@ const ContactPage: React.FC = () => {
       
       <Container maxWidth="lg" sx={{ py: 8 }}>
         <Box sx={{ mb: 6 }}>
-          <GradientTitle variant="h3" sx={{ mb: 2 }}>
-            Contact Us
+          <GradientTitle 
+            title={t('contact.title', '联系我们')} 
+            variant="h3" 
+            align="center" 
+            sx={{ mb: 2 }}
+          >
+            {t('contact.title', '联系我们')}
           </GradientTitle>
           <Typography variant="h6" color="text.secondary">
             Get technical support or business cooperation

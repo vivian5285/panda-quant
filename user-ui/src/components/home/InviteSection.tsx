@@ -584,25 +584,26 @@ const InviteSection = () => {
                                 opacity: 0, 
                                 y: 200,
                                 scale: 0.8,
-                                '--blur': '4px',
+                                backdropFilter: 'blur(4px)',
                                 x: 50
                               }}
                               animate={{ 
                                 opacity: 1, 
                                 y: 0,
                                 scale: 1,
-                                '--blur': '0px',
+                                backdropFilter: 'blur(0px)',
                                 x: 0
                               }}
                               exit={{ 
                                 opacity: 0, 
                                 y: -150,
                                 scale: 1.2,
-                                '--blur': '4px',
+                                backdropFilter: 'blur(4px)',
                                 x: -50
                               }}
                               style={{
-                                filter: 'blur(var(--blur))'
+                                backdropFilter: 'blur(4px)',
+                                WebkitBackdropFilter: 'blur(4px)',
                               }}
                               transition={{ 
                                 duration: 0.8,

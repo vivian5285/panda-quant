@@ -1,5 +1,6 @@
 export interface Order {
   id: string;
+  _id: string;
   userId: string;
   username: string;
   strategyId: string;
@@ -9,6 +10,7 @@ export interface Order {
   status: 'failed' | 'pending' | 'completed' | 'cancelled';
   amount: number;
   price: number;
+  totalAmount: number;
   timestamp: string;
   createdAt: string;
   updatedAt: string;

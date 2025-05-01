@@ -13,3 +13,4 @@ async function hashPassword(password) {
 async function comparePassword(password, hashedPassword) {
     return bcrypt_1.default.compare(password, hashedPassword);
 }
+//# sourceMappingURL=password.js.map

@@ -5,8 +5,10 @@ interface Web3ContextType {
   account: string | null;
   balance: string | null;
   isConnected: boolean;
-  connect: () => Promise<void>;
+  error: string | null;
+  connect: (walletType?: string) => Promise<string>;
   disconnect: () => void;
+  getAddress: () => Promise<string>;
 }
 
 const Web3Context = createContext<Web3ContextType | null>(null);
@@ -15,8 +17,9 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   const [account, setAccount] = useState<string | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const connect = async () => {
+  const connect = async (walletType?: string) => {
     try {
       if (typeof window.ethereum === 'undefined') {
         throw new Error('Please install MetaMask');
@@ -30,8 +33,12 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
       setAccount(accounts[0]);
       setBalance(ethers.formatEther(balance));
       setIsConnected(true);
+      setError(null);
+
+      return accounts[0];
     } catch (error) {
       console.error('Error connecting to wallet:', error);
+      setError(error instanceof Error ? error.message : 'Failed to connect to wallet');
       throw error;
     }
   };
@@ -40,6 +47,14 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     setAccount(null);
     setBalance(null);
     setIsConnected(false);
+    setError(null);
+  };
+
+  const getAddress = async () => {
+    if (!account) {
+      throw new Error('No account connected');
+    }
+    return account;
   };
 
   return (
@@ -48,8 +63,10 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         account,
         balance,
         isConnected,
+        error,
         connect,
         disconnect,
+        getAddress,
       }}
     >
       {children}

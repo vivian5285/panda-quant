@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { User } from '../models/user.model';
+import { IUser } from '../models/User';
 import { AuthService } from '../services/auth.service';
 import { ApiResponse } from '../types/api';
 
@@ -14,7 +14,7 @@ export class AuthController {
     try {
       const { email, password, name } = req.body;
       const user = await this.authService.register(email, password, name);
-      const response: ApiResponse<User> = {
+      const response: ApiResponse<IUser> = {
         success: true,
         data: user,
         error: null
@@ -97,7 +97,7 @@ export class AuthController {
         throw new Error('User not authenticated');
       }
       const user = await this.authService.getProfile(userId);
-      const response: ApiResponse<User> = {
+      const response: ApiResponse<IUser> = {
         success: true,
         data: user,
         error: null
@@ -120,7 +120,7 @@ export class AuthController {
         throw new Error('User not authenticated');
       }
       const user = await this.authService.updateProfile(userId, req.body);
-      const response: ApiResponse<User> = {
+      const response: ApiResponse<IUser> = {
         success: true,
         data: user,
         error: null

@@ -90,10 +90,7 @@ const PandaAvatar: React.FC<PandaAvatarProps> = ({
             width: '100%',
             height: '100%',
             borderRadius: '50%',
-            background: themeUtils.createRadialGradient(
-              theme.palette.primary.main,
-              0.2
-            ),
+            background: `radial-gradient(circle at center, ${theme.palette.primary.main}${Math.floor(0.1 * 255).toString(16).padStart(2, '0')} 0%, transparent 100%)`,
             opacity: 0.5,
             zIndex: -1,
             animation: 'pulse 2s infinite',

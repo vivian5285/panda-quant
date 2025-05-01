@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserRepository = void 0;
-const user_model_1 = require("../models/user.model");
+const User_1 = require("../models/User");
 const errors_1 = require("../utils/errors");
 class UserRepository {
     static async create(userData) {
         try {
-            const user = new user_model_1.UserModel(userData);
+            const user = new User_1.User(userData);
             return await user.save();
         }
         catch (error) {
@@ -15,7 +15,7 @@ class UserRepository {
     }
     static async findByEmail(email) {
         try {
-            return await user_model_1.UserModel.findOne({ email });
+            return await User_1.User.findOne({ email });
         }
         catch (error) {
             throw new errors_1.DatabaseError('Failed to find user by email', error);
@@ -23,7 +23,7 @@ class UserRepository {
     }
     static async findById(id) {
         try {
-            return await user_model_1.UserModel.findById(id);
+            return await User_1.User.findById(id);
         }
         catch (error) {
             throw new errors_1.DatabaseError('Failed to find user by id', error);
@@ -31,7 +31,7 @@ class UserRepository {
     }
     static async update(id, userData) {
         try {
-            return await user_model_1.UserModel.findByIdAndUpdate(id, { $set: userData }, { new: true, runValidators: true });
+            return await User_1.User.findByIdAndUpdate(id, { $set: userData }, { new: true, runValidators: true });
         }
         catch (error) {
             throw new errors_1.DatabaseError('Failed to update user', error);
@@ -39,7 +39,7 @@ class UserRepository {
     }
     static async delete(id) {
         try {
-            const result = await user_model_1.UserModel.findByIdAndDelete(id);
+            const result = await User_1.User.findByIdAndDelete(id);
             return !!result;
         }
         catch (error) {
@@ -49,10 +49,8 @@ class UserRepository {
     static async findAll(page = 1, limit = 10) {
         try {
             const skip = (page - 1) * limit;
-            const [users, total] = await Promise.all([
-                user_model_1.UserModel.find().skip(skip).limit(limit).select('-password'),
-                user_model_1.UserModel.countDocuments()
-            ]);
+            const users = await User_1.User.find().skip(skip).limit(limit);
+            const total = await User_1.User.countDocuments();
             return { users, total };
         }
         catch (error) {
@@ -61,3 +59,4 @@ class UserRepository {
     }
 }
 exports.UserRepository = UserRepository;
+//# sourceMappingURL=user.repository.js.map

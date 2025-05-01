@@ -1,7 +1,9 @@
+import type { EthereumProvider } from '../types/ethereum';
+
 // 处理ethereum注入问题
 declare global {
   interface Window {
-    ethereum?: any;
+    ethereum?: EthereumProvider;
   }
 }
 

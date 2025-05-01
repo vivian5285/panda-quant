@@ -1,25 +1,59 @@
-import { Router } from 'express';
-import { userLevelController } from '../controllers/userLevelController';
-import { auth, requireAdmin } from '../middleware/auth';
+import { Router, Request, Response, NextFunction } from 'express';
+import { UserLevelController } from '../controllers/userLevelController';
+import { authenticate, isAdmin } from '../middleware/auth';
+import { AuthenticatedRequest } from '../types/auth';
 
 const router = Router();
+const userLevelController = new UserLevelController();
 
-// 所有路由都需要认证
-router.use(auth);
+// Admin routes
+router.get('/admin/user-levels', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await userLevelController.getAllLevels(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
-// 获取所有用户等级 - 需要管理员或版主权限
-router.get('/', requireAdmin, userLevelController.getAllLevels);
+router.post('/admin/user-levels', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await userLevelController.createLevel(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
-// 获取单个用户等级 - 需要管理员或版主权限
-router.get('/:id', requireAdmin, userLevelController.getLevelById);
+router.put('/admin/user-levels/:id', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await userLevelController.updateLevel(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
-// 创建用户等级 - 需要管理员权限
-router.post('/', requireAdmin, userLevelController.createLevel);
+router.delete('/admin/user-levels/:id', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await userLevelController.deleteLevel(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
-// 更新用户等级 - 需要管理员权限
-router.put('/:id', requireAdmin, userLevelController.updateLevel);
+// User routes
+router.get('/user-levels', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await userLevelController.getUserLevel(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
-// 删除用户等级 - 需要管理员权限
-router.delete('/:id', requireAdmin, userLevelController.deleteLevel);
+router.get('/user-levels/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await userLevelController.getUserLevel(req as AuthenticatedRequest, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default router; 

@@ -4,9 +4,10 @@ import { VerificationService } from '../services/verification.service';
 import { validateEmail, validatePassword } from '../utils/validation';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/user.model';
+import { IUser } from '../models/User';
 import { ApiResponse } from '../types/api';
 import { AuthUser } from '../types/auth.types';
+import { VerificationUser, VerificationType } from '../types/verification.types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -49,8 +50,9 @@ export class UserController {
       }
 
       // 生成并发送验证码
-      const code = await this.verificationService.generateCode(type, email);
-      await this.verificationService.sendVerificationEmail({ email, verificationCode: code } as User);
+      const code = await this.verificationService.generateCode(type as VerificationType, email);
+      const verificationUser: VerificationUser = { email, verificationCode: code };
+      await this.verificationService.sendVerificationEmail(verificationUser);
       return res.json({ message: '验证码已发送' });
     } catch (error) {
       console.error('Failed to send code:', error);
@@ -128,7 +130,7 @@ export class UserController {
       }
 
       const token = generateToken({ 
-        id: user._id.toString(), 
+        id: user._id?.toString() || '', 
         email: user.email,
         role: user.role
       });
@@ -189,12 +191,12 @@ export class UserController {
         throw new Error('User not authenticated');
       }
 
-      const user = await User.findById(userId);
+      const user = await this.userService.getUserById(userId);
       if (!user) {
         throw new Error('User not found');
       }
 
-      const response: ApiResponse<User> = {
+      const response: ApiResponse<IUser> = {
         success: true,
         data: user,
         error: null
@@ -217,16 +219,12 @@ export class UserController {
         throw new Error('User not authenticated');
       }
 
-      const user = await User.findByIdAndUpdate(
-        userId,
-        { $set: req.body },
-        { new: true }
-      );
+      const user = await this.userService.updateUser(userId, req.body);
       if (!user) {
         throw new Error('User not found');
       }
 
-      const response: ApiResponse<User> = {
+      const response: ApiResponse<IUser> = {
         success: true,
         data: user,
         error: null

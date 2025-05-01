@@ -198,13 +198,11 @@ const AccountSettings: React.FC = () => {
                 variant="h2"
                 sx={{
                   color: '#00FFB8',
-                  fontWeight: 700,
-                  mb: 2,
-                  fontSize: { xs: '2rem', md: '2.5rem' },
-                  fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif',
+                  mb: 4,
+                  textAlign: 'center',
                 }}
               >
-                {t('accountSettings.title')}
+                账户设置
               </Typography>
             </motion.div>
 

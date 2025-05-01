@@ -1,28 +1,36 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { Types } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 
-export interface IWithdrawal extends Document {
+export interface IWithdrawalDocument extends Document {
   userId: Types.ObjectId;
   amount: number;
-  currency: string;
-  status: 'pending' | 'completed' | 'failed';
-  network: string;
-  address: string;
-  transactionId?: string;
+  status: string;
+  walletAddress: string;
+  paymentMethod: 'crypto' | 'bank' | 'paypal';
+  paymentDetails: Record<string, any>;
+  metadata: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const withdrawalSchema = new Schema<IWithdrawal>({
+const withdrawalSchema = new Schema<IWithdrawalDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   amount: { type: Number, required: true },
-  currency: { type: String, required: true },
-  status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
-  network: { type: String, required: true },
-  address: { type: String, required: true },
-  transactionId: { type: String },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'failed', 'cancelled'],
+    default: 'pending'
+  },
+  walletAddress: { type: String, required: true },
+  paymentMethod: {
+    type: String,
+    enum: ['crypto', 'bank', 'paypal'],
+    required: true
+  },
+  paymentDetails: { type: Schema.Types.Mixed, required: true },
+  metadata: { type: Schema.Types.Mixed, default: {} }
+}, {
+  timestamps: true
 });
 
-export const Withdrawal = mongoose.model<IWithdrawal>('Withdrawal', withdrawalSchema); 
+export const Withdrawal = model<IWithdrawalDocument>('Withdrawal', withdrawalSchema);
+export default Withdrawal; 

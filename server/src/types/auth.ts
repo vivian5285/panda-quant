@@ -1,8 +1,31 @@
 import { Request } from 'express';
-import { IUser } from '../interfaces/IUser';
+import { IUser } from './user';
 
-export interface IAuthRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   user?: IUser;
+}
+
+export interface AuthRequest extends Request {
+  user?: IUser;
+}
+
+export interface IAuthToken {
+  token: string;
+  expiresIn: number;
+}
+
+export interface IAuthConfig {
+  jwtSecret: string;
+  jwtExpiresIn: string;
+  maxLoginAttempts: number;
+  lockoutDuration: number;
+}
+
+export interface IAuthResponse {
+  success: boolean;
+  message?: string;
+  data?: any;
+  error?: string;
 }
 
 export interface ILoginCredentials {
@@ -10,28 +33,18 @@ export interface ILoginCredentials {
   password: string;
 }
 
-export interface IRegisterData {
-  username: string;
+export interface IRegisterCredentials {
   email: string;
   password: string;
   confirmPassword: string;
 }
 
-export interface IAuthResponse {
-  token: string;
-  user: {
-    _id: string;
-    username: string;
-    email: string;
-    role: string;
-  };
-}
-
 export interface ITokenPayload {
   userId: string;
+  email: string;
   role: string;
-  iat?: number;
-  exp?: number;
+  permissions: string[];
+  exp: number;
 }
 
 export interface IResetPasswordData {
@@ -46,16 +59,8 @@ export interface IChangePasswordData {
   confirmPassword: string;
 }
 
-export interface ITwoFactorData {
+export interface ITwoFactorAuth {
+  enabled: boolean;
   code: string;
   secret?: string;
-}
-
-export interface IAuthConfig {
-  jwtSecret: string;
-  jwtExpiration: string;
-  refreshTokenExpiration: string;
-  twoFactorEnabled: boolean;
-  maxLoginAttempts: number;
-  lockoutDuration: number;
 } 

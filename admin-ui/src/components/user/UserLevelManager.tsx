@@ -26,7 +26,7 @@ import {
 import { motion } from 'framer-motion';
 import { userLevelService } from '../../services/userLevelService';
 import { UserLevel } from '../../types/user';
-import { theme } from '../../theme';
+import theme from '../../theme';
 import { animationConfig } from '../../theme/animation';
 
 const UserLevelManager: React.FC = () => {

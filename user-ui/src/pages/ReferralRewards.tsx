@@ -19,6 +19,9 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import Layout from '../components/Layout';
+import { GradientTitle } from '../components/common/GradientTitle';
+import { motion } from 'framer-motion';
+import { slideUp } from '../animations';
 
 interface Referral {
   id: string;
@@ -27,6 +30,14 @@ interface Referral {
   level: number;
   status: string;
   createdAt: string;
+}
+
+interface Reward {
+  id: string;
+  amount: number;
+  type: string;
+  status: string;
+  date: string;
 }
 
 const ReferralRewards: React.FC = () => {
@@ -95,111 +106,62 @@ const ReferralRewards: React.FC = () => {
   }
 
   return (
-    <Layout>
+    <Box sx={{ py: 8 }}>
       <Container maxWidth="lg">
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            {t('referral.rewards')}
-          </Typography>
+        <motion.div variants={slideUp}>
+          <GradientTitle 
+            title={t('referral.rewards', '推荐奖励')} 
+            variant="h2" 
+            align="center" 
+            sx={{ mb: 6 }}
+          >
+            {t('referral.rewards', '推荐奖励')}
+          </GradientTitle>
+        </motion.div>
 
-          <Grid container spacing={3}>
-            {/* 推荐码卡片 */}
-            <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  {t('referral.code')}
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Typography variant="h5">{referralCode}</Typography>
-                  <Button
-                    variant="outlined"
-                    startIcon={<CopyIcon />}
-                    onClick={handleCopyCode}
-                  >
-                    {t('referral.copy')}
-                  </Button>
-                </Box>
-              </Paper>
-            </Grid>
-
-            {/* 奖励统计卡片 */}
-            <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  {t('referral.summary')}
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Typography variant="subtitle2" color="textSecondary">
-                      {t('referral.totalRewards')}
-                    </Typography>
-                    <Typography variant="h5" color="primary">
-                      ${rewards.totalReward.toFixed(2)}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Typography variant="subtitle2" color="textSecondary">
-                      {t('referral.commissionEarned')}
-                    </Typography>
-                    <Typography variant="h5" color="primary">
-                      ${rewards.commissionEarned.toFixed(2)}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Grid>
-
-            {/* 推荐记录表格 */}
-            <Grid item xs={12}>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  {t('referral.history')}
-                </Typography>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>{t('referral.date')}</TableCell>
-                        <TableCell>{t('referral.level')}</TableCell>
-                        <TableCell>{t('referral.commission')}</TableCell>
-                        <TableCell>{t('referral.status')}</TableCell>
+        <Grid container spacing={4}>
+          <Grid item xs={12}>
+            <Paper sx={{ p: 4 }}>
+              <Typography variant="h6" gutterBottom>
+                {t('referral.rewardHistory', '奖励历史')}
+              </Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>{t('referral.amount', '金额')}</TableCell>
+                      <TableCell>{t('referral.type', '类型')}</TableCell>
+                      <TableCell>{t('referral.status', '状态')}</TableCell>
+                      <TableCell>{t('referral.date', '日期')}</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {rewards.referrals.map((referral) => (
+                      <TableRow key={referral.id}>
+                        <TableCell>${referral.commission.toFixed(2)}</TableCell>
+                        <TableCell>
+                          {t(`referral.${referral.level === 1 ? 'first_trade' : 'commission'}`, referral.level === 1 ? 'first_trade' : 'commission')}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={referral.status === 'paid' ? 'paid' : 'pending'}
+                            color={referral.status === 'paid' ? 'success' : 'warning'}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(referral.createdAt), 'yyyy-MM-dd')}
+                        </TableCell>
                       </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {rewards.referrals.map((referral) => (
-                        <TableRow key={referral.id}>
-                          <TableCell>
-                            {format(new Date(referral.createdAt), 'MMM dd, yyyy')}
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              label={`Level ${referral.level}`}
-                              color={referral.level === 1 ? 'primary' : 'secondary'}
-                              size="small"
-                            />
-                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                              {referral.level === 1 ? '20%' : '10%'}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>${referral.commission.toFixed(2)}</TableCell>
-                          <TableCell>
-                            <Chip
-                              label={referral.status}
-                              color={referral.status === 'paid' ? 'success' : 'warning'}
-                              size="small"
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Paper>
-            </Grid>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
           </Grid>
-        </Box>
+        </Grid>
       </Container>
-    </Layout>
+    </Box>
   );
 };
 

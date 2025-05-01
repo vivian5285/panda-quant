@@ -4,25 +4,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
-const user_model_1 = require("../models/user.model");
+const User_1 = require("../models/User");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const errors_1 = require("../utils/errors");
-const user_repository_1 = require("../repositories/user.repository");
 class UserService {
     constructor() {
-        this.userModel = user_model_1.UserModel;
+        this.userModel = User_1.User;
     }
     async getUserByEmail(email) {
         try {
             return await this.userModel.findOne({ email });
         }
         catch (error) {
-            throw new errors_1.DatabaseError('Error finding user by email');
+            throw new errors_1.DatabaseError('Failed to get user by email', error);
         }
     }
     async createUser(userData) {
         try {
-            // Hash password before saving
             if (userData.password) {
                 const salt = await bcrypt_1.default.genSalt(10);
                 userData.password = await bcrypt_1.default.hash(userData.password, salt);
@@ -31,15 +29,15 @@ class UserService {
             return await user.save();
         }
         catch (error) {
-            throw new errors_1.DatabaseError('Error creating user');
+            throw new errors_1.DatabaseError('Failed to create user', error);
         }
     }
-    async updateUser(id, updateData) {
+    async updateUser(id, userData) {
         try {
-            return await this.userModel.findByIdAndUpdate(id, { $set: updateData }, { new: true });
+            return await this.userModel.findByIdAndUpdate(id, { $set: userData }, { new: true, runValidators: true });
         }
         catch (error) {
-            throw new errors_1.DatabaseError('Error updating user');
+            throw new errors_1.DatabaseError('Failed to update user', error);
         }
     }
     async verifyEmail(email) {
@@ -53,9 +51,9 @@ class UserService {
     async comparePassword(password, hash) {
         return bcrypt_1.default.compare(password, hash);
     }
-    static async validateUser(email, password) {
+    async validateUser(email, password) {
         try {
-            const user = await user_repository_1.UserRepository.findByEmail(email);
+            const user = await this.getUserByEmail(email);
             if (!user)
                 return null;
             const isValid = await bcrypt_1.default.compare(password, user.password);
@@ -65,25 +63,34 @@ class UserService {
             throw new errors_1.DatabaseError('Failed to validate user', error);
         }
     }
-    static async deleteUser(id) {
+    async deleteUser(id) {
         try {
-            return await user_repository_1.UserRepository.delete(id);
+            const result = await this.userModel.findByIdAndDelete(id);
+            return !!result;
         }
         catch (error) {
             throw new errors_1.DatabaseError('Failed to delete user', error);
         }
     }
-    static async getUserById(id) {
+    async getUserById(id) {
         try {
-            return await user_repository_1.UserRepository.findById(id);
+            const user = await this.userModel.findById(id);
+            if (!user) {
+                throw new Error('User not found');
+            }
+            return user;
         }
         catch (error) {
-            throw new errors_1.DatabaseError('Failed to get user', error);
+            console.error('Error getting user:', error);
+            throw error;
         }
     }
-    static async getAllUsers(page = 1, limit = 10) {
+    async getAllUsers(page = 1, limit = 10) {
         try {
-            return await user_repository_1.UserRepository.findAll(page, limit);
+            const skip = (page - 1) * limit;
+            const users = await this.userModel.find().skip(skip).limit(limit);
+            const total = await this.userModel.countDocuments();
+            return { users, total };
         }
         catch (error) {
             throw new errors_1.DatabaseError('Failed to get users', error);
@@ -91,3 +98,4 @@ class UserService {
     }
 }
 exports.UserService = UserService;
+//# sourceMappingURL=user.service.js.map

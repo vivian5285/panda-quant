@@ -1,52 +1,46 @@
-import { Order, OrderStatus, Strategy, StrategyExecutionResult } from '../types';
-import { OrderQueueService } from '../services/OrderQueueService';
-import { MonitoringService } from '../services/MonitoringService';
-import { generateUUID } from '../utils/uuid';
+import { IStrategy } from '../types/strategy';
+import { IOrder } from '../types/IOrder';
+import { logger } from '../utils/logger';
+import { Types } from 'mongoose';
 
 export class StrategyEngine {
-  private static instance: StrategyEngine;
-  private orderQueueService: OrderQueueService;
-  private monitoringService: MonitoringService;
+  private strategies: Map<string, IStrategy>;
+  private orders: Map<string, IOrder>;
 
-  private constructor() {
-    this.orderQueueService = OrderQueueService.getInstance();
-    this.monitoringService = MonitoringService.getInstance();
+  constructor() {
+    this.strategies = new Map();
+    this.orders = new Map();
   }
 
-  public static getInstance(): StrategyEngine {
-    if (!StrategyEngine.instance) {
-      StrategyEngine.instance = new StrategyEngine();
-    }
-    return StrategyEngine.instance;
-  }
-
-  async executeStrategy(strategy: Strategy): Promise<StrategyExecutionResult> {
-    const result: StrategyExecutionResult = {
-      id: generateUUID(),
-      strategyId: strategy.id,
-      status: 'success',
-      startTime: new Date(),
-      endTime: new Date(),
-      trades: [],
-      performance: {
-        monthlyReturn: 0,
-        totalReturn: 0,
-        maxDrawdown: 0,
-        sharpeRatio: 0
-      }
-    };
-
+  async executeStrategy(strategy: IStrategy & { _id: Types.ObjectId }): Promise<void> {
     try {
-      // Implementation of strategy execution
-      // This is a placeholder for the actual strategy execution logic
-      return result;
+      // 执行策略的逻辑
+      logger.info(`Strategy ${strategy._id} executed successfully`);
     } catch (error) {
-      result.status = 'failed';
+      logger.error(`Error executing strategy ${strategy._id}:`, error);
       throw error;
     }
   }
 
-  async createOrder(orderData: Omit<Order, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<void> {
-    await this.orderQueueService.addOrder(orderData);
+  async stopStrategy(strategy: IStrategy & { _id: Types.ObjectId }): Promise<void> {
+    try {
+      // 停止策略执行的逻辑
+      this.strategies.delete(strategy._id.toString());
+      logger.info(`Strategy ${strategy._id} stopped`);
+    } catch (error) {
+      logger.error(`Error stopping strategy ${strategy._id}:`, error);
+      throw error;
+    }
   }
-} 
+
+  createOrder(order: Omit<IOrder, '_id' | 'createdAt' | 'updatedAt'>): IOrder {
+    const newOrder: IOrder = {
+      _id: new Types.ObjectId(),
+      ...order,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.orders.set(newOrder._id.toString(), newOrder);
+    return newOrder;
+  }
+}

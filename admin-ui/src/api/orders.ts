@@ -2,6 +2,7 @@ import axios from './axios';
 
 export interface Order {
   id: string;
+  _id: string;
   userId: string;
   username: string;
   strategyId: string;
@@ -11,51 +12,51 @@ export interface Order {
   status: 'failed' | 'pending' | 'completed' | 'cancelled';
   amount: number;
   price: number;
+  totalAmount: number;
   timestamp: string;
   createdAt: string;
   updatedAt: string;
+  executedAt?: string;
+  cancelledAt?: string;
+  error?: string;
 }
 
 // Mock data
 const mockOrders: Order[] = [
   {
     id: '1',
+    _id: '1',
     userId: 'user1',
     username: 'John Doe',
     strategyId: 'strategy1',
     strategyName: 'Momentum Trading',
-    symbol: 'BTC/USDT',
     tradingPair: 'BTC/USDT',
     type: 'buy',
     status: 'completed',
     price: 50000,
-    quantity: 0.1,
+    amount: 5000,
     totalAmount: 5000,
-    total: 5000,
     timestamp: '2024-01-01T10:00:00Z',
     createdAt: '2024-01-01T10:00:00Z',
-    updatedAt: '2024-01-01T10:01:00Z',
-    amount: 5000,
+    updatedAt: '2024-01-01T10:01:00Z'
   },
   {
     id: '2',
+    _id: '2',
     userId: 'user2',
     username: 'Jane Smith',
     strategyId: 'strategy2',
     strategyName: 'Mean Reversion',
-    symbol: 'ETH/USDT',
     tradingPair: 'ETH/USDT',
     type: 'sell',
     status: 'pending',
     price: 3000,
-    quantity: 1,
+    amount: 3000,
     totalAmount: 3000,
-    total: 3000,
     timestamp: '2024-01-01T11:00:00Z',
     createdAt: '2024-01-01T11:00:00Z',
-    updatedAt: '2024-01-01T11:00:00Z',
-    amount: 3000,
-  },
+    updatedAt: '2024-01-01T11:00:00Z'
+  }
 ];
 
 export const getOrders = async (params?: {

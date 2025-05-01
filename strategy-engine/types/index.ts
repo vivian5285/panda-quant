@@ -17,14 +17,14 @@ export interface MT4Config {
 // 交易订单类型
 export interface Order {
   id: string;
+  strategyId: string;
+  type: 'buy' | 'sell';
   symbol: string;
-  type: 'market' | 'limit';
-  side: 'buy' | 'sell';
-  amount: number;
-  price?: number;
-  status: 'open' | 'closed' | 'canceled';
-  createdAt: number;
-  updatedAt: number;
+  quantity: number;
+  price: number;
+  status: OrderStatus;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // 账户信息类型
@@ -51,7 +51,7 @@ export interface Position {
 
 // K线数据类型
 export interface OHLCV {
-  timestamp: number;
+  timestamp: Date;
   open: number;
   high: number;
   low: number;
@@ -71,11 +71,11 @@ export interface StrategyResult {
 // 交易记录类型
 export interface Trade {
   id: string;
-  symbol: string;
+  strategyId: string;
+  timestamp: Date;
   type: 'buy' | 'sell';
   price: number;
   quantity: number;
-  timestamp: number;
   profit?: number;
 }
 
@@ -92,31 +92,18 @@ export interface UserConfig {
 }
 
 export interface StrategyPreset {
+  id: string;
   name: string;
-  description: string;
-  params: {
-    [key: string]: {
-      type: 'number' | 'boolean' | 'string';
-      default: any;
-      min?: number;
-      max?: number;
-      step?: number;
-    };
-  };
+  params: Record<string, any>;
 }
 
 export interface Strategy {
   id: string;
-  symbol: string;
-  timeframe: string;
-  params: any;
-  position: 'long' | 'short' | 'none';
-  entryPrice: number;
-  trades: Trade[];
-
-  analyzeMarket(data: OHLCV[]): Promise<'buy' | 'sell' | 'hold'>;
-  executeTrade(signal: 'buy' | 'sell', price: number): Promise<void>;
-  getStats(): StrategyStats;
+  name: string;
+  description?: string;
+  parameters: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface StrategyStats {
@@ -132,4 +119,26 @@ export interface MarketInfo {
   maxAmount: number;
   pricePrecision: number;
   amountPrecision: number;
+}
+
+export enum OrderStatus {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  CANCELLED = 'cancelled'
+}
+
+export interface StrategyExecutionResult {
+  id: string;
+  strategyId: string;
+  status: 'success' | 'failed';
+  startTime: Date;
+  endTime: Date;
+  trades: Trade[];
+  performance: {
+    monthlyReturn: number;
+    totalReturn: number;
+    maxDrawdown: number;
+    sharpeRatio: number;
+  };
 } 

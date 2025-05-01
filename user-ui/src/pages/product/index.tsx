@@ -17,8 +17,11 @@ import {
   CheckCircle as CheckCircleIcon,
   Star as StarIcon,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 const ProductPage: React.FC = () => {
+  const { t } = useTranslation();
+
   const strategies = [
     {
       name: '超级趋势策略',
@@ -116,8 +119,13 @@ const ProductPage: React.FC = () => {
                 background: 'linear-gradient(90deg, transparent, rgba(0, 255, 184, 0.3), transparent)',
               }
             }}>
-              <GradientTitle>
-                高收益交易策略
+              <GradientTitle 
+                title={t('product.title', '产品服务')} 
+                variant="h2" 
+                align="center" 
+                sx={{ mb: 6 }}
+              >
+                {t('product.title', '产品服务')}
               </GradientTitle>
               <Typography 
                 variant="subtitle1" 

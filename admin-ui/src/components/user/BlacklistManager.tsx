@@ -27,7 +27,7 @@ import {
 import { motion } from 'framer-motion';
 import { blacklistService } from '../../services/blacklistService';
 import { BlacklistEntry } from '../../types/user';
-import { theme } from '../../theme';
+import theme from '../../theme';
 import { animationConfig } from '../../theme/animation';
 
 const BlacklistManager: React.FC = () => {

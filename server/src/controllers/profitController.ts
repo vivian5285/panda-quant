@@ -1,97 +1,50 @@
-import { Request, Response } from 'express';
-import { Types, Document } from 'mongoose';
-import { Strategy } from '../models/Strategy';
-import { StrategyPerformance } from '../models/strategyPerformance';
-import { commissionService } from '../services/commissionService';
-import { IStrategyPerformance } from '../interfaces/IStrategyPerformance';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../types/auth';
+import { logger } from '../utils/logger';
+import { CommissionService } from '../services/CommissionService';
+import { ProfitService } from '../services/profitService';
 
-export const profitController = {
-  async createProfit(req: Request, res: Response) {
-    try {
-      const { userId, strategyId, profit } = req.body;
-      
-      const performance = await StrategyPerformance.create({
-        userId: new Types.ObjectId(userId),
-        strategyId: new Types.ObjectId(strategyId),
-        profit
-      });
+export class ProfitController {
+  private commissionService: CommissionService;
+  private profitService: ProfitService;
 
-      // 计算并分配佣金
-      await commissionService.calculateAndDistributeCommission(performance as Document<unknown, {}, IStrategyPerformance> & IStrategyPerformance & Required<{ _id: Types.ObjectId }>);
-
-      res.status(201).json(performance);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unknown error occurred' });
-      }
-    }
-  },
-
-  async calculateAndDistributeCommission(req: Request, res: Response) {
-    try {
-      const { strategyId } = req.params;
-      const strategy = await Strategy.findById(strategyId);
-      
-      if (!strategy) {
-        return res.status(404).json({ error: 'Strategy not found' });
-      }
-
-      const performance = await StrategyPerformance.findOne({ 
-        strategyId: strategy._id 
-      });
-
-      if (!performance) {
-        return res.status(404).json({ error: 'Performance record not found' });
-      }
-
-      const result = await commissionService.calculateAndDistributeCommission(performance as Document<unknown, {}, IStrategyPerformance> & IStrategyPerformance & Required<{ _id: Types.ObjectId }>);
-      res.json(result);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unknown error occurred' });
-      }
-    }
-  },
-
-  async getStrategyProfit(req: Request, res: Response) {
-    try {
-      const { strategyId } = req.params;
-      const performance = await StrategyPerformance.findOne({ strategyId });
-      
-      if (!performance) {
-        return res.status(404).json({ message: 'Strategy performance not found' });
-      }
-
-      return res.json(performance);
-    } catch (error) {
-      console.error('Error getting strategy profit:', error);
-      return res.status(500).json({ message: 'Internal server error' });
-    }
-  },
-
-  async updateStrategyProfit(req: Request, res: Response) {
-    try {
-      const { strategyId } = req.params;
-      const { profit } = req.body;
-
-      const performance = await StrategyPerformance.findOneAndUpdate(
-        { strategyId },
-        { profit },
-        { new: true }
-      );
-
-      if (!performance) {
-        return res.status(404).json({ message: 'Strategy performance not found' });
-      }
-
-      return res.json(performance);
-    } catch (error) {
-      console.error('Error updating strategy profit:', error);
-      return res.status(500).json({ message: 'Internal server error' });
-    }
+  constructor() {
+    this.commissionService = CommissionService.getInstance();
+    this.profitService = ProfitService.getInstance();
   }
-}; 
+
+  public getProfitSummary = async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const summary = await this.profitService.getProfitSummary();
+      res.json(summary);
+    } catch (error) {
+      logger.error('Error getting profit summary:', error);
+      res.status(500).json({ message: 'Error getting profit summary', error: (error as Error).message });
+    }
+  };
+
+  public updateCommission = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const commission = await this.commissionService.updateCommission(id.toString(), updates);
+      res.status(200).json(commission);
+    } catch (error) {
+      logger.error('Error updating commission:', error);
+      res.status(500).json({ message: 'Error updating commission', error });
+    }
+  };
+
+  public deleteCommission = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      await this.commissionService.deleteCommission(id.toString());
+      res.status(204).send();
+    } catch (error) {
+      logger.error('Error deleting commission:', error);
+      res.status(500).json({ message: 'Error deleting commission', error });
+    }
+  };
+}
+
+export default new ProfitController(); 

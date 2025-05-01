@@ -1,221 +1,212 @@
 "use strict";
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
-const common_1 = require("@nestjs/common");
 const user_service_1 = require("../services/user.service");
 const verification_service_1 = require("../services/verification.service");
-const email_1 = require("../utils/email");
-const auth_1 = require("../utils/auth");
 const validation_1 = require("../utils/validation");
-let UserController = class UserController {
-    constructor(userService, verificationService) {
-        this.userService = userService;
-        this.verificationService = verificationService;
+const bcrypt_1 = __importDefault(require("bcrypt"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const generateToken = (payload) => {
+    return jsonwebtoken_1.default.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+};
+const hashPassword = async (password) => {
+    const salt = await bcrypt_1.default.genSalt(10);
+    return bcrypt_1.default.hash(password, salt);
+};
+const comparePassword = async (password, hash) => {
+    return bcrypt_1.default.compare(password, hash);
+};
+class UserController {
+    constructor() {
+        this.userService = new user_service_1.UserService();
+        this.verificationService = new verification_service_1.VerificationService();
     }
-    async sendCode(body) {
-        const { email, type } = body;
-        // 如果是注册，检查邮箱是否已存在
-        if (type === 'register') {
+    async sendCode(req, res) {
+        try {
+            const { email, type } = req.body;
+            if (!email || !type) {
+                return res.status(400).json({ message: 'Email and type are required' });
+            }
+            if (type === 'register') {
+                const existingUser = await this.userService.getUserByEmail(email);
+                if (existingUser) {
+                    return res.status(400).json({ message: '该邮箱已被注册' });
+                }
+            }
+            const code = await this.verificationService.generateCode(type, email);
+            const verificationUser = { email, verificationCode: code };
+            await this.verificationService.sendVerificationEmail(verificationUser);
+            return res.json({ message: '验证码已发送' });
+        }
+        catch (error) {
+            console.error('Failed to send code:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+    async register(req, res) {
+        try {
+            const { email, password, name, code } = req.body;
+            if (!email || !password || !name || !code) {
+                return res.status(400).json({ message: 'Missing required fields' });
+            }
+            if (!(0, validation_1.validateEmail)(email)) {
+                return res.status(400).json({ message: 'Invalid email format' });
+            }
+            if (!(0, validation_1.validatePassword)(password)) {
+                return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+            }
             const existingUser = await this.userService.getUserByEmail(email);
             if (existingUser) {
-                throw new common_1.HttpException('该邮箱已被注册', common_1.HttpStatus.BAD_REQUEST);
+                return res.status(409).json({ message: 'Email already registered' });
             }
+            const hashedPassword = await hashPassword(password);
+            const user = await this.userService.createUser({
+                email,
+                password: hashedPassword,
+                name,
+                isVerified: false
+            });
+            if (!user) {
+                return res.status(500).json({ message: 'Failed to create user' });
+            }
+            return res.status(201).json({
+                message: 'User registered successfully',
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name
+                }
+            });
         }
-        // 生成并发送验证码
-        await this.verificationService.sendVerificationEmail(email, type);
-        return { message: '验证码已发送' };
+        catch (error) {
+            console.error('Failed to register:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
     }
-    async register(body) {
-        const { email, password, name } = body;
-        if (!email || !password || !name) {
-            throw new common_1.HttpException('Missing required fields', common_1.HttpStatus.BAD_REQUEST);
-        }
-        if (!(0, validation_1.validateEmail)(email)) {
-            throw new common_1.HttpException('Invalid email format', common_1.HttpStatus.BAD_REQUEST);
-        }
-        if (!(0, validation_1.validatePassword)(password)) {
-            throw new common_1.HttpException('Password must be at least 8 characters long', common_1.HttpStatus.BAD_REQUEST);
-        }
-        const existingUser = await this.userService.getUserByEmail(email);
-        if (existingUser) {
-            throw new common_1.HttpException('Email already registered', common_1.HttpStatus.CONFLICT);
-        }
-        const hashedPassword = await (0, auth_1.hashPassword)(password);
-        const verificationCode = Math.random().toString(36).substring(2, 8);
-        const user = await this.userService.createUser({
-            email,
-            password: hashedPassword,
-            name,
-            verificationCode,
-            isVerified: false
-        });
-        await (0, email_1.sendVerificationEmail)(email, verificationCode);
-        return {
-            message: 'User registered successfully',
-            user: {
-                id: user.id,
+    async login(req, res) {
+        var _a;
+        try {
+            const { email, password } = req.body;
+            if (!email || !password) {
+                return res.status(400).json({ message: 'Missing email or password' });
+            }
+            const user = await this.userService.getUserByEmail(email);
+            if (!user) {
+                return res.status(401).json({ message: 'Invalid credentials' });
+            }
+            if (!user.isVerified) {
+                return res.status(403).json({ message: 'Please verify your email first' });
+            }
+            const isPasswordValid = await comparePassword(password, user.password);
+            if (!isPasswordValid) {
+                return res.status(401).json({ message: 'Invalid credentials' });
+            }
+            const token = generateToken({
+                id: ((_a = user._id) === null || _a === void 0 ? void 0 : _a.toString()) || '',
                 email: user.email,
-                name: user.name
+                role: user.role
+            });
+            return res.json({
+                message: 'Login successful',
+                token,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name
+                }
+            });
+        }
+        catch (error) {
+            console.error('Failed to login:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+    }
+    async verifyEmail(req, res) {
+        try {
+            const { email, code } = req.body;
+            if (!email || !code) {
+                return res.status(400).json({ message: 'Missing email or verification code' });
             }
-        };
-    }
-    async login(body) {
-        const { email, password } = body;
-        if (!email || !password) {
-            throw new common_1.HttpException('Missing email or password', common_1.HttpStatus.BAD_REQUEST);
-        }
-        const user = await this.userService.getUserByEmail(email);
-        if (!user) {
-            throw new common_1.HttpException('Invalid credentials', common_1.HttpStatus.UNAUTHORIZED);
-        }
-        if (!user.isVerified) {
-            throw new common_1.HttpException('Please verify your email first', common_1.HttpStatus.FORBIDDEN);
-        }
-        const isPasswordValid = await this.userService.comparePassword(password, user.password);
-        if (!isPasswordValid) {
-            throw new common_1.HttpException('Invalid credentials', common_1.HttpStatus.UNAUTHORIZED);
-        }
-        const token = (0, auth_1.generateToken)({ id: user.id, email: user.email });
-        return {
-            message: 'Login successful',
-            token,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name
+            const user = await this.userService.getUserByEmail(email);
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
             }
-        };
-    }
-    async resetPassword(body) {
-        const { email, newPassword, code } = body;
-        const isValid = await this.verificationService.verifyCode(email, code, 'reset-password');
-        if (!isValid) {
-            throw new common_1.HttpException('验证码无效或已过期', common_1.HttpStatus.BAD_REQUEST);
-        }
-        await this.userService.updateUser(email, { password: await (0, auth_1.hashPassword)(newPassword) });
-        return { message: '密码重置成功' };
-    }
-    async verifyEmail(body) {
-        const { email, code } = body;
-        if (!email || !code) {
-            throw new common_1.HttpException('Missing email or verification code', common_1.HttpStatus.BAD_REQUEST);
-        }
-        const user = await this.userService.getUserByEmail(email);
-        if (!user) {
-            throw new common_1.HttpException('User not found', common_1.HttpStatus.NOT_FOUND);
-        }
-        if (user.isVerified) {
-            throw new common_1.HttpException('Email already verified', common_1.HttpStatus.BAD_REQUEST);
-        }
-        if (user.verificationCode !== code) {
-            throw new common_1.HttpException('Invalid verification code', common_1.HttpStatus.BAD_REQUEST);
-        }
-        await this.userService.updateUser(user.id, { isVerified: true, verificationCode: undefined });
-        return { message: 'Email verified successfully' };
-    }
-    async getProfile(req) {
-        if (!req.user) {
-            throw new common_1.HttpException('Unauthorized', common_1.HttpStatus.UNAUTHORIZED);
-        }
-        const user = await user_service_1.UserService.getUserById(req.user.id);
-        if (!user) {
-            throw new common_1.HttpException('User not found', common_1.HttpStatus.NOT_FOUND);
-        }
-        return {
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name
+            if (user.isVerified) {
+                return res.status(400).json({ message: 'Email already verified' });
             }
-        };
-    }
-    async updateProfile(req, body) {
-        if (!req.user) {
-            throw new common_1.HttpException('Unauthorized', common_1.HttpStatus.UNAUTHORIZED);
-        }
-        const { name } = body;
-        if (!name) {
-            throw new common_1.HttpException('Name is required', common_1.HttpStatus.BAD_REQUEST);
-        }
-        const updatedUser = await this.userService.updateUser(req.user.id, { name });
-        if (!updatedUser) {
-            throw new common_1.HttpException('User not found', common_1.HttpStatus.NOT_FOUND);
-        }
-        return {
-            message: 'Profile updated successfully',
-            user: {
-                id: updatedUser.id,
-                email: updatedUser.email,
-                name: updatedUser.name
+            const isValid = await this.verificationService.verifyCode(email, code, 'register');
+            if (!isValid) {
+                return res.status(400).json({ message: 'Invalid verification code' });
             }
-        };
+            const updatedUser = await this.userService.updateUser(user.id, { isVerified: true });
+            if (!updatedUser) {
+                return res.status(500).json({ message: 'Failed to update user' });
+            }
+            return res.json({ message: 'Email verified successfully' });
+        }
+        catch (error) {
+            console.error('Failed to verify email:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
     }
-};
+    async getProfile(req, res) {
+        var _a;
+        try {
+            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+            if (!userId) {
+                throw new Error('User not authenticated');
+            }
+            const user = await this.userService.getUserById(userId);
+            if (!user) {
+                throw new Error('User not found');
+            }
+            const response = {
+                success: true,
+                data: user,
+                error: null
+            };
+            res.status(200).json(response);
+        }
+        catch (error) {
+            const response = {
+                success: false,
+                data: null,
+                error: error instanceof Error ? error.message : 'An error occurred'
+            };
+            res.status(401).json(response);
+        }
+    }
+    async updateProfile(req, res) {
+        var _a;
+        try {
+            const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+            if (!userId) {
+                throw new Error('User not authenticated');
+            }
+            const user = await this.userService.updateUser(userId, req.body);
+            if (!user) {
+                throw new Error('User not found');
+            }
+            const response = {
+                success: true,
+                data: user,
+                error: null
+            };
+            res.status(200).json(response);
+        }
+        catch (error) {
+            const response = {
+                success: false,
+                data: null,
+                error: error instanceof Error ? error.message : 'An error occurred'
+            };
+            res.status(400).json(response);
+        }
+    }
+}
 exports.UserController = UserController;
-__decorate([
-    (0, common_1.Post)('send-code'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "sendCode", null);
-__decorate([
-    (0, common_1.Post)('register'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "register", null);
-__decorate([
-    (0, common_1.Post)('login'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "login", null);
-__decorate([
-    (0, common_1.Post)('reset-password'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "resetPassword", null);
-__decorate([
-    (0, common_1.Post)('verify-email'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "verifyEmail", null);
-__decorate([
-    (0, common_1.Post)('profile'),
-    __param(0, (0, common_1.Request)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "getProfile", null);
-__decorate([
-    (0, common_1.Post)('profile/update'),
-    __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "updateProfile", null);
-exports.UserController = UserController = __decorate([
-    (0, common_1.Controller)('users'),
-    __metadata("design:paramtypes", [user_service_1.UserService,
-        verification_service_1.VerificationService])
-], UserController);
+//# sourceMappingURL=user.controller.js.map

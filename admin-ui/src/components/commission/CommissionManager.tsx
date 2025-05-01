@@ -312,7 +312,7 @@ const CommissionManager: React.FC = () => {
                   label="开始日期"
                   value={filters.startDate}
                   onChange={(date) => setFilters({ ...filters, startDate: date })}
-                  renderInput={(params) => <TextField {...params} />}
+                  slotProps={{ textField: { fullWidth: true } }}
                 />
               </LocalizationProvider>
             </Grid>
@@ -322,7 +322,7 @@ const CommissionManager: React.FC = () => {
                   label="结束日期"
                   value={filters.endDate}
                   onChange={(date) => setFilters({ ...filters, endDate: date })}
-                  renderInput={(params) => <TextField {...params} />}
+                  slotProps={{ textField: { fullWidth: true } }}
                 />
               </LocalizationProvider>
             </Grid>

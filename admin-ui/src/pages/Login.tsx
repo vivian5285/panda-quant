@@ -19,7 +19,7 @@ import {
   Lock as LockIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
-import { theme } from '../theme';
+import theme from '../theme';
 import { animationConfig } from '../theme/animation';
 
 interface LoginForm {

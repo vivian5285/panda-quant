@@ -1,44 +1,31 @@
 import React from 'react';
-import { Box, Container, Typography, CircularProgress } from '@mui/material';
-import GlobalBackground from '@/components/common/GlobalBackground';
-import Navbar from '@/components/common/Navbar';
-import Footer from '@/components/common/Footer';
-import { GradientTitle } from '@/components/common/GradientTitle';
+import { Box, Container, CircularProgress } from '@mui/material';
+import { GradientTitle } from '../components/common/GradientTitle';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { slideUp } from '../animations';
 
-const LoadingPage: React.FC = () => {
+const Loading: React.FC = () => {
+  const { t } = useTranslation();
+
   return (
-    <Box sx={{ position: 'relative', minHeight: '100vh' }}>
-      <GlobalBackground />
-      <Navbar />
-      
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          minHeight: '60vh',
-          textAlign: 'center'
-        }}>
-          <GradientTitle>
-            加载中
+    <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Box sx={{ textAlign: 'center', mb: 6 }}>
+        <motion.div variants={slideUp}>
+          <GradientTitle 
+            title={t('loading.title', '加载中...')} 
+            variant="h4" 
+            align="center"
+          >
+            {t('loading.title', '加载中...')}
           </GradientTitle>
-          <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1, mb: 4 }}>
-            请稍候，正在加载内容...
-          </Typography>
-          <CircularProgress 
-            size={60} 
-            sx={{ 
-              color: '#00FFB8',
-              animationDuration: '1.5s',
-            }} 
-          />
-        </Box>
-      </Container>
-
-      <Footer />
-    </Box>
+        </motion.div>
+      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress size={60} />
+      </Box>
+    </Container>
   );
 };
 
-export default LoadingPage; 
+export default Loading; 

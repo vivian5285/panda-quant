@@ -157,10 +157,12 @@ const Header: React.FC = () => {
         variant="h6"
         sx={{
           fontWeight: 700,
-          ...themeUtils.createTextGradient(
+          background: themeUtils.createTextGradient(
             theme.palette.primary.main,
             theme.palette.secondary.main
           ),
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
           textShadow: `0 0 10px ${alpha(theme.palette.primary.main, 0.3)}`,
           letterSpacing: '0.5px',
           position: 'relative',

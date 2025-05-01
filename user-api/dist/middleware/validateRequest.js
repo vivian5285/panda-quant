@@ -11,7 +11,8 @@ const validateRequest = (type) => {
             const message = errors.map((error) => Object.values(error.constraints || {})).join(', ');
             return res.status(400).json({ error: message });
         }
-        next();
+        return next();
     };
 };
 exports.validateRequest = validateRequest;
+//# sourceMappingURL=validateRequest.js.map

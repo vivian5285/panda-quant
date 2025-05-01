@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorHandler = void 0;
 const errors_1 = require("../utils/errors");
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, _req, res, _next) => {
     console.error(err);
     if (err instanceof errors_1.ValidationError) {
         res.status(400).json({
@@ -36,3 +36,4 @@ const errorHandler = (err, req, res, next) => {
     }
 };
 exports.errorHandler = errorHandler;
+//# sourceMappingURL=error.middleware.js.map

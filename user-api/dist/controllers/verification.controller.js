@@ -14,7 +14,9 @@ class VerificationController {
                 if (type !== 'register' && type !== 'reset-password') {
                     throw new errors_1.ValidationError('Invalid verification type');
                 }
-                await this.verificationService.sendVerificationEmail(email, type);
+                const code = await this.verificationService.generateCode(type, email);
+                const verificationUser = { email, verificationCode: code };
+                await this.verificationService.sendVerificationEmail(verificationUser);
                 res.json({
                     success: true,
                     message: 'Verification code sent successfully'
@@ -76,3 +78,4 @@ class VerificationController {
     }
 }
 exports.VerificationController = VerificationController;
+//# sourceMappingURL=verification.controller.js.map

@@ -183,7 +183,7 @@ const TradingStrategies = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ 
                   duration: themeUtils.animationConfig.duration.medium,
-                  delay: index * themeUtils.animationConfig.delay.small 
+                  delay: index * 0.1
                 }}
                 style={{
                   position: 'absolute',

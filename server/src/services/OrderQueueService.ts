@@ -1,59 +1,44 @@
-import { Order, OrderStatus } from '../types';
-import { RedisService } from './redis';
-import { generateUUID } from '../utils/uuid';
+import { IOrder } from '../types/trading';
+import { AppError } from '../utils/AppError';
+import { logger } from '../utils/logger';
 
 export class OrderQueueService {
-  private static instance: OrderQueueService;
-  private redisService: RedisService;
+  private queue: IOrder[] = [];
 
-  private constructor() {
-    this.redisService = RedisService.getInstance();
-  }
-
-  public static getInstance(): OrderQueueService {
-    if (!OrderQueueService.instance) {
-      OrderQueueService.instance = new OrderQueueService();
-    }
-    return OrderQueueService.instance;
-  }
-
-  async addOrder(order: Omit<Order, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<void> {
-    const orderWithDefaults: Order = {
-      ...order,
-      id: generateUUID(),
-      status: OrderStatus.PENDING,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    await this.redisService.lpush('order:queue', JSON.stringify(orderWithDefaults));
-  }
-
-  async processOrder(): Promise<void> {
-    const orderStr = await this.redisService.rpop('order:queue');
-    if (!orderStr) return;
-
-    const order: Order = JSON.parse(orderStr);
+  async addOrder(order: IOrder): Promise<void> {
     try {
-      // Process the order
-      await this.executeOrder(order);
+      this.queue.push(order);
+      logger.info(`Order added to queue: ${order.id}`);
     } catch (error) {
-      await this.retryFailedOrder(order);
+      logger.error('Error adding order to queue:', error);
+      throw new AppError('Failed to add order to queue', 500);
     }
   }
 
-  private async executeOrder(order: Order): Promise<void> {
-    // Implementation of order execution
-    // This is a placeholder for the actual order execution logic
+  async getNextOrder(): Promise<IOrder | null> {
+    try {
+      return this.queue.shift() || null;
+    } catch (error) {
+      logger.error('Error getting next order from queue:', error);
+      throw new AppError('Failed to get next order from queue', 500);
+    }
   }
 
-  private async retryFailedOrder(order: Order): Promise<void> {
-    if (order.retryCount < 3) {
-      order.retryCount++;
-      await this.addOrder(order);
-    } else {
-      // Handle permanent failure
-      order.status = OrderStatus.REJECTED;
-      await this.redisService.lpush('order:failed', JSON.stringify(order));
+  async getQueueLength(): Promise<number> {
+    return this.queue.length;
+  }
+
+  async clearQueue(): Promise<void> {
+    try {
+      this.queue = [];
+      logger.info('Order queue cleared');
+    } catch (error) {
+      logger.error('Error clearing order queue:', error);
+      throw new AppError('Failed to clear order queue', 500);
     }
+  }
+
+  async getQueue(): Promise<IOrder[]> {
+    return [...this.queue];
   }
 } 

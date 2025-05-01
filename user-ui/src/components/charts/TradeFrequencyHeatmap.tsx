@@ -36,6 +36,9 @@ const TradeFrequencyHeatmap: React.FC<TradeFrequencyHeatmapProps> = ({ data, tit
     labels: data.labels,
     datasets: data.datasets.map(dataset => ({
       ...dataset,
+      type: 'scatter' as const,
+      pointRadius: 10,
+      pointHoverRadius: 15,
       backgroundColor: (context: any) => {
         const value = context.dataset.data[context.dataIndex];
         const alpha = (value - Math.min(...dataset.data.flat())) / (Math.max(...dataset.data.flat()) - Math.min(...dataset.data.flat()));
@@ -77,7 +80,7 @@ const TradeFrequencyHeatmap: React.FC<TradeFrequencyHeatmapProps> = ({ data, tit
 
   return (
     <Box sx={{ width: '100%', height: '100%', p: 2 }}>
-      <Chart type="matrix" data={chartData} options={options} />
+      <Chart type="scatter" data={chartData} options={options} />
     </Box>
   );
 };

@@ -54,3 +54,4 @@ class PermissionError extends Error {
     }
 }
 exports.PermissionError = PermissionError;
+//# sourceMappingURL=errors.js.map

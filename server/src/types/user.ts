@@ -1,34 +1,40 @@
-import { Document } from 'mongoose';
+import { Types, Document } from 'mongoose';
 
-export interface IUser extends Document {
-  _id: string;
+export interface IUser {
+  _id: Types.ObjectId;
+  id: string;
   email: string;
   password: string;
   name: string;
-  role: 'user' | 'admin';
-  status: 'active' | 'inactive' | 'suspended';
-  apiKeys: Array<{
-    exchange: string;
-    apiKey: string;
-    apiSecret: string;
-    isActive: boolean;
-    createdAt: Date;
-    lastUsedAt?: Date;
-  }>;
-  preferences: {
-    theme: 'light' | 'dark';
-    notifications: {
-      email: boolean;
-      telegram: boolean;
-      discord: boolean;
-    };
-    defaultExchange: string;
-    defaultTimeframe: string;
-  };
-  lastLoginAt?: Date;
+  username: string;
+  role: string;
+  level: number;
+  status: string;
+  permissions: string[];
+  isAdmin: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface IUserBase {
+  email: string;
+  password: string;
+  username: string;
+  name: string;
+  level: number;
+  role: string;
+  status: string;
+  permissions: string[];
+  isAdmin: boolean;
+  referrerId?: Types.ObjectId;
+  referrer?: string;
+  balance?: number;
   createdAt: Date;
   updatedAt: Date;
-  metadata?: Record<string, any>;
+}
+
+export interface IUserDocument extends IUserBase, Document {
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 export type User = IUser; 

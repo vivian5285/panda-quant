@@ -7,6 +7,7 @@ import { GradientTitle } from '@/components/common/GradientTitle';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import SecurityIcon from '@mui/icons-material/Security';
 import SpeedIcon from '@mui/icons-material/Speed';
+import { useTranslation } from 'react-i18next';
 
 const StyledPricingCard = styled(PandaCard)(({ theme }) => ({
   height: '100%',
@@ -20,6 +21,7 @@ const StyledPricingCard = styled(PandaCard)(({ theme }) => ({
 
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleStartClick = () => {
     navigate('/login');
@@ -46,8 +48,13 @@ const PricingPage: React.FC = () => {
   return (
     <Box sx={{ py: 8 }}>
       <Container maxWidth="lg">
-        <GradientTitle variant="h2" align="center" sx={{ mb: 6 }}>
-          透明定价，共赢未来
+        <GradientTitle 
+          title={t('pricing.title', '定价方案')} 
+          variant="h2" 
+          align="center" 
+          sx={{ mb: 6 }}
+        >
+          {t('pricing.title', '定价方案')}
         </GradientTitle>
         
         <Typography 

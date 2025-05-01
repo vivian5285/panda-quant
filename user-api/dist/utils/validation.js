@@ -10,3 +10,4 @@ const validatePassword = (password) => {
     return password.length >= 8;
 };
 exports.validatePassword = validatePassword;
+//# sourceMappingURL=validation.js.map

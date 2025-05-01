@@ -33,3 +33,4 @@ function authenticate(req, res, next) {
         }
     }
 }
+//# sourceMappingURL=authenticate.js.map

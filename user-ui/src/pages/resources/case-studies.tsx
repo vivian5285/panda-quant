@@ -21,6 +21,8 @@ import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
 import { GradientTitle } from '@/components/common/GradientTitle';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { slideUp } from '../../animations';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -51,6 +53,7 @@ function TabPanel(props: TabPanelProps) {
 const CaseStudiesPage: React.FC = () => {
   const theme = useTheme();
   const [tabValue, setTabValue] = useState(0);
+  const { t } = useTranslation();
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -116,11 +119,16 @@ const CaseStudiesPage: React.FC = () => {
       <Navbar />
       
       <Container maxWidth="lg" sx={{ py: 8 }}>
-        <GradientTitle
-          title="案例研究"
-          subtitle="成功案例和经验分享"
-          sx={{ mb: 6 }}
-        />
+        <motion.div variants={slideUp}>
+          <GradientTitle 
+            title={t('caseStudies.title', '案例研究')} 
+            variant="h2" 
+            align="center" 
+            sx={{ mb: 6 }}
+          >
+            {t('caseStudies.title', '案例研究')}
+          </GradientTitle>
+        </motion.div>
 
         {/* 分类标签 */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>

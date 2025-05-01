@@ -1,19 +1,40 @@
 import { ethers } from 'ethers';
+import { useEffect } from 'react';
+import { EthereumProvider } from '../types/ethereum';
 
-// 使用更具体的类型定义
-type MetaMaskProvider = {
-  isMetaMask: boolean;
-  request: (args: { method: string; params?: any[] }) => Promise<any>;
-  on: (event: string, callback: (params?: any) => void) => void;
-  removeListener: (event: string, callback: (params?: any) => void) => void;
+const handleAccountsChanged = (accounts: string[]) => {
+  if (accounts.length === 0) {
+    // 用户已断开连接
+    console.log('Please connect to MetaMask');
+  } else {
+    // 用户已切换账户
+    console.log('Account changed:', accounts[0]);
+  }
 };
 
-// 只在类型声明中扩展 Window 接口
-declare global {
-  interface Window {
-    ethereum?: MetaMaskProvider & ethers.Eip1193Provider;
-  }
-}
+const handleChainChanged = (chainId: string) => {
+  // 网络已更改
+  console.log('Chain changed:', chainId);
+  window.location.reload();
+};
+
+export const useMetaMask = () => {
+  useEffect(() => {
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+    }
+
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+      }
+    };
+  }, []);
+
+  // ... existing code ...
+};
 
 let injectedProvider: ethers.BrowserProvider | null = null;
 
@@ -95,4 +116,18 @@ export const connectMetaMask = async () => {
     console.error('Error connecting to MetaMask:', error);
     throw error;
   }
-}; 
+};
+
+useEffect(() => {
+  if (window.ethereum) {
+    window.ethereum.on('accountsChanged', handleAccountsChanged);
+    window.ethereum.on('chainChanged', handleChainChanged);
+  }
+
+  return () => {
+    if (window.ethereum) {
+      window.ethereum.removeAllListeners('accountsChanged');
+      window.ethereum.removeAllListeners('chainChanged');
+    }
+  };
+}, []); 

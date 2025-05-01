@@ -27,11 +27,14 @@ import { ContentCopy, QrCode, CheckCircle, Pending, Error } from '@mui/icons-mat
 import GlobalBackground from '@/components/common/GlobalBackground';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
-import { GradientTitle } from '@/components/common/GradientTitle';
-import PandaCard from '@/components/common/PandaCard';
+import { GradientTitle } from '../../components/common/GradientTitle';
+import PandaCard from '../../components/common/PandaCard';
 import QRCode from 'qrcode.react';
-import { useAuth } from '@/hooks/useAuth';
-import { api } from '@/utils/api';
+import { useAuth } from '../../hooks/useAuth';
+import api from '../../services/api';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { slideUp } from '../../animations';
 
 interface ChainInfo {
   id: string;
@@ -92,6 +95,7 @@ const DepositPage: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout>();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (user) {
@@ -187,14 +191,16 @@ const DepositPage: React.FC = () => {
       <Navbar />
       
       <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box sx={{ mb: 6, textAlign: 'center' }}>
-          <GradientTitle>
-            USDT充值
+        <motion.div variants={slideUp}>
+          <GradientTitle 
+            title={t('deposit.title', '充值')} 
+            variant="h2" 
+            align="center" 
+            sx={{ mb: 6 }}
+          >
+            {t('deposit.title', '充值')}
           </GradientTitle>
-          <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
-            支持多链充值，选择最适合您的充值方式
-          </Typography>
-        </Box>
+        </motion.div>
 
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>

@@ -1,74 +1,104 @@
-import { Model, Types } from 'mongoose';
-import { IStrategyRating } from '../interfaces/IStrategyRating';
-import { StrategyRating } from '../models/strategyRating';
-import { Document } from 'mongoose';
+import { Types } from 'mongoose';
+import { StrategyRating } from '../models/StrategyRating';
+import { IStrategyRating } from '../types/strategyRating';
+import { AppError } from '../utils/AppError';
+import { logger } from '../utils/logger';
 
 export class StrategyRatingService {
-  private static instance: StrategyRatingService;
-  private strategyRatingModel: Model<IStrategyRating>;
-
-  public static getInstance(): StrategyRatingService {
-    if (!StrategyRatingService.instance) {
-      StrategyRatingService.instance = new StrategyRatingService();
+  async createRating(data: {
+    userId: string;
+    strategyId: string;
+    rating: number;
+    comment?: string;
+  }): Promise<IStrategyRating> {
+    try {
+      const ratingDoc = new StrategyRating({
+        ...data,
+        userId: new Types.ObjectId(data.userId),
+        strategyId: new Types.ObjectId(data.strategyId)
+      });
+      await ratingDoc.save();
+      return ratingDoc;
+    } catch (error) {
+      logger.error('Error creating rating:', error);
+      throw new AppError('Failed to create rating', 500);
     }
-    return StrategyRatingService.instance;
   }
 
-  constructor() {
-    this.strategyRatingModel = StrategyRating;
+  async getStrategyRatings(strategyId: string): Promise<IStrategyRating[]> {
+    try {
+      return await StrategyRating.find({ strategyId: new Types.ObjectId(strategyId) });
+    } catch (error) {
+      logger.error('Error getting strategy ratings:', error);
+      throw new AppError('Failed to get strategy ratings', 500);
+    }
   }
 
-  // 创建评价
-  async createRating(data: Partial<IStrategyRating>): Promise<Document<unknown, {}, IStrategyRating> & IStrategyRating & Required<{ _id: Types.ObjectId }>> {
-    return this.strategyRatingModel.create(data);
+  async getUserRatings(userId: string): Promise<IStrategyRating[]> {
+    try {
+      return await StrategyRating.find({ userId: new Types.ObjectId(userId) });
+    } catch (error) {
+      logger.error('Error getting user ratings:', error);
+      throw new AppError('Failed to get user ratings', 500);
+    }
   }
 
-  // 获取策略的所有评价
-  async getRatingsByStrategy(strategyId: string): Promise<(Document<unknown, {}, IStrategyRating> & IStrategyRating & Required<{ _id: Types.ObjectId }>)[]> {
-    return this.strategyRatingModel.find({ strategyId });
+  async getAverageRating(strategyId: string): Promise<{ average: number; count: number }> {
+    try {
+      const result = await StrategyRating.aggregate([
+        { $match: { strategyId: new Types.ObjectId(strategyId) } },
+        {
+          $group: {
+            _id: null,
+            average: { $avg: '$rating' },
+            count: { $sum: 1 }
+          }
+        }
+      ]);
+      return result[0] || { average: 0, count: 0 };
+    } catch (error) {
+      logger.error('Error getting average rating:', error);
+      throw new AppError('Failed to get average rating', 500);
+    }
   }
 
-  // 获取用户的评价
-  async getRatingsByUser(userId: string): Promise<(Document<unknown, {}, IStrategyRating> & IStrategyRating & Required<{ _id: Types.ObjectId }>)[]> {
-    return await StrategyRating.find({ userId })
-      .populate('strategyId', 'name')
-      .sort({ createdAt: -1 });
+  async updateRating(
+    id: string,
+    userId: string,
+    data: { rating?: number; comment?: string }
+  ): Promise<IStrategyRating | null> {
+    try {
+      return await StrategyRating.findOneAndUpdate(
+        { _id: new Types.ObjectId(id), userId: new Types.ObjectId(userId) },
+        { $set: { ...data, updatedAt: new Date() } },
+        { new: true }
+      );
+    } catch (error) {
+      logger.error('Error updating rating:', error);
+      throw new AppError('Failed to update rating', 500);
+    }
   }
 
-  // 获取策略的平均评分
-  async getAverageRating(strategyId: string): Promise<number> {
-    const result = await StrategyRating.aggregate([
-      { $match: { strategyId } },
-      { $group: { _id: null, average: { $avg: '$rating' } } }
-    ]);
-    return result[0]?.average || 0;
+  async deleteRating(id: string, userId: string): Promise<boolean> {
+    try {
+      const result = await StrategyRating.deleteOne({
+        _id: new Types.ObjectId(id),
+        userId: new Types.ObjectId(userId)
+      });
+      return result.deletedCount > 0;
+    } catch (error) {
+      logger.error('Error deleting rating:', error);
+      throw new AppError('Failed to delete rating', 500);
+    }
   }
 
-  // 更新评价
-  async updateRating(ratingId: string, updateData: Partial<IStrategyRating>): Promise<Document<unknown, {}, IStrategyRating> & IStrategyRating & Required<{ _id: Types.ObjectId }> | null> {
-    return await StrategyRating.findByIdAndUpdate(
-      ratingId,
-      { $set: updateData },
-      { new: true }
-    );
-  }
-
-  // 删除评价
-  async deleteRating(ratingId: string): Promise<Document<unknown, {}, IStrategyRating> & IStrategyRating & Required<{ _id: Types.ObjectId }> | null> {
-    return await StrategyRating.findByIdAndDelete(ratingId);
-  }
-
-  // 检查用户是否已评价
-  async hasUserRated(strategyId: string, userId: string): Promise<boolean> {
-    const rating = await StrategyRating.findOne({ strategyId, userId });
-    return !!rating;
-  }
-
-  // 获取所有评价
-  async getAllRatings(): Promise<(Document<unknown, {}, IStrategyRating> & IStrategyRating & Required<{ _id: Types.ObjectId }>)[]> {
-    return await StrategyRating.find()
-      .populate('strategyId', 'name')
-      .populate('userId', 'username')
-      .sort({ createdAt: -1 });
+  async getRatings(strategyId?: string): Promise<IStrategyRating[]> {
+    try {
+      const query = strategyId ? { strategyId: new Types.ObjectId(strategyId) } : {};
+      return await StrategyRating.find(query);
+    } catch (error) {
+      logger.error('Error getting ratings:', error);
+      throw new AppError('Failed to get ratings', 500);
+    }
   }
 } 

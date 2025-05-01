@@ -1,194 +1,110 @@
-import { Request, Response } from 'express';
-import { WithdrawalService } from '../services/withdrawalService';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../types/auth';
+import { logger } from '../utils/logger';
+import { WithdrawalService } from '../services/withdrawal.service';
 import { Types } from 'mongoose';
-import { IUser } from '../interfaces/IUser';
-import { validateObjectId } from '../middleware/validation';
-import { AuthRequest } from '../types';
+import { IWithdrawal } from '../types/withdrawal';
 
-export const withdrawalController = {
-  async createWithdrawal(req: Request & { user?: IUser }, res: Response) {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
+export class WithdrawalController {
+  private withdrawalService: WithdrawalService;
 
-      const { amount, paymentMethod, paymentDetails } = req.body;
-      const withdrawal = await WithdrawalService.getInstance().createWithdrawalRequest(
-        new Types.ObjectId(req.user._id),
-        amount,
-        paymentMethod,
-        paymentDetails
-      );
-
-      res.status(201).json(withdrawal);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(400).json({ error: 'An unknown error occurred' });
-      }
-    }
-  },
-
-  async getWithdrawals(req: Request & { user?: IUser }, res: Response) {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      const withdrawals = await WithdrawalService.getInstance().getWithdrawals(
-        new Types.ObjectId(req.user._id)
-      );
-      res.json(withdrawals);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(400).json({ error: 'An unknown error occurred' });
-      }
-    }
-  },
-
-  async getWithdrawal(req: AuthRequest, res: Response) {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      res.json({});
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Unknown error occurred' });
-      }
-    }
-  },
-
-  async updateWithdrawalStatus(req: Request & { user?: IUser }, res: Response) {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      const { withdrawalId, status } = req.body;
-      const withdrawal = await WithdrawalService.getInstance().updateWithdrawalStatus(
-        new Types.ObjectId(withdrawalId),
-        status
-      );
-
-      res.json(withdrawal);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(400).json({ error: 'An unknown error occurred' });
-      }
-    }
-  },
-
-  async deleteWithdrawal(req: AuthRequest, res: Response) {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      res.status(204).send();
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'Unknown error occurred' });
-      }
-    }
-  },
-
-  async getWithdrawalHistory(req: Request & { user?: IUser }, res: Response) {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      const history = await WithdrawalService.getInstance().getWithdrawalHistory(
-        new Types.ObjectId(req.user._id)
-      );
-
-      res.json(history);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(400).json({ error: 'An unknown error occurred' });
-      }
-    }
-  },
-
-  async processWithdrawal(req: Request, res: Response) {
-    try {
-      const { withdrawalId, status, adminComment } = req.body;
-      const withdrawal = await WithdrawalService.getInstance().processWithdrawal(
-        new Types.ObjectId(withdrawalId),
-        status,
-        adminComment
-      );
-
-      res.json(withdrawal);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(400).json({ error: 'An unknown error occurred' });
-      }
-    }
-  },
-
-  async completeWithdrawal(req: Request, res: Response) {
-    try {
-      const { withdrawalId } = req.body;
-      const withdrawal = await WithdrawalService.getInstance().completeWithdrawal(
-        new Types.ObjectId(withdrawalId)
-      );
-
-      res.json(withdrawal);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(400).json({ error: 'An unknown error occurred' });
-      }
-    }
-  },
-
-  async getPendingWithdrawals(req: Request, res: Response) {
-    try {
-      const withdrawals = await WithdrawalService.getInstance().getPendingWithdrawals();
-      res.json(withdrawals);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(400).json({ error: 'An unknown error occurred' });
-      }
-    }
-  },
-
-  async getWithdrawalStats(req: Request & { user?: IUser }, res: Response) {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      const stats = await WithdrawalService.getInstance().getWithdrawalStats(
-        new Types.ObjectId(req.user._id)
-      );
-
-      res.json(stats);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(400).json({ error: error.message });
-      } else {
-        res.status(400).json({ error: 'An unknown error occurred' });
-      }
-    }
+  constructor() {
+    this.withdrawalService = new WithdrawalService();
   }
-}; 
+
+  public createWithdrawal = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: 'User not authenticated' });
+        return;
+      }
+      const withdrawalData: Partial<IWithdrawal> = {
+        ...req.body,
+        userId: new Types.ObjectId(req.user._id.toString())
+      };
+      const withdrawal = await this.withdrawalService.createWithdrawal(withdrawalData);
+      res.status(201).json(withdrawal);
+    } catch (error) {
+      logger.error('Error creating withdrawal:', error);
+      res.status(400).json({ message: 'Error creating withdrawal', error: (error as Error).message });
+    }
+  };
+
+  public getWithdrawals = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: 'User not authenticated' });
+        return;
+      }
+      const withdrawals = await this.withdrawalService.getWithdrawals(req.user._id.toString());
+      res.json(withdrawals);
+    } catch (error) {
+      logger.error('Error getting withdrawals:', error);
+      res.status(500).json({ message: 'Error getting withdrawals', error });
+    }
+  };
+
+  public getWithdrawal = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: 'User not authenticated' });
+        return;
+      }
+      const { id } = req.params;
+      const withdrawal = await this.withdrawalService.getWithdrawal(id, req.user._id.toString());
+      if (!withdrawal) {
+        res.status(404).json({ message: 'Withdrawal not found' });
+        return;
+      }
+      res.json(withdrawal);
+    } catch (error) {
+      logger.error('Error getting withdrawal:', error);
+      res.status(500).json({ message: 'Error getting withdrawal', error });
+    }
+  };
+
+  public updateWithdrawal = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: 'User not authenticated' });
+        return;
+      }
+      const withdrawal = await this.withdrawalService.updateWithdrawal(
+        req.params['id'],
+        req.user._id.toString(),
+        req.body
+      );
+      if (!withdrawal) {
+        res.status(404).json({ message: 'Withdrawal not found' });
+        return;
+      }
+      res.json(withdrawal);
+    } catch (error) {
+      logger.error('Error updating withdrawal:', error);
+      res.status(400).json({ message: 'Error updating withdrawal', error: (error as Error).message });
+    }
+  };
+
+  public deleteWithdrawal = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: 'User not authenticated' });
+        return;
+      }
+      const withdrawal = await this.withdrawalService.deleteWithdrawal(
+        req.params['id'],
+        req.user._id.toString()
+      );
+      if (!withdrawal) {
+        res.status(404).json({ message: 'Withdrawal not found' });
+        return;
+      }
+      res.json({ message: 'Withdrawal deleted successfully' });
+    } catch (error) {
+      logger.error('Error deleting withdrawal:', error);
+      res.status(400).json({ message: 'Error deleting withdrawal', error: (error as Error).message });
+    }
+  };
+}
+
+export default new WithdrawalController(); 

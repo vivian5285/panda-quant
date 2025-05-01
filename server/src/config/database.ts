@@ -1,26 +1,32 @@
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import { createLogger } from '../utils/logger';
 
-dotenv.config();
+const dbLogger = createLogger('Database');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/panda-quant';
-
-export const connect = async () => {
+export async function connectDB(): Promise<void> {
   try {
-    await mongoose.connect(MONGODB_URI);
-    console.log('Connected to MongoDB');
+    await mongoose.connect(process.env['MONGODB_URI'] || 'mongodb://localhost:27017/panda-quant');
+    dbLogger.info('Successfully connected to MongoDB.');
   } catch (error) {
-    console.error('MongoDB connection error:', error);
-    throw error;
+    dbLogger.error('Error connecting to MongoDB:', error);
+    process.exit(1);
   }
-};
+}
 
-export const disconnect = async () => {
+export async function disconnectDB(): Promise<void> {
   try {
     await mongoose.disconnect();
-    console.log('Disconnected from MongoDB');
+    dbLogger.info('Successfully disconnected from MongoDB.');
   } catch (error) {
-    console.error('MongoDB disconnection error:', error);
-    throw error;
+    dbLogger.error('Error disconnecting from MongoDB:', error);
+    process.exit(1);
   }
-}; 
+}
+
+mongoose.connection.on('error', (error) => {
+  dbLogger.error('MongoDB connection error:', error);
+});
+
+mongoose.connection.on('disconnected', () => {
+  dbLogger.warn('MongoDB disconnected');
+}); 

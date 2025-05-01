@@ -1,25 +1,26 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../utils/logger';
 
 export class ValidationError extends Error {
-  constructor(public details: any) {
-    super('Validation Error');
+  constructor(message: string) {
+    super(message);
     this.name = 'ValidationError';
   }
 }
 
-export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
+export const errorHandler = (err: Error, _req: Request, res: Response, _next: NextFunction): void => {
+  logger.error('Error:', err);
 
   if (err instanceof ValidationError) {
-    return res.status(400).json({
-      success: false,
+    res.status(400).json({
       error: 'Validation Error',
-      details: err.details
+      message: err.message
     });
+    return;
   }
 
   res.status(500).json({
-    success: false,
-    error: 'Internal Server Error'
+    error: 'Internal Server Error',
+    message: err.message
   });
 }; 

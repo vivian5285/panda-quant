@@ -30,7 +30,12 @@ const TermsPage: React.FC = () => {
   return (
     <Box sx={{ py: 8 }}>
       <Container maxWidth="lg">
-        <GradientTitle variant="h2" align="center" sx={{ mb: 6 }}>
+        <GradientTitle 
+          title="服务条款" 
+          variant="h2" 
+          align="center" 
+          sx={{ mb: 6 }}
+        >
           服务条款
         </GradientTitle>
         <PandaCard>

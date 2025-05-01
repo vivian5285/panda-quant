@@ -2,18 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import PandaCard from '../common/PandaCard';
 import { fadeIn } from '../../animations';
+import { Strategy as StrategyType } from '../../types/strategy';
+import { Strategy as ServiceStrategy } from '../../services/strategyService';
 
-interface Strategy {
-  id: string;
-  name: string;
-  type: string;
-  status: 'active' | 'paused' | 'stopped';
-  performance: {
-    monthlyReturn: number;
-    winRate: number;
-    maxDrawdown: number;
-  };
-}
+type Strategy = StrategyType & ServiceStrategy;
 
 interface StrategyOverviewProps {
   strategies: Strategy[];
@@ -41,15 +33,18 @@ const StrategyOverview: React.FC<StrategyOverviewProps> = ({ strategies }) => {
               </span>
             </div>
             <div className="space-y-2">
-              <p className="text-sm text-gray-600">
-                Monthly Return: <span className="font-semibold">{strategy.performance.monthlyReturn}%</span>
-              </p>
-              <p className="text-sm text-gray-600">
-                Win Rate: <span className="font-semibold">{strategy.performance.winRate}%</span>
-              </p>
-              <p className="text-sm text-gray-600">
-                Max Drawdown: <span className="font-semibold">{strategy.performance.maxDrawdown}%</span>
-              </p>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Monthly Return:</span>
+                <span className="font-semibold">{strategy.performance.monthlyReturn}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Win Rate:</span>
+                <span className="font-semibold">{strategy.performance.winRate}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Max Drawdown:</span>
+                <span className="font-semibold">{strategy.performance.maxDrawdown}%</span>
+              </div>
             </div>
           </div>
         </PandaCard>

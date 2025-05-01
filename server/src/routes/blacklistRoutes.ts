@@ -1,28 +1,48 @@
 import { Router } from 'express';
+import { authenticate, hasPermission } from '../middleware/auth';
 import { blacklistController } from '../controllers/blacklistController';
-import { auth, requireModerator } from '../middleware/auth';
 
 const router = Router();
 
 // 所有路由都需要认证
-router.use(auth);
+router.use(authenticate);
 
-// 获取所有黑名单条目 - 需要管理员或版主权限
-router.get('/', requireModerator, blacklistController.getAllEntries);
+// 获取所有黑名单条目
+router.get('/', hasPermission('blacklist:read'), blacklistController.getAllEntries);
 
-// 获取单个黑名单条目 - 需要管理员或版主权限
-router.get('/:id', requireModerator, blacklistController.getEntryById);
+// 获取单个黑名单条目
+router.get('/:id', hasPermission('blacklist:read'), blacklistController.getEntryById);
 
-// 创建黑名单条目 - 需要管理员或版主权限
-router.post('/', requireModerator, blacklistController.createEntry);
+// 创建黑名单条目
+router.post('/', hasPermission('blacklist:write'), blacklistController.createEntry);
 
-// 更新黑名单条目 - 需要管理员或版主权限
-router.put('/:id', requireModerator, blacklistController.updateEntry);
+// 更新黑名单条目
+router.put('/:id', hasPermission('blacklist:write'), blacklistController.updateEntry);
 
-// 删除黑名单条目 - 需要管理员或版主权限
-router.delete('/:id', requireModerator, blacklistController.deleteEntry);
+// 删除黑名单条目
+router.delete('/:id', hasPermission('blacklist:write'), blacklistController.deleteEntry);
 
-// 搜索黑名单条目 - 需要管理员或版主权限
-router.get('/search', requireModerator, blacklistController.searchEntries);
+// 搜索黑名单条目
+router.get('/search', hasPermission('blacklist:read'), blacklistController.searchEntries);
+
+export const setupBlacklistRoutes = (router: Router) => {
+  // 获取所有黑名单条目
+  router.get('/blacklist', hasPermission('blacklist:read'), blacklistController.getAllEntries);
+  
+  // 获取单个黑名单条目
+  router.get('/blacklist/:id', hasPermission('blacklist:read'), blacklistController.getEntryById);
+  
+  // 创建黑名单条目
+  router.post('/blacklist', hasPermission('blacklist:write'), blacklistController.createEntry);
+  
+  // 更新黑名单条目
+  router.put('/blacklist/:id', hasPermission('blacklist:write'), blacklistController.updateEntry);
+  
+  // 删除黑名单条目
+  router.delete('/blacklist/:id', hasPermission('blacklist:write'), blacklistController.deleteEntry);
+  
+  // 搜索黑名单条目
+  router.get('/blacklist/search', hasPermission('blacklist:read'), blacklistController.searchEntries);
+};
 
 export default router; 

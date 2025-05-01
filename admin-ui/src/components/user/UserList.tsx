@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -15,7 +15,6 @@ import {
   Tooltip,
   useTheme,
   alpha,
-  CircularProgress,
   TextField,
   InputAdornment
 } from '@mui/material';
@@ -27,44 +26,24 @@ import {
   Email as EmailIcon,
   CalendarToday as CalendarIcon,
   Verified as VerifiedIcon,
-  Warning as WarningIcon
+  Warning as WarningIcon,
+  Info as InfoIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { User } from '../../types/user';
 
-interface User {
-  _id: string;
-  username: string;
-  email: string;
-  role: string;
-  status: 'active' | 'inactive' | 'suspended';
-  createdAt: string;
-  lastLogin: string;
+interface UserListProps {
+  users: User[];
+  onEdit: (user: User) => void;
+  onDelete: (user: User) => void;
+  onViewDetails: (user: User) => void;
 }
 
-const UserList: React.FC = () => {
+const UserList: React.FC<UserListProps> = ({ users, onEdit, onDelete, onViewDetails }) => {
   const theme = useTheme();
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/users');
-      const data = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredUsers = users.filter(user =>
     user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,7 +63,7 @@ const UserList: React.FC = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string): React.ReactElement => {
     switch (status) {
       case 'active':
         return <VerifiedIcon />;
@@ -93,17 +72,9 @@ const UserList: React.FC = () => {
       case 'suspended':
         return <WarningIcon />;
       default:
-        return null;
+        return <InfoIcon />;
     }
   };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -191,25 +162,19 @@ const UserList: React.FC = () => {
                   key={user._id}
                   sx={{
                     '&:hover': {
-                      backgroundColor: alpha(theme.palette.primary.main, 0.04)
-                    }
+                      backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                    },
                   }}
                 >
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <PersonIcon sx={{ 
-                        color: theme.palette.primary.main,
-                        mr: 1
-                      }} />
+                      <PersonIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
                       {user.username}
                     </Box>
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <EmailIcon sx={{ 
-                        color: theme.palette.primary.main,
-                        mr: 1
-                      }} />
+                      <EmailIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
                       {user.email}
                     </Box>
                   </TableCell>
@@ -221,53 +186,35 @@ const UserList: React.FC = () => {
                       sx={{
                         backgroundColor: alpha(getStatusColor(user.status), 0.1),
                         color: getStatusColor(user.status),
-                        borderRadius: 1,
-                        fontWeight: 'bold'
                       }}
                     />
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <CalendarIcon sx={{ 
-                        color: theme.palette.primary.main,
-                        mr: 1
-                      }} />
-                      {format(new Date(user.createdAt), 'yyyy-MM-dd', { locale: zhCN })}
+                      <CalendarIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                      {format(new Date(user.createdAt), 'yyyy-MM-dd HH:mm', { locale: zhCN })}
                     </Box>
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <CalendarIcon sx={{ 
-                        color: theme.palette.primary.main,
-                        mr: 1
-                      }} />
-                      {format(new Date(user.lastLogin), 'yyyy-MM-dd', { locale: zhCN })}
+                      <CalendarIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                      {format(new Date(user.lastLogin), 'yyyy-MM-dd HH:mm', { locale: zhCN })}
                     </Box>
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', gap: 1 }}>
                       <Tooltip title="编辑">
                         <IconButton
-                          size="small"
-                          sx={{
-                            color: theme.palette.primary.main,
-                            '&:hover': {
-                              backgroundColor: alpha(theme.palette.primary.main, 0.1)
-                            }
-                          }}
+                          onClick={() => onEdit(user)}
+                          sx={{ color: theme.palette.primary.main }}
                         >
                           <EditIcon />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="删除">
                         <IconButton
-                          size="small"
-                          sx={{
-                            color: theme.palette.error.main,
-                            '&:hover': {
-                              backgroundColor: alpha(theme.palette.error.main, 0.1)
-                            }
-                          }}
+                          onClick={() => onDelete(user)}
+                          sx={{ color: theme.palette.error.main }}
                         >
                           <DeleteIcon />
                         </IconButton>

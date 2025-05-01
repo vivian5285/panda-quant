@@ -27,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
+import { User } from '../../types/user';
 
 const Header: React.FC = () => {
   const theme = useTheme();
@@ -116,7 +117,7 @@ const Header: React.FC = () => {
             >
               {user.avatar ? (
                 <Avatar
-                  alt={user.name}
+                  alt={user.username}
                   src={user.avatar}
                   sx={{ width: 32, height: 32 }}
                 />

@@ -1,0 +1,18 @@
+import { Counter, Gauge, Histogram } from 'prom-client';
+import { OrderStatus } from '../interfaces/order';
+export declare const strategyExecutionCounter: Counter<"status" | "strategy_id">;
+export declare const strategyExecutionDuration: Histogram<"strategy_id">;
+export declare const orderCounter: Counter<"status" | "type" | "side">;
+export declare const orderExecutionDuration: Histogram<"type" | "side">;
+export declare const orderRetryCounter: Counter<"order_id">;
+export declare const memoryUsage: Gauge<"type">;
+export declare const cpuUsage: Gauge<string>;
+export declare const activeConnections: Gauge<string>;
+export declare const riskExposure: Gauge<"strategy_id">;
+export declare const drawdown: Gauge<"strategy_id">;
+export declare const recordStrategyExecution: (strategyId: string, status: string, duration: number) => void;
+export declare const recordOrder: (type: string, side: string, status: OrderStatus) => void;
+export declare const recordOrderExecution: (type: string, side: string, duration: number) => void;
+export declare const recordOrderRetry: (orderId: string) => void;
+export declare const recordSystemMetrics: () => void;
+export declare const recordRiskMetrics: (strategyId: string, exposure: number, drawdownPercent: number) => void;

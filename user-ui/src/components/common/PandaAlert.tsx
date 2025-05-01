@@ -10,7 +10,8 @@ import { motion } from 'framer-motion';
 interface PandaAlertProps {
   severity?: 'success' | 'info' | 'warning' | 'error';
   title?: string;
-  message: string;
+  message?: React.ReactNode;
+  children?: React.ReactNode;
   variant?: 'standard' | 'filled' | 'outlined';
   onClose?: () => void;
   closable?: boolean;
@@ -18,13 +19,14 @@ interface PandaAlertProps {
   action?: React.ReactNode;
   animate?: boolean;
   glow?: boolean;
-  children?: React.ReactNode;
+  sx?: any;
 }
 
 const PandaAlert: React.FC<PandaAlertProps> = ({
   severity = 'info',
   title,
   message,
+  children,
   variant = 'standard',
   onClose,
   closable = true,
@@ -32,43 +34,45 @@ const PandaAlert: React.FC<PandaAlertProps> = ({
   action,
   animate = true,
   glow = false,
+  sx,
 }) => {
   const theme = useTheme();
 
   const getAlertStyle = () => ({
-    borderRadius: theme.shape.borderRadius,
-    transition: 'all 0.3s ease-in-out',
-    '&:hover': {
-      boxShadow: glow ? theme.shadows[4] : 'none',
-    },
+    ...sx,
+    ...(glow && {
+      boxShadow: `0 0 20px ${theme.palette[severity].main}33`,
+    }),
   });
 
   const getAnimation = () => {
     if (!animate) return {};
-
     return {
-      initial: { opacity: 0, y: -20 },
+      initial: { opacity: 0, y: -10 },
       animate: { opacity: 1, y: 0 },
-      exit: { opacity: 0, y: 20 },
+      exit: { opacity: 0, y: -10 },
+      transition: { duration: 0.3 },
     };
   };
 
-  return (
-    <Collapse in={true}>
-      <motion.div {...getAnimation()}>
-        <Alert
-          severity={severity}
-          variant={variant}
-          onClose={closable ? onClose : undefined}
-          icon={icon}
-          action={action}
-          sx={getAlertStyle()}
-        >
-          {title && <AlertTitle>{title}</AlertTitle>}
-          {message}
-        </Alert>
-      </motion.div>
-    </Collapse>
+  const alertContent = (
+    <Alert
+      severity={severity}
+      variant={variant}
+      onClose={closable ? onClose : undefined}
+      icon={icon}
+      action={action}
+      sx={getAlertStyle()}
+    >
+      {title && <AlertTitle>{title}</AlertTitle>}
+      {message || children}
+    </Alert>
+  );
+
+  return animate ? (
+    <motion.div {...getAnimation()}>{alertContent}</motion.div>
+  ) : (
+    alertContent
   );
 };
 

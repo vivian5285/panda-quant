@@ -46,8 +46,13 @@ const CookiesPolicy = () => {
       <Container maxWidth="md">
         <Box sx={{ py: 8 }}>
           <motion.div variants={slideUp}>
-            <GradientTitle variant="h3" align="center" gutterBottom>
-              {t('cookies.title', 'Cookie 政策')}
+            <GradientTitle 
+              title="Cookie 政策" 
+              variant="h3" 
+              align="center" 
+              gutterBottom
+            >
+              Cookie 政策
             </GradientTitle>
           </motion.div>
 

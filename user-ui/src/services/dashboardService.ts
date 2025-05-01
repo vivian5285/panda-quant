@@ -23,19 +23,25 @@ export interface StrategyData {
   type: string;
   status: 'active' | 'paused' | 'stopped';
   performance: {
-    totalReturn: number;
-    annualizedReturn: number;
+    monthlyReturn: number;
+    winRate: number;
     maxDrawdown: number;
+    totalReturn?: number;
+    annualizedReturn?: number;
   };
   riskLevel: 'low' | 'medium' | 'high';
+  percentage?: number;
 }
 
 export interface ApiStatus {
   id: string;
-  exchange: string;
-  status: 'active' | 'inactive' | 'error';
-  balance: number;
-  lastSync: string;
+  name: string;
+  status: 'online' | 'offline' | 'degraded';
+  lastChecked: string;
+  responseTime: number;
+  exchange?: string;
+  lastSync?: string;
+  balance?: number;
 }
 
 export interface ChartData {
@@ -50,6 +56,7 @@ export interface ChartData {
 
 export interface ProfitTarget {
   id: string;
+  strategyId: string;
   target: number;
   current: number;
   deadline: string;
@@ -71,22 +78,15 @@ export interface AssetDistribution {
 }
 
 export interface DashboardData {
-  totalAssets: number;
-  totalProfit: number;
-  activeStrategies: number;
-  successRate: number;
-  performanceData: Array<{ date: string; value: number }>;
-  assetDistribution: {
+  assets: {
     total: number;
-    byCurrency: Record<string, number>;
-    byStrategy: Record<string, number>;
+    change24h: number;
+    currencies: Record<string, {
+      amount: number;
+      valueInUSD: number;
+      change24h: number;
+    }>;
   };
-  recentActivities: Array<{
-    date: string;
-    type: string;
-    amount: number;
-    status: string;
-  }>;
   strategies: Array<{
     id: string;
     name: string;
@@ -96,8 +96,30 @@ export interface DashboardData {
       monthlyReturn: number;
       winRate: number;
       maxDrawdown: number;
+      totalReturn?: number;
+      annualizedReturn?: number;
     };
+    riskLevel: 'low' | 'medium' | 'high';
   }>;
+  apiStatus: Array<{
+    id: string;
+    name: string;
+    status: 'online' | 'offline' | 'degraded';
+    lastChecked: string;
+    responseTime: number;
+    exchange?: string;
+    lastSync?: string;
+  }>;
+  profitTargets: Array<{
+    id: string;
+    strategyId: string;
+    target: number;
+    current: number;
+    deadline: string;
+    progress: number;
+    status: 'active' | 'completed' | 'failed';
+  }>;
+  chartData: Array<{ date: string; value: number }>;
 }
 
 class DashboardService {

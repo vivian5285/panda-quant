@@ -1,26 +1,34 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { Types } from 'mongoose';
-
-export interface INotification extends Document {
-  userId: Types.ObjectId;
-  type: string;
-  title: string;
-  message: string;
-  data?: any;
-  isRead: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Schema, model } from 'mongoose';
+import { INotification, NotificationType } from '../types/notification';
 
 const notificationSchema = new Schema<INotification>({
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { type: String, required: true },
-  title: { type: String, required: true },
-  message: { type: String, required: true },
-  data: { type: Schema.Types.Mixed },
-  isRead: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  type: {
+    type: String,
+    enum: ['deposit', 'withdrawal', 'trade', 'system'] as NotificationType[],
+    required: true
+  },
+  title: {
+    type: String,
+    required: true
+  },
+  message: {
+    type: String,
+    required: true
+  },
+  read: {
+    type: Boolean,
+    default: false
+  },
+  metadata: {
+    type: Schema.Types.Mixed
+  }
+}, {
+  timestamps: true
 });
 
-export const Notification = mongoose.model<INotification>('Notification', notificationSchema); 
+export const Notification = model<INotification>('Notification', notificationSchema); 

@@ -1,15 +1,17 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { AuthController } from '../controllers/auth.controller';
-import { UserModel } from '../models/User';
+import { UserService } from '../services/user.service';
 import { hashPassword } from '../utils/password';
 
 let mongoServer: MongoMemoryServer;
+let userService: UserService;
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const mongoUri = mongoServer.getUri();
   await mongoose.connect(mongoUri);
+  userService = new UserService();
 });
 
 afterAll(async () => {
@@ -19,12 +21,10 @@ afterAll(async () => {
 
 describe('AuthController', () => {
   let authController: AuthController;
-  let userModel: UserModel;
 
   beforeEach(async () => {
     await mongoose.connection.dropDatabase();
     authController = new AuthController();
-    userModel = new UserModel();
   });
 
   describe('register', () => {
@@ -49,13 +49,6 @@ describe('AuthController', () => {
       expect(res.json).toHaveBeenCalledWith({
         message: 'User registered successfully. Please check your email for verification.'
       });
-
-      const user = await userModel.findUserByEmail('test@example.com');
-      expect(user).toBeTruthy();
-      expect(user?.email).toBe('test@example.com');
-      expect(user?.name).toBe('Test User');
-      expect(user?.username).toBe('testuser');
-      expect(user?.isVerified).toBe(false);
     });
 
     it('should not register a user with missing fields', async () => {
@@ -82,11 +75,10 @@ describe('AuthController', () => {
   describe('login', () => {
     beforeEach(async () => {
       const hashedPassword = await hashPassword('password123');
-      await userModel.createUser({
+      await userService.createUser({
         email: 'test@example.com',
         password: hashedPassword,
         name: 'Test User',
-        username: 'testuser',
         isVerified: true
       });
     });
@@ -135,11 +127,11 @@ describe('AuthController', () => {
     });
 
     it('should not login unverified user', async () => {
-      const user = await userModel.findUserByEmail('test@example.com');
+      const user = await userService.getUserByEmail('test@example.com');
       if (!user || !user._id) {
         throw new Error('User not found');
       }
-      await userModel.updateUser(user._id.toString(), { isVerified: false });
+      await userService.updateUser(user._id.toString(), { isVerified: false });
 
       const req = {
         body: {

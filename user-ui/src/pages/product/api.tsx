@@ -51,8 +51,13 @@ const ApiPage: React.FC = () => {
   return (
     <Box sx={{ py: 8 }}>
       <Container maxWidth="lg">
-        <GradientTitle variant="h2" align="center" sx={{ mb: 6 }}>
-          API 服务
+        <GradientTitle 
+          title="API 接入" 
+          variant="h2" 
+          align="center" 
+          sx={{ mb: 6 }}
+        >
+          API 接入
         </GradientTitle>
         <Grid container spacing={4}>
           {features.map((feature, index) => (

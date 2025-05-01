@@ -10,6 +10,14 @@ import {
   IconButton,
   Tooltip,
   Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Button,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -19,11 +27,12 @@ import {
   Refresh as RefreshIcon,
   Clear as ClearIcon,
 } from '@mui/icons-material';
-import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
+import type { GridColDef } from '@mui/x-data-grid';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { getLogs, Log } from '../api/log';
-import { theme } from '../theme';
+import theme from '../theme';
 import { animationConfig } from '../theme/animation';
 import PageLayout from '../components/common/PageLayout';
 import {
@@ -37,18 +46,31 @@ type LogLevel = 'error' | 'warning' | 'info';
 const LogManagement: React.FC = () => {
   const { t } = useTranslation();
   const [logs, setLogs] = useState<Log[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const columns: Array<{
+    field: string;
+    headerName: string;
+    width: number;
+  }> = [
+    { field: '_id', headerName: 'ID', width: 90 },
+    { field: 'level', headerName: 'Level', width: 130 },
+    { field: 'message', headerName: 'Message', width: 300 },
+    { field: 'timestamp', headerName: 'Timestamp', width: 200 },
+  ];
 
   useEffect(() => {
     fetchLogs();
   }, []);
 
   const fetchLogs = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await getLogs();
-      setLogs(data);
+      const response = await getLogs();
+      setLogs(response);
     } catch (error) {
       console.error('Error fetching logs:', error);
     } finally {
@@ -81,34 +103,6 @@ const LogManagement: React.FC = () => {
         return 'info';
     }
   };
-
-  const columns: GridColDef<any>[] = [
-    {
-      field: 'level',
-      headerName: t('log.level'),
-      width: 120,
-      renderCell: (params: GridRenderCellParams<LogLevel>) => (
-        <Chip
-          icon={getLevelIcon(params.value)}
-          label={params.value}
-          color={getLevelColor(params.value)}
-          size="small"
-          sx={{
-            bgcolor: `${theme.palette[getLevelColor(params.value)].main}20`,
-            color: theme.palette[getLevelColor(params.value)].main,
-          }}
-        />
-      ),
-    },
-    { field: 'message', headerName: t('log.message'), flex: 1 },
-    { field: 'source', headerName: t('log.source'), width: 150 },
-    {
-      field: 'timestamp',
-      headerName: t('log.timestamp'),
-      width: 180,
-      valueFormatter: (params: { value: string }) => new Date(params.value).toLocaleString(),
-    },
-  ];
 
   const filteredLogs = logs.filter((log) =>
     Object.values(log).some((value) =>
@@ -181,8 +175,10 @@ const LogManagement: React.FC = () => {
           <DataGrid
             rows={filteredLogs}
             columns={columns}
-            pageSizeOptions={[5, 10, 25]}
-            getRowId={(row: Log) => row._id}
+            pageSize={rowsPerPage}
+            rowsPerPageOptions={[5, 10, 25]}
+            checkboxSelection
+            disableSelectionOnClick
             loading={loading}
             sx={{
               border: 'none',
@@ -206,10 +202,11 @@ const LogManagement: React.FC = () => {
 
   return (
     <PageLayout
-      title={t('logManagement')}
+      title={t('logManagement.title')}
       filters={renderFilters()}
-      content={renderContent()}
-    />
+    >
+      {renderContent()}
+    </PageLayout>
   );
 };
 

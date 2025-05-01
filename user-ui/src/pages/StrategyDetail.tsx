@@ -25,8 +25,8 @@ import {
   TrendingDown as TrendingDownIcon,
 } from '@mui/icons-material';
 import { StrategyReturnDistribution, RiskMetricsRadar, TradeFrequencyHeatmap } from '../components/charts';
-import GlobalBackground from '../components/GlobalBackground';
-import Navbar from '../components/Navbar';
+import GlobalBackground from '@/components/common/GlobalBackground';
+import Navbar from '@/components/common/Navbar';
 
 interface StrategyDetailProps {
   id: string;
