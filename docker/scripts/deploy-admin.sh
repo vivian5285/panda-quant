@@ -133,9 +133,13 @@ chmod 755 $PROJECT_ROOT/admin-api/logs
 log "2. 安装依赖和类型定义..."
 cd $PROJECT_ROOT/admin-api
 
+# 清理 npm 缓存
+log "清理 npm 缓存..."
+npm cache clean --force
+
 # 安装生产依赖
 log "安装生产依赖..."
-npm install --production
+npm install --omit=dev
 
 # 安装开发依赖和类型定义
 log "安装开发依赖和类型定义..."
