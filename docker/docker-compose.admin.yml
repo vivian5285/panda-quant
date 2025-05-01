@@ -13,7 +13,6 @@ services:
       - panda-quant-network
     depends_on:
       - admin-api
-    user: "1000:1000"
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -23,8 +22,8 @@ services:
 
   admin-api:
     build:
-      context: ../admin-api
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile.admin-api
     container_name: panda-quant-admin-api
     ports:
       - "8081:8081"

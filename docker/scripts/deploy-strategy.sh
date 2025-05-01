@@ -163,7 +163,6 @@ if [ ! -d "node_modules" ]; then
     log "INFO" "安装开发依赖和类型定义..."
     npm install --save-dev --prefer-offline --no-audit \
         @types/node \
-        @types/redis@4.0.11 \
         @types/express \
         @types/mongoose \
         typescript@5.3.3 \
