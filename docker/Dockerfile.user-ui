@@ -21,6 +21,9 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 # Copy package files first to leverage Docker cache
 COPY user-ui/package*.json ./
 
+# Install esbuild explicitly
+RUN npm install -g esbuild@0.25.3
+
 # Install all dependencies including devDependencies
 RUN npm install --legacy-peer-deps
 
