@@ -23,9 +23,8 @@ handle_error() {
 
 # 域名配置
 DOMAIN="pandatrade.space"
-USER_SUBDOMAIN="user"
-USER_API_SUBDOMAIN="user-api"
-USER_DOMAIN="${USER_SUBDOMAIN}.${DOMAIN}"
+USER_API_SUBDOMAIN="api"
+USER_DOMAIN="${DOMAIN}"
 USER_API_DOMAIN="${USER_API_SUBDOMAIN}.${DOMAIN}"
 
 # 检查DNS解析
@@ -83,7 +82,6 @@ USER_API_PORT=3003
 
 # 域名配置
 DOMAIN=${DOMAIN}
-USER_SUBDOMAIN=${USER_SUBDOMAIN}
 USER_API_SUBDOMAIN=${USER_API_SUBDOMAIN}
 USER_DOMAIN=${USER_DOMAIN}
 USER_API_DOMAIN=${USER_API_DOMAIN}
@@ -275,7 +273,7 @@ http {
         keepalive 32;
     }
 
-    # 用户后台域名配置
+    # 主站域名配置
     server {
         listen 80;
         server_name ${USER_DOMAIN};
@@ -360,7 +358,7 @@ http {
         }
     }
 
-    # 用户API域名配置
+    # API域名配置
     server {
         listen 80;
         server_name ${USER_API_DOMAIN};
