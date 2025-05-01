@@ -95,6 +95,28 @@ analyze_error() {
             log "2. 检查网络连接"
             log "3. 检查 DNS 服务器配置"
             ;;
+        "DATABASE_CONNECTION")
+            log "错误类型: 数据库连接失败"
+            log "可能原因:"
+            log "1. MongoDB 连接失败"
+            log "2. Redis 连接失败"
+            log "建议解决方案:"
+            log "1. 检查 MongoDB 服务状态和连接信息"
+            log "2. 检查 Redis 服务状态和连接信息"
+            ;;
+        "CONTAINER_STARTUP")
+            log "错误类型: 容器启动失败"
+            log "可能原因:"
+            log "1. 容器不存在"
+            log "2. 容器启动失败"
+            log "3. 容器退出代码非零"
+            log "4. 容器日志中包含错误信息"
+            log "5. 容器健康状态异常"
+            log "建议解决方案:"
+            log "1. 检查容器状态: docker ps -a"
+            log "2. 检查容器日志: docker logs [container]"
+            log "3. 检查容器健康状态: docker inspect --format='{{.State.Health.Status}}' [container]"
+            ;;
         *)
             log "错误类型: 未知错误"
             log "错误详情: $error_message"
@@ -137,6 +159,21 @@ check_service_health() {
     log "检查服务 $service 的健康状态..."
     
     while [ $attempt -le $max_attempts ]; do
+        log "尝试 $attempt/$max_attempts: 检查服务 $service 的健康状态..."
+        
+        # 获取容器状态
+        local container_status=$(docker inspect --format='{{.State.Status}}' panda-quant-${service})
+        log "容器状态: $container_status"
+        
+        # 获取容器日志的最后10行
+        local container_logs=$(docker logs panda-quant-${service} --tail 10 2>&1)
+        log "容器日志: $container_logs"
+        
+        # 检查端口是否在监听
+        if ! netstat -tuln | grep -q ":$port"; then
+            log "端口 $port 未在监听"
+        fi
+        
         if curl -s -f "http://localhost:$port/health" > /dev/null; then
             log "服务 $service 健康检查通过"
             return 0
@@ -147,7 +184,13 @@ check_service_health() {
         attempt=$((attempt + 1))
     done
     
-    handle_error "SERVICE_HEALTH" "服务 $service 健康检查失败" "服务在 $max_attempts 次尝试后仍未就绪"
+    # 获取详细的错误信息
+    local error_details=""
+    error_details+="容器状态: $(docker inspect --format='{{.State.Status}}' panda-quant-${service})\n"
+    error_details+="容器日志: $(docker logs panda-quant-${service} --tail 20 2>&1)\n"
+    error_details+="端口状态: $(netstat -tuln | grep ":$port" || echo "未监听")\n"
+    
+    handle_error "SERVICE_HEALTH" "服务 $service 健康检查失败" "$error_details"
 }
 
 # 检查并创建必要目录
@@ -464,6 +507,13 @@ docker-compose -f docker-compose.admin.yml up -d --build
 log "等待服务启动..."
 sleep 10
 
+# 检查容器启动状态
+check_container_startup "admin-api"
+check_container_startup "admin-ui"
+
+# 检查数据库连接
+check_database_connections
+
 # 检查服务健康状态
 check_service_health "admin-api" 8081
 check_service_health "admin-ui" 8084
@@ -480,4 +530,87 @@ check_domain_resolution $ADMIN_API_DOMAIN
 
 log "部署完成！"
 log "管理端访问地址: https://$ADMIN_DOMAIN"
-log "API 访问地址: https://$ADMIN_API_DOMAIN" 
+log "API 访问地址: https://$ADMIN_API_DOMAIN"
+
+# 检查数据库连接
+check_database_connections() {
+    log "检查数据库连接..."
+    
+    # 检查 MongoDB 连接
+    log "检查 MongoDB 连接..."
+    if ! docker exec -it panda-quant-mongodb mongo -u ${MONGO_INITDB_ROOT_USERNAME} -p ${MONGO_INITDB_ROOT_PASSWORD} --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
+        handle_error "DATABASE_CONNECTION" "MongoDB 连接失败" "请检查 MongoDB 服务状态和连接信息"
+    fi
+    log "MongoDB 连接成功"
+    
+    # 检查 Redis 连接
+    log "检查 Redis 连接..."
+    if ! docker exec -it panda-quant-redis redis-cli -a ${REDIS_PASSWORD} ping > /dev/null 2>&1; then
+        handle_error "DATABASE_CONNECTION" "Redis 连接失败" "请检查 Redis 服务状态和连接信息"
+    fi
+    log "Redis 连接成功"
+}
+
+# 检查容器启动状态
+check_container_startup() {
+    local service=$1
+    local max_attempts=30
+    local attempt=1
+    
+    log "检查容器 panda-quant-${service} 的启动状态..."
+    
+    while [ $attempt -le $max_attempts ]; do
+        log "尝试 $attempt/$max_attempts: 检查容器 panda-quant-${service} 的启动状态..."
+        
+        # 获取容器状态
+        local container_status=$(docker inspect --format='{{.State.Status}}' panda-quant-${service} 2>/dev/null)
+        if [ -z "$container_status" ]; then
+            log "容器 panda-quant-${service} 不存在"
+            sleep 5
+            attempt=$((attempt + 1))
+            continue
+        fi
+        
+        log "容器状态: $container_status"
+        
+        # 检查容器是否正在运行
+        if [ "$container_status" != "running" ]; then
+            # 获取容器退出代码
+            local exit_code=$(docker inspect --format='{{.State.ExitCode}}' panda-quant-${service})
+            log "容器退出代码: $exit_code"
+            
+            # 获取容器日志
+            local container_logs=$(docker logs panda-quant-${service} 2>&1)
+            log "容器日志: $container_logs"
+            
+            # 检查容器错误
+            local container_error=$(docker inspect --format='{{.State.Error}}' panda-quant-${service})
+            if [ -n "$container_error" ]; then
+                log "容器错误: $container_error"
+            fi
+            
+            # 检查容器健康状态
+            local health_status=$(docker inspect --format='{{.State.Health.Status}}' panda-quant-${service})
+            if [ -n "$health_status" ]; then
+                log "容器健康状态: $health_status"
+            fi
+            
+            sleep 5
+            attempt=$((attempt + 1))
+            continue
+        fi
+        
+        log "容器 panda-quant-${service} 已成功启动"
+        return 0
+    done
+    
+    # 获取详细的错误信息
+    local error_details=""
+    error_details+="容器状态: $(docker inspect --format='{{.State.Status}}' panda-quant-${service})\n"
+    error_details+="退出代码: $(docker inspect --format='{{.State.ExitCode}}' panda-quant-${service})\n"
+    error_details+="错误信息: $(docker inspect --format='{{.State.Error}}' panda-quant-${service})\n"
+    error_details+="健康状态: $(docker inspect --format='{{.State.Health.Status}}' panda-quant-${service})\n"
+    error_details+="容器日志: $(docker logs panda-quant-${service} 2>&1)\n"
+    
+    handle_error "CONTAINER_STARTUP" "容器 panda-quant-${service} 启动失败" "$error_details"
+} 

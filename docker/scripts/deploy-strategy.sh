@@ -223,6 +223,17 @@ if ! docker-compose -f $CURRENT_DIR/docker-compose.strategy.yml up -d; then
     handle_error "启动服务失败"
 fi
 
+# 等待服务启动
+log "INFO" "等待服务启动..."
+sleep 10
+
+# 检查容器启动状态
+check_container_startup "strategy-engine"
+check_container_startup "strategy-api"
+
+# 检查数据库连接
+check_database_connections
+
 # 5. 检查服务状态
 log "INFO" "5. 检查服务状态..."
 echo "检查 Docker 容器状态："
@@ -497,4 +508,87 @@ rm -rf $CURRENT_DIR/tmp/*
 
 log "INFO" "部署完成！"
 log "INFO" "策略后台地址: https://${STRATEGY_DOMAIN}"
-log "INFO" "策略API地址: https://${STRATEGY_API_DOMAIN}" 
+log "INFO" "策略API地址: https://${STRATEGY_API_DOMAIN}"
+
+# 检查容器启动状态
+check_container_startup() {
+    local service=$1
+    local max_attempts=30
+    local attempt=1
+    
+    log "INFO" "检查容器 panda-quant-${service} 的启动状态..."
+    
+    while [ $attempt -le $max_attempts ]; do
+        log "INFO" "尝试 $attempt/$max_attempts: 检查容器 panda-quant-${service} 的启动状态..."
+        
+        # 获取容器状态
+        local container_status=$(docker inspect --format='{{.State.Status}}' panda-quant-${service} 2>/dev/null)
+        if [ -z "$container_status" ]; then
+            log "WARN" "容器 panda-quant-${service} 不存在"
+            sleep 5
+            attempt=$((attempt + 1))
+            continue
+        fi
+        
+        log "INFO" "容器状态: $container_status"
+        
+        # 检查容器是否正在运行
+        if [ "$container_status" != "running" ]; then
+            # 获取容器退出代码
+            local exit_code=$(docker inspect --format='{{.State.ExitCode}}' panda-quant-${service})
+            log "WARN" "容器退出代码: $exit_code"
+            
+            # 获取容器日志
+            local container_logs=$(docker logs panda-quant-${service} 2>&1)
+            log "WARN" "容器日志: $container_logs"
+            
+            # 检查容器错误
+            local container_error=$(docker inspect --format='{{.State.Error}}' panda-quant-${service})
+            if [ -n "$container_error" ]; then
+                log "ERROR" "容器错误: $container_error"
+            fi
+            
+            # 检查容器健康状态
+            local health_status=$(docker inspect --format='{{.State.Health.Status}}' panda-quant-${service})
+            if [ -n "$health_status" ]; then
+                log "WARN" "容器健康状态: $health_status"
+            fi
+            
+            sleep 5
+            attempt=$((attempt + 1))
+            continue
+        fi
+        
+        log "INFO" "容器 panda-quant-${service} 已成功启动"
+        return 0
+    done
+    
+    # 获取详细的错误信息
+    local error_details=""
+    error_details+="容器状态: $(docker inspect --format='{{.State.Status}}' panda-quant-${service})\n"
+    error_details+="退出代码: $(docker inspect --format='{{.State.ExitCode}}' panda-quant-${service})\n"
+    error_details+="错误信息: $(docker inspect --format='{{.State.Error}}' panda-quant-${service})\n"
+    error_details+="健康状态: $(docker inspect --format='{{.State.Health.Status}}' panda-quant-${service})\n"
+    error_details+="容器日志: $(docker logs panda-quant-${service} 2>&1)\n"
+    
+    handle_error "CONTAINER_STARTUP" "容器 panda-quant-${service} 启动失败" "$error_details"
+}
+
+# 检查数据库连接
+check_database_connections() {
+    log "INFO" "检查数据库连接..."
+    
+    # 检查 MongoDB 连接
+    log "INFO" "检查 MongoDB 连接..."
+    if ! docker exec -it panda-quant-mongodb mongo -u ${MONGO_INITDB_ROOT_USERNAME} -p ${MONGO_INITDB_ROOT_PASSWORD} --eval "db.adminCommand('ping')" > /dev/null 2>&1; then
+        handle_error "DATABASE_CONNECTION" "MongoDB 连接失败" "请检查 MongoDB 服务状态和连接信息"
+    fi
+    log "INFO" "MongoDB 连接成功"
+    
+    # 检查 Redis 连接
+    log "INFO" "检查 Redis 连接..."
+    if ! docker exec -it panda-quant-redis redis-cli -a ${REDIS_PASSWORD} ping > /dev/null 2>&1; then
+        handle_error "DATABASE_CONNECTION" "Redis 连接失败" "请检查 Redis 服务状态和连接信息"
+    fi
+    log "INFO" "Redis 连接成功"
+} 

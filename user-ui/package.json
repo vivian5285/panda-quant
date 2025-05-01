@@ -91,6 +91,14 @@
   },
   "resolutions": {
     "viem": "^2.23.2",
-    "esbuild": "^0.18.20"
+    "esbuild": "^0.18.20",
+    "@wagmi/connectors": "^5.7.13",
+    "@web3modal/wagmi": "^5.1.11"
+  },
+  "overrides": {
+    "viem": "^2.23.2",
+    "@wagmi/connectors": {
+      "viem": "^2.23.2"
+    }
   }
 }

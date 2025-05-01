@@ -17,27 +17,19 @@ RUN npm install -g typescript
 COPY strategy-engine/package*.json ./
 COPY strategy-engine/tsconfig.json ./
 
-# Install dependencies
+# Install all dependencies
 RUN npm install --legacy-peer-deps && \
     npm install --save-dev \
-    @types/node \
-    @typescript-eslint/eslint-plugin \
-    @typescript-eslint/parser \
-    eslint \
-    eslint-config-prettier \
-    eslint-plugin-prettier \
-    prettier \
-    ts-node \
-    typescript \
-    @types/redis@4.0.11
-
-# Install production dependencies
-RUN npm install --save \
-    axios \
-    dotenv \
-    express \
-    winston \
-    redis
+    @types/express@4.17.17 \
+    @types/jsonwebtoken@9.0.0 \
+    @types/jest@29.5.0 \
+    @types/node@20.5.0 \
+    @types/uuid@9.0.0 \
+    @types/winston@2.4.4 \
+    jest@29.5.0 \
+    ts-jest@29.1.0 \
+    ts-node-dev@2.0.0 \
+    typescript@5.2.2
 
 # Set permissions for TypeScript
 RUN chmod -R 777 /usr/local/bin/tsc
@@ -53,7 +45,16 @@ RUN npm run type-check
 
 # Build the application and verify build output
 RUN npm run build && \
-    ls -la /app/dist || (echo "Build failed: dist directory not found" && exit 1)
+    if [ ! -d "/app/dist" ]; then \
+        echo "Build failed: dist directory not found" && \
+        exit 1; \
+    fi && \
+    if [ ! -d "/app/node_modules" ]; then \
+        echo "Build failed: node_modules directory not found" && \
+        exit 1; \
+    fi && \
+    ls -la /app/dist && \
+    ls -la /app/node_modules
 
 # Production stage
 FROM node:18-slim
@@ -63,14 +64,22 @@ WORKDIR /app
 # Install curl for healthcheck
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Copy built files from builder
+# Copy built files from builder and verify
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 
 # Verify copied files
-RUN ls -la /app/dist && \
-    ls -la /app/node_modules || (echo "Failed to copy build artifacts" && exit 1)
+RUN if [ ! -d "/app/dist" ]; then \
+        echo "Failed to copy dist directory" && \
+        exit 1; \
+    fi && \
+    if [ ! -d "/app/node_modules" ]; then \
+        echo "Failed to copy node_modules directory" && \
+        exit 1; \
+    fi && \
+    ls -la /app/dist && \
+    ls -la /app/node_modules
 
 # Expose the application port
 EXPOSE 3006
