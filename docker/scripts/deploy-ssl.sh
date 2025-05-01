@@ -13,6 +13,12 @@ if ! command -v certbot &> /dev/null; then
     sudo apt install certbot python3-certbot-nginx -y
 fi
 
+# 创建必要的目录
+echo "创建必要的目录..."
+mkdir -p ssl
+mkdir -p ../nginx/logs
+chmod 755 ../nginx/logs
+
 # 1. 配置管理端域名证书
 echo "1. 配置管理端域名证书..."
 echo "为 admin.pandatrade.space 和 admin-api.pandatrade.space 配置证书..."
@@ -57,6 +63,16 @@ echo "8. 测试并重启 Nginx..."
 sudo nginx -t
 sudo systemctl restart nginx
 
+# 9. 设置证书文件权限
+echo "9. 设置证书文件权限..."
+sudo chmod 600 /etc/letsencrypt/live/*/privkey.pem
+sudo chmod 644 /etc/letsencrypt/live/*/fullchain.pem
+
+# 10. 创建符号链接到 ssl 目录
+echo "10. 创建符号链接到 ssl 目录..."
+sudo ln -sf /etc/letsencrypt/live/pandatrade.space/privkey.pem ssl/private.key
+sudo ln -sf /etc/letsencrypt/live/pandatrade.space/fullchain.pem ssl/certificate.crt
+
 echo "SSL 证书部署完成！"
 echo "已配置的域名："
 echo "- admin.pandatrade.space"
@@ -67,27 +83,4 @@ echo "- strategy.pandatrade.space"
 echo "- server.pandatrade.space"
 echo ""
 echo "证书续期测试结果："
-sudo certbot renew --dry-run
-
-# 设置权限
-chmod 600 .env
-chmod 600 ssl/private.key
-chmod 644 ssl/certificate.crt
-
-# 创建必要的目录并设置权限
-mkdir -p ../nginx/logs
-chmod 755 ../nginx/logs
-
-# 部署 SSL 证书
-echo "正在部署 SSL 证书..."
-docker-compose -f ../docker/docker-compose.ssl.yml up -d --build
-
-# 等待服务启动
-echo "等待服务启动..."
-sleep 10
-
-# 检查服务状态
-echo "检查服务状态..."
-docker-compose -f ../docker/docker-compose.ssl.yml ps
-
-echo "SSL 证书部署完成！" 
+sudo certbot renew --dry-run 

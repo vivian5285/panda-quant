@@ -31,10 +31,6 @@ NODE_ENV=production
 API_RATE_LIMIT=100
 API_RATE_LIMIT_WINDOW=900000
 
-# SSL
-SSL_CERT_PATH=/etc/nginx/ssl/pandatrade.space.crt
-SSL_KEY_PATH=/etc/nginx/ssl/pandatrade.space.key
-
 # Monitoring
 PROMETHEUS_PORT=9090
 GRAFANA_PORT=3000
@@ -121,17 +117,8 @@ echo "8. 检查服务健康状态..."
 echo "检查 Strategy Engine 服务..."
 curl -f http://localhost:8083/health || echo "Strategy Engine 服务未就绪"
 
-# 9. 配置 SSL 证书（可选）
-read -p "是否需要配置 SSL 证书？(y/n): " need_ssl
-if [ "$need_ssl" = "y" ]; then
-    echo "9. 配置 SSL 证书..."
-    echo "为 strategy.pandatrade.space 配置证书..."
-    sudo certbot --nginx -d strategy.pandatrade.space
-
-    echo "设置证书自动续期..."
-    sudo certbot renew --dry-run
-fi
-
 echo "策略引擎部署完成！"
 echo "请确保以下域名已正确配置 DNS 记录："
-echo "- strategy.pandatrade.space" 
+echo "- strategy.pandatrade.space"
+echo ""
+echo "注意：SSL 证书将在后续单独配置，请运行 deploy-ssl.sh 脚本进行配置" 
