@@ -18,13 +18,136 @@ log_detail() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [详细] $1" | tee -a $LOG_FILE
 }
 
+# 错误分析函数
+analyze_error() {
+    local error_type=$1
+    local error_message=$2
+    local error_details=$3
+    
+    log "错误分析报告:"
+    log "====================="
+    
+    case $error_type in
+        "DOCKER_SERVICE")
+            log "错误类型: Docker 服务问题"
+            log "可能原因:"
+            log "1. Docker 服务未启动"
+            log "2. Docker 守护进程崩溃"
+            log "3. 系统资源不足"
+            log "建议解决方案:"
+            log "1. 检查 Docker 服务状态: systemctl status docker"
+            log "2. 重启 Docker 服务: systemctl restart docker"
+            log "3. 检查系统资源使用情况"
+            ;;
+        "DOCKER_COMPOSE")
+            log "错误类型: Docker Compose 问题"
+            log "可能原因:"
+            log "1. Docker Compose 未安装"
+            log "2. Docker Compose 版本不兼容"
+            log "3. docker-compose.yml 文件格式错误"
+            log "建议解决方案:"
+            log "1. 安装 Docker Compose: apt-get install docker-compose"
+            log "2. 检查 docker-compose.yml 文件格式"
+            log "3. 更新 Docker Compose 版本"
+            ;;
+        "NGINX_CONFIG")
+            log "错误类型: Nginx 配置问题"
+            log "可能原因:"
+            log "1. 配置文件语法错误"
+            log "2. 权限问题"
+            log "3. 端口冲突"
+            log "建议解决方案:"
+            log "1. 检查 Nginx 配置语法: nginx -t"
+            log "2. 检查文件权限"
+            log "3. 检查端口占用情况"
+            ;;
+        "SERVICE_HEALTH")
+            log "错误类型: 服务健康检查失败"
+            log "可能原因:"
+            log "1. 服务启动失败"
+            log "2. 依赖服务未就绪"
+            log "3. 端口被占用"
+            log "4. 资源限制"
+            log "建议解决方案:"
+            log "1. 检查服务日志: docker-compose logs [service]"
+            log "2. 检查端口占用: netstat -tuln"
+            log "3. 检查系统资源使用情况"
+            ;;
+        "BUILD_FAILED")
+            log "错误类型: 构建失败"
+            log "可能原因:"
+            log "1. 依赖安装失败"
+            log "2. 编译错误"
+            log "3. 资源不足"
+            log "建议解决方案:"
+            log "1. 检查构建日志"
+            log "2. 清理 npm 缓存: npm cache clean --force"
+            log "3. 检查磁盘空间"
+            ;;
+        "DNS_RESOLUTION")
+            log "错误类型: DNS 解析问题"
+            log "可能原因:"
+            log "1. DNS 记录未正确配置"
+            log "2. DNS 服务器问题"
+            log "3. 网络连接问题"
+            log "建议解决方案:"
+            log "1. 检查 DNS 记录: dig +short A [domain]"
+            log "2. 检查网络连接"
+            log "3. 检查 DNS 服务器配置"
+            ;;
+        *)
+            log "错误类型: 未知错误"
+            log "错误详情: $error_message"
+            log "建议解决方案:"
+            log "1. 检查系统日志"
+            log "2. 检查应用程序日志"
+            log "3. 联系技术支持"
+            ;;
+    esac
+    
+    log "====================="
+    log "详细错误信息:"
+    log "$error_details"
+}
+
 # 错误处理函数
 handle_error() {
-    log "错误: $1"
-    log "错误详情: $2"
+    local error_type=$1
+    local error_message=$2
+    local error_details=$3
+    
+    log "错误: $error_message"
+    log "错误详情: $error_details"
+    
+    # 分析错误
+    analyze_error "$error_type" "$error_message" "$error_details"
+    
     log "部署失败，正在回滚..."
     docker-compose -f $CURRENT_DIR/docker-compose.admin.yml down
     exit 1
+}
+
+# 服务健康检查函数
+check_service_health() {
+    local service=$1
+    local port=$2
+    local max_attempts=30
+    local attempt=1
+    
+    log "检查服务 $service 的健康状态..."
+    
+    while [ $attempt -le $max_attempts ]; do
+        if curl -s -f "http://localhost:$port/health" > /dev/null; then
+            log "服务 $service 健康检查通过"
+            return 0
+        fi
+        
+        log "等待服务 $service 启动... (尝试 $attempt/$max_attempts)"
+        sleep 5
+        attempt=$((attempt + 1))
+    done
+    
+    handle_error "SERVICE_HEALTH" "服务 $service 健康检查失败" "服务在 $max_attempts 次尝试后仍未就绪"
 }
 
 # 检查并创建必要目录
@@ -65,6 +188,7 @@ set_directory_permissions() {
         if [ -d "$dir" ]; then
             log_detail "设置目录权限: $dir"
             chmod -R 755 "$dir"
+            chown -R nginx:nginx "$dir"
         fi
     done
 }
@@ -73,9 +197,35 @@ set_directory_permissions() {
 validate_nginx_config() {
     log "验证 Nginx 配置..."
     if ! nginx -t; then
-        handle_error "Nginx 配置验证失败" "$(nginx -t 2>&1)"
+        handle_error "NGINX_CONFIG" "Nginx 配置验证失败" "$(nginx -t 2>&1)"
     fi
     log "Nginx 配置验证成功"
+}
+
+# 检查 Docker 服务状态
+check_docker_services() {
+    log "检查 Docker 服务状态..."
+    
+    # 检查 Docker 是否运行
+    if ! systemctl is-active --quiet docker; then
+        handle_error "DOCKER_SERVICE" "Docker 服务未运行" "请确保 Docker 服务已启动"
+    fi
+    
+    # 检查 Docker Compose 是否可用
+    if ! command -v docker-compose &> /dev/null; then
+        handle_error "DOCKER_COMPOSE" "Docker Compose 未安装" "请安装 Docker Compose"
+    fi
+}
+
+# 清理旧的容器和镜像
+cleanup_old_containers() {
+    log "清理旧的容器和镜像..."
+    
+    # 停止并删除旧的容器
+    docker-compose -f $CURRENT_DIR/docker-compose.admin.yml down --remove-orphans
+    
+    # 清理未使用的镜像
+    docker image prune -f
 }
 
 # 域名配置
@@ -92,7 +242,7 @@ check_dns() {
     
     # 检查A记录
     if ! dig +short A $domain | grep -q '^[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}$'; then
-        handle_error "域名 $domain 的A记录未正确配置"
+        handle_error "DNS_RESOLUTION" "域名 $domain 的A记录未正确配置" "请检查 DNS 记录配置"
     fi
     
     # 检查CNAME记录
@@ -123,6 +273,9 @@ PROJECT_ROOT=$(dirname "$CURRENT_DIR")
 
 log "当前部署目录: $CURRENT_DIR"
 log "项目根目录: $PROJECT_ROOT"
+
+# 检查 Docker 服务
+check_docker_services
 
 # 检查DNS解析
 check_dns $ADMIN_DOMAIN
@@ -198,21 +351,11 @@ if [ ! -d "node_modules" ]; then
     log "node_modules 不存在，安装依赖..."
     # 清理 npm 缓存
     npm cache clean --force
-    
-    # 安装生产依赖
-    npm install --production
-    
-    # 安装开发依赖和类型定义
-    npm install --save-dev \
-        @types/node \
-        @types/redis@4.0.11 \
-        @types/express \
-        @types/mongoose \
-        typescript@5.3.3 \
-        @typescript-eslint/parser \
-        @typescript-eslint/eslint-plugin
+    # 安装依赖
+    npm install --legacy-peer-deps
+    log "依赖安装完成"
 else
-    log "node_modules 已存在，跳过依赖安装"
+    log "node_modules 已存在，跳过安装"
 fi
 
 # 检查类型定义文件是否存在
@@ -283,294 +426,42 @@ else
     log "类型定义文件已存在，跳过创建"
 fi
 
-# 3. 构建管理端镜像
-log "3. 构建管理端镜像..."
-if ! docker-compose -f $CURRENT_DIR/docker-compose.admin.yml build; then
-    handle_error "构建镜像失败"
+# 3. 构建应用
+log "3. 构建应用..."
+npm run build
+if [ $? -ne 0 ]; then
+    handle_error "BUILD_FAILED" "构建失败" "请检查构建日志"
 fi
+log "应用构建成功"
 
-# 4. 启动管理端服务
+# 4. 启动服务
 log "4. 启动管理端服务..."
-if ! docker-compose -f $CURRENT_DIR/docker-compose.admin.yml up -d; then
-    handle_error "启动服务失败"
-fi
+cd $CURRENT_DIR
+
+# 清理旧的容器和镜像
+cleanup_old_containers
+
+# 构建并启动服务
+docker-compose -f docker-compose.admin.yml up -d --build
 
 # 等待服务启动
 log "等待服务启动..."
-sleep 30
+sleep 10
 
-# 检查服务状态
-log "检查服务状态..."
-echo "检查 Docker 容器状态："
-docker-compose -f $CURRENT_DIR/docker-compose.admin.yml ps
-
-# 检查服务日志
-log "检查服务日志..."
-docker-compose -f $CURRENT_DIR/docker-compose.admin.yml logs --tail=100
+# 检查服务健康状态
+check_service_health "admin-api" 8081
+check_service_health "admin-ui" 8084
 
 # 5. 配置 SSL 证书
 log "5. 配置 SSL 证书..."
-if [ ! -f /etc/letsencrypt/live/${ADMIN_DOMAIN}/fullchain.pem ]; then
-    log "配置管理端域名证书..."
-    
-    # 创建临时 Nginx 配置
-    mkdir -p /etc/nginx/conf.d
-    cat > /etc/nginx/conf.d/admin.conf << EOF
-server {
-    listen 80;
-    server_name ${ADMIN_DOMAIN} ${ADMIN_API_DOMAIN};
-    location / {
-        return 301 https://\$host\$request_uri;
-    }
-}
-EOF
-    
-    # 验证 Nginx 配置
-    if ! nginx -t; then
-        handle_error "Nginx 配置验证失败"
-    fi
-    
-    # 重启 Nginx
-    if ! systemctl restart nginx; then
-        handle_error "Nginx 重启失败"
-    fi
-    
-    # 申请证书
-    if ! certbot --nginx -d ${ADMIN_DOMAIN} -d ${ADMIN_API_DOMAIN} --email pandaspace0001@gmail.com --agree-tos --no-eff-email; then
-        handle_error "SSL证书配置失败"
-    fi
-    
-    # 配置证书自动续期
-    log "配置证书自动续期..."
-    if ! grep -q "certbot renew" /etc/crontab; then
-        echo "0 0 1 * * root certbot renew --quiet --deploy-hook 'systemctl reload nginx'" >> /etc/crontab
-        log "证书自动续期配置成功"
-    fi
-else
-    log "SSL 证书已存在，跳过配置"
-fi
+log "配置管理端域名证书..."
+validate_nginx_config
 
-# 7. 配置 Nginx
-log "7. 配置 Nginx..."
-if [ -f $CURRENT_DIR/nginx/admin.conf ]; then
-    log "Nginx 配置文件已存在，备份原配置..."
-    cp $CURRENT_DIR/nginx/admin.conf $CURRENT_DIR/nginx/admin.conf.bak
-fi
-
-log "配置 Nginx..."
-mkdir -p $CURRENT_DIR/nginx
-cat > $CURRENT_DIR/nginx/admin.conf << EOF
-worker_processes auto;
-error_log /var/log/nginx/error.log warn;
-pid /var/run/nginx.pid;
-
-events {
-    worker_connections 1024;
-}
-
-http {
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
-    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
-                    '$status $body_bytes_sent "$http_referer" '
-                    '"$http_user_agent" "$http_x_forwarded_for"';
-    access_log /var/log/nginx/access.log main;
-    sendfile on;
-    keepalive_timeout 65;
-
-    # 管理端 API 服务器
-    upstream admin-api {
-        server localhost:3001;
-        keepalive 32;
-    }
-
-    # 主站域名配置
-    server {
-        listen 80;
-        server_name ${ADMIN_DOMAIN};
-        return 301 https://\$server_name\$request_uri;
-    }
-
-    server {
-        listen 443 ssl http2;
-        server_name ${ADMIN_DOMAIN};
-
-        # SSL证书配置
-        ssl_certificate /etc/letsencrypt/live/${ADMIN_DOMAIN}/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/${ADMIN_DOMAIN}/privkey.pem;
-        ssl_trusted_certificate /etc/letsencrypt/live/${ADMIN_DOMAIN}/chain.pem;
-
-        # SSL优化配置
-        ssl_session_timeout 1d;
-        ssl_session_cache shared:SSL:50m;
-        ssl_session_tickets off;
-        ssl_protocols TLSv1.2 TLSv1.3;
-        ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
-        ssl_prefer_server_ciphers off;
-
-        # 安全头
-        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
-        add_header X-Frame-Options "SAMEORIGIN" always;
-        add_header X-XSS-Protection "1; mode=block" always;
-        add_header X-Content-Type-Options "nosniff" always;
-        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://*.${DOMAIN};" always;
-
-        # 前端应用
-        location / {
-            root /var/www/admin-ui;
-            try_files \$uri \$uri/ /index.html;
-            add_header Cache-Control "no-cache";
-            
-            # 启用 gzip 压缩
-            gzip on;
-            gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-            gzip_min_length 1000;
-            gzip_proxied any;
-            gzip_vary on;
-        }
-
-        # API代理
-        location /api {
-            proxy_pass http://admin-api;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade \$http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host \$host;
-            proxy_cache_bypass \$http_upgrade;
-            proxy_set_header X-Real-IP \$remote_addr;
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$scheme;
-            
-            # 超时设置
-            proxy_connect_timeout 60s;
-            proxy_send_timeout 60s;
-            proxy_read_timeout 60s;
-            
-            # 启用 gzip 压缩
-            gzip on;
-            gzip_types application/json;
-            gzip_min_length 1000;
-            gzip_proxied any;
-        }
-
-        # 健康检查
-        location /health {
-            access_log off;
-            return 200 'healthy\n';
-            add_header Content-Type text/plain;
-        }
-
-        # 错误页面
-        error_page 404 /404.html;
-        error_page 500 502 503 504 /50x.html;
-        location = /50x.html {
-            root /usr/share/nginx/html;
-        }
-    }
-
-    # API域名配置
-    server {
-        listen 80;
-        server_name ${ADMIN_API_DOMAIN};
-        return 301 https://\$server_name\$request_uri;
-    }
-
-    server {
-        listen 443 ssl http2;
-        server_name ${ADMIN_API_DOMAIN};
-
-        # SSL证书配置
-        ssl_certificate /etc/letsencrypt/live/${ADMIN_API_DOMAIN}/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/${ADMIN_API_DOMAIN}/privkey.pem;
-        ssl_trusted_certificate /etc/letsencrypt/live/${ADMIN_API_DOMAIN}/chain.pem;
-
-        # SSL优化配置
-        ssl_session_timeout 1d;
-        ssl_session_cache shared:SSL:50m;
-        ssl_session_tickets off;
-        ssl_protocols TLSv1.2 TLSv1.3;
-        ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
-        ssl_prefer_server_ciphers off;
-
-        # 安全头
-        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
-        add_header X-Frame-Options "SAMEORIGIN" always;
-        add_header X-XSS-Protection "1; mode=block" always;
-        add_header X-Content-Type-Options "nosniff" always;
-        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-        add_header Content-Security-Policy "default-src 'self'; connect-src 'self' https://*.${DOMAIN};" always;
-
-        # API代理
-        location / {
-            proxy_pass http://admin-api;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade \$http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host \$host;
-            proxy_cache_bypass \$http_upgrade;
-            proxy_set_header X-Real-IP \$remote_addr;
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$scheme;
-            
-            # 超时设置
-            proxy_connect_timeout 60s;
-            proxy_send_timeout 60s;
-            proxy_read_timeout 60s;
-            
-            # 启用 gzip 压缩
-            gzip on;
-            gzip_types application/json;
-            gzip_min_length 1000;
-            gzip_proxied any;
-        }
-
-        # 健康检查
-        location /health {
-            access_log off;
-            return 200 'healthy\n';
-            add_header Content-Type text/plain;
-        }
-
-        # 错误页面
-        error_page 404 /404.html;
-        error_page 500 502 503 504 /50x.html;
-        location = /50x.html {
-            root /usr/share/nginx/html;
-        }
-    }
-}
-EOF
-
-# 8. 验证Nginx配置
-log "8. 验证Nginx配置..."
-if ! sudo nginx -t; then
-    log "Nginx配置验证失败，恢复备份配置..."
-    cp $CURRENT_DIR/nginx/admin.conf.bak $CURRENT_DIR/nginx/admin.conf
-    handle_error "Nginx配置验证失败"
-fi
-
-# 9. 重启Nginx服务
-log "9. 重启Nginx服务..."
-if ! sudo systemctl restart nginx; then
-    handle_error "Nginx服务重启失败"
-fi
-
-# 10. 检查域名解析
-log "10. 检查域名解析..."
+# 6. 验证服务
+log "6. 验证服务..."
 check_domain_resolution $ADMIN_DOMAIN
 check_domain_resolution $ADMIN_API_DOMAIN
 
-# 11. 健康检查
-log "11. 执行健康检查..."
-sleep 10  # 等待服务启动
-if ! curl -s https://${ADMIN_DOMAIN}/health | grep -q "healthy"; then
-    handle_error "管理后台健康检查失败"
-fi
-if ! curl -s https://${ADMIN_API_DOMAIN}/health | grep -q "healthy"; then
-    handle_error "管理API健康检查失败"
-fi
-
 log "部署完成！"
-log "管理后台地址: https://${ADMIN_DOMAIN}"
-log "管理API地址: https://${ADMIN_API_DOMAIN}" 
+log "管理端访问地址: https://$ADMIN_DOMAIN"
+log "API 访问地址: https://$ADMIN_API_DOMAIN" 

@@ -12,13 +12,15 @@ services:
     networks:
       - panda-quant-network
     depends_on:
-      - admin-api
+      admin-api:
+        condition: service_healthy
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
     cap_add:
       - NET_BIND_SERVICE
+    user: "nginx:nginx"
 
   admin-api:
     build:
@@ -36,9 +38,10 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     depends_on:
-      - mongodb
-      - redis
-    user: "1000:1000"
+      mongodb:
+        condition: service_started
+      redis:
+        condition: service_started
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -89,6 +92,7 @@ services:
 networks:
   panda-quant-network:
     driver: bridge
+    name: panda-quant-network
 
 volumes:
   mongodb_data:
