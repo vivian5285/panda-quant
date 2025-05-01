@@ -14,9 +14,9 @@ RUN apt-get update && apt-get install -y \
 RUN npm install -g typescript
 
 # Copy package files
-COPY package*.json ./
-COPY tsconfig.json ./
-COPY prisma ./prisma/
+COPY user-api/package*.json ./
+COPY user-api/tsconfig.json ./
+COPY user-api/prisma ./prisma/
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
@@ -74,7 +74,7 @@ RUN npm install --save \
 RUN chmod -R 777 /usr/local/bin/tsc
 
 # Copy source code
-COPY . .
+COPY user-api/. .
 
 # Set permissions for Prisma
 RUN chmod -R 777 /app/node_modules/.bin/prisma

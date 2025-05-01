@@ -10,70 +10,42 @@ echo "项目根目录: $(pwd)/.."
 # 1. 配置环境变量
 echo "1. 配置环境变量..."
 cat > .env << 'EOF'
-# Database
-DB_HOST=postgres
-DB_USERNAME=postgres
-DB_PASSWORD=Wl528586*
-DB_NAME=panda_quant
-DB_PORT=5432
-DB_POOL_MAX=20
-DB_POOL_IDLE_TIMEOUT=30000
-DB_POOL_CONNECTION_TIMEOUT=2000
-
-# JWT
-JWT_SECRET=panda_quant_secret_key_2024
-JWT_EXPIRES_IN=24h
-JWT_REFRESH_EXPIRES_IN=7d
-
-# API
-API_PORT=3000
+# 应用配置
 NODE_ENV=production
-API_RATE_LIMIT=100
-API_RATE_LIMIT_WINDOW=900000
 
-# Monitoring
-PROMETHEUS_PORT=9090
-GRAFANA_PORT=3000
-GRAFANA_ADMIN_PASSWORD=Wl528586*
-ALERTMANAGER_PORT=9093
+# 端口配置
+USER_API_PORT=3002
+USER_UI_PORT=3003
 
-# Backup
-BACKUP_DIR=/backup
-BACKUP_RETENTION_DAYS=7
-BACKUP_SCHEDULE="0 0 * * *"
+# 域名配置
+DOMAIN=pandatrade.space
+API_SUBDOMAIN=api
 
-# Security
-PASSWORD_MIN_LENGTH=8
-PASSWORD_REQUIRE_UPPERCASE=true
-PASSWORD_REQUIRE_LOWERCASE=true
-PASSWORD_REQUIRE_NUMBERS=true
-PASSWORD_REQUIRE_SYMBOLS=true
-MAX_LOGIN_ATTEMPTS=5
-LOGIN_LOCKOUT_MINUTES=30
+# 数据库配置
+MONGO_INITDB_ROOT_USERNAME=admin
+MONGO_INITDB_ROOT_PASSWORD=Wl528586*
+MONGO_URI=mongodb://admin:Wl528586*@mongodb:27017/admin
+
+# Redis配置
+REDIS_PASSWORD=Wl528586*
+REDIS_URI=redis://:Wl528586*@redis:6379
+
+# JWT配置
+JWT_SECRET=Wl528586*
+
+# Encryption key
+ENCRYPTION_KEY=Wl528586*
+
+# Nginx Ports
+USER_NGINX_PORT=80
+
+# Network Configuration
+NETWORK_NAME=panda-quant-network
 
 # Logging
 LOG_LEVEL=info
 LOG_FORMAT=json
 LOG_RETENTION_DAYS=30
-
-# Cache
-REDIS_HOST=redis
-REDIS_PORT=6379
-REDIS_PASSWORD=Wl528586*
-CACHE_TTL=3600
-
-# Email
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=Wl528586*
-SMTP_FROM=noreply@pandatrade.space
-
-# CDN
-CDN_ENABLED=true
-CDN_DOMAIN=cdn.pandatrade.space
-CDN_KEY=your_cdn_key
-CDN_SECRET=your_cdn_secret
 EOF
 
 # 设置权限
@@ -92,12 +64,12 @@ docker build -t panda-quant-user-ui -f Dockerfile.user-ui ..
 
 # 3. 启动用户端服务
 echo "3. 启动用户端服务..."
-docker-compose -f ../docker/docker-compose.user.yml up -d --build
+docker-compose -f docker-compose.user.yml up -d
 
 # 4. 检查服务状态
 echo "4. 检查服务状态..."
 echo "检查 Docker 容器状态："
-docker-compose -f ../docker/docker-compose.user.yml ps
+docker-compose -f docker-compose.user.yml ps
 
 # 5. 配置 Nginx
 echo "5. 配置 Nginx..."
@@ -124,7 +96,9 @@ sleep 10
 # 8. 检查服务健康状态
 echo "8. 检查服务健康状态..."
 echo "检查 User API 服务..."
-curl -f http://localhost:8082/health || echo "User API 服务未就绪"
+curl -f http://localhost:3002/health || echo "User API 服务未就绪"
+echo "检查 User UI 服务..."
+curl -f http://localhost:3003/health || echo "User UI 服务未就绪"
 
 echo "用户端服务部署完成！"
 echo "请确保以下域名已正确配置 DNS 记录："

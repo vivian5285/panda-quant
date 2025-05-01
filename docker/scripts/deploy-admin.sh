@@ -12,23 +12,45 @@ echo "项目根目录: $PROJECT_ROOT"
 
 # 1. 配置环境变量
 echo "1. 配置环境变量..."
-if [ ! -f .env ]; then
-  cat > .env << EOF
-# MongoDB Configuration
+cat > .env << 'EOF'
+# 应用配置
+NODE_ENV=production
+
+# 端口配置
+ADMIN_API_PORT=3001
+ADMIN_UI_PORT=8084
+
+# 域名配置
+DOMAIN=pandatrade.space
+ADMIN_SUBDOMAIN=admin
+ADMIN_API_SUBDOMAIN=admin-api
+
+# 数据库配置
 MONGO_INITDB_ROOT_USERNAME=admin
 MONGO_INITDB_ROOT_PASSWORD=Wl528586*
+MONGO_URI=mongodb://admin:Wl528586*@mongodb:27017/admin
 
-# Redis Configuration
+# Redis配置
 REDIS_PASSWORD=Wl528586*
+REDIS_URI=redis://:Wl528586*@redis:6379
 
-# JWT Configuration
+# JWT配置
 JWT_SECRET=Wl528586*
+
+# Encryption key
 ENCRYPTION_KEY=Wl528586*
 
-# CDN Configuration
-CDN_SECRET=your_cdn_secret
+# Nginx Ports
+ADMIN_NGINX_PORT=80
+
+# Network Configuration
+NETWORK_NAME=panda-quant-network
+
+# Logging
+LOG_LEVEL=info
+LOG_FORMAT=json
+LOG_RETENTION_DAYS=30
 EOF
-fi
 
 # 设置权限
 chmod 600 .env
@@ -95,7 +117,9 @@ sleep 10
 # 8. 检查服务健康状态
 echo "8. 检查服务健康状态..."
 echo "检查 Admin API 服务..."
-curl -f http://localhost:8081/health || echo "Admin API 服务未就绪"
+curl -f http://localhost:3001/health || echo "Admin API 服务未就绪"
+echo "检查 Admin UI 服务..."
+curl -f http://localhost:8084/health || echo "Admin UI 服务未就绪"
 
 # 9. 配置 SSL 证书（可选）
 read -p "是否需要配置 SSL 证书？(y/n): " need_ssl

@@ -126,7 +126,7 @@ const AdminNavbar: React.FC = () => {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         style={{ cursor: 'pointer' }}
-        onClick={handleClick}
+        onClick={handleClick as any}
       >
         <Typography
           variant="h6"
