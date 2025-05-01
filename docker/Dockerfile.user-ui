@@ -10,13 +10,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy package files first to leverage Docker cache
-COPY package*.json ./
+COPY user-ui/package*.json ./
 
 # Install all dependencies including devDependencies
 RUN npm install --legacy-peer-deps
 
 # Copy source code
-COPY . .
+COPY user-ui/ ./
 
 # Set production environment
 ENV NODE_ENV=production

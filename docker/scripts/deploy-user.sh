@@ -14,8 +14,8 @@ cat > .env << 'EOF'
 NODE_ENV=production
 
 # 端口配置
-USER_API_PORT=3002
-USER_UI_PORT=3003
+USER_API_PORT=8083
+USER_UI_PORT=8082
 
 # 域名配置
 DOMAIN=pandatrade.space
@@ -28,7 +28,7 @@ MONGO_URI=mongodb://admin:Wl528586*@mongodb:27017/admin
 
 # Redis配置
 REDIS_PASSWORD=Wl528586*
-REDIS_URI=redis://:Wl528586*@redis:6379
+REDIS_URI=redis://:Wl528586*@redis:6381
 
 # JWT配置
 JWT_SECRET=Wl528586*
@@ -58,18 +58,18 @@ chmod 755 ../user-api/logs
 # 2. 构建用户端镜像
 echo "2. 构建用户端镜像..."
 echo "构建 user-api 镜像..."
-docker build -t panda-quant-user-api -f Dockerfile.user-api ..
+docker build -t panda-quant-user-api -f docker/Dockerfile.user-api ..
 echo "构建 user-ui 镜像..."
-docker build -t panda-quant-user-ui -f Dockerfile.user-ui ..
+docker build -t panda-quant-user-ui -f docker/Dockerfile.user-ui ..
 
 # 3. 启动用户端服务
 echo "3. 启动用户端服务..."
-docker-compose -f docker-compose.user.yml up -d
+docker-compose -f docker/docker-compose.user.yml up -d
 
 # 4. 检查服务状态
 echo "4. 检查服务状态..."
 echo "检查 Docker 容器状态："
-docker-compose -f docker-compose.user.yml ps
+docker-compose -f docker/docker-compose.user.yml ps
 
 # 5. 配置 Nginx
 echo "5. 配置 Nginx..."
@@ -81,8 +81,8 @@ if [ -f /etc/nginx/nginx.conf ]; then
 fi
 
 echo "复制 Nginx 配置文件..."
-sudo cp nginx/nginx.conf /etc/nginx/nginx.conf
-sudo cp nginx/user.conf /etc/nginx/conf.d/
+sudo cp docker/nginx/nginx.conf /etc/nginx/nginx.conf
+sudo cp docker/nginx/user.conf /etc/nginx/conf.d/
 
 # 6. 测试并重启 Nginx
 echo "6. 测试并重启 Nginx..."
@@ -96,9 +96,9 @@ sleep 10
 # 8. 检查服务健康状态
 echo "8. 检查服务健康状态..."
 echo "检查 User API 服务..."
-curl -f http://localhost:3002/health || echo "User API 服务未就绪"
+curl -f http://localhost:8083/health || echo "User API 服务未就绪"
 echo "检查 User UI 服务..."
-curl -f http://localhost:3003/health || echo "User UI 服务未就绪"
+curl -f http://localhost:8082/health || echo "User UI 服务未就绪"
 
 echo "用户端服务部署完成！"
 echo "请确保以下域名已正确配置 DNS 记录："

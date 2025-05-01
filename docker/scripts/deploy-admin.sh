@@ -32,7 +32,7 @@ MONGO_URI=mongodb://admin:Wl528586*@mongodb:27017/admin
 
 # Redis配置
 REDIS_PASSWORD=Wl528586*
-REDIS_URI=redis://:Wl528586*@redis:6379
+REDIS_URI=redis://:Wl528586*@redis:6380
 
 # JWT配置
 JWT_SECRET=Wl528586*
