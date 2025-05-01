@@ -11,56 +11,14 @@ RUN apk add --no-cache \
     curl
 
 # Install TypeScript globally
-RUN npm install -g typescript@5.3.3
+RUN npm install -g typescript@5.4.2
 
 # Copy package files first to leverage Docker cache
 COPY admin-api/package*.json ./
 COPY admin-api/tsconfig.json ./
 
-# Install all dependencies at once
-RUN npm install --legacy-peer-deps && \
-    npm install --save-dev \
-    typescript@5.3.3 \
-    ts-node \
-    @types/node \
-    @typescript-eslint/eslint-plugin \
-    @typescript-eslint/parser \
-    eslint \
-    eslint-config-prettier \
-    eslint-plugin-prettier \
-    prettier \
-    @types/express \
-    @types/cors \
-    @types/passport \
-    @types/passport-jwt \
-    @types/passport-local \
-    @types/jsonwebtoken \
-    @types/bcrypt \
-    @types/bcryptjs \
-    @types/validator \
-    @types/d3-array \
-    @types/d3-color \
-    @types/d3-ease \
-    @types/d3-interpolate \
-    @types/d3-path \
-    @types/d3-scale \
-    @types/d3-shape \
-    @types/d3-time \
-    @types/d3-timer \
-    @types/jest@29.5.11 \
-    @types/istanbul-lib-coverage@2.0.4 \
-    @types/istanbul-lib-report@3.0.0 \
-    @types/istanbul-reports@3.0.1 \
-    @types/babel__core@7.1.20 \
-    @types/babel__generator@7.6.8 \
-    @types/babel__template@7.4.4 \
-    @types/babel__traverse@7.20.5 \
-    @types/graceful-fs@4.1.6 \
-    @types/nodemailer@6.4.14 \
-    @types/react-dom@18.2.18 \
-    @types/stack-utils@2.0.3 \
-    @types/yargs-parser@21.0.0 \
-    @types/yargs@17.0.32
+# Install all dependencies
+RUN npm install --legacy-peer-deps
 
 # Set permissions for TypeScript
 RUN chmod -R 777 /usr/local/bin/tsc

@@ -146,6 +146,9 @@ chmod 755 $PROJECT_ROOT/user-api/logs
 
 # 2. 安装依赖和类型定义
 log "INFO" "2. 检查依赖和类型定义..."
+
+# 安装user-api依赖
+log "INFO" "安装user-api依赖..."
 cd $PROJECT_ROOT/user-api
 
 # 检查 node_modules 是否存在
@@ -168,6 +171,34 @@ if [ ! -d "node_modules" ]; then
         typescript@5.3.3 \
         @typescript-eslint/parser \
         @typescript-eslint/eslint-plugin
+else
+    log "INFO" "node_modules 已存在，跳过依赖安装"
+fi
+
+# 安装user-ui依赖
+log "INFO" "安装user-ui依赖..."
+cd $PROJECT_ROOT/user-ui
+
+# 检查 node_modules 是否存在
+if [ ! -d "node_modules" ]; then
+    log "INFO" "node_modules 不存在，安装依赖..."
+    # 清理 npm 缓存
+    npm cache clean --force
+    
+    # 安装所有依赖
+    log "INFO" "安装所有依赖..."
+    npm install --prefer-offline --no-audit --legacy-peer-deps
+    
+    # 安装开发依赖和类型定义
+    log "INFO" "安装开发依赖和类型定义..."
+    npm install --save-dev --prefer-offline --no-audit \
+        @types/node \
+        @types/react \
+        @types/react-dom \
+        typescript@5.3.3 \
+        @typescript-eslint/parser \
+        @typescript-eslint/eslint-plugin \
+        esbuild@0.18.20
 else
     log "INFO" "node_modules 已存在，跳过依赖安装"
 fi
@@ -330,7 +361,7 @@ http {
 
     # 用户端 API 服务器
     upstream user-api {
-        server localhost:3003;
+        server localhost:8083;
         keepalive 32;
     }
 
@@ -382,7 +413,7 @@ http {
 
         # API代理
         location /api {
-            proxy_pass http://user-api;
+            proxy_pass http://user-api:8083;
             proxy_http_version 1.1;
             proxy_set_header Upgrade \$http_upgrade;
             proxy_set_header Connection 'upgrade';
@@ -523,6 +554,16 @@ fi
 # 12. 清理临时文件
 log "INFO" "12. 清理临时文件..."
 rm -rf $CURRENT_DIR/tmp/*
+
+# 启动用户端 API 服务
+echo "启动用户端 API 服务..."
+cd /var/www/user-api
+pm2 start dist/main.js --name "user-api" --time --env production -- --port 8083
+
+# 启动用户端 UI 服务
+echo "启动用户端 UI 服务..."
+cd /var/www/user-ui
+pm2 start dist/main.js --name "user-ui" --time --env production -- --port 8084
 
 log "INFO" "部署完成！"
 log "INFO" "用户后台地址: https://${USER_DOMAIN}"
