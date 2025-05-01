@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
+# Create a non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
 # Copy package files first to leverage Docker cache
 COPY user-ui/package*.json ./
 
@@ -17,6 +20,12 @@ RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY user-ui/ ./
+
+# Set proper permissions
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
 
 # Set production environment
 ENV NODE_ENV=production
