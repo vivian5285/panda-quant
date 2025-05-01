@@ -35,7 +35,12 @@ ENV VITE_ENV=production
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+FROM nginx:stable
+
+# Install necessary packages
+RUN apt-get update && apt-get install -y \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy built files from builder
 COPY --from=builder /app/dist /usr/share/nginx/html

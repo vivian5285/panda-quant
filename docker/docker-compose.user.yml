@@ -50,9 +50,9 @@ services:
     image: postgres:15
     container_name: panda-quant-postgres
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=Wl528586*
+      - POSTGRES_DB=panda_quant
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
