@@ -93,9 +93,6 @@ RUN chown -R node:node /app
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3001
-ENV DATABASE_URL="postgresql://postgres:postgres@postgres:5432/panda_quant?schema=public"
-ENV JWT_SECRET="your-secret-key"
-ENV REDIS_URL="redis://redis:6379"
 
 # Switch to non-root user
 USER node
@@ -105,7 +102,7 @@ EXPOSE 3001
 
 # Add health check
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:3001/health || exit 1
+    CMD curl -f http://localhost:3001/health || exit 1
 
 # Start the application
-CMD ["npm", "start"] 
+CMD ["node", "dist/index.js"] 

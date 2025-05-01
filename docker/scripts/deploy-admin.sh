@@ -94,12 +94,23 @@ server {
         proxy_pass http://admin-ui:8084;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
     }
 
     location /api {
-        proxy_pass http://admin-api:8081;
+        proxy_pass http://admin-api:3001;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    # 健康检查
+    location /health {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "healthy\n";
     }
 }
 EOF
@@ -110,21 +121,45 @@ echo "6. 测试并重启 Nginx..."
 sudo nginx -t
 sudo systemctl restart nginx
 
-# 7. 等待服务启动
-echo "7. 等待服务启动..."
-sleep 10
+# 7. 等待服务启动并检查健康状态
+echo "7. 等待服务启动并检查健康状态..."
+MAX_RETRIES=30
+RETRY_INTERVAL=5
+retry_count=0
 
-# 8. 检查服务健康状态
-echo "8. 检查服务健康状态..."
-echo "检查 Admin API 服务..."
-curl -f http://localhost:3001/health || echo "Admin API 服务未就绪"
-echo "检查 Admin UI 服务..."
-curl -f http://localhost:8084/health || echo "Admin UI 服务未就绪"
+while [ $retry_count -lt $MAX_RETRIES ]; do
+    echo "尝试检查服务健康状态 (尝试 $((retry_count + 1))/$MAX_RETRIES)..."
+    
+    # 检查 Admin API 服务
+    if curl -f http://localhost:3001/health > /dev/null 2>&1; then
+        echo "Admin API 服务已就绪"
+    else
+        echo "Admin API 服务未就绪，等待重试..."
+        sleep $RETRY_INTERVAL
+        retry_count=$((retry_count + 1))
+        continue
+    fi
+    
+    # 检查 Admin UI 服务
+    if curl -f http://localhost:8084/health > /dev/null 2>&1; then
+        echo "Admin UI 服务已就绪"
+        break
+    else
+        echo "Admin UI 服务未就绪，等待重试..."
+        sleep $RETRY_INTERVAL
+        retry_count=$((retry_count + 1))
+    fi
+done
 
-# 9. 配置 SSL 证书（可选）
+if [ $retry_count -eq $MAX_RETRIES ]; then
+    echo "错误：服务在 $((MAX_RETRIES * RETRY_INTERVAL)) 秒后仍未就绪"
+    exit 1
+fi
+
+# 8. 配置 SSL 证书（可选）
 read -p "是否需要配置 SSL 证书？(y/n): " need_ssl
 if [ "$need_ssl" = "y" ]; then
-    echo "9. 配置 SSL 证书..."
+    echo "8. 配置 SSL 证书..."
     echo "为 admin.pandatrade.space 和 admin-api.pandatrade.space 配置证书..."
     sudo certbot --nginx -d admin.pandatrade.space -d admin-api.pandatrade.space
 
