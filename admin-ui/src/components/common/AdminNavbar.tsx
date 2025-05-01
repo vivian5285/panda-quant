@@ -18,7 +18,7 @@ import {
   Badge,
   styled,
 } from '@mui/material';
-import { motion, HTMLMotionProps } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Menu as MenuIcon,
   Language as LanguageIcon,

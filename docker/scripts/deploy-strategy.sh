@@ -76,6 +76,13 @@ CDN_KEY=your_cdn_key
 CDN_SECRET=your_cdn_secret
 EOF
 
+# 设置权限
+chmod 600 .env
+
+# 创建必要的目录并设置权限
+mkdir -p ../strategy-engine/logs
+chmod 755 ../strategy-engine/logs
+
 # 2. 构建策略引擎镜像
 echo "2. 构建策略引擎镜像..."
 echo "构建 strategy-engine 镜像..."
