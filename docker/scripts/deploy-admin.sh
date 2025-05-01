@@ -3,120 +3,85 @@
 # 设置错误时退出
 set -e
 
-# 显示当前目录
-echo "当前部署目录: $(pwd)"
-echo "项目根目录: $(pwd)/.."
+# 设置当前部署目录和项目根目录
+CURRENT_DIR=$(pwd)
+PROJECT_ROOT=$(dirname "$CURRENT_DIR")
+
+echo "当前部署目录: $CURRENT_DIR"
+echo "项目根目录: $PROJECT_ROOT"
 
 # 1. 配置环境变量
 echo "1. 配置环境变量..."
-cat > .env << 'EOF'
-# Database
-DB_HOST=postgres
-DB_USERNAME=postgres
-DB_PASSWORD=Wl528586*
-DB_NAME=panda_quant
-DB_PORT=5432
-DB_POOL_MAX=20
-DB_POOL_IDLE_TIMEOUT=30000
-DB_POOL_CONNECTION_TIMEOUT=2000
+if [ ! -f .env ]; then
+  cat > .env << EOF
+# MongoDB Configuration
+MONGO_INITDB_ROOT_USERNAME=admin
+MONGO_INITDB_ROOT_PASSWORD=Wl528586*
 
-# JWT
-JWT_SECRET=panda_quant_secret_key_2024
-JWT_EXPIRES_IN=24h
-JWT_REFRESH_EXPIRES_IN=7d
-
-# API
-API_PORT=3000
-NODE_ENV=production
-API_RATE_LIMIT=100
-API_RATE_LIMIT_WINDOW=900000
-
-# SSL
-SSL_CERT_PATH=/etc/nginx/ssl/pandatrade.space.crt
-SSL_KEY_PATH=/etc/nginx/ssl/pandatrade.space.key
-
-# Monitoring
-PROMETHEUS_PORT=9090
-GRAFANA_PORT=3000
-GRAFANA_ADMIN_PASSWORD=Wl528586*
-ALERTMANAGER_PORT=9093
-
-# Backup
-BACKUP_DIR=/backup
-BACKUP_RETENTION_DAYS=7
-BACKUP_SCHEDULE="0 0 * * *"
-
-# Security
-PASSWORD_MIN_LENGTH=8
-PASSWORD_REQUIRE_UPPERCASE=true
-PASSWORD_REQUIRE_LOWERCASE=true
-PASSWORD_REQUIRE_NUMBERS=true
-PASSWORD_REQUIRE_SYMBOLS=true
-MAX_LOGIN_ATTEMPTS=5
-LOGIN_LOCKOUT_MINUTES=30
-
-# Logging
-LOG_LEVEL=info
-LOG_FORMAT=json
-LOG_RETENTION_DAYS=30
-
-# Cache
-REDIS_HOST=redis
-REDIS_PORT=6379
+# Redis Configuration
 REDIS_PASSWORD=Wl528586*
-CACHE_TTL=3600
 
-# Email
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=Wl528586*
-SMTP_FROM=noreply@pandatrade.space
+# JWT Configuration
+JWT_SECRET=Wl528586*
+ENCRYPTION_KEY=Wl528586*
 
-# CDN
-CDN_ENABLED=true
-CDN_DOMAIN=cdn.pandatrade.space
-CDN_KEY=your_cdn_key
+# CDN Configuration
 CDN_SECRET=your_cdn_secret
 EOF
+fi
 
 # 设置权限
 chmod 600 .env
-chmod 600 ssl/private.key
-chmod 644 ssl/certificate.crt
+if [ -f ssl/private.key ]; then
+  chmod 600 ssl/private.key
+fi
+if [ -f ssl/certificate.crt ]; then
+  chmod 644 ssl/certificate.crt
+fi
 
 # 创建必要的目录并设置权限
-mkdir -p ../admin-api/logs
-chmod 755 ../admin-api/logs
+mkdir -p $PROJECT_ROOT/admin-api/logs
+chmod 755 $PROJECT_ROOT/admin-api/logs
 
 # 2. 构建管理端镜像
 echo "2. 构建管理端镜像..."
-echo "构建 admin-api 镜像..."
-docker build -t panda-quant-admin-api -f Dockerfile.admin-api ..
-echo "构建 admin-ui 镜像..."
-docker build -t panda-quant-admin-ui -f Dockerfile.admin-ui ..
+docker-compose -f $CURRENT_DIR/docker-compose.admin.yml build
 
 # 3. 启动管理端服务
 echo "3. 启动管理端服务..."
-docker-compose -f ../docker/docker-compose.admin.yml up -d --build
+docker-compose -f $CURRENT_DIR/docker-compose.admin.yml up -d
 
 # 4. 检查服务状态
 echo "4. 检查服务状态..."
 echo "检查 Docker 容器状态："
-docker-compose -f ../docker/docker-compose.admin.yml ps
+docker-compose -f $CURRENT_DIR/docker-compose.admin.yml ps
 
 # 5. 配置 Nginx
 echo "5. 配置 Nginx..."
-if [ -f /etc/nginx/nginx.conf ]; then
-    echo "备份现有 Nginx 配置..."
-    sudo cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
-    sudo mkdir -p /etc/nginx/conf.d.bak
-    sudo cp /etc/nginx/conf.d/* /etc/nginx/conf.d.bak/ 2>/dev/null || true
-fi
+if [ -f $CURRENT_DIR/nginx/admin.conf ]; then
+  echo "Nginx 配置文件已存在，跳过配置"
+else
+  echo "配置 Nginx..."
+  mkdir -p $CURRENT_DIR/nginx
+  cat > $CURRENT_DIR/nginx/admin.conf << EOF
+server {
+    listen 80;
+    server_name admin.pandatrade.space;
 
-echo "复制 Nginx 配置文件..."
-sudo cp nginx/nginx.conf /etc/nginx/nginx.conf
-sudo cp nginx/admin.conf /etc/nginx/conf.d/
+    location / {
+        proxy_pass http://admin-ui:8084;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+
+    location /api {
+        proxy_pass http://admin-api:8081;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+EOF
+fi
 
 # 6. 测试并重启 Nginx
 echo "6. 测试并重启 Nginx..."
