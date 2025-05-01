@@ -152,6 +152,17 @@ check_service_health() {
 
 # 检查并创建必要目录
 check_and_create_directories() {
+    # 创建 nginx 用户和组
+    if ! getent group nginx >/dev/null; then
+        log_detail "创建 nginx 组"
+        groupadd nginx
+    fi
+    
+    if ! getent passwd nginx >/dev/null; then
+        log_detail "创建 nginx 用户"
+        useradd -g nginx -s /sbin/nologin nginx
+    fi
+    
     local dirs=(
         "$PROJECT_ROOT/admin-api/logs"
         "$PROJECT_ROOT/admin-api/dist"
@@ -188,7 +199,12 @@ set_directory_permissions() {
         if [ -d "$dir" ]; then
             log_detail "设置目录权限: $dir"
             chmod -R 755 "$dir"
-            chown -R nginx:nginx "$dir"
+            if getent passwd nginx >/dev/null && getent group nginx >/dev/null; then
+                chown -R nginx:nginx "$dir"
+            else
+                log_detail "警告: nginx 用户或组不存在，使用当前用户设置权限"
+                chown -R $(id -u):$(id -g) "$dir"
+            fi
         fi
     done
 }
