@@ -1,6 +1,35 @@
 #!/bin/bash
 
-# 设置环境变量
+# 设置错误时退出
+set -e
+
+echo "开始部署 PandaQuant 系统..."
+
+# 1. 安装必要的软件
+echo "安装必要的软件..."
+sudo apt-get update
+sudo apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release \
+    nginx \
+    certbot \
+    python3-certbot-nginx
+
+# 2. 安装 Docker
+echo "安装 Docker..."
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER
+
+# 3. 安装 Docker Compose
+echo "安装 Docker Compose..."
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# 4. 配置环境变量
+echo "配置环境变量..."
 cat > .env << 'EOF'
 # Database
 DB_HOST=postgres
@@ -72,20 +101,58 @@ CDN_KEY=your_cdn_key
 CDN_SECRET=your_cdn_secret
 EOF
 
-# 部署管理端
-echo "Deploying admin services..."
+# 5. 构建所有镜像
+echo "构建所有镜像..."
+docker build -t panda-quant-admin-api -f Dockerfile.admin-api ..
+docker build -t panda-quant-admin-ui -f Dockerfile.admin-ui ..
+docker build -t panda-quant-user-api -f Dockerfile.user-api ..
+docker build -t panda-quant-user-ui -f Dockerfile.user-ui ..
+docker build -t panda-quant-strategy-engine -f Dockerfile.strategy-engine ..
+docker build -t panda-quant-server -f Dockerfile.server ..
+
+# 6. 启动所有服务
+echo "启动所有服务..."
 docker-compose -f docker-compose.admin.yml up -d
-
-# 部署用户端
-echo "Deploying user services..."
 docker-compose -f docker-compose.user.yml up -d
-
-# 部署策略引擎
-echo "Deploying strategy engine..."
 docker-compose -f docker-compose.strategy.yml up -d
 
-# 配置 SSL 证书
-echo "Setting up SSL certificates..."
-bash scripts/ssl-setup.sh
+# 7. 配置 Nginx
+echo "配置 Nginx..."
+sudo cp nginx/nginx.conf /etc/nginx/nginx.conf
+sudo cp nginx/admin.conf /etc/nginx/conf.d/
+sudo cp nginx/user.conf /etc/nginx/conf.d/
+sudo cp nginx/strategy.conf /etc/nginx/conf.d/
+sudo cp nginx/server.conf /etc/nginx/conf.d/
 
-echo "Deployment completed!" 
+# 8. 配置 SSL 证书
+echo "配置 SSL 证书..."
+sudo certbot --nginx -d admin.pandatrade.space -d admin-api.pandatrade.space
+sudo certbot --nginx -d pandatrade.space -d api.pandatrade.space
+sudo certbot --nginx -d strategy.pandatrade.space
+sudo certbot --nginx -d server.pandatrade.space
+
+# 9. 设置证书自动续期
+echo "设置证书自动续期..."
+sudo certbot renew --dry-run
+
+# 10. 配置防火墙
+echo "配置防火墙..."
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 22/tcp
+sudo ufw enable
+
+# 11. 检查服务状态
+echo "检查服务状态..."
+docker-compose -f docker-compose.admin.yml ps
+docker-compose -f docker-compose.user.yml ps
+docker-compose -f docker-compose.strategy.yml ps
+
+echo "PandaQuant 系统部署完成！"
+echo "请确保以下域名已正确配置 DNS 记录："
+echo "- admin.pandatrade.space"
+echo "- admin-api.pandatrade.space"
+echo "- pandatrade.space"
+echo "- api.pandatrade.space"
+echo "- strategy.pandatrade.space"
+echo "- server.pandatrade.space" 
