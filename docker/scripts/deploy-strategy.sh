@@ -4,8 +4,11 @@
 set -e
 
 # 显示当前目录
-echo "当前部署目录: $(pwd)"
-echo "项目根目录: $(pwd)/.."
+CURRENT_DIR=$(pwd)
+PROJECT_ROOT=$(dirname "$CURRENT_DIR")
+
+echo "当前部署目录: $CURRENT_DIR"
+echo "项目根目录: $PROJECT_ROOT"
 
 # 1. 配置环境变量
 echo "1. 配置环境变量..."
@@ -28,7 +31,7 @@ MONGO_URI=mongodb://admin:Wl528586*@mongodb:27017/admin
 
 # Redis配置
 REDIS_PASSWORD=Wl528586*
-REDIS_URI=redis://:Wl528586*@redis:6379
+REDIS_URI=redis://:Wl528586*@redis:6380
 
 # JWT配置
 JWT_SECRET=Wl528586*
@@ -52,22 +55,22 @@ EOF
 chmod 600 .env
 
 # 创建必要的目录并设置权限
-mkdir -p ../strategy-engine/logs
-chmod 755 ../strategy-engine/logs
+mkdir -p $PROJECT_ROOT/strategy-engine/logs
+chmod 755 $PROJECT_ROOT/strategy-engine/logs
 
 # 2. 构建策略引擎镜像
 echo "2. 构建策略引擎镜像..."
 echo "构建 strategy-engine 镜像..."
-docker build -t panda-quant-strategy-engine -f Dockerfile.strategy-engine ..
+docker build -t panda-quant-strategy-engine -f $CURRENT_DIR/Dockerfile.strategy-engine $PROJECT_ROOT
 
 # 3. 启动策略引擎服务
 echo "3. 启动策略引擎服务..."
-docker-compose -f docker-compose.strategy.yml up -d
+docker-compose -f $CURRENT_DIR/docker-compose.strategy.yml up -d
 
 # 4. 检查服务状态
 echo "4. 检查服务状态..."
 echo "检查 Docker 容器状态："
-docker-compose -f docker-compose.strategy.yml ps
+docker-compose -f $CURRENT_DIR/docker-compose.strategy.yml ps
 
 # 5. 配置 Nginx
 echo "5. 配置 Nginx..."
@@ -79,8 +82,8 @@ if [ -f /etc/nginx/nginx.conf ]; then
 fi
 
 echo "复制 Nginx 配置文件..."
-sudo cp nginx/nginx.conf /etc/nginx/nginx.conf
-sudo cp nginx/strategy.conf /etc/nginx/conf.d/
+sudo cp $CURRENT_DIR/nginx/nginx.conf /etc/nginx/nginx.conf
+sudo cp $CURRENT_DIR/nginx/strategy.conf /etc/nginx/conf.d/
 
 # 6. 测试并重启 Nginx
 echo "6. 测试并重启 Nginx..."

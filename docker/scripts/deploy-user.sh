@@ -4,8 +4,11 @@
 set -e
 
 # 显示当前目录
-echo "当前部署目录: $(pwd)"
-echo "项目根目录: $(pwd)/.."
+CURRENT_DIR=$(pwd)
+PROJECT_ROOT=$(dirname "$CURRENT_DIR")
+
+echo "当前部署目录: $CURRENT_DIR"
+echo "项目根目录: $PROJECT_ROOT"
 
 # 1. 配置环境变量
 echo "1. 配置环境变量..."
@@ -52,24 +55,24 @@ EOF
 chmod 600 .env
 
 # 创建必要的目录并设置权限
-mkdir -p ../user-api/logs
-chmod 755 ../user-api/logs
+mkdir -p $PROJECT_ROOT/user-api/logs
+chmod 755 $PROJECT_ROOT/user-api/logs
 
 # 2. 构建用户端镜像
 echo "2. 构建用户端镜像..."
 echo "构建 user-api 镜像..."
-docker build -t panda-quant-user-api -f docker/Dockerfile.user-api ..
+docker build -t panda-quant-user-api -f $CURRENT_DIR/Dockerfile.user-api $PROJECT_ROOT
 echo "构建 user-ui 镜像..."
-docker build -t panda-quant-user-ui -f docker/Dockerfile.user-ui ..
+docker build -t panda-quant-user-ui -f $CURRENT_DIR/Dockerfile.user-ui $PROJECT_ROOT
 
 # 3. 启动用户端服务
 echo "3. 启动用户端服务..."
-docker-compose -f docker/docker-compose.user.yml up -d
+docker-compose -f $CURRENT_DIR/docker-compose.user.yml up -d
 
 # 4. 检查服务状态
 echo "4. 检查服务状态..."
 echo "检查 Docker 容器状态："
-docker-compose -f docker/docker-compose.user.yml ps
+docker-compose -f $CURRENT_DIR/docker-compose.user.yml ps
 
 # 5. 配置 Nginx
 echo "5. 配置 Nginx..."
@@ -81,8 +84,8 @@ if [ -f /etc/nginx/nginx.conf ]; then
 fi
 
 echo "复制 Nginx 配置文件..."
-sudo cp docker/nginx/nginx.conf /etc/nginx/nginx.conf
-sudo cp docker/nginx/user.conf /etc/nginx/conf.d/
+sudo cp $CURRENT_DIR/nginx/nginx.conf /etc/nginx/nginx.conf
+sudo cp $CURRENT_DIR/nginx/user.conf /etc/nginx/conf.d/
 
 # 6. 测试并重启 Nginx
 echo "6. 测试并重启 Nginx..."
