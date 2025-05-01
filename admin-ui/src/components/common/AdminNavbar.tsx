@@ -16,6 +16,7 @@ import {
   Avatar,
   useTheme,
   Badge,
+  styled,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import {
@@ -33,6 +34,10 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+
+const AnimatedBox = styled(motion.div)(({ theme }) => ({
+  cursor: 'pointer',
+}));
 
 const AdminNavbar: React.FC = () => {
   const theme = useTheme();
@@ -111,12 +116,10 @@ const AdminNavbar: React.FC = () => {
   };
 
   const Logo = () => (
-    <Box
-      component={motion.div}
+    <AnimatedBox
       initial={{ scale: 1 }}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      sx={{ cursor: 'pointer' }}
       onClick={() => navigate('/admin/dashboard')}
     >
       <Typography
@@ -130,7 +133,7 @@ const AdminNavbar: React.FC = () => {
       >
         PANDA QUANT ADMIN
       </Typography>
-    </Box>
+    </AnimatedBox>
   );
 
   const UserMenu = () => (
