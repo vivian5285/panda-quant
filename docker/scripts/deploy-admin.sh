@@ -133,17 +133,14 @@ chmod 755 $PROJECT_ROOT/admin-api/logs
 log "2. 安装依赖和类型定义..."
 cd $PROJECT_ROOT/admin-api
 
-# 清理 npm 缓存
-log "清理 npm 缓存..."
+# 清理 npm 缓存和 node_modules
+log "清理 npm 缓存和 node_modules..."
+rm -rf node_modules package-lock.json
 npm cache clean --force
 
-# 安装生产依赖
-log "安装生产依赖..."
-npm install --omit=dev
-
-# 安装开发依赖和类型定义
-log "安装开发依赖和类型定义..."
-npm install --save-dev @types/node @types/redis @types/express @types/mongoose typescript @typescript-eslint/parser @typescript-eslint/eslint-plugin
+# 安装所有依赖
+log "安装所有依赖..."
+npm install
 
 # 创建缺失的类型定义文件
 log "创建缺失的类型定义文件..."
