@@ -137,13 +137,13 @@ if [ ! -d "node_modules" ]; then
     # 清理 npm 缓存
     npm cache clean --force
     
-    # 安装生产依赖
-    log "安装生产依赖..."
-    npm install --production
+    # 安装所有依赖
+    log "安装所有依赖..."
+    npm install
     
     # 安装开发依赖和类型定义
     log "安装开发依赖和类型定义..."
-    npm install --save-dev @types/node @types/redis@4.6.13 @types/express @types/mongoose typescript@5.3.3 @typescript-eslint/parser @typescript-eslint/eslint-plugin
+    npm install --save-dev @types/node @types/redis@4.0.11 @types/express @types/mongoose typescript@5.3.3 @typescript-eslint/parser @typescript-eslint/eslint-plugin
 else
     log "node_modules 已存在，跳过依赖安装"
 fi
