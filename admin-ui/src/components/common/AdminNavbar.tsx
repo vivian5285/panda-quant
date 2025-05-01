@@ -111,11 +111,10 @@ const AdminNavbar: React.FC = () => {
   };
 
   const Logo = () => (
-    <Box
-      component={motion.div}
+    <motion.div
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      sx={{ cursor: 'pointer' }}
+      style={{ cursor: 'pointer' }}
       onClick={() => navigate('/admin/dashboard')}
     >
       <Typography
@@ -129,7 +128,7 @@ const AdminNavbar: React.FC = () => {
       >
         PANDA QUANT ADMIN
       </Typography>
-    </Box>
+    </motion.div>
   );
 
   const UserMenu = () => (
@@ -203,113 +202,79 @@ const AdminNavbar: React.FC = () => {
           {item.label}
         </Button>
       ))}
-      <IconButton color="inherit" onClick={handleNotificationClick}>
-        <Badge badgeContent={2} color="error">
-          <NotificationsIcon />
-        </Badge>
-      </IconButton>
-      <IconButton color="inherit" onClick={handleLanguageClick}>
-        <LanguageIcon />
-      </IconButton>
-      <IconButton color="inherit" onClick={handleUserClick}>
-        <Avatar sx={{ width: 32, height: 32 }} />
-      </IconButton>
     </Box>
   );
 
   const MobileNav = () => (
-    <>
-      <IconButton color="inherit" onClick={toggleDrawer}>
-        <MenuIcon />
-      </IconButton>
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={toggleDrawer}
-        PaperProps={{
-          sx: {
-            width: '100%',
-            maxWidth: 360,
-            bgcolor: theme.palette.background.default,
-          },
-        }}
-      >
-        <List>
-          {navItems.map((item) => (
-            <ListItem
-              key={item.path}
-              button
-              onClick={() => handleNavigation(item.path)}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-              }}
-            >
-              {item.icon}
-              <ListItemText primary={item.label} />
-            </ListItem>
-          ))}
-          <ListItem button onClick={handleNotificationClick}>
-            <Badge badgeContent={2} color="error" sx={{ mr: 1 }}>
-              <NotificationsIcon />
-            </Badge>
-            <ListItemText primary={t('nav.notifications')} />
+    <Drawer
+      anchor="left"
+      open={drawerOpen}
+      onClose={toggleDrawer}
+    >
+      <List sx={{ width: 250 }}>
+        {navItems.map((item) => (
+          <ListItem
+            key={item.path}
+            button
+            onClick={() => handleNavigation(item.path)}
+          >
+            <ListItemText primary={item.label} />
           </ListItem>
-          <ListItem button onClick={handleLanguageClick}>
-            <LanguageIcon sx={{ mr: 1 }} />
-            <ListItemText primary={t('nav.language')} />
-          </ListItem>
-          <ListItem button onClick={handleUserClick}>
-            <AccountIcon sx={{ mr: 1 }} />
-            <ListItemText primary={t('nav.profile')} />
-          </ListItem>
-          <ListItem button onClick={handleLogout}>
-            <LogoutIcon sx={{ mr: 1 }} />
-            <ListItemText primary={t('nav.logout')} />
-          </ListItem>
-        </List>
-      </Drawer>
-    </>
+        ))}
+      </List>
+    </Drawer>
   );
 
   return (
     <AppBar
       position="fixed"
-      elevation={scrolled ? 4 : 0}
       sx={{
-        bgcolor: theme.palette.background.paper,
-        color: theme.palette.text.primary,
+        backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.9)' : 'transparent',
+        backdropFilter: 'blur(10px)',
+        boxShadow: scrolled ? theme.shadows[4] : 'none',
         transition: 'all 0.3s ease',
       }}
     >
-      <Container maxWidth="lg">
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
+      <Container maxWidth="xl">
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={toggleDrawer}
+            sx={{ mr: 2, display: { sm: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
           <Logo />
-          <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-            <DesktopNav />
-          </Box>
-          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
-            <MobileNav />
+          <Box sx={{ flexGrow: 1 }} />
+          <DesktopNav />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton
+              color="inherit"
+              onClick={handleLanguageClick}
+            >
+              <LanguageIcon />
+            </IconButton>
+            <IconButton
+              color="inherit"
+              onClick={handleNotificationClick}
+            >
+              <Badge badgeContent={2} color="error">
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+            <IconButton
+              color="inherit"
+              onClick={handleUserClick}
+            >
+              <Avatar sx={{ width: 32, height: 32 }} />
+            </IconButton>
           </Box>
         </Toolbar>
       </Container>
       <UserMenu />
       <NotificationMenu />
-      <Menu
-        anchorEl={languageAnchor}
-        open={Boolean(languageAnchor)}
-        onClose={handleLanguageClose}
-      >
-        {languages.map((lang) => (
-          <MenuItem
-            key={lang.code}
-            onClick={() => handleLanguageChange(lang.code)}
-          >
-            {lang.name}
-          </MenuItem>
-        ))}
-      </Menu>
+      <MobileNav />
     </AppBar>
   );
 };
