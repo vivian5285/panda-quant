@@ -165,6 +165,7 @@ if [ ! -d "node_modules" ]; then
         @types/node \
         @types/express \
         @types/mongoose \
+        @types/redis \
         typescript@5.3.3 \
         @typescript-eslint/parser \
         @typescript-eslint/eslint-plugin
