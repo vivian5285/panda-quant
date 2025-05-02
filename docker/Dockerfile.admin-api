@@ -67,8 +67,8 @@ USER node
 # Expose the application port
 EXPOSE 8081
 
-# Add health check
-HEALTHCHECK --interval=30s --timeout=3s \
+# Add health check with longer intervals and timeouts
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:8081/health || exit 1
 
 # Start the application

@@ -13,14 +13,6 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a $LOG_FILE
 }
 
-# 错误处理函数
-handle_error() {
-    log "错误: $1"
-    log "部署失败，正在回滚..."
-    docker-compose -f $CURRENT_DIR/docker-compose.admin.yml down
-    exit 1
-}
-
 # 设置当前部署目录和项目根目录
 CURRENT_DIR=$(pwd)
 PROJECT_ROOT=$(dirname "$CURRENT_DIR")
@@ -80,17 +72,18 @@ chmod 600 .env
 log "2. 安装依赖..."
 cd $PROJECT_ROOT/admin-api
 
-if [ ! -d "node_modules" ]; then
+# 检查 package.json 是否被修改
+if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules" ]; then
     log "安装依赖..."
-    npm install --legacy-peer-deps || handle_error "依赖安装失败"
+    npm install --legacy-peer-deps
     log "依赖安装完成"
 else
-    log "node_modules 已存在，跳过安装"
+    log "依赖已是最新，跳过安装"
 fi
 
 # 3. 构建应用
 log "3. 构建应用..."
-npm run build || handle_error "构建失败"
+npm run build
 log "应用构建成功"
 
 # 4. 启动服务
@@ -101,7 +94,7 @@ cd $CURRENT_DIR
 docker-compose -f docker-compose.admin.yml down
 
 # 构建并启动服务
-docker-compose -f docker-compose.admin.yml up -d --build || handle_error "服务启动失败"
+docker-compose -f docker-compose.admin.yml up -d --build
 
 # 等待服务启动
 log "等待服务启动..."
@@ -110,11 +103,8 @@ sleep 10
 # 检查服务状态
 log "检查服务状态..."
 if ! docker ps | grep -q "panda-quant-admin-api"; then
-    handle_error "admin-api 服务未启动"
-fi
-
-if ! docker ps | grep -q "panda-quant-admin-ui"; then
-    handle_error "admin-ui 服务未启动"
+    log "admin-api 服务未启动"
+    exit 1
 fi
 
 log "部署完成！"
