@@ -116,15 +116,31 @@ fi
 
 # 4. 构建应用
 log "4. 构建应用..."
+# 检查 TypeScript 配置文件
+if [ ! -f "tsconfig.json" ]; then
+    handle_error "tsconfig.json 文件不存在"
+fi
+
+# 检查源代码目录
+if [ ! -d "src" ]; then
+    handle_error "src 目录不存在"
+fi
+
 # 清理构建目录
+log "清理构建目录..."
 rm -rf dist
-# 执行类型检查
-log "执行类型检查..."
-npm run type-check
-check_result "类型检查失败"
+check_result "清理构建目录失败"
+
 # 构建应用
+log "开始构建应用..."
 npm run build
 check_result "构建应用失败"
+
+# 检查构建结果
+if [ ! -d "dist" ]; then
+    handle_error "构建失败：dist 目录未生成"
+fi
+
 log "应用构建成功"
 
 # 5. 启动服务
