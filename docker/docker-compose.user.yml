@@ -7,7 +7,7 @@ services:
       dockerfile: docker/Dockerfile.user-ui
     container_name: panda-quant-user-ui
     ports:
-      - "3000:3000"
+      - "8082:80"
     restart: always
     networks:
       - panda-quant-network
@@ -29,7 +29,7 @@ services:
       dockerfile: docker/Dockerfile.user-api
     container_name: panda-quant-user-api
     ports:
-      - "3001:3001"
+      - "8083:8083"
     restart: always
     networks:
       - panda-quant-network

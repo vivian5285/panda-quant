@@ -10,11 +10,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// 健康检查
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // 路由
 app.use('/api/auth', authRoutes);
 
 // 连接数据库
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/panda-quant')
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/panda-quant')
   .then(async () => {
     console.log('Connected to MongoDB');
     // 初始化管理员账号
@@ -24,7 +29,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/panda-qua
     console.error('MongoDB connection error:', error);
   });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8081;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 }); 
