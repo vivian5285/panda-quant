@@ -29,7 +29,8 @@ COPY package*.json ./
 
 # 安装依赖
 RUN npm install --legacy-peer-deps --no-audit --unsafe-perm && \
-    npm install dotenv@16.4.5 @types/dotenv@8.2.3 --save-dev --unsafe-perm
+    npm install dotenv@16.4.5 @types/dotenv@8.2.3 --save-dev --unsafe-perm && \
+    npm install @types/node@20.11.19 --save-dev --unsafe-perm
 
 # 复制源代码
 COPY . .

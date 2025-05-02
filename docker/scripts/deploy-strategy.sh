@@ -69,7 +69,7 @@ cd $PROJECT_ROOT/strategy
 chmod -R 777 .
 rm -rf node_modules package-lock.json
 npm install --legacy-peer-deps --no-audit --unsafe-perm
-npm install dotenv@16.4.5 @types/dotenv@8.2.3 --save-dev --unsafe-perm
+npm install dotenv@16.4.5 @types/dotenv@8.2.3 @types/node@20.11.19 --save-dev --unsafe-perm
 npm run build
 check_result "构建策略引擎失败"
 
