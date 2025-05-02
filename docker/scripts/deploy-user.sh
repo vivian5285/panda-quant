@@ -70,6 +70,7 @@ log "4. 构建应用..."
 log "构建 user-api..."
 cd $PROJECT_ROOT/user-api
 chmod -R 777 .
+rm -rf node_modules package-lock.json
 npm install --legacy-peer-deps --no-audit --unsafe-perm
 npm run build
 check_result "构建 user-api 失败"
@@ -78,7 +79,9 @@ check_result "构建 user-api 失败"
 log "构建 user-ui..."
 cd $PROJECT_ROOT/user-ui
 chmod -R 777 .
+rm -rf node_modules package-lock.json
 npm install --legacy-peer-deps --no-audit --unsafe-perm
+npm install vite@5.1.4 rollup@4.9.6 --save-dev --unsafe-perm
 npm run build
 check_result "构建 user-ui 失败"
 

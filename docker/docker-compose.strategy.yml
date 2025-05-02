@@ -57,30 +57,31 @@ services:
       timeout: 10s
       retries: 3
 
-  strategy-engine:
+  strategy:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile.strategy-engine
-    container_name: panda-quant-strategy-engine
-    ports:
-      - "3004:3004"
+      context: ../strategy
+      dockerfile: ../docker/Dockerfile.strategy
+      args:
+        - NODE_ENV=production
+        - SKIP_TYPE_CHECK=true
+    container_name: panda-quant-strategy
     restart: always
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - MONGODB_URI=mongodb://admin:Wl528586*@mongodb:27017/admin
+      - REDIS_URI=redis://:Wl528586*@redis:6380
+      - POSTGRES_URI=postgresql://admin:Wl528586*@postgres:5432/panda_quant
     networks:
       - panda-quant-network
-    environment:
-      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/admin
-      - REDIS_URI=redis://:${REDIS_PASSWORD}@redis:6379
-      - JWT_SECRET=${JWT_SECRET}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     depends_on:
       - mongodb
       - redis
-    deploy:
-      resources:
-        limits:
-          memory: 4G
+      - postgres
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -123,4 +124,4 @@ volumes:
 
 networks:
   panda-quant-network:
-    external: true 
+    driver: bridge 

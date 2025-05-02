@@ -7,6 +7,7 @@ set -e
 LOG_FILE="/var/log/panda-quant/deploy-strategy.log"
 mkdir -p /var/log/panda-quant
 touch $LOG_FILE
+chmod 777 $LOG_FILE
 
 # 日志函数
 log() {
@@ -32,6 +33,11 @@ check_result() {
 CURRENT_DIR=$(pwd)
 PROJECT_ROOT=$(dirname "$CURRENT_DIR")
 
+# 设置目录权限
+log "设置目录权限..."
+chmod -R 777 $PROJECT_ROOT
+chmod -R 777 $CURRENT_DIR
+
 log "开始部署策略端..."
 
 # 1. 检查环境变量
@@ -39,6 +45,7 @@ log "1. 检查环境变量..."
 if [ ! -f .env ]; then
     if [ -f .env.example ]; then
         cp .env.example .env
+        chmod 777 .env
         log "请编辑 .env 文件配置必要的环境变量"
         exit 1
     else
@@ -46,40 +53,42 @@ if [ ! -f .env ]; then
     fi
 fi
 
-# 2. 检查并创建 Docker 网络
-log "2. 检查 Docker 网络..."
-if ! docker network ls | grep -q panda-quant-network; then
-    docker network create panda-quant-network
-fi
+# 2. 清理旧的容器和网络
+log "2. 清理旧的容器和网络..."
+docker-compose -f docker-compose.strategy.yml down --remove-orphans
+docker rm -f panda-quant-strategy 2>/dev/null || true
+docker network rm panda-quant-network 2>/dev/null || true
 
-# 3. 构建应用
-log "3. 构建应用..."
-cd $PROJECT_ROOT/strategy-engine
+# 3. 创建新的网络
+log "3. 创建新的网络..."
+docker network create panda-quant-network
 
-# 安装依赖并构建
-npm install --legacy-peer-deps --no-audit
+# 4. 构建应用
+log "4. 构建应用..."
+cd $PROJECT_ROOT/strategy
+chmod -R 777 .
+rm -rf node_modules package-lock.json
+npm install --legacy-peer-deps --no-audit --unsafe-perm
+npm install dotenv@16.4.5 @types/dotenv@8.2.3 --save-dev --unsafe-perm
 npm run build
-check_result "构建应用失败"
+check_result "构建策略引擎失败"
 
-# 4. 部署服务
-log "4. 部署服务..."
+# 5. 部署服务
+log "5. 部署服务..."
 cd $CURRENT_DIR
 
-# 停止旧容器并启动新容器
-docker-compose -f docker-compose.strategy.yml down
+# 启动服务
 docker-compose -f docker-compose.strategy.yml up -d --build
 check_result "启动服务失败"
 
-# 5. 等待服务就绪
-log "5. 等待服务就绪..."
+# 6. 等待服务就绪
+log "6. 等待服务就绪..."
 max_attempts=15
 attempt=1
 
 while [ $attempt -le $max_attempts ]; do
-    if docker exec panda-quant-mongodb mongosh --eval "db.adminCommand('ping')" >/dev/null 2>&1 && \
-       docker exec panda-quant-redis redis-cli ping >/dev/null 2>&1 && \
-       curl -s http://localhost:8083/health | grep -q "ok"; then
-        log "所有服务已就绪"
+    if curl -s http://localhost:3003/health | grep -q "ok"; then
+        log "服务已就绪"
         break
     fi
     log "等待服务就绪... (尝试 $attempt/$max_attempts)"
@@ -92,5 +101,4 @@ if [ $attempt -gt $max_attempts ]; then
 fi
 
 log "部署完成！"
-log "策略端访问地址: https://server.pandatrade.space"
-log "API 访问地址: https://strategy.pandatrade.space" 
+log "策略引擎访问地址: http://localhost:3003" 

@@ -7,6 +7,7 @@ set -e
 LOG_FILE="/var/log/panda-quant/deploy-admin.log"
 mkdir -p /var/log/panda-quant
 touch $LOG_FILE
+chmod 777 $LOG_FILE
 
 # 日志函数
 log() {
@@ -32,6 +33,11 @@ check_result() {
 CURRENT_DIR=$(pwd)
 PROJECT_ROOT=$(dirname "$CURRENT_DIR")
 
+# 设置目录权限
+log "设置目录权限..."
+chmod -R 777 $PROJECT_ROOT
+chmod -R 777 $CURRENT_DIR
+
 log "开始部署管理端..."
 
 # 1. 检查环境变量
@@ -39,6 +45,7 @@ log "1. 检查环境变量..."
 if [ ! -f .env ]; then
     if [ -f .env.example ]; then
         cp .env.example .env
+        chmod 777 .env
         log "请编辑 .env 文件配置必要的环境变量"
         exit 1
     else
@@ -46,48 +53,51 @@ if [ ! -f .env ]; then
     fi
 fi
 
-# 2. 检查并创建 Docker 网络
-log "2. 检查 Docker 网络..."
-if ! docker network ls | grep -q panda-quant-network; then
-    docker network create panda-quant-network
-fi
+# 2. 清理旧的容器和网络
+log "2. 清理旧的容器和网络..."
+docker-compose -f docker-compose.admin.yml down --remove-orphans
+docker rm -f panda-quant-admin-api panda-quant-admin-ui panda-quant-redis panda-quant-mongodb 2>/dev/null || true
+docker network rm panda-quant-network 2>/dev/null || true
 
-# 3. 构建应用
-log "3. 构建应用..."
+# 3. 创建新的网络
+log "3. 创建新的网络..."
+docker network create panda-quant-network
+
+# 4. 构建应用
+log "4. 构建应用..."
 
 # 构建 admin-api
 log "构建 admin-api..."
 cd $PROJECT_ROOT/admin-api
-npm install --legacy-peer-deps --no-audit
+chmod -R 777 .
+npm install --legacy-peer-deps --no-audit --unsafe-perm
 npm run build
 check_result "构建 admin-api 失败"
 
 # 构建 admin-ui
 log "构建 admin-ui..."
 cd $PROJECT_ROOT/admin-ui
-# 确保有正确的权限
 chmod -R 777 .
-npm install --legacy-peer-deps --no-audit
+npm install --legacy-peer-deps --no-audit --unsafe-perm
 npm run build
 check_result "构建 admin-ui 失败"
 
-# 4. 部署服务
-log "4. 部署服务..."
+# 5. 部署服务
+log "5. 部署服务..."
 cd $CURRENT_DIR
 
-# 停止旧容器并启动新容器
-docker-compose -f docker-compose.admin.yml down
+# 启动服务
 docker-compose -f docker-compose.admin.yml up -d --build
 check_result "启动服务失败"
 
-# 5. 等待服务就绪
-log "5. 等待服务就绪..."
+# 6. 等待服务就绪
+log "6. 等待服务就绪..."
 max_attempts=15
 attempt=1
 
 while [ $attempt -le $max_attempts ]; do
     if docker exec panda-quant-mongodb mongosh --eval "db.adminCommand('ping')" >/dev/null 2>&1 && \
-       docker exec panda-quant-redis redis-cli ping >/dev/null 2>&1 && \
+       docker exec panda-quant-redis redis-cli -p 6380 -a Wl528586* ping >/dev/null 2>&1 && \
        curl -s http://localhost:3002/health | grep -q "ok" && \
        curl -s http://localhost:80/ | grep -q "html"; then
         log "所有服务已就绪"
