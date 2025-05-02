@@ -57,6 +57,7 @@ fi
 log "2. 清理旧的容器和网络..."
 docker-compose -f docker-compose.strategy.yml down --remove-orphans
 docker rm -f panda-quant-strategy 2>/dev/null || true
+docker rm -f panda-quant-nginx-strategy 2>/dev/null || true
 docker network rm panda-quant-network 2>/dev/null || true
 
 # 3. 创建新的网络

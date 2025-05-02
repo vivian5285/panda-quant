@@ -56,7 +56,8 @@ fi
 # 2. 清理旧的容器和网络
 log "2. 清理旧的容器和网络..."
 docker-compose -f docker-compose.admin.yml down --remove-orphans
-docker rm -f panda-quant-admin-api panda-quant-admin-ui panda-quant-redis panda-quant-mongodb 2>/dev/null || true
+docker rm -f panda-quant-admin-api 2>/dev/null || true
+docker rm -f panda-quant-admin-ui 2>/dev/null || true
 docker network rm panda-quant-network 2>/dev/null || true
 
 # 3. 创建新的网络
@@ -65,22 +66,21 @@ docker network create panda-quant-network
 
 # 4. 构建应用
 log "4. 构建应用..."
-
-# 构建 admin-api
-log "构建 admin-api..."
 cd $PROJECT_ROOT/admin-api
 chmod -R 777 .
+rm -rf node_modules package-lock.json
 npm install --legacy-peer-deps --no-audit --unsafe-perm
+npm install dotenv@16.4.5 @types/dotenv@8.2.3 @types/node@20.11.19 --save-dev --unsafe-perm
 npm run build
-check_result "构建 admin-api 失败"
+check_result "构建管理端 API 失败"
 
-# 构建 admin-ui
-log "构建 admin-ui..."
 cd $PROJECT_ROOT/admin-ui
 chmod -R 777 .
+rm -rf node_modules package-lock.json
 npm install --legacy-peer-deps --no-audit --unsafe-perm
+npm install dotenv@16.4.5 @types/dotenv@8.2.3 @types/node@20.11.19 --save-dev --unsafe-perm
 npm run build
-check_result "构建 admin-ui 失败"
+check_result "构建管理端 UI 失败"
 
 # 5. 部署服务
 log "5. 部署服务..."
@@ -96,11 +96,9 @@ max_attempts=15
 attempt=1
 
 while [ $attempt -le $max_attempts ]; do
-    if docker exec panda-quant-mongodb mongosh --eval "db.adminCommand('ping')" >/dev/null 2>&1 && \
-       docker exec panda-quant-redis redis-cli -p 6380 -a Wl528586* ping >/dev/null 2>&1 && \
-       curl -s http://localhost:3002/health | grep -q "ok" && \
-       curl -s http://localhost:80/ | grep -q "html"; then
-        log "所有服务已就绪"
+    if curl -s http://localhost:3002/health | grep -q "ok" && \
+       curl -s http://localhost/health | grep -q "ok"; then
+        log "服务已就绪"
         break
     fi
     log "等待服务就绪... (尝试 $attempt/$max_attempts)"
@@ -113,5 +111,5 @@ if [ $attempt -gt $max_attempts ]; then
 fi
 
 log "部署完成！"
-log "管理端访问地址: http://localhost:80"
-log "API 访问地址: http://localhost:3002" 
+log "管理端 API 访问地址: http://localhost:3002"
+log "管理端 UI 访问地址: http://localhost" 

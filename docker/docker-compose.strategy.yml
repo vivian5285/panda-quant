@@ -1,6 +1,54 @@
 version: '3.8'
 
 services:
+  strategy:
+    build:
+      context: ../strategy
+      dockerfile: ../docker/Dockerfile.strategy
+      args:
+        - NODE_ENV=production
+        - SKIP_TYPE_CHECK=true
+    container_name: panda-quant-strategy
+    restart: always
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - MONGODB_URI=mongodb://admin:Wl528586*@mongodb:27017/admin
+      - REDIS_URI=redis://:Wl528586*@redis:6380
+      - POSTGRES_URI=postgresql://admin:Wl528586*@postgres:5432/panda_quant
+    networks:
+      - panda-quant-network
+    depends_on:
+      - mongodb
+      - redis
+      - postgres
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx-strategy:
+    image: nginx:1.25.3-alpine
+    container_name: panda-quant-nginx-strategy
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ../nginx/strategy.conf:/etc/nginx/conf.d/default.conf
+      - ../nginx/ssl:/etc/nginx/ssl
+    networks:
+      - panda-quant-network
+    depends_on:
+      - strategy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   mongodb:
     image: mongo:latest
     container_name: panda-quant-mongodb
@@ -37,83 +85,22 @@ services:
       timeout: 10s
       retries: 3
 
-  nginx-strategy:
-    image: nginx:alpine
-    container_name: panda-quant-nginx-strategy
+  postgres:
+    image: postgres:latest
+    container_name: panda-quant-postgres
     ports:
-      - "80:80"
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - ./nginx/strategy.conf:/etc/nginx/conf.d/strategy.conf
-      - ./nginx/server.conf:/etc/nginx/conf.d/server.conf
-    depends_on:
-      - strategy-engine
-      - server
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - panda-quant-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "nginx", "-t"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  strategy:
-    build:
-      context: ../strategy
-      dockerfile: ../docker/Dockerfile.strategy
-      args:
-        - NODE_ENV=production
-        - SKIP_TYPE_CHECK=true
-    container_name: panda-quant-strategy
-    restart: always
-    ports:
-      - "3003:3003"
-    environment:
-      - NODE_ENV=production
-      - PORT=3003
-      - MONGODB_URI=mongodb://admin:Wl528586*@mongodb:27017/admin
-      - REDIS_URI=redis://:Wl528586*@redis:6380
-      - POSTGRES_URI=postgresql://admin:Wl528586*@postgres:5432/panda_quant
-    networks:
-      - panda-quant-network
-    depends_on:
-      - mongodb
-      - redis
-      - postgres
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  server:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.server
-      args:
-        - NODE_ENV=production
-        - SKIP_TYPE_CHECK=true
-    container_name: panda-quant-server
-    ports:
-      - "3005:3005"
-    restart: always
-    networks:
-      - panda-quant-network
-    environment:
-      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017/admin
-      - REDIS_URI=redis://:${REDIS_PASSWORD}@redis:6379
-      - JWT_SECRET=${JWT_SECRET}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-    depends_on:
-      - mongodb
-      - redis
-      - strategy-engine
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3005/health"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -121,6 +108,7 @@ services:
 volumes:
   mongodb_data:
   redis_data:
+  postgres_data:
 
 networks:
   panda-quant-network:
