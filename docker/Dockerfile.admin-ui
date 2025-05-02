@@ -14,9 +14,9 @@ RUN apk add --no-cache \
 
 # Install TypeScript and Vite globally
 RUN npm install -g typescript@5.3.3 vite@5.1.4 terser@5.27.1 && \
-    chmod -R 755 /usr/local/bin/tsc && \
-    chmod -R 755 /usr/local/bin/vite && \
-    chmod -R 755 /usr/local/bin/terser
+    chmod -R 777 /usr/local/bin/tsc && \
+    chmod -R 777 /usr/local/bin/vite && \
+    chmod -R 777 /usr/local/bin/terser
 
 # Copy package files first to leverage Docker cache
 COPY admin-ui/package*.json ./
@@ -24,10 +24,14 @@ COPY admin-ui/tsconfig.json ./
 
 # Install all dependencies
 RUN npm install --legacy-peer-deps && \
-    chmod -R 755 /app/node_modules/.bin
+    chmod -R 777 /app/node_modules/.bin && \
+    chmod -R 777 /app/node_modules/typescript/bin/tsc
 
 # Copy source code
 COPY admin-ui/. .
+
+# Set permissions for the entire app directory
+RUN chmod -R 777 /app
 
 # Build the application
 RUN npm run build
@@ -53,7 +57,7 @@ RUN mkdir -p /var/cache/nginx/client_temp \
     /var/run/nginx \
     && chown -R nginx:nginx /var/cache/nginx \
     /var/run/nginx \
-    && chmod -R 755 /var/cache/nginx \
+    && chmod -R 777 /var/cache/nginx \
     /var/run/nginx
 
 # Create default configuration file
@@ -105,7 +109,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Set correct permissions for nginx files
 RUN chown -R nginx:nginx /usr/share/nginx/html \
-    && chmod -R 755 /usr/share/nginx/html
+    && chmod -R 777 /usr/share/nginx/html
 
 # Expose port
 EXPOSE 80

@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install TypeScript globally
-RUN npm install -g typescript@5.3.3
+RUN npm install -g typescript@5.3.3 && \
+    chmod -R 777 /usr/local/bin/tsc
 
 # Copy package files first to leverage Docker cache
 COPY server/package*.json ./
@@ -28,7 +29,9 @@ RUN npm config set registry https://registry.npmjs.org/ && \
         typescript@5.3.3 \
         @typescript-eslint/parser \
         @typescript-eslint/eslint-plugin && \
-    npm cache clean --force
+    npm cache clean --force && \
+    chmod -R 777 /app/node_modules/.bin && \
+    chmod -R 777 /app/node_modules/typescript/bin/tsc
 
 # Create type definition files first
 RUN mkdir -p src/types && \
@@ -36,10 +39,14 @@ RUN mkdir -p src/types && \
     echo 'export interface CommissionRule { _id: string; level: number; rate: number; createdAt: Date; updatedAt: Date; }' > src/types/CommissionRule.d.ts && \
     echo 'export interface Order { _id: string; userId: string; strategyId: string; amount: number; status: string; createdAt: Date; updatedAt: Date; }' > src/types/Order.d.ts && \
     echo 'export interface StrategyRating { _id: string; strategyId: string; userId: string; rating: number; comment?: string; createdAt: Date; updatedAt: Date; }' > src/types/StrategyRating.d.ts && \
-    echo 'export interface UserLevel { _id: string; userId: string; level: number; points: number; createdAt: Date; updatedAt: Date; }' > src/types/UserLevel.d.ts
+    echo 'export interface UserLevel { _id: string; userId: string; level: number; points: number; createdAt: Date; updatedAt: Date; }' > src/types/UserLevel.d.ts && \
+    chmod -R 777 /app/src/types
 
 # Copy source code and other necessary files
 COPY server/ ./src/
+
+# Set permissions for the entire app directory
+RUN chmod -R 777 /app
 
 # Add type checking script to package.json
 RUN npm pkg set scripts.type-check="tsc --noEmit"
@@ -77,7 +84,8 @@ COPY server/knexfile.ts ./
 
 # Create necessary directories and set permissions
 RUN mkdir -p /app/logs && \
-    chown -R appuser:appuser /app
+    chown -R appuser:appuser /app && \
+    chmod -R 777 /app
 
 # Switch to non-root user
 USER appuser

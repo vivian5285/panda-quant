@@ -185,6 +185,22 @@ log "重新创建网络..."
 docker network create panda-quant-network
 check_result "创建网络失败"
 
+# 检查并停止所有 Redis 容器
+log "检查并停止所有 Redis 容器..."
+docker ps -a | grep redis | awk '{print $1}' | xargs -r docker rm -f
+
+# 确保 Redis 端口没有被占用
+log "检查 Redis 端口..."
+if lsof -i :6379 > /dev/null 2>&1; then
+    log "Redis 端口被占用，尝试释放..."
+    # 查找占用端口的进程
+    PID=$(lsof -t -i:6379)
+    if [ ! -z "$PID" ]; then
+        log "杀死占用端口的进程: $PID"
+        kill -9 $PID
+    fi
+fi
+
 # 构建并启动服务
 log "构建并启动服务..."
 docker-compose -f docker-compose.user.yml up -d --build

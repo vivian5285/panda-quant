@@ -11,7 +11,8 @@ RUN apk add --no-cache \
     curl
 
 # Install TypeScript globally
-RUN npm install -g typescript@5.4.2
+RUN npm install -g typescript@5.4.2 && \
+    chmod -R 777 /usr/local/bin/tsc
 
 # Copy package files first to leverage Docker cache
 COPY admin-api/package*.json ./
@@ -28,13 +29,15 @@ RUN npm cache clean --force && \
         typescript@5.4.2 \
         @typescript-eslint/parser \
         @typescript-eslint/eslint-plugin && \
-    npm cache clean --force
-
-# Set permissions for TypeScript
-RUN chmod -R 777 /usr/local/bin/tsc
+    npm cache clean --force && \
+    chmod -R 777 /app/node_modules/.bin && \
+    chmod -R 777 /app/node_modules/typescript/bin/tsc
 
 # Copy source code
 COPY admin-api/ ./
+
+# Set permissions for the entire app directory
+RUN chmod -R 777 /app
 
 # Build the application and verify build
 RUN npm run build && \
@@ -59,7 +62,8 @@ ENV PORT=8081
 
 # Create app directory and set permissions
 RUN mkdir -p /app && \
-    chown -R node:node /app
+    chown -R node:node /app && \
+    chmod -R 777 /app
 
 # Switch to non-root user
 USER node
