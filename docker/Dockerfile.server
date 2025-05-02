@@ -30,16 +30,16 @@ RUN npm config set registry https://registry.npmjs.org/ && \
         @typescript-eslint/eslint-plugin && \
     npm cache clean --force
 
-# Copy source code and other necessary files
-COPY server/ ./
-
-# Create type definition files
+# Create type definition files first
 RUN mkdir -p src/types && \
     echo 'export interface Blacklist { _id: string; userId: string; reason: string; createdAt: Date; updatedAt: Date; }' > src/types/Blacklist.d.ts && \
     echo 'export interface CommissionRule { _id: string; level: number; rate: number; createdAt: Date; updatedAt: Date; }' > src/types/CommissionRule.d.ts && \
     echo 'export interface Order { _id: string; userId: string; strategyId: string; amount: number; status: string; createdAt: Date; updatedAt: Date; }' > src/types/Order.d.ts && \
     echo 'export interface StrategyRating { _id: string; strategyId: string; userId: string; rating: number; comment?: string; createdAt: Date; updatedAt: Date; }' > src/types/StrategyRating.d.ts && \
     echo 'export interface UserLevel { _id: string; userId: string; level: number; points: number; createdAt: Date; updatedAt: Date; }' > src/types/UserLevel.d.ts
+
+# Copy source code and other necessary files
+COPY server/ ./src/
 
 # Add type checking script to package.json
 RUN npm pkg set scripts.type-check="tsc --noEmit"

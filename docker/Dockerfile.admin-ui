@@ -13,18 +13,18 @@ RUN apk add --no-cache \
     curl
 
 # Install TypeScript and Vite globally
-RUN npm install -g typescript@5.3.3 vite@5.1.4 terser@5.27.1
+RUN npm install -g typescript@5.3.3 vite@5.1.4 terser@5.27.1 && \
+    chmod -R 755 /usr/local/bin/tsc && \
+    chmod -R 755 /usr/local/bin/vite && \
+    chmod -R 755 /usr/local/bin/terser
 
 # Copy package files first to leverage Docker cache
 COPY admin-ui/package*.json ./
 COPY admin-ui/tsconfig.json ./
 
 # Install all dependencies
-RUN npm install --legacy-peer-deps
-
-# Set permissions for TypeScript and Vite
-RUN chmod -R 777 /usr/local/bin/tsc && \
-    chmod -R 777 /usr/local/bin/vite
+RUN npm install --legacy-peer-deps && \
+    chmod -R 755 /app/node_modules/.bin
 
 # Copy source code
 COPY admin-ui/. .

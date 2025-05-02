@@ -98,8 +98,8 @@ log "3. 安装依赖..."
 cd $PROJECT_ROOT/strategy-engine
 
 # 检查是否需要安装依赖
-if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules" ]; then
-    log "检测到依赖需要更新，开始安装..."
+if [ ! -d "node_modules" ]; then
+    log "首次安装依赖..."
     # 使用更安全的方式清理 npm 缓存
     npm cache verify
     # 安装生产依赖
@@ -111,7 +111,22 @@ if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules" ]; then
     check_result "安装开发依赖失败"
     log "依赖安装完成"
 else
-    log "依赖已是最新，跳过安装"
+    # 检查 package.json 是否被修改
+    if [ "package.json" -nt "node_modules" ]; then
+        log "检测到 package.json 更新，重新安装依赖..."
+        # 使用更安全的方式清理 npm 缓存
+        npm cache verify
+        # 安装生产依赖
+        npm install --legacy-peer-deps --no-audit
+        check_result "安装依赖失败"
+        # 安装开发依赖
+        log "安装开发依赖..."
+        npm install --save-dev @types/dotenv@8.2.0 --no-audit
+        check_result "安装开发依赖失败"
+        log "依赖安装完成"
+    else
+        log "依赖已是最新，跳过安装"
+    fi
 fi
 
 # 4. 构建应用
