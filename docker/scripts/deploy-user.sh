@@ -95,7 +95,7 @@ fi
 
 # 3. 安装依赖
 log "3. 安装依赖..."
-cd $PROJECT_ROOT/user
+cd $PROJECT_ROOT/user-api
 
 # 检查是否需要安装依赖
 if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules" ]; then
