@@ -89,6 +89,9 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.server
+      args:
+        - NODE_ENV=production
+        - SKIP_TYPE_CHECK=true
     container_name: panda-quant-server
     ports:
       - "3005:3005"

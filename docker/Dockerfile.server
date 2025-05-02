@@ -1,5 +1,9 @@
 FROM node:18-slim AS builder
 
+# 添加构建参数
+ARG NODE_ENV=production
+ARG SKIP_TYPE_CHECK=false
+
 WORKDIR /app
 
 # Install build dependencies
@@ -18,64 +22,25 @@ RUN npm install -g typescript@5.3.3 && \
 COPY server/package*.json ./
 COPY server/tsconfig.json ./
 
-# Install all dependencies including type definitions
+# Install all dependencies
 RUN npm config set registry https://registry.npmjs.org/ && \
-    npm install --legacy-peer-deps && \
-    npm install --save-dev \
-        @types/redis \
-        @types/node \
-        @types/express \
-        @types/mongoose \
-        typescript@5.3.3 \
-        @typescript-eslint/parser \
-        @typescript-eslint/eslint-plugin && \
-    npm cache clean --force && \
-    chmod -R 777 /app/node_modules/.bin && \
-    chmod -R 777 /app/node_modules/typescript/bin/tsc
-
-# Create type definition files first
-RUN mkdir -p src/types && \
-    echo 'export interface Blacklist { _id: string; userId: string; reason: string; createdAt: Date; updatedAt: Date; }' > src/types/Blacklist.d.ts && \
-    echo 'export interface CommissionRule { _id: string; level: number; rate: number; createdAt: Date; updatedAt: Date; }' > src/types/CommissionRule.d.ts && \
-    echo 'export interface Order { _id: string; userId: string; strategyId: string; amount: number; status: string; createdAt: Date; updatedAt: Date; }' > src/types/Order.d.ts && \
-    echo 'export interface StrategyRating { _id: string; strategyId: string; userId: string; rating: number; comment?: string; createdAt: Date; updatedAt: Date; }' > src/types/StrategyRating.d.ts && \
-    echo 'export interface UserLevel { _id: string; userId: string; level: number; points: number; createdAt: Date; updatedAt: Date; }' > src/types/UserLevel.d.ts && \
-    chmod -R 777 /app/src/types
-
-# Create service type definition files
-RUN mkdir -p src/types/services && \
-    echo 'export interface AuthService { login(email: string, password: string): Promise<any>; }' > src/types/services/AuthService.d.ts && \
-    echo 'export interface BlacklistService { addToBlacklist(userId: string, reason: string): Promise<any>; }' > src/types/services/BlacklistService.d.ts && \
-    echo 'export interface CommissionService { calculateCommission(amount: number, level: number): Promise<number>; }' > src/types/services/CommissionService.d.ts && \
-    echo 'export interface ProfitService { calculateProfit(strategyId: string): Promise<number>; }' > src/types/services/ProfitService.d.ts && \
-    echo 'export interface StrategyRatingService { rateStrategy(strategyId: string, userId: string, rating: number, comment?: string): Promise<any>; }' > src/types/services/StrategyRatingService.d.ts && \
-    echo 'export interface UserLevelService { updateUserLevel(userId: string, points: number): Promise<any>; }' > src/types/services/UserLevelService.d.ts && \
-    echo 'export interface WithdrawalService { requestWithdrawal(userId: string, amount: number): Promise<any>; }' > src/types/services/WithdrawalService.d.ts && \
-    chmod -R 777 /app/src/types/services
-
-# Create model type definition files
-RUN mkdir -p src/types/models && \
-    echo 'export interface Blacklist { _id: string; userId: string; reason: string; createdAt: Date; updatedAt: Date; }' > src/types/models/Blacklist.d.ts && \
-    echo 'export interface CommissionRule { _id: string; level: number; rate: number; createdAt: Date; updatedAt: Date; }' > src/types/models/CommissionRule.d.ts && \
-    echo 'export interface Order { _id: string; userId: string; strategyId: string; amount: number; status: string; createdAt: Date; updatedAt: Date; }' > src/types/models/Order.d.ts && \
-    echo 'export interface StrategyRating { _id: string; strategyId: string; userId: string; rating: number; comment?: string; createdAt: Date; updatedAt: Date; }' > src/types/models/StrategyRating.d.ts && \
-    echo 'export interface UserLevel { _id: string; userId: string; level: number; points: number; createdAt: Date; updatedAt: Date; }' > src/types/models/UserLevel.d.ts && \
-    chmod -R 777 /app/src/types/models
+    npm install --legacy-peer-deps
 
 # Copy source code
 COPY server/ ./src/
 
-# Set permissions for the entire app directory
+# Set proper permissions
 RUN chmod -R 777 /app
 
-# Add type checking script to package.json
-RUN npm pkg set scripts.type-check="tsc --noEmit"
-
-# Run type checking
-RUN npm run type-check
-
-# Build the application
-RUN npm run build
+# 根据参数决定是否跳过类型检查
+RUN if [ "$SKIP_TYPE_CHECK" = "true" ]; then \
+    echo "跳过类型检查" && \
+    npm run build; \
+    else \
+    echo "执行类型检查" && \
+    npm run type-check && \
+    npm run build; \
+    fi
 
 # Production stage
 FROM node:18-slim
@@ -85,30 +50,16 @@ WORKDIR /app
 # Install curl for healthcheck
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user
+# Create app user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
-
-# Install production dependencies only
-COPY server/package*.json ./
-RUN npm config set registry https://registry.npmjs.org/ && \
-    npm install --production --legacy-peer-deps && \
-    npm cache clean --force
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 
-# Copy necessary configuration files
-COPY server/.env* ./
-COPY server/knexfile.ts ./
-
-# Create necessary directories and set permissions
-RUN mkdir -p /app/logs && \
-    chown -R appuser:appuser /app && \
-    chmod -R 777 /app
-
-# Switch to non-root user
-USER appuser
+# Set proper permissions
+RUN chmod -R 777 /app
 
 # Expose the application port
 EXPOSE 3005

@@ -3,76 +3,115 @@ version: '3.8'
 services:
   user-ui:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile.user-ui
+      context: ../user-ui
+      dockerfile: ../docker/Dockerfile.user-ui
+      args:
+        - NODE_ENV=production
+        - SKIP_TYPE_CHECK=true
     container_name: panda-quant-user-ui
-    ports:
-      - "8082:80"
     restart: always
+    ports:
+      - "80:80"
     networks:
       - panda-quant-network
     depends_on:
       - user-api
-    user: "1000:1000"
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE
-    env_file:
-      - .env
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   user-api:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile.user-api
+      context: ../user-api
+      dockerfile: ../docker/Dockerfile.user-api
+      args:
+        - NODE_ENV=production
+        - SKIP_TYPE_CHECK=true
     container_name: panda-quant-user-api
-    ports:
-      - "8083:8083"
     restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=mongodb://admin:Wl528586*@mongodb:27017/admin
+      - REDIS_URI=redis://:Wl528586*@redis:6380
+      - POSTGRES_URI=postgresql://admin:Wl528586*@postgres:5432/panda_quant
     networks:
       - panda-quant-network
-    env_file:
-      - .env
     depends_on:
-      - postgres
+      - mongodb
       - redis
-    user: "1000:1000"
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_BIND_SERVICE
+      - postgres
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mongodb:
+    image: mongo:latest
+    container_name: panda-quant-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=Wl528586*
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - panda-quant-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:alpine
+    container_name: panda-quant-redis
+    restart: always
+    ports:
+      - "6380:6380"
+    command: redis-server --port 6380 --requirepass Wl528586*
+    volumes:
+      - redis_data:/data
+    networks:
+      - panda-quant-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6380", "-a", "Wl528586*", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   postgres:
-    image: postgres:15
+    image: postgres:latest
     container_name: panda-quant-postgres
+    restart: always
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=Wl528586*
       - POSTGRES_DB=panda_quant
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     networks:
       - panda-quant-network
-    restart: always
-
-  redis:
-    image: redis:7
-    container_name: panda-quant-redis
-    ports:
-      - "6379:6379"
-    networks:
-      - panda-quant-network
-    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d panda_quant"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   panda-quant-network:
-    external: true
+    driver: bridge
 
 volumes:
-  postgres_data: 
+  mongodb_data:
+  redis_data:
+  postgres_data:

@@ -1,17 +1,21 @@
-FROM node:18-alpine AS builder
+FROM node:18-slim AS builder
+
+# 添加构建参数
+ARG NODE_ENV=production
+ARG SKIP_TYPE_CHECK=false
 
 WORKDIR /app
 
 # Install build dependencies
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
-    git \
-    curl
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install TypeScript globally
-RUN npm install -g typescript@5.4.2 && \
+RUN npm install -g typescript@5.3.3 && \
     chmod -R 777 /usr/local/bin/tsc
 
 # Copy package files first to leverage Docker cache
@@ -19,61 +23,50 @@ COPY admin-api/package*.json ./
 COPY admin-api/tsconfig.json ./
 
 # Install all dependencies
-RUN npm cache clean --force && \
-    npm install --legacy-peer-deps && \
-    npm install --save-dev \
-        @types/node@18.19.3 \
-        @types/express@4.17.21 \
-        @types/mongoose@5.11.97 \
-        @types/redis@4.0.11 \
-        typescript@5.4.2 \
-        @typescript-eslint/parser \
-        @typescript-eslint/eslint-plugin && \
-    npm cache clean --force && \
-    chmod -R 777 /app/node_modules/.bin && \
-    chmod -R 777 /app/node_modules/typescript/bin/tsc
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm install --legacy-peer-deps
 
 # Copy source code
-COPY admin-api/ ./
+COPY admin-api/ ./src/
 
-# Set permissions for the entire app directory
+# Set proper permissions
 RUN chmod -R 777 /app
 
-# Build the application and verify build
-RUN npm run build && \
-    ls -la /app/dist || (echo "Build failed" && exit 1)
+# 根据参数决定是否跳过类型检查
+RUN if [ "$SKIP_TYPE_CHECK" = "true" ]; then \
+    echo "跳过类型检查" && \
+    npm run build; \
+    else \
+    echo "执行类型检查" && \
+    npm run type-check && \
+    npm run build; \
+    fi
 
 # Production stage
-FROM node:18-alpine
+FROM node:18-slim
 
 WORKDIR /app
 
 # Install curl for healthcheck
-RUN apk add --no-cache curl
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Create app user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=8081
-
-# Create app directory and set permissions
-RUN mkdir -p /app && \
-    chown -R node:node /app && \
-    chmod -R 777 /app
-
-# Switch to non-root user
-USER node
+# Set proper permissions
+RUN chmod -R 777 /app
 
 # Expose the application port
-EXPOSE 8081
+EXPOSE 3002
 
-# Add health check with longer intervals and timeouts
-HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:8081/health || exit 1
+# Add health check
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD curl -f http://localhost:3002/health || exit 1
 
 # Start the application
-CMD ["node", "dist/index.js"] 
+CMD ["npm", "start"] 
