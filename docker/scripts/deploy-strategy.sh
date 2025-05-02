@@ -97,17 +97,17 @@ fi
 log "3. 安装依赖..."
 cd $PROJECT_ROOT/strategy-engine
 
-# 检查 package.json 是否被修改
+# 检查是否需要安装依赖
 if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules" ]; then
-    log "安装依赖..."
-    # 清理 npm 缓存
-    npm cache clean --force
+    log "检测到依赖需要更新，开始安装..."
+    # 使用更安全的方式清理 npm 缓存
+    npm cache verify
     # 安装生产依赖
-    npm install --legacy-peer-deps
+    npm install --legacy-peer-deps --no-audit
     check_result "安装依赖失败"
     # 安装开发依赖
     log "安装开发依赖..."
-    npm install --save-dev @types/dotenv@8.2.0
+    npm install --save-dev @types/dotenv@8.2.0 --no-audit
     check_result "安装开发依赖失败"
     log "依赖安装完成"
 else
