@@ -42,7 +42,27 @@ RUN mkdir -p src/types && \
     echo 'export interface UserLevel { _id: string; userId: string; level: number; points: number; createdAt: Date; updatedAt: Date; }' > src/types/UserLevel.d.ts && \
     chmod -R 777 /app/src/types
 
-# Copy source code and other necessary files
+# Create service type definition files
+RUN mkdir -p src/types/services && \
+    echo 'export interface AuthService { login(email: string, password: string): Promise<any>; }' > src/types/services/AuthService.d.ts && \
+    echo 'export interface BlacklistService { addToBlacklist(userId: string, reason: string): Promise<any>; }' > src/types/services/BlacklistService.d.ts && \
+    echo 'export interface CommissionService { calculateCommission(amount: number, level: number): Promise<number>; }' > src/types/services/CommissionService.d.ts && \
+    echo 'export interface ProfitService { calculateProfit(strategyId: string): Promise<number>; }' > src/types/services/ProfitService.d.ts && \
+    echo 'export interface StrategyRatingService { rateStrategy(strategyId: string, userId: string, rating: number, comment?: string): Promise<any>; }' > src/types/services/StrategyRatingService.d.ts && \
+    echo 'export interface UserLevelService { updateUserLevel(userId: string, points: number): Promise<any>; }' > src/types/services/UserLevelService.d.ts && \
+    echo 'export interface WithdrawalService { requestWithdrawal(userId: string, amount: number): Promise<any>; }' > src/types/services/WithdrawalService.d.ts && \
+    chmod -R 777 /app/src/types/services
+
+# Create model type definition files
+RUN mkdir -p src/types/models && \
+    echo 'export interface Blacklist { _id: string; userId: string; reason: string; createdAt: Date; updatedAt: Date; }' > src/types/models/Blacklist.d.ts && \
+    echo 'export interface CommissionRule { _id: string; level: number; rate: number; createdAt: Date; updatedAt: Date; }' > src/types/models/CommissionRule.d.ts && \
+    echo 'export interface Order { _id: string; userId: string; strategyId: string; amount: number; status: string; createdAt: Date; updatedAt: Date; }' > src/types/models/Order.d.ts && \
+    echo 'export interface StrategyRating { _id: string; strategyId: string; userId: string; rating: number; comment?: string; createdAt: Date; updatedAt: Date; }' > src/types/models/StrategyRating.d.ts && \
+    echo 'export interface UserLevel { _id: string; userId: string; level: number; points: number; createdAt: Date; updatedAt: Date; }' > src/types/models/UserLevel.d.ts && \
+    chmod -R 777 /app/src/types/models
+
+# Copy source code
 COPY server/ ./src/
 
 # Set permissions for the entire app directory

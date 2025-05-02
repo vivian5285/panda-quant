@@ -189,6 +189,10 @@ check_result "创建网络失败"
 log "检查并停止所有 Redis 容器..."
 docker ps -a | grep redis | awk '{print $1}' | xargs -r docker rm -f
 
+# 检查并停止所有使用 6379 端口的容器
+log "检查并停止所有使用 6379 端口的容器..."
+docker ps -a | grep ":6379" | awk '{print $1}' | xargs -r docker rm -f
+
 # 确保 Redis 端口没有被占用
 log "检查 Redis 端口..."
 if lsof -i :6379 > /dev/null 2>&1; then
