@@ -71,24 +71,35 @@ log "4. 构建应用..."
 cd $PROJECT_ROOT/user-api
 chown -R root:root .
 chmod -R 777 .
-log "安装用户端 API 依赖..."
-npm install
-check_result "安装用户端 API 依赖失败"
+
+# 检查是否需要重新安装依赖
+if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ] || [ "package.json" -nt "package-lock.json" ]; then
+    log "安装用户端 API 依赖..."
+    npm install
+    check_result "安装用户端 API 依赖失败"
+else
+    log "使用缓存的用户端 API 依赖..."
+fi
+
 SKIP_TYPE_CHECK=true npm run build
 check_result "构建用户端 API 失败"
 
 cd $PROJECT_ROOT/user-ui
 chown -R root:root .
 chmod -R 777 .
-log "安装用户端 UI 依赖..."
-# 清理现有的 node_modules
-rm -rf node_modules
-rm -f package-lock.json
-# 安装特定版本的 @emotion/is-prop-valid
-npm install @emotion/is-prop-valid@1.2.1
-# 安装其他依赖
-npm install
-check_result "安装用户端 UI 依赖失败"
+
+# 检查是否需要重新安装依赖
+if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ] || [ "package.json" -nt "package-lock.json" ]; then
+    log "安装用户端 UI 依赖..."
+    # 安装特定版本的 @emotion/is-prop-valid
+    npm install @emotion/is-prop-valid@1.2.1
+    # 安装其他依赖
+    npm install
+    check_result "安装用户端 UI 依赖失败"
+else
+    log "使用缓存的用户端 UI 依赖..."
+fi
+
 SKIP_TYPE_CHECK=true npm run build
 check_result "构建用户端 UI 失败"
 

@@ -71,6 +71,22 @@ log "4. 构建应用..."
 cd $PROJECT_ROOT/strategy-engine
 sudo chown -R root:root .
 sudo chmod -R 777 .
+
+# 检查是否需要重新安装依赖
+if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ] || [ "package.json" -nt "package-lock.json" ]; then
+    log "安装策略引擎依赖..."
+    sudo npm install
+    check_result "安装策略引擎依赖失败"
+    
+    # 安装必要的类型定义文件
+    log "安装类型定义文件..."
+    sudo npm install --save-dev @types/dotenv
+    sudo npm install --save-dev @types/node
+    check_result "安装类型定义文件失败"
+else
+    log "使用缓存的策略引擎依赖..."
+fi
+
 sudo SKIP_TYPE_CHECK=true npm run build
 check_result "构建策略引擎失败"
 

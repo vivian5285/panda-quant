@@ -71,12 +71,32 @@ log "4. 构建应用..."
 cd $PROJECT_ROOT/admin-api
 sudo chown -R root:root .
 sudo chmod -R 777 .
+
+# 检查是否需要重新安装依赖
+if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ] || [ "package.json" -nt "package-lock.json" ]; then
+    log "安装管理端 API 依赖..."
+    sudo npm install
+    check_result "安装管理端 API 依赖失败"
+else
+    log "使用缓存的管理端 API 依赖..."
+fi
+
 sudo SKIP_TYPE_CHECK=true npm run build
 check_result "构建管理端 API 失败"
 
 cd $PROJECT_ROOT/admin-ui
 sudo chown -R root:root .
 sudo chmod -R 777 .
+
+# 检查是否需要重新安装依赖
+if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ] || [ "package.json" -nt "package-lock.json" ]; then
+    log "安装管理端 UI 依赖..."
+    sudo npm install
+    check_result "安装管理端 UI 依赖失败"
+else
+    log "使用缓存的管理端 UI 依赖..."
+fi
+
 sudo SKIP_TYPE_CHECK=true npm run build
 check_result "构建管理端 UI 失败"
 
