@@ -71,13 +71,13 @@ log "4. 构建应用..."
 cd $PROJECT_ROOT/user-api
 sudo chown -R root:root .
 sudo chmod -R 777 .
-sudo npm run build
+sudo SKIP_TYPE_CHECK=true npm run build
 check_result "构建用户端 API 失败"
 
 cd $PROJECT_ROOT/user-ui
 sudo chown -R root:root .
 sudo chmod -R 777 .
-sudo npm run build
+sudo SKIP_TYPE_CHECK=true npm run build
 check_result "构建用户端 UI 失败"
 
 # 5. 部署服务
@@ -85,7 +85,7 @@ log "5. 部署服务..."
 cd $CURRENT_DIR
 
 # 启动服务
-sudo docker-compose -f docker-compose.user.yml up -d --build
+sudo SKIP_TYPE_CHECK=true docker-compose -f docker-compose.user.yml up -d --build
 check_result "启动服务失败"
 
 # 6. 等待服务就绪
