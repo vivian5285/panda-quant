@@ -1,124 +1,50 @@
-version: '3.8'
-
 services:
-  strategy:
+  strategy-engine:
     build:
-      context: ../strategy-engine
-      dockerfile: ../docker/Dockerfile.strategy-engine
-      args:
-        - NODE_ENV=production
-    container_name: panda-quant-strategy
+      context: .
+      dockerfile: Dockerfile.strategy-engine
+    container_name: panda-quant-strategy-engine
     restart: always
-    user: root
-    privileged: true
     ports:
-      - "3003:3003"
+      - "3002:3002"
     environment:
       - NODE_ENV=production
-      - PORT=3003
-      - MONGODB_URI=mongodb://admin:Wl528586*@mongodb:27017/panda-quant-admin?authSource=admin
-      - REDIS_URI=redis://:Wl528586*@redis:6380
-      - POSTGRES_URI=postgresql://postgres:Wl528586*@postgres:5432/panda_quant
-    networks:
-      - panda-quant-network
+      - PORT=3002
+      - MONGODB_URI=mongodb://mongo:27017/strategy
+      - REDIS_URI=redis://redis:6379
     depends_on:
-      - mongodb
+      - mongo
       - redis
-      - postgres
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+
+  mongo:
+    image: mongo:latest
+    container_name: panda-quant-strategy-mongo
+    restart: always
+    ports:
+      - "27018:27017"
+    volumes:
+      - strategy-mongo-data:/data/db
+
+  redis:
+    image: redis:latest
+    container_name: panda-quant-strategy-redis
+    restart: always
+    ports:
+      - "6380:6379"
+    volumes:
+      - strategy-redis-data:/data
 
   nginx-strategy:
-    image: nginx:1.25.3-alpine
-    container_name: panda-quant-nginx-strategy
+    image: nginx:latest
+    container_name: panda-quant-strategy-nginx
     restart: always
-    user: root
-    privileged: true
     ports:
       - "80:80"
     volumes:
-      - ../nginx/strategy.conf:/etc/nginx/conf.d/default.conf
-      - ../nginx/ssl:/etc/nginx/ssl
-    networks:
-      - panda-quant-network
+      - ./nginx/strategy.conf:/etc/nginx/conf.d/default.conf
     depends_on:
-      - strategy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  mongodb:
-    image: mongo:latest
-    container_name: panda-quant-mongodb
-    user: root
-    privileged: true
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=Wl528586*
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - panda-quant-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  redis:
-    image: redis:alpine
-    container_name: panda-quant-redis
-    user: root
-    privileged: true
-    ports:
-      - "6380:6379"
-    command: redis-server --requirepass Wl528586*
-    volumes:
-      - redis_data:/data
-    networks:
-      - panda-quant-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  postgres:
-    image: postgres:latest
-    container_name: panda-quant-postgres
-    user: root
-    privileged: true
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=Wl528586*
-      - POSTGRES_DB=panda_quant
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - panda-quant-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d panda_quant"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - strategy-engine
 
 volumes:
-  mongodb_data:
-  redis_data:
-  postgres_data:
-
-networks:
-  panda-quant-network:
-    driver: bridge 
+  strategy-mongo-data:
+  strategy-redis-data: 

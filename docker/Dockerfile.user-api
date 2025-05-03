@@ -1,4 +1,5 @@
-FROM node:18-slim as builder
+# 使用 Node.js 18 作为基础镜像
+FROM node:18-slim AS builder
 
 # 使用 root 用户
 USER root
@@ -6,11 +7,7 @@ USER root
 # 设置工作目录
 WORKDIR /app
 
-# 设置构建参数
-ARG NODE_ENV=production
-ARG SKIP_TYPE_CHECK=true
-
-# 安装必要的系统依赖
+# 安装系统依赖
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -18,30 +15,58 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 全局安装 TypeScript
+# 安装全局依赖
 RUN npm install -g typescript@5.3.3 && \
-    chmod -R 777 /usr/local/bin/tsc && \
-    chmod -R 777 /usr/local/lib/node_modules/typescript
+    chmod -R 777 /usr/local/bin && \
+    chmod -R 777 /usr/local/lib/node_modules
 
 # 复制 package.json 和 package-lock.json
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-# 复制 tsconfig.json
-COPY tsconfig.json ./
+# 安装项目依赖
+RUN npm install --legacy-peer-deps --no-audit
 
-# 安装依赖
-RUN npm config set registry https://registry.npmjs.org/ && \
-    npm install --legacy-peer-deps --no-audit --unsafe-perm && \
-    npm install dotenv@16.4.5 @types/dotenv@8.2.3 @types/node@20.11.19 --save-dev --unsafe-perm
-
-# 修改 package.json 添加构建脚本
-RUN npm pkg set scripts.build="tsc --skipLibCheck"
+# 创建 tsconfig.json
+RUN echo '{\n\
+  "compilerOptions": {\n\
+    "target": "es2018",\n\
+    "module": "commonjs",\n\
+    "lib": ["es2018", "esnext.asynciterable"],\n\
+    "skipLibCheck": true,\n\
+    "sourceMap": true,\n\
+    "outDir": "./dist",\n\
+    "moduleResolution": "node",\n\
+    "removeComments": true,\n\
+    "noImplicitAny": false,\n\
+    "strictNullChecks": false,\n\
+    "strictFunctionTypes": false,\n\
+    "noImplicitThis": false,\n\
+    "noUnusedLocals": false,\n\
+    "noUnusedParameters": false,\n\
+    "noImplicitReturns": false,\n\
+    "noFallthroughCasesInSwitch": false,\n\
+    "allowSyntheticDefaultImports": true,\n\
+    "esModuleInterop": true,\n\
+    "emitDecoratorMetadata": true,\n\
+    "experimentalDecorators": true,\n\
+    "resolveJsonModule": true,\n\
+    "baseUrl": ".",\n\
+    "paths": {\n\
+      "@/*": ["src/*"]\n\
+    }\n\
+  },\n\
+  "exclude": ["node_modules", "dist"],\n\
+  "include": ["src/**/*.ts", "src/**/*.tsx"]\n\
+}' > tsconfig.json
 
 # 复制源代码
-COPY . ./src/
+COPY . .
 
 # 设置目录权限
 RUN chmod -R 777 /app
+
+# 修改 package.json 中的构建脚本
+RUN npm pkg set scripts.build="tsc --skipLibCheck"
 
 # 构建应用
 RUN echo "构建应用..." && \
@@ -59,7 +84,7 @@ WORKDIR /app
 # 复制构建产物
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/package.json ./package.json
 
 # 设置目录权限
 RUN chmod -R 777 /app
