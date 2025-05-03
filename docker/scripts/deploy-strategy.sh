@@ -7,6 +7,11 @@ DOCKER_DIR="$(dirname "$SCRIPT_DIR")"
 # 切换到docker目录
 cd "$DOCKER_DIR"
 
+# 加载环境变量
+if [ -f .env ]; then
+    export $(cat .env | grep -v '^#' | xargs)
+fi
+
 echo "开始部署策略引擎服务..."
 
 # 停止并删除旧容器
