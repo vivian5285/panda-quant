@@ -59,7 +59,7 @@ cat > tsconfig.json << 'EOF'
 EOF
 
 # 修改 package.json 中的构建脚本
-sed -i 's/"build": "tsc"/"build": "tsc --skipLibCheck"/g' package.json
+npm pkg set scripts.build="tsc --skipLibCheck"
 
 # 创建必要的类型定义
 mkdir -p src/types

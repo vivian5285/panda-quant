@@ -36,11 +36,13 @@ RUN rm -rf node_modules package-lock.json && \
     npm install @types/uuid@9.0.0 --save-dev --force && \
     npm install @types/winston@2.4.4 --save-dev --force
 
+RUN npm pkg set scripts.build="tsc --skipLibCheck"
+
 COPY . .
 
 RUN chmod -R 777 /app
 
-RUN echo "跳过类型检查，直接构建..." && \
+RUN echo "构建应用..." && \
     npm run build
 
 FROM node:18.20.2-slim

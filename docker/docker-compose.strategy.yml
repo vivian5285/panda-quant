@@ -4,7 +4,7 @@ services:
   strategy:
     build:
       context: ../strategy-engine
-      dockerfile: ../docker/Dockerfile.strategy
+      dockerfile: ../docker/Dockerfile.strategy-engine
       args:
         - NODE_ENV=production
     container_name: panda-quant-strategy
