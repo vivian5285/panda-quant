@@ -19,14 +19,16 @@ handle_error() {
     log "错误: $1"
     log "部署失败，请检查日志文件: $LOG_FILE"
     sudo docker-compose -f docker-compose.admin.yml down
-    exit 1
+    return 1
 }
 
 # 检查命令执行结果
 check_result() {
     if [ $? -ne 0 ]; then
         handle_error "$1"
+        return 1
     fi
+    return 0
 }
 
 # 设置当前部署目录和项目根目录
@@ -49,9 +51,10 @@ if [ ! -f .env ]; then
         sudo cp .env.example .env
         sudo chmod 777 .env
         log "请编辑 .env 文件配置必要的环境变量"
-        exit 1
+        return 1
     else
         handle_error ".env 和 .env.example 文件都不存在"
+        return 1
     fi
 fi
 
@@ -76,13 +79,13 @@ sudo chmod -R 777 .
 if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ] || [ "package.json" -nt "package-lock.json" ]; then
     log "安装管理端 API 依赖..."
     sudo npm install
-    check_result "安装管理端 API 依赖失败"
+    check_result "安装管理端 API 依赖失败" || return 1
 else
     log "使用缓存的管理端 API 依赖..."
 fi
 
 sudo SKIP_TYPE_CHECK=true npm run build
-check_result "构建管理端 API 失败"
+check_result "构建管理端 API 失败" || return 1
 
 cd $PROJECT_ROOT/admin-ui
 sudo chown -R root:root .
@@ -92,13 +95,13 @@ sudo chmod -R 777 .
 if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ] || [ "package.json" -nt "package-lock.json" ]; then
     log "安装管理端 UI 依赖..."
     sudo npm install
-    check_result "安装管理端 UI 依赖失败"
+    check_result "安装管理端 UI 依赖失败" || return 1
 else
     log "使用缓存的管理端 UI 依赖..."
 fi
 
 sudo SKIP_TYPE_CHECK=true npm run build
-check_result "构建管理端 UI 失败"
+check_result "构建管理端 UI 失败" || return 1
 
 # 5. 部署服务
 log "5. 部署服务..."
@@ -106,7 +109,7 @@ cd $CURRENT_DIR
 
 # 启动服务
 sudo SKIP_TYPE_CHECK=true docker-compose -f docker-compose.admin.yml up -d --build
-check_result "启动服务失败"
+check_result "启动服务失败" || return 1
 
 # 6. 等待服务就绪
 log "6. 等待服务就绪..."
@@ -126,6 +129,7 @@ done
 
 if [ $attempt -gt $max_attempts ]; then
     handle_error "服务启动超时"
+    return 1
 fi
 
 log "部署完成！"

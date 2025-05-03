@@ -19,14 +19,16 @@ handle_error() {
     log "错误: $1"
     log "部署失败，请检查日志文件: $LOG_FILE"
     docker-compose -f docker-compose.user.yml down
-    exit 1
+    return 1
 }
 
 # 检查命令执行结果
 check_result() {
     if [ $? -ne 0 ]; then
         handle_error "$1"
+        return 1
     fi
+    return 0
 }
 
 # 设置当前部署目录和项目根目录
@@ -49,9 +51,10 @@ if [ ! -f .env ]; then
         cp .env.example .env
         chmod 777 .env
         log "请编辑 .env 文件配置必要的环境变量"
-        exit 1
+        return 1
     else
         handle_error ".env 和 .env.example 文件都不存在"
+        return 1
     fi
 fi
 
@@ -76,13 +79,13 @@ chmod -R 777 .
 if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ] || [ "package.json" -nt "package-lock.json" ]; then
     log "安装用户端 API 依赖..."
     npm install
-    check_result "安装用户端 API 依赖失败"
+    check_result "安装用户端 API 依赖失败" || return 1
 else
     log "使用缓存的用户端 API 依赖..."
 fi
 
 SKIP_TYPE_CHECK=true npm run build
-check_result "构建用户端 API 失败"
+check_result "构建用户端 API 失败" || return 1
 
 cd $PROJECT_ROOT/user-ui
 chown -R root:root .
@@ -91,17 +94,21 @@ chmod -R 777 .
 # 检查是否需要重新安装依赖
 if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ] || [ "package.json" -nt "package-lock.json" ]; then
     log "安装用户端 UI 依赖..."
-    # 安装特定版本的 @emotion/is-prop-valid
-    npm install @emotion/is-prop-valid@1.2.1
+    # 清理现有的 node_modules
+    rm -rf node_modules
+    rm -f package-lock.json
+    # 安装特定版本的依赖
+    npm install vite@5.1.4 --save-dev
+    npm install @emotion/is-prop-valid@2.1.1 --save
     # 安装其他依赖
     npm install
-    check_result "安装用户端 UI 依赖失败"
+    check_result "安装用户端 UI 依赖失败" || return 1
 else
     log "使用缓存的用户端 UI 依赖..."
 fi
 
 SKIP_TYPE_CHECK=true npm run build
-check_result "构建用户端 UI 失败"
+check_result "构建用户端 UI 失败" || return 1
 
 # 5. 部署服务
 log "5. 部署服务..."
@@ -109,7 +116,7 @@ cd $CURRENT_DIR
 
 # 启动服务
 SKIP_TYPE_CHECK=true docker-compose -f docker-compose.user.yml up -d --build
-check_result "启动服务失败"
+check_result "启动服务失败" || return 1
 
 # 6. 等待服务就绪
 log "6. 等待服务就绪..."
@@ -129,6 +136,7 @@ done
 
 if [ $attempt -gt $max_attempts ]; then
     handle_error "服务启动超时"
+    return 1
 fi
 
 log "部署完成！"

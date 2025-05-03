@@ -45,7 +45,8 @@ RUN rm -rf node_modules package-lock.json && \
     npm install vite@5.1.4 --save-dev && \
     npm install rollup@3.29.4 --save-dev && \
     npm install @types/node@20.5.0 --save-dev --force && \
-    npm rebuild
+    npm rebuild && \
+    npm install @rollup/rollup-linux-x64-gnu@3.29.4 --save-dev --force
 
 # 复制源代码
 COPY . .
