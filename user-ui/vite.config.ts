@@ -53,6 +53,7 @@ export default defineConfig({
       '@assets': resolve(__dirname, './src/assets'),
       '@services': resolve(__dirname, './src/services'),
     },
+    dedupe: ['react', 'react-dom', '@emotion/react', '@emotion/styled', '@emotion/is-prop-valid'],
   },
   server: {
     port: 3003,

@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
+    "@emotion/react": "11.11.3",
+    "@emotion/styled": "11.11.0",
+    "@emotion/is-prop-valid": "1.2.1",
     "@ethersproject/providers": "^5.8.0",
     "@mui/icons-material": "^5.17.1",
     "@mui/lab": "^5.0.0-alpha.165",
@@ -93,12 +94,18 @@
     "viem": "^2.23.2",
     "esbuild": "^0.18.20",
     "@wagmi/connectors": "^5.7.13",
-    "@web3modal/wagmi": "^5.1.11"
+    "@web3modal/wagmi": "^5.1.11",
+    "@emotion/react": "11.11.3",
+    "@emotion/styled": "11.11.0",
+    "@emotion/is-prop-valid": "1.2.1"
   },
   "overrides": {
     "viem": "^2.23.2",
     "@wagmi/connectors": {
       "viem": "^2.23.2"
-    }
+    },
+    "@emotion/react": "11.11.3",
+    "@emotion/styled": "11.11.0",
+    "@emotion/is-prop-valid": "1.2.1"
   }
 }

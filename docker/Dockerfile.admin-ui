@@ -1,5 +1,5 @@
-# 使用 Node.js 18 作为基础镜像
-FROM node:18.20.2-slim as builder
+# 使用完整版 Node.js 18 作为基础镜像
+FROM node:18.20.2 as builder
 
 # 使用 root 用户
 USER root
@@ -19,6 +19,12 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     build-essential \
+    libc6-dev \
+    libstdc++6 \
+    libgcc1 \
+    libc6 \
+    libstdc++6 \
+    libgcc1 \
     && rm -rf /var/lib/apt/lists/*
 
 # 设置 npm 配置
@@ -37,9 +43,10 @@ RUN rm -rf node_modules package-lock.json && \
     npm cache clean --force && \
     npm install --legacy-peer-deps --no-audit && \
     npm install vite@5.1.4 --save-dev && \
-    npm install rollup@4.9.6 --save-dev && \
-    npm install @rollup/rollup-linux-x64-gnu@4.9.6 --save-dev --force && \
-    npm install @types/node@20.5.0 --save-dev --force
+    npm install rollup@3.29.4 --save-dev && \
+    npm install @rollup/rollup-linux-x64-gnu@3.29.4 --save-dev --force && \
+    npm install @types/node@20.5.0 --save-dev --force && \
+    npm rebuild
 
 # 复制源代码
 COPY . .
