@@ -11,10 +11,10 @@ echo "开始部署管理后台服务..."
 
 # 停止并删除旧容器
 echo "停止并删除旧容器..."
-docker compose down admin-panel || true
+docker compose -f docker-compose.admin.yml down || true
 
 # 启动服务
 echo "启动管理后台服务..."
-docker compose up -d admin-panel
+docker compose -f docker-compose.admin.yml up -d
 
 echo "管理后台服务部署完成" 

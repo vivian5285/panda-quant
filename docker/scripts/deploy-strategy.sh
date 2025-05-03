@@ -11,10 +11,10 @@ echo "开始部署策略引擎服务..."
 
 # 停止并删除旧容器
 echo "停止并删除旧容器..."
-docker compose down strategy-engine || true
+docker compose -f docker-compose.strategy.yml down || true
 
 # 启动服务
 echo "启动策略引擎服务..."
-docker compose up -d strategy-engine
+docker compose -f docker-compose.strategy.yml up -d
 
 echo "策略引擎服务部署完成" 

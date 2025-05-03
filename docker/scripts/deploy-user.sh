@@ -11,10 +11,10 @@ echo "开始部署用户服务..."
 
 # 停止并删除旧容器
 echo "停止并删除旧容器..."
-docker compose down user-service || true
+docker compose -f docker-compose.user.yml down || true
 
 # 启动服务
 echo "启动用户服务..."
-docker compose up -d user-service
+docker compose -f docker-compose.user.yml up -d
 
 echo "用户服务部署完成" 
