@@ -27,7 +27,8 @@ COPY package*.json ./
 RUN rm -rf node_modules package-lock.json && \
     npm cache clean --force && \
     npm install --legacy-peer-deps --no-audit && \
-    npm install dotenv@16.4.5 @types/dotenv@8.2.0 --save-dev
+    npm install dotenv@16.4.5 @types/dotenv@8.2.0 --save-dev --force && \
+    npm install @types/node@20.5.0 --save-dev --force
 
 COPY . .
 
@@ -55,4 +56,4 @@ EXPOSE 3006
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD curl -f http://localhost:3006/health || exit 1
 
-CMD ["npm", "start"] 
+CMD ["node", "dist/index.js"] 
