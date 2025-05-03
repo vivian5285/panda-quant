@@ -3,7 +3,7 @@ version: '3.8'
 services:
   strategy:
     build:
-      context: ../strategy
+      context: ../strategy-engine
       dockerfile: ../docker/Dockerfile.strategy
       args:
         - NODE_ENV=production
