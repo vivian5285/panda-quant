@@ -1,129 +1,83 @@
 #!/bin/bash
 
-# 设置错误时退出
+# 设置错误处理
 set -e
 
-# 设置日志文件
-LOG_FILE="/var/log/panda-quant/deploy-strategy.log"
-sudo mkdir -p /var/log/panda-quant
-sudo touch $LOG_FILE
-sudo chmod 777 $LOG_FILE
+# 设置环境变量
+export COMPOSE_DOCKER_CLI_BUILD=1
+export DOCKER_BUILDKIT=1
 
-# 日志函数
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | sudo tee -a $LOG_FILE
-}
+# 设置构建参数
+export NODE_ENV=production
+export SKIP_TYPE_CHECK=true
 
-# 错误处理函数
-handle_error() {
-    log "错误: $1"
-    log "部署失败，请检查日志文件: $LOG_FILE"
-    sudo docker-compose -f docker-compose.strategy.yml down
-    return 1
-}
-
-# 检查命令执行结果
-check_result() {
-    if [ $? -ne 0 ]; then
-        handle_error "$1"
-        return 1
-    fi
-    return 0
-}
-
-# 设置当前部署目录和项目根目录
-CURRENT_DIR=$(pwd)
-PROJECT_ROOT=$(dirname "$CURRENT_DIR")
-
-# 设置目录权限
-log "设置目录权限..."
-sudo chown -R root:root $PROJECT_ROOT
-sudo chmod -R 777 $PROJECT_ROOT
-sudo chown -R root:root $CURRENT_DIR
-sudo chmod -R 777 $CURRENT_DIR
-
-log "开始部署策略端..."
-
-# 1. 检查环境变量
-log "1. 检查环境变量..."
-if [ ! -f .env ]; then
-    if [ -f .env.example ]; then
-        sudo cp .env.example .env
-        sudo chmod 777 .env
-        log "请编辑 .env 文件配置必要的环境变量"
-        return 1
-    else
-        handle_error ".env 和 .env.example 文件都不存在"
-        return 1
-    fi
+# 设置 SSH 保持连接
+if [ -n "$SSH_CLIENT" ]; then
+    echo "设置 SSH 保持连接..."
+    echo "ClientAliveInterval 60" | sudo tee -a /etc/ssh/sshd_config
+    echo "ClientAliveCountMax 3" | sudo tee -a /etc/ssh/sshd_config
+    sudo service ssh restart
 fi
 
-# 2. 清理旧的容器和网络
-log "2. 清理旧的容器和网络..."
-sudo docker-compose -f docker-compose.strategy.yml down --remove-orphans
-sudo docker rm -f panda-quant-strategy 2>/dev/null || true
-sudo docker rm -f panda-quant-nginx-strategy 2>/dev/null || true
-sudo docker network rm panda-quant-network 2>/dev/null || true
-
-# 3. 创建新的网络
-log "3. 创建新的网络..."
-sudo docker network create panda-quant-network
-
-# 4. 构建应用
-log "4. 构建应用..."
-cd $PROJECT_ROOT/strategy-engine
-sudo chown -R root:root .
-sudo chmod -R 777 .
-
-# 检查是否需要重新安装依赖
-if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ] || [ "package.json" -nt "package-lock.json" ]; then
-    log "安装策略引擎依赖..."
-    # 清理现有的 node_modules
-    sudo rm -rf node_modules
-    sudo rm -f package-lock.json
-    # 安装依赖
-    sudo npm install
-    check_result "安装策略引擎依赖失败" || return 1
-    
-    # 安装必要的类型定义文件
-    log "安装类型定义文件..."
-    sudo npm install --save-dev @types/dotenv@8.2.0
-    sudo npm install --save-dev @types/node@20.5.0
-    check_result "安装类型定义文件失败" || return 1
-else
-    log "使用缓存的策略引擎依赖..."
+# 检查 Docker 是否运行
+if ! docker info > /dev/null 2>&1; then
+    echo "Docker 未运行，正在启动..."
+    sudo service docker start
+    sleep 5
 fi
 
-sudo SKIP_TYPE_CHECK=true npm run build
-check_result "构建策略引擎失败" || return 1
+# 检查 Docker Compose 是否安装
+if ! command -v docker-compose &> /dev/null; then
+    echo "Docker Compose 未安装，正在安装..."
+    sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+fi
 
-# 5. 部署服务
-log "5. 部署服务..."
-cd $CURRENT_DIR
+# 检查是否在正确的目录
+if [ ! -f "docker-compose.yml" ]; then
+    echo "错误：请在项目根目录运行此脚本"
+    exit 1
+fi
+
+# 清理旧的构建缓存
+echo "清理旧的构建缓存..."
+docker builder prune -f
+
+# 停止并删除旧容器
+echo "停止并删除旧容器..."
+docker-compose down || true
+
+# 构建并启动容器
+echo "开始构建策略引擎..."
+if ! docker-compose build strategy-engine; then
+    echo "构建失败，尝试重新构建..."
+    # 清理构建缓存
+    docker builder prune -f
+    # 重新构建
+    docker-compose build --no-cache strategy-engine
+fi
 
 # 启动服务
-sudo SKIP_TYPE_CHECK=true docker-compose -f docker-compose.strategy.yml up -d --build
-check_result "启动服务失败" || return 1
+echo "启动策略引擎服务..."
+docker-compose up -d strategy-engine
 
-# 6. 等待服务就绪
-log "6. 等待服务就绪..."
-max_attempts=15
-attempt=1
-
-while [ $attempt -le $max_attempts ]; do
-    if curl -s http://localhost:3003/health | grep -q "ok"; then
-        log "服务已就绪"
-        break
-    fi
-    log "等待服务就绪... (尝试 $attempt/$max_attempts)"
-    sleep 5
-    attempt=$((attempt + 1))
-done
-
-if [ $attempt -gt $max_attempts ]; then
-    handle_error "服务启动超时"
-    return 1
+# 检查服务状态
+echo "检查服务状态..."
+sleep 5
+if ! docker-compose ps | grep -q "strategy-engine.*Up"; then
+    echo "服务启动失败，检查日志..."
+    docker-compose logs strategy-engine
+    exit 1
 fi
 
-log "部署完成！"
-log "策略引擎访问地址: http://localhost:3003" 
+echo "策略引擎部署完成！"
+echo "服务状态："
+docker-compose ps
+
+# 保持连接
+if [ -n "$SSH_CLIENT" ]; then
+    echo "按 Ctrl+C 退出..."
+    while true; do
+        sleep 60
+    done
+fi 
