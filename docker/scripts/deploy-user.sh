@@ -90,6 +90,6 @@ cd "$DOCKER_DIR"
 
 # 启动服务
 echo "启动用户服务..."
-docker compose -f docker-compose.user.yml up -d
+docker compose -f docker-compose.user.yml up -d --build
 
 echo "用户服务部署完成" 
