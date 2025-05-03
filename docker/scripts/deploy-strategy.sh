@@ -37,13 +37,21 @@ fi
 echo "停止旧的容器..."
 docker-compose -f docker-compose.strategy.yml down
 
+# 清理 Docker 缓存
+echo "清理 Docker 缓存..."
+docker system prune -f
+
 # 安装必要的类型定义
 echo "安装必要的类型定义..."
 npm install --save-dev @types/node @types/express @types/mongoose @types/jsonwebtoken
 
-# 构建并启动服务
-echo "构建并启动服务..."
-docker-compose -f docker-compose.strategy.yml up -d --build
+# 构建策略引擎镜像
+echo "构建策略引擎镜像..."
+docker build --no-cache -t panda-quant-strategy-engine -f Dockerfile.strategy-engine .
+
+# 启动策略引擎服务
+echo "启动策略引擎服务..."
+docker compose -f docker-compose.strategy.yml up -d --build
 
 # 检查服务状态
 echo "检查服务状态..."

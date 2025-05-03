@@ -31,6 +31,10 @@ fi
 echo "停止并删除旧容器..."
 docker compose -f docker-compose.user.yml down || true
 
+# 清理 Docker 缓存
+echo "清理 Docker 缓存..."
+docker system prune -f
+
 # 修复用户 API 的类型问题
 echo "修复用户 API 的类型问题..."
 cd "$PROJECT_DIR/user-api"
@@ -291,7 +295,7 @@ cd "$DOCKER_DIR"
 
 # 构建用户 API 镜像
 echo "构建用户 API 镜像..."
-docker build -t panda-quant-user-api -f Dockerfile.user-api .
+docker build --no-cache -t panda-quant-user-api -f Dockerfile.user-api .
 
 # 启动用户服务
 echo "启动用户服务..."

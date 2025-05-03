@@ -19,6 +19,10 @@ echo "开始部署管理后台服务..."
 echo "停止并删除旧容器..."
 docker compose -f docker-compose.admin.yml down || true
 
+# 清理 Docker 缓存
+echo "清理 Docker 缓存..."
+docker system prune -f
+
 # 修复管理API的类型问题
 echo "修复管理API的类型问题..."
 cd "$PROJECT_DIR/admin-api"
@@ -64,7 +68,11 @@ sed -i 's/"build": "tsc"/"build": "tsc --skipLibCheck"/g' package.json
 # 返回docker目录
 cd "$DOCKER_DIR"
 
-# 启动服务
+# 构建管理后台 API 镜像
+echo "构建管理后台 API 镜像..."
+docker build --no-cache -t panda-quant-admin-api -f Dockerfile.admin-api .
+
+# 启动管理后台服务
 echo "启动管理后台服务..."
 docker compose -f docker-compose.admin.yml up -d --build
 
