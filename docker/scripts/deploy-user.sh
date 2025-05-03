@@ -48,36 +48,35 @@ echo "停止并删除旧容器..."
 docker-compose down || true
 
 # 构建并启动容器
-echo "开始构建用户端 UI..."
-if ! docker-compose build user-ui; then
+echo "开始构建用户服务..."
+if ! docker-compose build user-service; then
     echo "构建失败，尝试重新构建..."
     # 清理构建缓存
     docker builder prune -f
     # 重新构建
-    docker-compose build --no-cache user-ui
+    docker-compose build --no-cache user-service
 fi
 
 # 启动服务
-echo "启动用户端 UI 服务..."
-docker-compose up -d user-ui
+echo "启动用户服务..."
+docker-compose up -d user-service
 
 # 检查服务状态
 echo "检查服务状态..."
 sleep 5
-if ! docker-compose ps | grep -q "user-ui.*Up"; then
+if ! docker-compose ps | grep -q "user-service.*Up"; then
     echo "服务启动失败，检查日志..."
-    docker-compose logs user-ui
+    docker-compose logs user-service
     exit 1
 fi
 
-echo "用户端 UI 部署完成！"
+echo "用户服务部署完成！"
 echo "服务状态："
 docker-compose ps
 
 # 保持连接
 if [ -n "$SSH_CLIENT" ]; then
-    echo "按 Ctrl+C 退出..."
-    while true; do
-        sleep 60
-    done
+    echo "部署完成，按 Ctrl+C 退出..."
+    # 使用更可靠的保持连接方式
+    exec tail -f /dev/null
 fi 

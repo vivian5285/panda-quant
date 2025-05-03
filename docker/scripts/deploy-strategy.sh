@@ -11,14 +11,6 @@ export DOCKER_BUILDKIT=1
 export NODE_ENV=production
 export SKIP_TYPE_CHECK=true
 
-# 设置 SSH 保持连接
-if [ -n "$SSH_CLIENT" ]; then
-    echo "设置 SSH 保持连接..."
-    echo "ClientAliveInterval 60" | sudo tee -a /etc/ssh/sshd_config
-    echo "ClientAliveCountMax 3" | sudo tee -a /etc/ssh/sshd_config
-    sudo service ssh restart
-fi
-
 # 检查 Docker 是否运行
 if ! docker info > /dev/null 2>&1; then
     echo "Docker 未运行，正在启动..."
@@ -76,8 +68,7 @@ docker-compose ps
 
 # 保持连接
 if [ -n "$SSH_CLIENT" ]; then
-    echo "按 Ctrl+C 退出..."
-    while true; do
-        sleep 60
-    done
+    echo "部署完成，按 Ctrl+C 退出..."
+    # 使用更可靠的保持连接方式
+    exec tail -f /dev/null
 fi 

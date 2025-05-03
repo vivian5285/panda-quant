@@ -1,86 +1,70 @@
 #!/bin/bash
 
-# 设置错误时退出
+# 设置错误处理
 set -e
 
-# 显示当前目录
-echo "当前部署目录: $(pwd)"
+# 设置环境变量
+export COMPOSE_DOCKER_CLI_BUILD=1
+export DOCKER_BUILDKIT=1
 
-# 检查 Certbot 是否已安装
-if ! command -v certbot &> /dev/null; then
-    echo "Certbot 未安装，正在安装..."
-    sudo apt update
-    sudo apt install certbot python3-certbot-nginx -y
+# 检查 Docker 是否运行
+if ! docker info > /dev/null 2>&1; then
+    echo "Docker 未运行，正在启动..."
+    sudo service docker start
+    sleep 5
 fi
 
-# 创建必要的目录
-echo "创建必要的目录..."
-mkdir -p ssl
-mkdir -p ../nginx/logs
-chmod 755 ../nginx/logs
+# 检查 Docker Compose 是否安装
+if ! command -v docker-compose &> /dev/null; then
+    echo "Docker Compose 未安装，正在安装..."
+    sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+fi
 
-# 1. 配置管理端域名证书
-echo "1. 配置管理端域名证书..."
-echo "为 admin.pandatrade.space 和 admin-api.pandatrade.space 配置证书..."
-sudo certbot --nginx -d admin.pandatrade.space -d admin-api.pandatrade.space
+# 检查是否在正确的目录
+if [ ! -f "docker-compose.yml" ]; then
+    echo "错误：请在项目根目录运行此脚本"
+    exit 1
+fi
 
-# 2. 配置用户端域名证书
-echo "2. 配置用户端域名证书..."
-echo "为 pandatrade.space 和 api.pandatrade.space 配置证书..."
-sudo certbot --nginx -d pandatrade.space -d api.pandatrade.space
+# 清理旧的构建缓存
+echo "清理旧的构建缓存..."
+docker builder prune -f
 
-# 3. 配置策略引擎域名证书
-echo "3. 配置策略引擎域名证书..."
-echo "为 strategy.pandatrade.space 配置证书..."
-sudo certbot --nginx -d strategy.pandatrade.space
+# 停止并删除旧容器
+echo "停止并删除旧容器..."
+docker-compose down || true
 
-# 4. 配置服务器域名证书
-echo "4. 配置服务器域名证书..."
-echo "为 server.pandatrade.space 配置证书..."
-sudo certbot --nginx -d server.pandatrade.space
+# 构建并启动容器
+echo "开始构建SSL证书服务..."
+if ! docker-compose build ssl-service; then
+    echo "构建失败，尝试重新构建..."
+    # 清理构建缓存
+    docker builder prune -f
+    # 重新构建
+    docker-compose build --no-cache ssl-service
+fi
 
-# 5. 设置证书自动续期
-echo "5. 设置证书自动续期..."
-echo "测试证书续期..."
-sudo certbot renew --dry-run
+# 启动服务
+echo "启动SSL证书服务..."
+docker-compose up -d ssl-service
 
-# 6. 检查证书状态
-echo "6. 检查证书状态..."
-echo "检查所有证书："
-sudo certbot certificates
+# 检查服务状态
+echo "检查服务状态..."
+sleep 5
+if ! docker-compose ps | grep -q "ssl-service.*Up"; then
+    echo "服务启动失败，检查日志..."
+    docker-compose logs ssl-service
+    exit 1
+fi
 
-# 7. 配置 Nginx
-echo "7. 配置 Nginx..."
-echo "复制 Nginx 配置文件..."
-sudo cp nginx/nginx.conf /etc/nginx/nginx.conf
-sudo cp nginx/admin.conf /etc/nginx/conf.d/
-sudo cp nginx/user.conf /etc/nginx/conf.d/
-sudo cp nginx/strategy.conf /etc/nginx/conf.d/
-sudo cp nginx/server.conf /etc/nginx/conf.d/
+echo "SSL证书服务部署完成！"
+echo "服务状态："
+docker-compose ps
 
-# 8. 测试并重启 Nginx
-echo "8. 测试并重启 Nginx..."
-sudo nginx -t
-sudo systemctl restart nginx
-
-# 9. 设置证书文件权限
-echo "9. 设置证书文件权限..."
-sudo chmod 600 /etc/letsencrypt/live/*/privkey.pem
-sudo chmod 644 /etc/letsencrypt/live/*/fullchain.pem
-
-# 10. 创建符号链接到 ssl 目录
-echo "10. 创建符号链接到 ssl 目录..."
-sudo ln -sf /etc/letsencrypt/live/pandatrade.space/privkey.pem ssl/private.key
-sudo ln -sf /etc/letsencrypt/live/pandatrade.space/fullchain.pem ssl/certificate.crt
-
-echo "SSL 证书部署完成！"
-echo "已配置的域名："
-echo "- admin.pandatrade.space"
-echo "- admin-api.pandatrade.space"
-echo "- pandatrade.space"
-echo "- api.pandatrade.space"
-echo "- strategy.pandatrade.space"
-echo "- server.pandatrade.space"
-echo ""
-echo "证书续期测试结果："
-sudo certbot renew --dry-run 
+# 保持连接
+if [ -n "$SSH_CLIENT" ]; then
+    echo "部署完成，按 Ctrl+C 退出..."
+    # 使用更可靠的保持连接方式
+    exec tail -f /dev/null
+fi 
