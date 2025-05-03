@@ -25,12 +25,6 @@ if ! command -v docker-compose &> /dev/null; then
     sudo chmod +x /usr/local/bin/docker-compose
 fi
 
-# 检查是否在正确的目录
-if [ ! -f "docker-compose.yml" ]; then
-    echo "错误：请在项目根目录运行此脚本"
-    exit 1
-fi
-
 # 清理旧的构建缓存
 echo "清理旧的构建缓存..."
 docker builder prune -f

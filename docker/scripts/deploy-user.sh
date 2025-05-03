@@ -11,14 +11,6 @@ export DOCKER_BUILDKIT=1
 export NODE_ENV=production
 export SKIP_TYPE_CHECK=true
 
-# 设置 SSH 保持连接
-if [ -n "$SSH_CLIENT" ]; then
-    echo "设置 SSH 保持连接..."
-    echo "ClientAliveInterval 60" | sudo tee -a /etc/ssh/sshd_config
-    echo "ClientAliveCountMax 3" | sudo tee -a /etc/ssh/sshd_config
-    sudo service ssh restart
-fi
-
 # 检查 Docker 是否运行
 if ! docker info > /dev/null 2>&1; then
     echo "Docker 未运行，正在启动..."
@@ -31,12 +23,6 @@ if ! command -v docker-compose &> /dev/null; then
     echo "Docker Compose 未安装，正在安装..."
     sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
-fi
-
-# 检查是否在正确的目录
-if [ ! -f "docker-compose.yml" ]; then
-    echo "错误：请在项目根目录运行此脚本"
-    exit 1
 fi
 
 # 清理旧的构建缓存
