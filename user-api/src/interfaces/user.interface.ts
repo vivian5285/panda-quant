@@ -4,6 +4,7 @@ export interface IUserInput {
     name: string;
     username: string;
     isVerified?: boolean;
+    role?: 'user' | 'admin';
 }
 
 export interface IUser extends IUserInput {
@@ -12,4 +13,5 @@ export interface IUser extends IUserInput {
     updatedAt: Date;
     verificationCode?: string;
     verificationCodeExpires?: Date;
+    role: 'user' | 'admin';
 } 

@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# 设置执行权限
+chmod +x "$0"
+
+# 设置环境变量
+export NODE_ENV=production
+export PORT=3001
+export MONGODB_URI=mongodb://mongo:27017/user
+export REDIS_URI=redis://redis:6379
+
 # 获取脚本所在目录
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DOCKER_DIR="$(dirname "$SCRIPT_DIR")"
@@ -17,13 +26,13 @@ echo "开始部署用户服务..."
 
 # 检查 Docker 是否安装
 if ! command -v docker &> /dev/null; then
-    echo "错误: Docker 未安装"
+    echo "Docker 未安装，请先安装 Docker"
     exit 1
 fi
 
 # 检查 Docker Compose 是否安装
 if ! command -v docker-compose &> /dev/null; then
-    echo "错误: Docker Compose 未安装"
+    echo "Docker Compose 未安装，请先安装 Docker Compose"
     exit 1
 fi
 
@@ -53,7 +62,7 @@ fi
 
 # 安装必要的类型定义
 echo "安装必要的类型定义..."
-npm install --save-dev @types/jest @types/mocha @types/node @types/express @types/jsonwebtoken
+npm install --save-dev @types/node @types/express @types/mongoose @types/jsonwebtoken
 
 # 修改 package.json 中的构建脚本
 echo "修改构建脚本..."
@@ -76,6 +85,9 @@ declare global {
   }
 }
 
+// 用户角色类型
+export type UserRole = 'user' | 'admin';
+
 // 用户相关类型
 export interface IUser {
   _id: string;
@@ -85,7 +97,7 @@ export interface IUser {
   password: string;
   name: string;
   balance: number;
-  role: string;
+  role: UserRole;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -96,7 +108,7 @@ export interface AuthUser {
   id: string;
   username: string;
   email: string;
-  role: string;
+  role: UserRole;
 }
 
 // 资产相关类型
@@ -219,7 +231,7 @@ export interface IMarketData {
 
 // 请求相关类型
 export interface AuthRequest extends Request {
-  user?: IUser;
+  user?: AuthUser;
 }
 
 // 响应相关类型
@@ -272,7 +284,7 @@ export interface IHistoricalDataService {
 export interface IJwtPayload extends JwtPayload {
   id: string;
   email: string;
-  role: string;
+  role: UserRole;
 }
 
 // 错误响应类型
@@ -303,4 +315,6 @@ docker compose -f docker-compose.user.yml up -d --build
 
 # 检查服务状态
 echo "检查服务状态..."
-docker ps | grep user 
+docker ps | grep user
+
+echo "用户服务部署完成" 

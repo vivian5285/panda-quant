@@ -7,11 +7,6 @@ USER root
 # 设置工作目录
 WORKDIR /app
 
-# 配置国内镜像源
-RUN echo "deb http://mirrors.aliyun.com/debian/ bookworm main non-free non-free-firmware contrib" > /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian-security/ bookworm-security main" >> /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian/ bookworm-updates main" >> /etc/apt/sources.list
-
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
     python3 \
@@ -30,6 +25,35 @@ COPY package.json package-lock.json ./
 
 # 安装项目依赖
 RUN npm install --legacy-peer-deps --no-audit
+
+# 创建类型定义文件
+RUN mkdir -p src/types && \
+    echo 'import { Document } from "mongoose";\n\
+import { Schema } from "mongoose";\n\
+\n\
+export interface IUser extends Document {\n\
+  _id: string;\n\
+  username: string;\n\
+  email: string;\n\
+  password: string;\n\
+  name: string;\n\
+  balance: number;\n\
+  role: string;\n\
+  status: string;\n\
+  createdAt: Date;\n\
+  updatedAt: Date;\n\
+}\n\
+\n\
+export interface AuthUser {\n\
+  _id: string;\n\
+  username: string;\n\
+  email: string;\n\
+  role: string;\n\
+}\n\
+\n\
+export interface AuthRequest extends Request {\n\
+  user?: AuthUser;\n\
+}' > src/types/index.ts
 
 # 创建 tsconfig.json
 RUN echo '{\n\

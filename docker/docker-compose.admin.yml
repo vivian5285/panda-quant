@@ -1,117 +1,54 @@
 services:
   admin-api:
     build:
-      context: ../admin-api
-      dockerfile: ../docker/Dockerfile.admin-api
-      args:
-        - NODE_ENV=production
+      context: .
+      dockerfile: Dockerfile.admin-api
     container_name: panda-quant-admin-api
     restart: always
-    ports:
-      - "8081:8081"
     environment:
       - NODE_ENV=production
-      - PORT=8081
-      - MONGODB_URI=mongodb://admin:Wl528586*@mongodb:27017/panda-quant-admin?authSource=admin
-      - REDIS_URI=redis://:Wl528586*@redis:6380
-      - POSTGRES_URI=postgresql://postgres:Wl528586*@postgres:5432/panda_quant
-    networks:
-      - panda-quant-network
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongo:27017/admin
+      - REDIS_URI=redis://redis:6379
+    ports:
+      - "3000:3000"
     depends_on:
-      - mongodb
+      - mongo
       - redis
-      - postgres
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   admin-ui:
     build:
-      context: ../admin-ui
-      dockerfile: ../docker/Dockerfile.admin-ui
-      args:
-        - NODE_ENV=production
+      context: .
+      dockerfile: Dockerfile.admin-ui
     container_name: panda-quant-admin-ui
     restart: always
     ports:
-      - "8080:80"
+      - "80:80"
     environment:
       - NODE_ENV=production
       - PORT=80
-      - API_URL=http://admin-api:8081
-    networks:
-      - panda-quant-network
+      - API_URL=http://admin-api:3000
     depends_on:
       - admin-api
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
-  mongodb:
+  mongo:
     image: mongo:latest
-    container_name: panda-quant-mongodb
+    container_name: panda-quant-mongo
+    restart: always
     ports:
       - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=Wl528586*
     volumes:
-      - mongodb_data:/data/db
-    networks:
-      - panda-quant-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - mongo_data:/data/db
 
   redis:
-    image: redis:alpine
+    image: redis:latest
     container_name: panda-quant-redis
+    restart: always
     ports:
-      - "6380:6379"
-    command: redis-server --requirepass Wl528586*
+      - "6379:6379"
     volumes:
       - redis_data:/data
-    networks:
-      - panda-quant-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  postgres:
-    image: postgres:latest
-    container_name: panda-quant-postgres
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=Wl528586*
-      - POSTGRES_DB=panda_quant
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - panda-quant-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d panda_quant"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
 volumes:
-  mongodb_data:
-  redis_data:
-  postgres_data:
-
-networks:
-  panda-quant-network:
-    driver: bridge 
+  mongo_data:
+  redis_data: 

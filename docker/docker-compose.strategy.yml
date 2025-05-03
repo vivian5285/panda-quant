@@ -5,46 +5,48 @@ services:
       dockerfile: Dockerfile.strategy-engine
     container_name: panda-quant-strategy-engine
     restart: always
-    ports:
-      - "3002:3002"
     environment:
       - NODE_ENV=production
-      - PORT=3002
+      - PORT=5000
       - MONGODB_URI=mongodb://mongo:27017/strategy
       - REDIS_URI=redis://redis:6379
+    ports:
+      - "5000:5000"
     depends_on:
       - mongo
       - redis
+
+  nginx-strategy:
+    image: nginx:alpine
+    container_name: panda-quant-strategy-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/strategy-engine.nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - strategy-engine
 
   mongo:
     image: mongo:latest
     container_name: panda-quant-strategy-mongo
     restart: always
     ports:
-      - "27018:27017"
+      - "27017:27017"
     volumes:
-      - strategy-mongo-data:/data/db
+      - mongo_data:/data/db
 
   redis:
     image: redis:latest
     container_name: panda-quant-strategy-redis
     restart: always
     ports:
-      - "6380:6379"
+      - "6379:6379"
     volumes:
-      - strategy-redis-data:/data
-
-  nginx-strategy:
-    image: nginx:latest
-    container_name: panda-quant-strategy-nginx
-    restart: always
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/strategy.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - strategy-engine
+      - redis_data:/data
 
 volumes:
-  strategy-mongo-data:
-  strategy-redis-data: 
+  mongo_data:
+  redis_data: 
