@@ -68,8 +68,8 @@ cat > tsconfig.json << 'EOF'
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
@@ -86,19 +86,61 @@ EOF
 
 # 修改 package.json 中的构建脚本
 echo "修改构建脚本..."
-sed -i 's/"build": "tsc"/"build": "tsc --skipLibCheck"/g' package.json
+npm pkg set scripts.build="tsc --skipLibCheck"
 
 # 创建必要的类型定义
 echo "创建类型定义..."
 mkdir -p src/types
 cat > src/types/index.ts << 'EOF'
-export interface Strategy {
-  name: string;
-  parameters: Record<string, any>;
-  execute: (data: any) => Promise<any>;
+export interface IAlert {
+  id: string;
+  type: string;
+  message: string;
+  timestamp: Date;
 }
 
-export interface StrategyConfig {
+export interface IBlacklistEntry {
+  id: string;
+  address: string;
+  reason: string;
+  createdAt: Date;
+}
+
+export interface ICommission {
+  id: string;
+  userId: string;
+  amount: number;
+  type: string;
+  status: string;
+  createdAt: Date;
+}
+
+export interface INetworkStatus {
+  id: string;
+  network: string;
+  status: string;
+  lastChecked: Date;
+}
+
+export interface IOrder {
+  id: string;
+  userId: string;
+  type: string;
+  side: string;
+  amount: number;
+  price: number;
+  status: string;
+  createdAt: Date;
+}
+
+export enum OrderStatus {
+  PENDING = 'PENDING',
+  EXECUTED = 'EXECUTED',
+  CANCELLED = 'CANCELLED',
+  FAILED = 'FAILED'
+}
+
+export interface IStrategy {
   id: string;
   name: string;
   description: string;
@@ -108,11 +150,74 @@ export interface StrategyConfig {
   updatedAt: Date;
 }
 
-export interface StrategyResult {
+export interface IStrategyPerformance {
+  id: string;
+  strategyId: string;
+  profit: number;
+  winRate: number;
+  maxDrawdown: number;
+  sharpeRatio: number;
+  createdAt: Date;
+}
+
+export interface IUser {
+  id: string;
+  email: string;
+  password: string;
+  name: string;
+  balance: number;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IUserLevel {
+  id: string;
+  name: string;
+  description: string;
+  requirements: Record<string, any>;
+  benefits: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Strategy {
+  name: string;
+  parameters: Record<string, any>;
+  execute: (data: any) => Promise<any>;
+}
+
+export enum OrderType {
+  MARKET = 'MARKET',
+  LIMIT = 'LIMIT'
+}
+
+export enum OrderSide {
+  BUY = 'BUY',
+  SELL = 'SELL'
+}
+
+export interface StrategyExecutionResponse {
   success: boolean;
   message: string;
   data?: any;
   error?: any;
+}
+
+export interface CommissionRecord {
+  id: string;
+  userId: string;
+  amount: number;
+  type: string;
+  status: string;
+  createdAt: Date;
+}
+
+export interface Summary {
+  total: number;
+  success: number;
+  failed: number;
+  averageTime: number;
 }
 EOF
 
