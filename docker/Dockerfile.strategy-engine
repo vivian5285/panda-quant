@@ -27,8 +27,14 @@ COPY package*.json ./
 RUN rm -rf node_modules package-lock.json && \
     npm cache clean --force && \
     npm install --legacy-peer-deps --no-audit && \
-    npm install dotenv@16.4.5 @types/dotenv@8.2.0 --save-dev --force && \
-    npm install @types/node@20.5.0 --save-dev --force
+    npm install dotenv@16.4.5 --save && \
+    npm install @types/dotenv@8.2.0 --save-dev --force && \
+    npm install @types/node@20.5.0 --save-dev --force && \
+    npm install @types/express@4.17.17 --save-dev --force && \
+    npm install @types/jsonwebtoken@9.0.0 --save-dev --force && \
+    npm install @types/jest@29.5.0 --save-dev --force && \
+    npm install @types/uuid@9.0.0 --save-dev --force && \
+    npm install @types/winston@2.4.4 --save-dev --force
 
 COPY . .
 

@@ -24,12 +24,10 @@ RUN apt-get update && apt-get install -y \
 # 设置 npm 配置
 RUN npm config set registry https://registry.npmjs.org/
 
-# 全局安装 TypeScript 和 Vite
-RUN npm install -g typescript@5.3.3 vite@5.1.4 rollup@4.9.6 && \
+# 全局安装 TypeScript
+RUN npm install -g typescript@5.3.3 && \
     chmod -R 777 /usr/local/bin/tsc && \
-    chmod -R 777 /usr/local/lib/node_modules/typescript && \
-    chmod -R 777 /usr/local/lib/node_modules/vite && \
-    chmod -R 777 /usr/local/lib/node_modules/rollup
+    chmod -R 777 /usr/local/lib/node_modules/typescript
 
 # 复制 package.json 和 package-lock.json
 COPY package*.json ./
@@ -38,8 +36,13 @@ COPY package*.json ./
 RUN rm -rf node_modules package-lock.json && \
     npm cache clean --force && \
     npm install --legacy-peer-deps --no-audit && \
-    npm install @emotion/react@11.11.3 @emotion/styled@11.11.0 @emotion/is-prop-valid@1.2.1 --save-dev --force && \
-    npm install @rollup/rollup-linux-x64-gnu@4.9.6 --save-dev --force
+    npm install vite@5.1.4 --save-dev && \
+    npm install rollup@4.9.6 --save-dev && \
+    npm install @rollup/rollup-linux-x64-gnu@4.9.6 --save-dev --force && \
+    npm install @emotion/react@11.11.3 --save && \
+    npm install @emotion/styled@11.11.0 --save && \
+    npm install @emotion/is-prop-valid@1.2.1 --save --force && \
+    npm install @types/node@20.5.0 --save-dev --force
 
 # 复制源代码
 COPY . .
