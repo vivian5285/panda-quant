@@ -1,7 +1,13 @@
 #!/bin/bash
 
-# 设置错误处理
-set -e
+# 获取脚本所在目录
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DOCKER_DIR="$(dirname "$SCRIPT_DIR")"
+
+# 切换到docker目录
+cd "$DOCKER_DIR"
+
+echo "开始部署SSL证书服务..."
 
 # 停止并删除旧容器
 echo "停止并删除旧容器..."
@@ -9,4 +15,6 @@ docker compose down ssl-service || true
 
 # 启动服务
 echo "启动SSL证书服务..."
-docker compose up -d ssl-service 
+docker compose up -d ssl-service
+
+echo "SSL证书服务部署完成" 
