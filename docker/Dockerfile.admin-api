@@ -9,7 +9,6 @@ WORKDIR /app
 
 # 设置构建参数
 ARG NODE_ENV=production
-ARG SKIP_TYPE_CHECK=false
 
 # 安装必要的系统依赖
 RUN apt-get update && apt-get install -y \
@@ -41,14 +40,8 @@ COPY . ./src/
 # 设置目录权限
 RUN chmod -R 777 /app
 
-# 根据 SKIP_TYPE_CHECK 参数决定是否跳过类型检查
-RUN if [ "$SKIP_TYPE_CHECK" = "true" ]; then \
-    echo "跳过类型检查..." && \
-    npm run build:skip-type-check; \
-else \
-    echo "执行类型检查..." && \
-    npm run build; \
-fi
+# 构建应用
+RUN npm run build
 
 # 生产阶段
 FROM node:18-slim

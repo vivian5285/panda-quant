@@ -7,7 +7,6 @@ services:
       dockerfile: ../docker/Dockerfile.user-api
       args:
         - NODE_ENV=production
-        - SKIP_TYPE_CHECK=true
     container_name: panda-quant-user-api
     restart: always
     ports:
@@ -16,7 +15,7 @@ services:
       - NODE_ENV=production
       - PORT=3001
       - MONGODB_URI=mongodb://admin:Wl528586*@mongodb:27017/admin
-      - REDIS_URI=redis://:Wl528586*@redis:6380
+      - REDIS_URI=redis://:Wl528586*@redis:6379
       - POSTGRES_URI=postgresql://admin:Wl528586*@postgres:5432/panda_quant
     networks:
       - panda-quant-network
@@ -36,7 +35,6 @@ services:
       dockerfile: ../docker/Dockerfile.user-ui
       args:
         - NODE_ENV=production
-        - SKIP_TYPE_CHECK=true
     container_name: panda-quant-user-ui
     restart: always
     ports:

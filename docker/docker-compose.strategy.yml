@@ -7,7 +7,6 @@ services:
       dockerfile: ../docker/Dockerfile.strategy
       args:
         - NODE_ENV=production
-        - SKIP_TYPE_CHECK=true
     container_name: panda-quant-strategy
     restart: always
     user: root

@@ -8,7 +8,6 @@ WORKDIR /app
 
 # 设置构建参数
 ARG NODE_ENV=production
-ARG SKIP_TYPE_CHECK=false
 
 # 安装必要的系统依赖
 RUN apt-get update && apt-get install -y \
@@ -30,7 +29,7 @@ COPY package*.json ./
 
 # 安装依赖
 RUN npm install --legacy-peer-deps --no-audit --unsafe-perm && \
-    npm install vite@5.1.4 rollup@4.9.6 --save-dev --unsafe-perm
+    npm install vite@5.1.4 rollup@4.9.6 @emotion/is-prop-valid@1.2.1 --save-dev --unsafe-perm
 
 # 复制源代码
 COPY . .
@@ -38,14 +37,8 @@ COPY . .
 # 设置目录权限
 RUN chmod -R 777 /app
 
-# 根据 SKIP_TYPE_CHECK 参数决定是否跳过类型检查
-RUN if [ "$SKIP_TYPE_CHECK" = "true" ]; then \
-    echo "跳过类型检查..." && \
-    npm run build:skip-type-check; \
-else \
-    echo "执行类型检查..." && \
-    npm run build; \
-fi
+# 构建应用
+RUN npm run build
 
 # 使用 Nginx 作为生产环境的基础镜像
 FROM nginx:alpine
