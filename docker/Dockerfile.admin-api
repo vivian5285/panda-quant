@@ -21,8 +21,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 设置 npm 配置
-RUN npm config set registry https://registry.npmjs.org/ && \
-    npm config set unsafe-perm true
+RUN npm config set registry https://registry.npmjs.org/
 
 # 全局安装 TypeScript
 RUN npm install -g typescript@5.3.3 && \
@@ -38,8 +37,8 @@ COPY tsconfig.json ./
 # 清理并重新安装依赖
 RUN rm -rf node_modules package-lock.json && \
     npm cache clean --force && \
-    npm install --legacy-peer-deps --no-audit --unsafe-perm && \
-    npm install dotenv@16.4.5 @types/dotenv@8.2.3 @types/node@20.11.19 --save-dev --unsafe-perm
+    npm install --legacy-peer-deps --no-audit && \
+    npm install dotenv@16.4.5 @types/dotenv@8.2.3 @types/node@20.11.19 --save-dev
 
 # 复制源代码
 COPY . ./src/

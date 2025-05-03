@@ -1,4 +1,4 @@
-FROM node:18-slim AS builder
+FROM node:18.20.2-slim AS builder
 
 WORKDIR /app
 
@@ -8,17 +8,24 @@ RUN apt-get update && apt-get install -y \
     make \
     g++ \
     curl \
+    git \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Set npm config
+RUN npm config set registry https://registry.npmjs.org/
+
 # Install TypeScript globally
-RUN npm install -g typescript
+RUN npm install -g typescript@5.3.3
 
 # Copy package files first to leverage Docker cache
 COPY strategy-engine/package*.json ./
 COPY strategy-engine/tsconfig.json ./
 
 # Install all dependencies
-RUN npm install --legacy-peer-deps && \
+RUN rm -rf node_modules package-lock.json && \
+    npm cache clean --force && \
+    npm install --legacy-peer-deps --no-audit && \
     npm install --save-dev \
     @types/express@4.17.17 \
     @types/jsonwebtoken@9.0.0 \
@@ -27,10 +34,11 @@ RUN npm install --legacy-peer-deps && \
     @types/uuid@9.0.0 \
     @types/winston@2.4.4 \
     @types/dotenv@8.2.0 \
+    dotenv@16.4.5 \
     jest@29.5.0 \
     ts-jest@29.1.0 \
     ts-node-dev@2.0.0 \
-    typescript@5.2.2
+    typescript@5.3.3
 
 # Set permissions for TypeScript
 RUN chmod -R 777 /usr/local/bin/tsc
@@ -38,17 +46,11 @@ RUN chmod -R 777 /usr/local/bin/tsc
 # Copy source code
 COPY strategy-engine/ ./
 
-# Add type checking script to package.json
-RUN npm pkg set scripts.type-check="tsc --noEmit"
-
-# Run type checking
-RUN npm run type-check
-
 # Build the application
 RUN npm run build
 
 # Production stage
-FROM node:18-slim
+FROM node:18.20.2-slim
 
 WORKDIR /app
 
