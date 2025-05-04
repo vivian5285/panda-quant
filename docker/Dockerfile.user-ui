@@ -24,18 +24,7 @@ RUN npm config set registry https://registry.npmjs.org/
 COPY package.json package-lock.json ./
 
 # 安装依赖（利用 Docker 缓存）
-RUN npm ci --legacy-peer-deps --no-audit && \
-    npm install --save-dev \
-        @types/node \
-        @types/react \
-        @types/react-dom \
-        @types/jest \
-        @typescript-eslint/eslint-plugin \
-        @typescript-eslint/parser \
-        eslint \
-        eslint-plugin-react \
-        eslint-plugin-react-hooks \
-        typescript@5.3.3
+RUN npm ci --legacy-peer-deps --no-audit
 
 # 复制源代码
 COPY . .

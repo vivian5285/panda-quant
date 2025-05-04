@@ -52,7 +52,6 @@
     "@types/react-swipeable": "^5.0.3",
     "@types/qrcode.react": "^1.0.2",
     "@types/web-vitals": "^0.2.7",
-    "@types/ethers": "^5.7.0",
     "@types/i18next": "^23.8.0",
     "@types/i18next-browser-languagedetector": "^7.0.0",
     "@types/i18next-http-backend": "^2.0.0",

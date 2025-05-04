@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# 设置 npm 配置
+RUN npm config set registry https://registry.npmjs.org/
+
 # 复制 package.json 和 package-lock.json
 COPY package.json package-lock.json ./
 
@@ -20,6 +23,13 @@ RUN npm install --legacy-peer-deps --no-audit
 
 # 复制源代码
 COPY . .
+
+# 设置目录权限
+RUN chown -R node:node /app && \
+    chmod -R 755 /app
+
+# 切换到非root用户
+USER node
 
 # 构建应用
 RUN npm run build
