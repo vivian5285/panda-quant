@@ -22,6 +22,36 @@ COPY package*.json ./
 RUN rm -rf node_modules package-lock.json && \
     npm cache clean --force && \
     npm install --legacy-peer-deps --no-audit && \
+    npm install --save \
+        @emotion/react \
+        @emotion/styled \
+        @mui/icons-material \
+        @mui/material \
+        @mui/x-date-pickers \
+        @mui/x-data-grid \
+        @tanstack/react-query \
+        @web3modal/wagmi \
+        axios \
+        chart.js \
+        ethers \
+        @ethersproject/providers \
+        framer-motion \
+        i18next \
+        i18next-browser-languagedetector \
+        i18next-http-backend \
+        qrcode.react \
+        react \
+        react-chartjs-2 \
+        react-dom \
+        react-i18next \
+        react-router-dom \
+        react-swipeable \
+        react-toastify \
+        recharts \
+        viem \
+        wagmi \
+        web-vitals \
+        web3 && \
     npm install --save-dev \
         @types/react \
         @types/react-dom \
@@ -38,27 +68,15 @@ RUN rm -rf node_modules package-lock.json && \
         @types/i18next \
         @types/i18next-browser-languagedetector \
         @types/i18next-http-backend \
-        @types/@mui/x-date-pickers \
-        @types/@mui/x-data-grid \
-        @types/@web3modal/wagmi/react \
-        @types/@ethersproject/providers && \
-    npm install --save \
-        framer-motion \
-        react-i18next \
-        i18next \
-        i18next-browser-languagedetector \
-        i18next-http-backend \
-        chart.js \
-        react-chartjs-2 \
-        recharts \
-        react-swipeable \
-        qrcode.react \
-        web-vitals \
-        ethers \
-        @ethersproject/providers \
-        @mui/x-date-pickers \
-        @mui/x-data-grid \
-        @web3modal/wagmi/react && \
+        @typescript-eslint/eslint-plugin \
+        @typescript-eslint/parser \
+        @vitejs/plugin-react \
+        eslint \
+        eslint-plugin-react-hooks \
+        eslint-plugin-react-refresh \
+        rollup \
+        typescript \
+        vite && \
     npm rebuild
 
 # 复制源代码

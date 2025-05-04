@@ -38,11 +38,7 @@ RUN npm install --legacy-peer-deps --no-audit && \
         @types/mongoose \
         @types/express-session \
         @types/connect-redis \
-        @types/dotenv \
         typescript@5.3.3
-
-# 安装全局 TypeScript
-RUN npm install -g typescript@5.3.3
 
 # 安装运行时依赖
 RUN npm install --save \
@@ -240,8 +236,7 @@ RUN npm pkg set scripts.build="tsc --skipLibCheck"
 USER node
 
 # 构建应用
-RUN echo "构建应用..." && \
-    npm run build
+RUN npm run build
 
 # 生产环境
 FROM node:18-slim
