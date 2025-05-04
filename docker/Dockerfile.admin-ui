@@ -13,14 +13,17 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制 package.json 和 package-lock.json
-COPY package.json package-lock.json ./
+COPY admin-ui/package.json admin-ui/package-lock.json ./
 
 # 安装项目依赖
 RUN npm install --legacy-peer-deps --no-audit
 
-# 安装TypeScript和Vite
-RUN npm install -g typescript@5.3.3 && \
-    npm install --save-dev vite @vitejs/plugin-react
+# 安装特定版本的 esbuild 和 Vite
+RUN npm install --save-dev esbuild@0.21.5 && \
+    npm install --save-dev vite@5.1.4 @vitejs/plugin-react@4.2.1
+
+# 安装TypeScript
+RUN npm install -g typescript@5.3.3
 
 # 安装 mongoose 类型声明
 RUN npm install --save-dev @types/mongoose mongoose
@@ -111,7 +114,7 @@ export default defineConfig({\n\
 });' > vite.config.ts
 
 # 复制源代码
-COPY . .
+COPY admin-ui/. .
 
 # 确保所有文件属于当前用户
 RUN chown -R node:node /app
@@ -130,7 +133,7 @@ FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # 复制 nginx 配置
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/nginx/admin-ui.conf /etc/nginx/conf.d/default.conf
 
 # 暴露端口
 EXPOSE 80

@@ -11,8 +11,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DOCKER_DIR="$(dirname "$SCRIPT_DIR")"
 PROJECT_DIR="$(dirname "$DOCKER_DIR")"
 
-# 切换到docker目录
-cd "$DOCKER_DIR"
+# 切换到项目根目录
+cd "$PROJECT_DIR"
 
 # 加载环境变量
 if [ -f .env ]; then
@@ -43,32 +43,37 @@ if ! command -v docker compose &> /dev/null; then
 fi
 
 # 检查必要的目录是否存在
-if [ ! -d "../src" ]; then
+if [ ! -d "src" ]; then
     echo "创建 src 目录..."
-    mkdir -p ../src
+    mkdir -p src
 fi
 
 # 显示目录结构
 echo "目录结构:"
-ls -la ..
+ls -la
 
 # 安装必要的类型定义
 echo "安装必要的类型定义..."
+cd strategy-engine
 npm install --save-dev @types/jest @types/mocha @types/node @types/express @types/mongoose @types/cors @types/helmet @types/morgan
+
+# 返回项目根目录
+cd "$PROJECT_DIR"
 
 # 构建策略引擎镜像
 echo "构建策略引擎镜像..."
-docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-strategy-engine -f Dockerfile.strategy-engine .
+docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-strategy-engine -f docker/Dockerfile.strategy-engine .
 
 # 推送镜像到 Docker Hub
 echo "推送镜像到 Docker Hub..."
 docker push ${DOCKER_USERNAME}/panda-quant-strategy-engine
 
 # 修改 docker-compose 文件中的镜像名称
-sed -i "s|image: panda-quant-strategy-engine|image: ${DOCKER_USERNAME}/panda-quant-strategy-engine|g" docker-compose.strategy.yml
+sed -i "s|image: panda-quant-strategy-engine|image: ${DOCKER_USERNAME}/panda-quant-strategy-engine|g" docker/docker-compose.strategy.yml
 
 # 启动策略引擎服务
 echo "启动策略引擎服务..."
+cd docker
 docker compose -f docker-compose.strategy.yml up -d
 
 # 等待服务启动
