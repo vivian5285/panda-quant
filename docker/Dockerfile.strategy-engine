@@ -21,8 +21,10 @@ RUN apt-get update && apt-get install -y \
 # 设置 npm 配置
 RUN npm config set registry https://registry.npmmirror.com/
 
-# 复制 package.json 和 package-lock.json
+# 复制所有必要的文件
 COPY strategy-engine/package.json strategy-engine/package-lock.json ./
+COPY strategy-engine/tsconfig.json ./
+COPY strategy-engine/src ./src
 
 # 安装项目依赖
 RUN npm install --legacy-peer-deps --no-audit
@@ -50,9 +52,6 @@ RUN npm install --save \
     dotenv@16.4.5 \
     express-session@1.18.0 \
     connect-redis@7.1.0
-
-# 复制源代码
-COPY strategy-engine/. .
 
 # 设置目录权限
 RUN chown -R node:node /app && \
