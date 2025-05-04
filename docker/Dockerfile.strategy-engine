@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 设置 npm 配置
-RUN npm config set registry https://registry.npmjs.org/
+RUN npm config set registry https://registry.npmmirror.com/
 
 # 复制 package.json 和 package-lock.json
 COPY strategy-engine/package.json strategy-engine/package-lock.json ./
@@ -55,12 +55,7 @@ COPY strategy-engine/. .
 
 # 设置目录权限
 RUN chown -R node:node /app && \
-    chmod -R 755 /app && \
-    chmod -R 755 /usr/local/bin && \
-    chmod -R 755 /usr/local/lib/node_modules
-
-# 修改 package.json 中的构建脚本
-RUN npm pkg set scripts.build="tsc --skipLibCheck"
+    chmod -R 755 /app
 
 # 切换到非root用户
 USER node
@@ -73,6 +68,9 @@ FROM node:18-slim
 
 # 设置工作目录
 WORKDIR /app
+
+# 安装 curl 用于健康检查
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # 复制构建产物
 COPY --from=builder /app/dist ./dist
@@ -87,7 +85,11 @@ RUN chown -R node:node /app && \
 USER node
 
 # 暴露端口
-EXPOSE 5000
+EXPOSE 4000
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD curl -f http://localhost:4000/health || exit 1
 
 # 启动应用
 CMD ["node", "dist/index.js"] 

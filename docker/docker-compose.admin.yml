@@ -27,7 +27,7 @@ services:
     container_name: panda-quant-admin-ui
     restart: always
     ports:
-      - "80:80"
+      - "8080:80"
     environment:
       - NODE_ENV=production
       - PORT=80
