@@ -17,14 +17,16 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 设置 npm 配置
-RUN npm config set registry https://registry.npmjs.org/
+# 安装 yarn 并配置镜像源
+RUN npm install -g yarn && \
+    yarn config set registry https://registry.npmmirror.com/ && \
+    yarn config set network-timeout 300000
 
-# 复制 package.json 和 package-lock.json
-COPY package.json package-lock.json ./
+# 复制 package.json
+COPY package.json ./
 
 # 安装依赖（利用 Docker 缓存）
-RUN npm install --legacy-peer-deps --no-audit
+RUN yarn install --frozen-lockfile --network-timeout 300000
 
 # 复制源代码
 COPY . .
@@ -37,7 +39,7 @@ RUN chown -R node:node /app && \
 USER node
 
 # 构建应用
-RUN npm run build
+RUN yarn build
 
 # 生产环境
 FROM node:18-slim
