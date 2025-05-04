@@ -1,8 +1,8 @@
 services:
   admin-api:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile.admin-api
+      context: ../admin-api
+      dockerfile: Dockerfile
     container_name: panda-quant-admin-api
     restart: unless-stopped
     environment:
@@ -65,4 +65,5 @@ networks:
 volumes:
   mongo_data:
     driver: local
-  redis_data: 
+  redis_data:
+    driver: local 

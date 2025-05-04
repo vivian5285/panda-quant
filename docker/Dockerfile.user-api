@@ -21,13 +21,13 @@ RUN npm install -g typescript@5.3.3 && \
     chmod -R 777 /usr/local/lib/node_modules
 
 # 复制 package.json 和 package-lock.json
-COPY package.json package-lock.json ./
+COPY user-api/package.json user-api/package-lock.json ./
 
 # 安装项目依赖
 RUN npm install --legacy-peer-deps --no-audit
 
 # 复制源代码
-COPY . .
+COPY user-api/ .
 
 # 设置目录权限
 RUN chmod -R 777 /app
@@ -48,6 +48,7 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/.env ./.env
 
 # 设置目录权限
 RUN chmod -R 777 /app
