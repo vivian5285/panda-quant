@@ -22,7 +22,7 @@ COPY package.json package-lock.json ./
 RUN npm install --legacy-peer-deps --no-audit
 
 # 安装 esbuild
-RUN npm install esbuild@0.21.5
+RUN npm install esbuild@0.25.3
 
 # 复制源代码
 COPY . .
