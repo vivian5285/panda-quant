@@ -227,7 +227,10 @@ RUN echo '{\n\
 COPY ../strategy-engine/. .
 
 # 设置目录权限
-RUN chown -R node:node /app
+RUN chown -R node:node /app && \
+    chmod -R 755 /app && \
+    chmod -R 755 /usr/local/bin && \
+    chmod -R 755 /usr/local/lib/node_modules
 
 # 修改 package.json 中的构建脚本
 RUN npm pkg set scripts.build="tsc --skipLibCheck"
