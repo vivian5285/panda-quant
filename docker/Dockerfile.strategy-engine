@@ -1,5 +1,5 @@
 # 使用完整版 Node.js 18 作为基础镜像
-FROM node:18-slim AS builder
+FROM node:18 AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     make \
     g++ \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # 设置 npm 配置
