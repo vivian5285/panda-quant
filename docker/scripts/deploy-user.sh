@@ -44,6 +44,12 @@ docker compose -f docker-compose.user.yml down || true
 echo "清理 Docker 缓存..."
 docker system prune -f
 
+# 清理 npm 缓存和 node_modules
+echo "清理 npm 缓存和 node_modules..."
+cd "$PROJECT_DIR/user-ui"
+rm -rf node_modules package-lock.json
+npm cache clean --force
+
 # 修复用户 API 的类型问题
 echo "修复用户 API 的类型问题..."
 cd "$PROJECT_DIR/user-api"

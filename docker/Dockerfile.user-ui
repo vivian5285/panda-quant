@@ -45,9 +45,9 @@ RUN rm -rf node_modules package-lock.json && \
     npm install vite@5.1.4 --save-dev && \
     npm install rollup@3.29.4 --save-dev && \
     npm install @types/node@20.5.0 --save-dev --force && \
-    npm install @emotion/is-prop-valid@1.2.1 --save && \
     npm install @emotion/react@11.11.3 --save && \
     npm install @emotion/styled@11.11.0 --save && \
+    npm install @emotion/is-prop-valid@1.2.1 --save --force && \
     npm rebuild
 
 # 复制源代码

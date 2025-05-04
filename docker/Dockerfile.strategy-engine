@@ -24,8 +24,11 @@ COPY package.json package-lock.json ./
 
 RUN npm install --legacy-peer-deps --no-audit
 
-RUN mkdir -p src/types && \
-    echo 'import { Document } from "mongoose";\n\
+# 创建必要的目录结构
+RUN mkdir -p src/types src/controllers src/models src/routes src/middleware src/config src/utils
+
+# 创建类型定义文件
+RUN echo 'import { Document } from "mongoose";\n\
 import { Schema } from "mongoose";\n\
 \n\
 export interface IUser extends Document {\n\
@@ -111,6 +114,46 @@ export interface IStrategyPerformance extends Document {\n\
   createdAt: Date;\n\
 }' > src/types/index.ts
 
+# 创建基本的入口文件
+RUN echo 'import express from "express";\n\
+import mongoose from "mongoose";\n\
+import cors from "cors";\n\
+import helmet from "helmet";\n\
+import morgan from "morgan";\n\
+import { config } from "./config";\n\
+\n\
+const app = express();\n\
+\n\
+// 中间件\n\
+app.use(cors());\n\
+app.use(helmet());\n\
+app.use(morgan("dev"));\n\
+app.use(express.json());\n\
+app.use(express.urlencoded({ extended: true }));\n\
+\n\
+// 健康检查\n\
+app.get("/health", (req, res) => {\n\
+  res.status(200).json({ status: "ok" });\n\
+});\n\
+\n\
+// 启动服务器\n\
+const PORT = process.env.PORT || 5000;\n\
+app.listen(PORT, () => {\n\
+  console.log(`Server is running on port ${PORT}`);\n\
+});\n\
+\n\
+export default app;' > src/index.ts
+
+# 创建配置文件
+RUN echo 'export const config = {\n\
+  port: process.env.PORT || 5000,\n\
+  mongoUri: process.env.MONGO_URI || "mongodb://mongo:27017/strategy",\n\
+  redisUri: process.env.REDIS_URI || "redis://redis:6379",\n\
+  jwtSecret: process.env.JWT_SECRET || "your-secret-key",\n\
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || "1d"\n\
+};' > src/config/index.ts
+
+# 创建 tsconfig.json
 RUN echo '{\n\
   "compilerOptions": {\n\
     "target": "es2018",\n\
