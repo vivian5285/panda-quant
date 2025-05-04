@@ -42,12 +42,17 @@ COPY package*.json ./
 RUN rm -rf node_modules package-lock.json && \
     npm cache clean --force && \
     npm install --legacy-peer-deps --no-audit && \
-    npm install vite@5.1.4 --save-dev && \
-    npm install rollup@3.29.4 --save-dev && \
-    npm install @types/node@20.5.0 --save-dev --force && \
-    npm install @emotion/react@11.11.3 --save && \
-    npm install @emotion/styled@11.11.0 --save && \
-    npm install @emotion/is-prop-valid@1.2.1 --save --force && \
+    npm install --save-dev \
+        vite@5.1.4 \
+        rollup@3.29.4 \
+        @types/node@20.5.0 \
+        @types/react@18.2.0 \
+        @types/react-dom@18.2.0 \
+        @types/react-router-dom@5.3.3 && \
+    npm install --save \
+        @emotion/react@11.11.3 \
+        @emotion/styled@11.11.0 \
+        @emotion/is-prop-valid@1.2.1 && \
     npm rebuild
 
 # 复制源代码

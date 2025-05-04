@@ -20,7 +20,10 @@ RUN npm install -g typescript@5.3.3 && \
     chmod -R 777 /usr/local/bin && \
     chmod -R 777 /usr/local/lib/node_modules
 
-COPY package.json package-lock.json ./
+COPY strategy-engine/package.json strategy-engine/package-lock.json ./
+
+RUN npm install --save-dev @types/cors @types/helmet @types/morgan && \
+    npm install --save cors helmet morgan
 
 RUN npm install --legacy-peer-deps --no-audit
 
@@ -186,7 +189,7 @@ RUN echo '{\n\
   "include": ["src/**/*.ts", "src/**/*.tsx"]\n\
 }' > tsconfig.json
 
-COPY . .
+COPY strategy-engine/. .
 
 RUN chmod -R 777 /app
 

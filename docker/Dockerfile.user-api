@@ -23,6 +23,11 @@ RUN npm install -g typescript@5.3.3 && \
 # 复制 package.json 和 package-lock.json
 COPY package.json package-lock.json ./
 
+# 安装安全相关的依赖和类型定义
+RUN npm install --save-dev @types/cors @types/helmet @types/morgan && \
+    npm install --save cors helmet morgan && \
+    npm audit fix --force
+
 # 安装项目依赖
 RUN npm install --legacy-peer-deps --no-audit
 
