@@ -48,10 +48,10 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=3000
 
 # Expose port
-EXPOSE 3001
+EXPOSE 3000
 
 # Start the application
 CMD ["node", "dist/index.js"] 

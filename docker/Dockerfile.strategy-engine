@@ -62,7 +62,7 @@ RUN chown -R node:node /app && \
 USER node
 
 # 构建应用
-RUN npm run build
+RUN npx tsc --skipLibCheck
 
 # 生产环境
 FROM node:18
