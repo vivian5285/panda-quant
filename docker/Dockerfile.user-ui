@@ -21,8 +21,7 @@ RUN apt-get update && apt-get install -y \
 RUN npm config set registry https://registry.npmmirror.com/
 
 # 安装 yarn
-RUN rm -f /usr/local/bin/yarn && \
-    npm install -g yarn && \
+RUN npm install -g yarn --force && \
     yarn config set registry https://registry.npmmirror.com/ && \
     yarn config set network-timeout 300000
 
