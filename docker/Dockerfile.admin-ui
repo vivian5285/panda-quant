@@ -22,6 +22,9 @@ RUN npm install --legacy-peer-deps --no-audit
 RUN npm install -g typescript@5.3.3 && \
     npm install --save-dev vite @vitejs/plugin-react
 
+# 安装 mongoose 类型声明
+RUN npm install --save-dev @types/mongoose mongoose
+
 # 创建类型定义文件
 RUN mkdir -p src/types && \
     echo 'import { Document } from "mongoose";\n\

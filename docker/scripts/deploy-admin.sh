@@ -5,6 +5,9 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DOCKER_DIR="$(dirname "$SCRIPT_DIR")"
 PROJECT_DIR="$(dirname "$DOCKER_DIR")"
 
+# 设置 Docker Hub 用户名
+DOCKER_USERNAME="vivian5285"
+
 # 切换到docker目录
 cd "$DOCKER_DIR"
 
@@ -70,7 +73,7 @@ cd "$DOCKER_DIR"
 
 # 构建管理后台 API 镜像
 echo "构建管理后台 API 镜像..."
-docker build --no-cache -t panda-quant-admin-api -f Dockerfile.admin-api .
+docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-admin-api -f Dockerfile.admin-api .
 
 # 构建管理后台 UI 镜像
 echo "构建管理后台 UI 镜像..."
@@ -81,13 +84,22 @@ chmod -R 755 .
 
 # 构建 UI 镜像
 echo "开始构建 UI 镜像..."
-docker build --no-cache -t panda-quant-admin-ui -f "$DOCKER_DIR/Dockerfile.admin-ui" .
+docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-admin-ui -f "$DOCKER_DIR/Dockerfile.admin-ui" .
+
+# 推送镜像到 Docker Hub
+echo "推送镜像到 Docker Hub..."
+docker push ${DOCKER_USERNAME}/panda-quant-admin-api
+docker push ${DOCKER_USERNAME}/panda-quant-admin-ui
 
 # 返回docker目录
 cd "$DOCKER_DIR"
 
+# 修改 docker-compose 文件中的镜像名称
+sed -i "s|image: panda-quant-admin-api|image: ${DOCKER_USERNAME}/panda-quant-admin-api|g" docker-compose.admin.yml
+sed -i "s|image: panda-quant-admin-ui|image: ${DOCKER_USERNAME}/panda-quant-admin-ui|g" docker-compose.admin.yml
+
 # 启动管理后台服务
 echo "启动管理后台服务..."
-docker compose -f docker-compose.admin.yml up -d --build
+docker compose -f docker-compose.admin.yml up -d
 
 echo "管理后台服务部署完成" 

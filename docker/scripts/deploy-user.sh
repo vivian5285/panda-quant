@@ -9,6 +9,9 @@ export PORT=3001
 export MONGODB_URI=mongodb://mongo:27017/user
 export REDIS_URI=redis://redis:6379
 
+# 设置 Docker Hub 用户名
+DOCKER_USERNAME="vivian5285"
+
 # 获取脚本所在目录
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DOCKER_DIR="$(dirname "$SCRIPT_DIR")"
@@ -74,24 +77,42 @@ npm install --save-dev @types/node @types/express @types/mongoose @types/jsonweb
 echo "修改构建脚本..."
 npm pkg set scripts.build="tsc --skipLibCheck"
 
-# 构建和启动服务
-echo "构建和启动服务..."
+# 返回docker目录
 cd "$DOCKER_DIR"
 
-# 清理构建缓存
-echo "清理构建缓存..."
-docker builder prune -f
+# 构建用户 API 镜像
+echo "构建用户 API 镜像..."
+docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-user-api -f Dockerfile.user-api .
 
-# 构建服务
-echo "构建服务..."
-docker-compose -f docker-compose.user.yml build --no-cache
+# 构建用户 UI 镜像
+echo "构建用户 UI 镜像..."
+cd "$PROJECT_DIR/user-ui"
+
+# 确保目录权限正确
+chmod -R 755 .
+
+# 构建 UI 镜像
+echo "开始构建 UI 镜像..."
+docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-user-ui -f "$DOCKER_DIR/Dockerfile.user-ui" "$DOCKER_DIR"
+
+# 推送镜像到 Docker Hub
+echo "推送镜像到 Docker Hub..."
+docker push ${DOCKER_USERNAME}/panda-quant-user-api
+docker push ${DOCKER_USERNAME}/panda-quant-user-ui
+
+# 返回docker目录
+cd "$DOCKER_DIR"
+
+# 修改 docker-compose 文件中的镜像名称
+sed -i "s|image: panda-quant-user-api|image: ${DOCKER_USERNAME}/panda-quant-user-api|g" docker-compose.user.yml
+sed -i "s|image: panda-quant-user-ui|image: ${DOCKER_USERNAME}/panda-quant-user-ui|g" docker-compose.user.yml
 
 # 启动服务
 echo "启动服务..."
-docker-compose -f docker-compose.user.yml up -d
+docker compose -f docker-compose.user.yml up -d
 
 # 检查服务状态
 echo "检查服务状态..."
-docker-compose -f docker-compose.user.yml ps
+docker compose -f docker-compose.user.yml ps
 
 echo "用户服务部署完成" 

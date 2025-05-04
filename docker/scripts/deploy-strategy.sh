@@ -3,6 +3,9 @@
 # 设置错误时退出
 set -e
 
+# 设置 Docker Hub 用户名
+DOCKER_USERNAME="vivian5285"
+
 # 获取脚本所在目录
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DOCKER_DIR="$(dirname "$SCRIPT_DIR")"
@@ -55,11 +58,18 @@ npm install --save-dev @types/jest @types/mocha @types/node @types/express @type
 
 # 构建策略引擎镜像
 echo "构建策略引擎镜像..."
-docker build -t panda-quant-strategy-engine -f ../docker/Dockerfile.strategy-engine ..
+docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-strategy-engine -f Dockerfile.strategy-engine .
+
+# 推送镜像到 Docker Hub
+echo "推送镜像到 Docker Hub..."
+docker push ${DOCKER_USERNAME}/panda-quant-strategy-engine
+
+# 修改 docker-compose 文件中的镜像名称
+sed -i "s|image: panda-quant-strategy-engine|image: ${DOCKER_USERNAME}/panda-quant-strategy-engine|g" docker-compose.strategy.yml
 
 # 启动策略引擎服务
 echo "启动策略引擎服务..."
-docker compose -f ../docker/docker-compose.strategy.yml up -d --build
+docker compose -f docker-compose.strategy.yml up -d
 
 # 等待服务启动
 echo "等待服务启动..."
