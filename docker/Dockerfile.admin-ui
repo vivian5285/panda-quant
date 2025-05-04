@@ -21,6 +21,9 @@ COPY package.json package-lock.json ./
 # 安装项目依赖
 RUN npm install --legacy-peer-deps --no-audit
 
+# 安装TypeScript和Vite
+RUN npm install --save-dev typescript@5.3.3 vite @vitejs/plugin-react
+
 # 创建类型定义文件
 RUN mkdir -p src/types && \
     echo 'import { Document } from "mongoose";\n\
@@ -113,7 +116,7 @@ COPY . .
 RUN chmod -R 777 /app
 
 # 修改 package.json 中的构建脚本
-RUN npm pkg set scripts.build="tsc --skipLibCheck && vite build"
+RUN npm pkg set scripts.build="node_modules/.bin/tsc --skipLibCheck && node_modules/.bin/vite build"
 
 # 构建应用
 RUN echo "构建应用..." && \

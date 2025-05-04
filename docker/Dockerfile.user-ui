@@ -45,13 +45,15 @@ RUN rm -rf node_modules package-lock.json && \
     npm install --save-dev \
         vite@5.1.4 \
         rollup@3.29.4 \
+        typescript@5.3.3 \
         @types/node@20.5.0 \
         @types/react@18.2.0 \
         @types/react-dom@18.2.0 \
         @types/react-router-dom@5.3.3 && \
     npm install --save \
         @emotion/react@11.11.3 \
-        @emotion/styled@11.11.0 && \
+        @emotion/styled@11.11.0 \
+        --force && \
     npm rebuild
 
 # 复制源代码
@@ -62,6 +64,9 @@ RUN chmod -R 777 /app
 
 # 设置环境变量，跳过原生模块检查
 ENV NODE_OPTIONS="--no-warnings"
+
+# 修改 package.json 中的构建脚本
+RUN npm pkg set scripts.build="tsc --skipLibCheck && vite build"
 
 # 直接执行构建，跳过类型检查
 RUN echo "跳过类型检查，直接构建..." && \

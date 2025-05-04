@@ -34,12 +34,17 @@ RUN npm install --legacy-peer-deps --no-audit && \
         @types/jsonwebtoken \
         @types/jest \
         @types/uuid \
-        @types/winston && \
+        @types/winston \
+        @types/mongoose \
+        @types/express-session \
+        @types/connect-redis && \
     npm install --save \
         cors \
         helmet \
         morgan \
-        dotenv
+        dotenv \
+        express-session \
+        connect-redis
 
 # 创建必要的目录结构
 RUN mkdir -p src/types src/controllers src/models src/routes src/middleware src/config src/utils
@@ -162,13 +167,25 @@ app.listen(PORT, () => {\n\
 export default app;' > src/index.ts
 
 # 创建配置文件
-RUN echo 'export const config = {\n\
+RUN echo 'import dotenv from "dotenv";\n\
+\n\
+// 加载环境变量\n\
+dotenv.config();\n\
+\n\
+export const config = {\n\
   port: process.env.PORT || 5000,\n\
   mongoUri: process.env.MONGO_URI || "mongodb://mongo:27017/strategy",\n\
   redisUri: process.env.REDIS_URI || "redis://redis:6379",\n\
   jwtSecret: process.env.JWT_SECRET || "your-secret-key",\n\
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "1d"\n\
 };' > src/config/index.ts
+
+# 创建 .env 文件
+RUN echo 'PORT=5000\n\
+MONGO_URI=mongodb://mongo:27017/strategy\n\
+REDIS_URI=redis://redis:6379\n\
+JWT_SECRET=your-secret-key\n\
+JWT_EXPIRES_IN=1d' > .env
 
 # 创建 tsconfig.json
 RUN echo '{\n\
