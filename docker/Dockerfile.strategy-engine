@@ -1,7 +1,6 @@
 FROM node:18-slim AS builder
 
-USER root
-
+# 设置工作目录
 WORKDIR /app
 
 # 配置国内镜像源
@@ -9,6 +8,7 @@ RUN echo "deb http://mirrors.aliyun.com/debian/ bookworm main non-free non-free-
     echo "deb http://mirrors.aliyun.com/debian-security/ bookworm-security main" >> /etc/apt/sources.list && \
     echo "deb http://mirrors.aliyun.com/debian/ bookworm-updates main" >> /etc/apt/sources.list
 
+# 安装系统依赖
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -16,19 +16,18 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g typescript@5.3.3 && \
-    chmod -R 777 /usr/local/bin && \
-    chmod -R 777 /usr/local/lib/node_modules
+# 设置 npm 配置
+RUN npm config set registry https://registry.npmjs.org/
 
+# 复制 package.json 和 package-lock.json
 COPY strategy-engine/package.json strategy-engine/package-lock.json ./
 
-# 安装所有依赖
+# 安装项目依赖
 RUN npm install --legacy-peer-deps --no-audit && \
     npm install --save-dev \
         @types/cors \
         @types/helmet \
         @types/morgan \
-        @types/dotenv \
         @types/node \
         @types/express \
         @types/jsonwebtoken \
@@ -37,14 +36,17 @@ RUN npm install --legacy-peer-deps --no-audit && \
         @types/winston \
         @types/mongoose \
         @types/express-session \
-        @types/connect-redis && \
-    npm install --save \
-        cors \
-        helmet \
-        morgan \
-        dotenv \
-        express-session \
-        connect-redis
+        @types/connect-redis \
+        typescript@5.3.3
+
+# 安装运行时依赖
+RUN npm install --save \
+    cors \
+    helmet \
+    morgan \
+    dotenv \
+    express-session \
+    connect-redis
 
 # 创建必要的目录结构
 RUN mkdir -p src/types src/controllers src/models src/routes src/middleware src/config src/utils
@@ -220,32 +222,48 @@ RUN echo '{\n\
   "include": ["src/**/*.ts", "src/**/*.tsx"]\n\
 }' > tsconfig.json
 
+# 复制源代码
 COPY strategy-engine/. .
 
-RUN chmod -R 777 /app
+# 设置目录权限
+RUN chown -R node:node /app
 
+# 切换到非root用户
+USER node
+
+# 修改 package.json 中的构建脚本
 RUN npm pkg set scripts.build="tsc --skipLibCheck"
 
+# 构建应用
 RUN echo "构建应用..." && \
     npm run build
 
+# 生产环境
 FROM node:18-slim
 
-USER root
-
+# 设置工作目录
 WORKDIR /app
 
+# 安装 curl 用于健康检查
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
+# 复制构建产物
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-RUN chmod -R 777 /app
+# 设置目录权限
+RUN chown -R node:node /app
 
+# 切换到非root用户
+USER node
+
+# 暴露端口
 EXPOSE 5000
 
+# 健康检查
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD curl -f http://localhost:5000/health || exit 1
 
+# 启动命令
 CMD ["node", "dist/index.js"] 

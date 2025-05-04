@@ -76,93 +76,12 @@ docker build --no-cache -t panda-quant-admin-api -f Dockerfile.admin-api .
 echo "构建管理后台 UI 镜像..."
 cd "$PROJECT_DIR/admin-ui"
 
-# 检查文件是否存在
-echo "检查文件是否存在..."
-ls -la index.html
-ls -la src/main.tsx
-
-# 修改 vite.config.ts
-cat > vite.config.ts << 'EOF'
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { fileURLToPath } from 'url'
-import { dirname, resolve } from 'path'
-import svgr from 'vite-plugin-svgr'
-import path from 'path'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-export default defineConfig({
-  plugins: [
-    react({
-      jsxImportSource: 'react',
-      babel: {
-        plugins: [
-          ['@babel/plugin-transform-react-jsx', {
-            runtime: 'automatic',
-            importSource: 'react'
-          }]
-        ]
-      }
-    }),
-    svgr()
-  ],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src')
-    }
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: true,
-    rollupOptions: {
-      input: path.resolve(__dirname, 'index.html'),
-      output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'vendor'
-            }
-            if (id.includes('@mui')) {
-              return 'mui'
-            }
-            return 'vendor'
-          }
-        },
-      }
-    },
-    chunkSizeWarningLimit: 1000,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
-    }
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      target: 'es2020'
-    }
-  },
-  server: {
-    port: 3000,
-    host: true,
-    proxy: {
-      '/api': {
-        target: 'http://admin-api:3000',
-        changeOrigin: true,
-        secure: false
-      }
-    }
-  }
-})
-EOF
+# 确保目录权限正确
+chmod -R 755 .
 
 # 构建 UI 镜像
 echo "开始构建 UI 镜像..."
-docker build --no-cache -t panda-quant-admin-ui -f Dockerfile .
+docker build --no-cache -t panda-quant-admin-ui -f "$DOCKER_DIR/Dockerfile.admin-ui" .
 
 # 返回docker目录
 cd "$DOCKER_DIR"
