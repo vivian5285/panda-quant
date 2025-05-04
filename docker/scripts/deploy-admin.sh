@@ -40,10 +40,25 @@ log "开始部署管理后台服务..."
 # 检查并停止占用端口的进程
 log "检查并停止占用端口的进程..."
 for port in 3000 80 27017 6379; do
-    pid=$(lsof -t -i:$port)
-    if [ ! -z "$pid" ]; then
-        log "端口 $port 被进程 $pid 占用，正在停止..."
-        kill -9 $pid || true
+    # 检查 lsof 是否安装
+    if ! command -v lsof &> /dev/null; then
+        log "警告: lsof 命令未安装，跳过端口检查"
+        break
+    fi
+    
+    # 使用更安全的方式检查端口
+    if lsof -i:$port > /dev/null 2>&1; then
+        pid=$(lsof -t -i:$port)
+        if [ ! -z "$pid" ]; then
+            log "端口 $port 被进程 $pid 占用，正在停止..."
+            # 尝试优雅地停止进程
+            kill $pid 2>/dev/null || true
+            sleep 2
+            # 如果进程仍然存在，则强制终止
+            if ps -p $pid > /dev/null 2>&1; then
+                kill -9 $pid 2>/dev/null || true
+            fi
+        fi
     fi
 done
 
