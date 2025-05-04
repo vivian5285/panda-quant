@@ -38,7 +38,8 @@ RUN npm install --save-dev \
     @types/jsonwebtoken@9.0.5 \
     @types/jest@29.5.12 \
     @types/uuid@9.0.7 \
-    @types/express-session@1.17.10
+    @types/express-session@1.17.10 \
+    @types/dotenv@8.2.0
 
 # 安装运行时依赖
 RUN npm install --save \

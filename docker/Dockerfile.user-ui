@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
 RUN npm config set registry https://registry.npmjs.org/
 
 # 复制 package.json 和 package-lock.json
-COPY ../user-ui/package.json ../user-ui/package-lock.json ./
+COPY package.json package-lock.json ./
 
 # 安装依赖（利用 Docker 缓存）
 RUN npm ci --legacy-peer-deps --no-audit && \
@@ -38,7 +38,7 @@ RUN npm ci --legacy-peer-deps --no-audit && \
         typescript@5.3.3
 
 # 复制源代码
-COPY ../user-ui/. .
+COPY . .
 
 # 设置目录权限
 RUN chown -R node:node /app && \

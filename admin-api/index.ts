@@ -22,7 +22,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/panda-qua
   .catch(err => console.error('MongoDB connection error:', err));
 
 // 健康检查
-app.get('/health', (_req, res) => {
+app.get('/health', (_, res) => {
   res.json({ status: 'ok' });
 });
 
