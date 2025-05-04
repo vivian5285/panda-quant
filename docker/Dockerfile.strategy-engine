@@ -38,6 +38,7 @@ RUN npm install --legacy-peer-deps --no-audit && \
         @types/mongoose \
         @types/express-session \
         @types/connect-redis \
+        @types/dotenv \
         typescript@5.3.3
 
 # 安装全局 TypeScript

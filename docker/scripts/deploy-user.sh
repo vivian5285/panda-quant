@@ -62,8 +62,50 @@ docker system prune -f
 # 清理 npm 缓存和 node_modules
 echo "清理 npm 缓存和 node_modules..."
 cd "$PROJECT_DIR/user-ui"
-rm -rf node_modules
+rm -rf node_modules package-lock.json
 npm cache clean --force
+
+# 安装必要的依赖
+echo "安装必要的依赖..."
+npm install --legacy-peer-deps --no-audit && \
+npm install --save-dev \
+    @types/react \
+    @types/react-dom \
+    @types/react-router-dom \
+    @types/framer-motion \
+    @types/react-i18next \
+    @types/chart.js \
+    @types/react-chartjs-2 \
+    @types/recharts \
+    @types/react-swipeable \
+    @types/qrcode.react \
+    @types/web-vitals \
+    @types/ethers \
+    @types/i18next \
+    @types/i18next-browser-languagedetector \
+    @types/i18next-http-backend \
+    @types/@mui/x-date-pickers \
+    @types/@mui/x-data-grid \
+    @types/@web3modal/wagmi/react \
+    @types/@ethersproject/providers && \
+npm install --save \
+    framer-motion \
+    react-i18next \
+    i18next \
+    i18next-browser-languagedetector \
+    i18next-http-backend \
+    chart.js \
+    react-chartjs-2 \
+    recharts \
+    react-swipeable \
+    qrcode.react \
+    web-vitals \
+    ethers \
+    @ethersproject/providers \
+    @mui/x-date-pickers \
+    @mui/x-data-grid \
+    @web3modal/wagmi/react && \
+npm rebuild
 
 # 修复用户 API 的类型问题
 echo "修复用户 API 的类型问题..."

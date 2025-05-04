@@ -28,8 +28,8 @@ echo "当前目录: $(pwd)"
 
 # 设置环境变量
 export NODE_ENV=production
-export PORT=3002
-export MONGODB_URI=mongodb://mongo:27017/strategy
+export PORT=5000
+export MONGO_URI=mongodb://mongo:27017/strategy
 export REDIS_URI=redis://redis:6379
 
 # 检查 Docker 是否安装
@@ -57,7 +57,7 @@ ls -la
 # 安装必要的类型定义
 echo "安装必要的类型定义..."
 cd strategy-engine
-npm install --save-dev @types/jest @types/mocha @types/node @types/express @types/mongoose @types/cors @types/helmet @types/morgan
+npm install --save-dev @types/jest @types/mocha @types/node @types/express @types/mongoose @types/cors @types/helmet @types/morgan @types/dotenv
 
 # 返回项目根目录
 cd "$PROJECT_DIR"
