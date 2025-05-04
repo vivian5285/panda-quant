@@ -22,7 +22,9 @@ cd "$DOCKER_DIR"
 
 # 加载环境变量
 if [ -f .env ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+    set -a
+    source .env
+    set +a
 fi
 
 echo "开始部署用户服务..."
@@ -50,7 +52,7 @@ docker system prune -f
 # 清理 npm 缓存和 node_modules
 echo "清理 npm 缓存和 node_modules..."
 cd "$PROJECT_DIR/user-ui"
-rm -rf node_modules package-lock.json
+rm -rf node_modules
 npm cache clean --force
 
 # 修复用户 API 的类型问题
@@ -91,9 +93,62 @@ cd "$PROJECT_DIR/user-ui"
 # 确保目录权限正确
 chmod -R 755 .
 
+# 确保 nginx 配置文件存在
+if [ ! -f nginx.conf ]; then
+    echo "创建 nginx 配置文件..."
+    cat > nginx.conf << 'EOF'
+server {
+    listen 80;
+    server_name localhost;
+
+    # Root directory and index files
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+
+    # Gzip compression
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-XSS-Protection "1; mode=block";
+    add_header X-Content-Type-Options "nosniff";
+
+    # Cache static assets
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        expires 1y;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    # Handle React Router
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # API proxy
+    location /api {
+        proxy_pass http://user-api:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Error pages
+    error_page 404 /index.html;
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+}
+EOF
+fi
+
 # 构建 UI 镜像
 echo "开始构建 UI 镜像..."
-docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-user-ui -f "$DOCKER_DIR/Dockerfile.user-ui" "$DOCKER_DIR"
+cd "$PROJECT_DIR/user-ui"
+docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-user-ui -f "$DOCKER_DIR/Dockerfile.user-ui" .
 
 # 推送镜像到 Docker Hub
 echo "推送镜像到 Docker Hub..."

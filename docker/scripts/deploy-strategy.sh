@@ -16,7 +16,9 @@ cd "$PROJECT_DIR"
 
 # 加载环境变量
 if [ -f .env ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+    set -a
+    source .env
+    set +a
 fi
 
 echo "开始部署策略引擎服务..."
