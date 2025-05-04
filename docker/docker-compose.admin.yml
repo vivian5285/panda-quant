@@ -1,8 +1,8 @@
 services:
   admin-api:
     build:
-      context: .
-      dockerfile: Dockerfile.admin-api
+      context: ../admin-api
+      dockerfile: ../docker/Dockerfile.admin-api
     container_name: panda-quant-admin-api
     restart: always
     environment:
@@ -19,7 +19,11 @@ services:
       - admin-network
 
   admin-ui:
-    image: panda-quant-admin-ui
+    build:
+      context: ../admin-ui
+      dockerfile: ../docker/Dockerfile.admin-ui
+      args:
+        - NODE_ENV=production
     container_name: panda-quant-admin-ui
     restart: always
     ports:
