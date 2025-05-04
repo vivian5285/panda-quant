@@ -1,7 +1,21 @@
 #!/bin/bash
 
-# 设置执行权限
-chmod +x "$0"
+# 设置错误时退出
+set -e
+
+# 设置日志函数
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
+
+# 设置错误处理函数
+handle_error() {
+    log "错误: $1"
+    log "正在回滚..."
+    cd "$DOCKER_DIR"
+    docker compose -f docker-compose.user.yml down || true
+    exit 1
+}
 
 # 设置环境变量
 export NODE_ENV=production
@@ -18,151 +32,159 @@ DOCKER_DIR="$(dirname "$SCRIPT_DIR")"
 PROJECT_DIR="$(dirname "$DOCKER_DIR")"
 
 # 切换到docker目录
-cd "$DOCKER_DIR"
+cd "$DOCKER_DIR" || handle_error "无法切换到 Docker 目录"
 
 # 加载环境变量
 if [ -f .env ]; then
     set -a
-    source .env
+    source .env || handle_error "无法加载环境变量"
     set +a
 fi
 
-echo "开始部署用户服务..."
+log "开始部署用户服务..."
 
 # 检查 Docker 是否安装
 if ! command -v docker &> /dev/null; then
-    echo "Docker 未安装，请先安装 Docker"
-    exit 1
+    handle_error "Docker 未安装"
 fi
 
 # 检查 Docker Compose 是否安装
-if ! command -v docker-compose &> /dev/null; then
-    echo "Docker Compose 未安装，请先安装 Docker Compose"
-    exit 1
+if ! command -v docker compose &> /dev/null; then
+    handle_error "Docker Compose 未安装"
 fi
 
 # 检查并停止占用端口的进程
-echo "检查并停止占用端口的进程..."
+log "检查并停止占用端口的进程..."
 for port in 3001 80 27017 6379; do
     pid=$(lsof -t -i:$port)
     if [ ! -z "$pid" ]; then
-        echo "端口 $port 被进程 $pid 占用，正在停止..."
-        kill -9 $pid
+        log "端口 $port 被进程 $pid 占用，正在停止..."
+        kill -9 $pid || true
     fi
 done
 
 # 停止并删除旧容器
-echo "停止并删除旧容器..."
+log "停止并删除旧容器..."
 docker compose -f docker-compose.user.yml down || true
 
 # 清理 Docker 缓存
-echo "清理 Docker 缓存..."
-docker system prune -f
+log "清理 Docker 缓存..."
+docker system prune -f || handle_error "清理 Docker 缓存失败"
 
-# 清理 npm 缓存和 node_modules
-echo "清理 npm 缓存和 node_modules..."
-cd "$PROJECT_DIR/user-ui"
-rm -rf node_modules package-lock.json
-npm cache clean --force
+# 检查并安装用户 UI 依赖
+log "检查用户 UI 依赖..."
+cd "$PROJECT_DIR/user-ui" || handle_error "无法切换到 user-ui 目录"
 
-# 安装必要的依赖
-echo "安装必要的依赖..."
-npm install --legacy-peer-deps --no-audit && \
-npm install --save \
-    framer-motion \
-    react-i18next \
-    i18next \
-    i18next-browser-languagedetector \
-    i18next-http-backend \
-    chart.js \
-    react-chartjs-2 \
-    recharts \
-    react-swipeable \
-    qrcode.react \
-    web-vitals \
-    ethers \
-    @ethersproject/providers \
-    @mui/x-date-pickers \
-    @mui/x-data-grid \
-    @web3modal/wagmi && \
-npm install --save-dev \
-    @types/react \
-    @types/react-dom \
-    @types/react-router-dom \
-    @types/framer-motion \
-    @types/react-i18next \
-    @types/chart.js \
-    @types/react-chartjs-2 \
-    @types/recharts \
-    @types/react-swipeable \
-    @types/qrcode.react \
-    @types/web-vitals \
-    @types/ethers \
-    @types/i18next \
-    @types/i18next-browser-languagedetector \
-    @types/i18next-http-backend && \
-npm rebuild
-
-# 修复用户 API 的类型问题
-echo "修复用户 API 的类型问题..."
-cd "$PROJECT_DIR/user-api"
-
-# 检查 Node.js 是否安装
-if ! command -v node &> /dev/null; then
-    echo "错误: Node.js 未安装"
-    exit 1
+# 检查 node_modules 是否存在
+if [ ! -d "node_modules" ]; then
+    log "安装用户 UI 依赖..."
+    npm install --legacy-peer-deps --no-audit || handle_error "安装用户 UI 依赖失败"
+    npm install --save \
+        framer-motion \
+        react-i18next \
+        i18next \
+        i18next-browser-languagedetector \
+        i18next-http-backend \
+        chart.js \
+        react-chartjs-2 \
+        recharts \
+        react-swipeable \
+        qrcode.react \
+        web-vitals \
+        ethers \
+        @ethersproject/providers \
+        @mui/x-date-pickers \
+        @mui/x-data-grid \
+        @web3modal/wagmi || handle_error "安装用户 UI 运行时依赖失败"
+    npm install --save-dev \
+        @types/react \
+        @types/react-dom \
+        @types/react-router-dom \
+        @types/framer-motion \
+        @types/react-i18next \
+        @types/chart.js \
+        @types/react-chartjs-2 \
+        @types/recharts \
+        @types/react-swipeable \
+        @types/qrcode.react \
+        @types/web-vitals \
+        @types/ethers \
+        @types/i18next \
+        @types/i18next-browser-languagedetector \
+        @types/i18next-http-backend || handle_error "安装用户 UI 开发依赖失败"
+else
+    log "用户 UI 依赖已存在，跳过安装..."
 fi
 
-# 检查 npm 是否安装
-if ! command -v npm &> /dev/null; then
-    echo "错误: npm 未安装"
-    exit 1
-fi
+# 检查并安装用户 API 依赖
+log "检查用户 API 依赖..."
+cd "$PROJECT_DIR/user-api" || handle_error "无法切换到 user-api 目录"
 
-# 安装必要的类型定义
-echo "安装必要的类型定义..."
-npm install --save-dev @types/node @types/express @types/mongoose @types/jsonwebtoken
+# 检查 node_modules 是否存在
+if [ ! -d "node_modules" ]; then
+    log "安装用户 API 依赖..."
+    npm install --legacy-peer-deps --no-audit || handle_error "安装用户 API 依赖失败"
+    npm install --save-dev @types/node @types/express @types/mongoose @types/jsonwebtoken || handle_error "安装用户 API 类型定义失败"
+else
+    log "用户 API 依赖已存在，跳过安装..."
+fi
 
 # 修改 package.json 中的构建脚本
-echo "修改构建脚本..."
-npm pkg set scripts.build="tsc --skipLibCheck"
+log "修改构建脚本..."
+npm pkg set scripts.build="tsc --skipLibCheck" || handle_error "修改构建脚本失败"
 
 # 返回docker目录
-cd "$DOCKER_DIR"
+cd "$DOCKER_DIR" || handle_error "无法切换到 Docker 目录"
 
 # 构建用户 API 镜像
-echo "构建用户 API 镜像..."
-docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-user-api -f Dockerfile.user-api .
+log "构建用户 API 镜像..."
+docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-user-api -f Dockerfile.user-api . || handle_error "构建 API 镜像失败"
 
 # 构建用户 UI 镜像
-echo "构建用户 UI 镜像..."
-cd "$PROJECT_DIR/user-ui"
+log "构建用户 UI 镜像..."
+cd "$PROJECT_DIR/user-ui" || handle_error "无法切换到 user-ui 目录"
 
 # 确保目录权限正确
-chmod -R 755 .
+log "设置目录权限..."
+chmod -R 755 . || handle_error "设置目录权限失败"
 
 # 构建 UI 镜像
-echo "开始构建 UI 镜像..."
-docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-user-ui -f "$DOCKER_DIR/Dockerfile.user-ui" .
+log "开始构建 UI 镜像..."
+docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-user-ui -f "$DOCKER_DIR/Dockerfile.user-ui" . || handle_error "构建 UI 镜像失败"
 
 # 推送镜像到 Docker Hub
-echo "推送镜像到 Docker Hub..."
-docker push ${DOCKER_USERNAME}/panda-quant-user-api
-docker push ${DOCKER_USERNAME}/panda-quant-user-ui
+log "推送镜像到 Docker Hub..."
+docker push ${DOCKER_USERNAME}/panda-quant-user-api || handle_error "推送 API 镜像失败"
+docker push ${DOCKER_USERNAME}/panda-quant-user-ui || handle_error "推送 UI 镜像失败"
 
 # 返回docker目录
-cd "$DOCKER_DIR"
+cd "$DOCKER_DIR" || handle_error "无法切换到 Docker 目录"
 
 # 修改 docker-compose 文件中的镜像名称
-sed -i "s|image: panda-quant-user-api|image: ${DOCKER_USERNAME}/panda-quant-user-api|g" docker-compose.user.yml
-sed -i "s|image: panda-quant-user-ui|image: ${DOCKER_USERNAME}/panda-quant-user-ui|g" docker-compose.user.yml
+log "更新 docker-compose 文件..."
+sed -i "s|image: panda-quant-user-api|image: ${DOCKER_USERNAME}/panda-quant-user-api|g" docker-compose.user.yml || handle_error "更新 docker-compose 文件失败"
+sed -i "s|image: panda-quant-user-ui|image: ${DOCKER_USERNAME}/panda-quant-user-ui|g" docker-compose.user.yml || handle_error "更新 docker-compose 文件失败"
 
 # 启动服务
-echo "启动服务..."
-docker compose -f docker-compose.user.yml up -d
+log "启动服务..."
+docker compose -f docker-compose.user.yml up -d || handle_error "启动服务失败"
+
+# 等待服务启动并检查健康状态
+log "等待服务启动并检查健康状态..."
+for i in {1..30}; do
+    if curl -s http://localhost:3001/health | grep -q "ok"; then
+        log "服务已成功启动"
+        break
+    fi
+    if [ $i -eq 30 ]; then
+        handle_error "服务启动超时"
+    fi
+    log "等待服务启动... ($i/30)"
+    sleep 2
+done
 
 # 检查服务状态
-echo "检查服务状态..."
-docker compose -f docker-compose.user.yml ps
+log "检查服务状态..."
+docker compose -f docker-compose.user.yml ps || handle_error "检查服务状态失败"
 
-echo "用户服务部署完成" 
+log "用户服务部署完成" 

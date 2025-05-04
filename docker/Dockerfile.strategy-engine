@@ -26,28 +26,29 @@ COPY ../strategy-engine/package.json ../strategy-engine/package-lock.json ./
 # 安装项目依赖
 RUN npm install --legacy-peer-deps --no-audit && \
     npm install --save-dev \
-        @types/cors \
-        @types/helmet \
-        @types/morgan \
-        @types/node \
-        @types/express \
-        @types/jsonwebtoken \
-        @types/jest \
-        @types/uuid \
-        @types/winston \
-        @types/mongoose \
-        @types/express-session \
-        @types/connect-redis \
+        @types/node@20.5.0 \
+        @types/express@4.17.21 \
+        @types/mongoose@5.11.97 \
+        @types/cors@2.8.17 \
+        @types/helmet@4.0.0 \
+        @types/morgan@1.9.9 \
+        @types/jsonwebtoken@9.0.5 \
+        @types/jest@29.5.12 \
+        @types/uuid@9.0.7 \
+        @types/winston@2.4.4 \
+        @types/express-session@1.17.10 \
+        @types/connect-redis@3.4.3 \
+        @types/dotenv@8.2.0 \
         typescript@5.3.3
 
 # 安装运行时依赖
 RUN npm install --save \
-    cors \
-    helmet \
-    morgan \
-    dotenv \
-    express-session \
-    connect-redis
+    cors@2.8.5 \
+    helmet@7.1.0 \
+    morgan@1.10.0 \
+    dotenv@16.4.5 \
+    express-session@1.18.0 \
+    connect-redis@7.1.0
 
 # 创建必要的目录结构
 RUN mkdir -p src/types src/controllers src/models src/routes src/middleware src/config src/utils
