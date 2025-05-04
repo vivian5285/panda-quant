@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
 RUN npm config set registry https://registry.npmjs.org/
 
 # 复制 package.json 和 package-lock.json
-COPY ../strategy-engine/package.json ../strategy-engine/package-lock.json ./
+COPY strategy-engine/package.json strategy-engine/package-lock.json ./
 
 # 安装项目依赖
 RUN npm install --legacy-peer-deps --no-audit && \
@@ -225,7 +225,7 @@ RUN echo '{\n\
 }' > tsconfig.json
 
 # 复制源代码
-COPY ../strategy-engine/. .
+COPY strategy-engine/. .
 
 # 设置目录权限
 RUN chown -R node:node /app && \

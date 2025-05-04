@@ -56,10 +56,33 @@ fi
 # 检查并停止占用端口的进程
 log "检查并停止占用端口的进程..."
 for port in 3001 80 27017 6379; do
-    pid=$(lsof -t -i:$port)
-    if [ ! -z "$pid" ]; then
-        log "端口 $port 被进程 $pid 占用，正在停止..."
-        kill -9 $pid || true
+    # 检查 lsof 是否安装
+    if ! command -v lsof &> /dev/null; then
+        log "警告: lsof 命令未安装，尝试使用 netstat 检查端口..."
+        if ! command -v netstat &> /dev/null; then
+            log "警告: netstat 命令也未安装，跳过端口检查"
+            break
+        fi
+        # 使用 netstat 检查端口
+        if netstat -tuln | grep -q ":$port "; then
+            log "端口 $port 被占用，但无法获取进程ID，请手动检查"
+            continue
+        fi
+    else
+        # 使用 lsof 检查端口
+        if lsof -i:$port > /dev/null 2>&1; then
+            pid=$(lsof -t -i:$port)
+            if [ ! -z "$pid" ]; then
+                log "端口 $port 被进程 $pid 占用，正在停止..."
+                # 尝试优雅地停止进程
+                kill $pid 2>/dev/null || true
+                sleep 2
+                # 如果进程仍然存在，则强制终止
+                if ps -p $pid > /dev/null 2>&1; then
+                    kill -9 $pid 2>/dev/null || true
+                fi
+            fi
+        fi
     fi
 done
 
