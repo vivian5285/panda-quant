@@ -35,6 +35,7 @@ COPY admin-ui/src ./src
 COPY admin-ui/public ./public
 COPY admin-ui/index.html ./
 COPY admin-ui/tsconfig.json ./
+COPY admin-ui/tsconfig.node.json ./
 COPY admin-ui/vite.config.ts ./
 
 # 设置目录权限
