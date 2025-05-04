@@ -28,7 +28,11 @@ COPY user-ui/package.json user-ui/package-lock.json ./
 RUN npm install --legacy-peer-deps --no-audit
 
 # 复制源代码
-COPY user-ui/. .
+COPY user-ui/src ./src
+COPY user-ui/public ./public
+COPY user-ui/index.html ./
+COPY user-ui/tsconfig.json ./
+COPY user-ui/vite.config.ts ./
 
 # 设置目录权限
 RUN chown -R node:node /app && \
@@ -53,6 +57,11 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+
+# 设置环境变量
+ENV NODE_ENV=production
+ENV HOST=0.0.0.0
+ENV PORT=3000
 
 # 设置目录权限
 RUN chown -R node:node /app && \

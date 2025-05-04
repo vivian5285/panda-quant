@@ -24,6 +24,7 @@ RUN npm config set registry https://registry.npmmirror.com/
 # 复制所有必要的文件
 COPY strategy-engine/package.json strategy-engine/package-lock.json ./
 COPY strategy-engine/tsconfig.json ./
+COPY strategy-engine/config.ts ./
 COPY strategy-engine/src ./src
 
 # 安装项目依赖
@@ -77,6 +78,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/.env ./.env
+COPY --from=builder /app/config.ts ./
 
 # 设置目录权限
 RUN chown -R node:node /app && \
