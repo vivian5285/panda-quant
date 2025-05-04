@@ -1,68 +1,68 @@
 services:
   admin-api:
     build:
-      context: ../admin-api
-      dockerfile: ../docker/Dockerfile.admin-api
+      context: ..
+      dockerfile: docker/Dockerfile.admin-api
     container_name: panda-quant-admin-api
-    restart: always
+    restart: unless-stopped
     environment:
       - NODE_ENV=production
       - PORT=3000
       - MONGODB_URI=mongodb://mongo:27017/admin
       - REDIS_URI=redis://redis:6379
+      - JWT_SECRET=your_jwt_secret
     ports:
       - "3000:3000"
     depends_on:
       - mongo
       - redis
     networks:
-      - docker_admin-network
+      - admin-network
 
   admin-ui:
     build:
-      context: ../admin-ui
-      dockerfile: ../docker/Dockerfile.admin-ui
-      args:
-        - NODE_ENV=production
+      context: ..
+      dockerfile: docker/Dockerfile.admin-ui
     container_name: panda-quant-admin-ui
-    restart: always
+    restart: unless-stopped
     ports:
-      - "8080:80"
+      - "80:80"
     environment:
       - NODE_ENV=production
-      - PORT=80
-      - API_URL=http://admin-api:3000
+      - REACT_APP_API_URL=http://localhost:3000
     depends_on:
       - admin-api
     networks:
-      - docker_admin-network
+      - admin-network
 
   mongo:
     image: mongo:latest
     container_name: panda-quant-mongo
-    restart: always
+    restart: unless-stopped
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    command: mongod --bind_ip_all --nojournal
     networks:
-      - docker_admin-network
+      - admin-network
 
   redis:
     image: redis:latest
     container_name: panda-quant-redis
-    restart: always
+    restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
-      - docker_admin-network
+      - admin-network
 
 networks:
-  docker_admin-network:
+  admin-network:
     driver: bridge
 
 volumes:
   mongo_data:
+    driver: local
   redis_data: 

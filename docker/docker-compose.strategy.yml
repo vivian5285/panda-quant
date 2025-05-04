@@ -6,7 +6,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.strategy-engine
     container_name: panda-quant-strategy-engine
-    restart: always
+    restart: unless-stopped
     environment:
       - NODE_ENV=production
       - PORT=4000
@@ -18,12 +18,12 @@ services:
       - mongo
       - redis
     networks:
-      - default
+      - strategy-network
 
   nginx-strategy:
     image: nginx:latest
     container_name: panda-quant-strategy-nginx
-    restart: always
+    restart: unless-stopped
     ports:
       - "8081:80"
       - "444:443"
@@ -33,34 +33,37 @@ services:
     depends_on:
       - strategy-engine
     networks:
-      - default
+      - strategy-network
 
   mongo:
     image: mongo:latest
     container_name: panda-quant-strategy-mongo
-    restart: always
+    restart: unless-stopped
     ports:
       - "27018:27017"
     volumes:
       - mongo_data:/data/db
+    command: mongod --bind_ip_all --nojournal
     networks:
-      - default
+      - strategy-network
 
   redis:
     image: redis:latest
     container_name: panda-quant-strategy-redis
-    restart: always
+    restart: unless-stopped
     ports:
       - "6380:6379"
     volumes:
       - redis_data:/data
     networks:
-      - default
+      - strategy-network
 
 volumes:
   mongo_data:
+    driver: local
   redis_data:
+    driver: local
 
 networks:
-  default:
-    name: docker_default 
+  strategy-network:
+    driver: bridge 

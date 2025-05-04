@@ -1,5 +1,5 @@
 # 使用 Node.js 18 作为基础镜像
-FROM node:18-slim AS builder
+FROM node:18 AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -15,29 +15,33 @@ RUN apt-get update && apt-get install -y \
     make \
     g++ \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # 配置 npm 镜像源
 RUN npm config set registry https://registry.npmmirror.com/
 
 # 复制 package.json 和 package-lock.json
-COPY package.json package-lock.json ./
+COPY user-ui/package.json user-ui/package-lock.json ./
 
 # 安装依赖
 RUN npm install --legacy-peer-deps --no-audit
 
 # 复制源代码
-COPY . .
+COPY user-ui/. .
 
 # 设置目录权限
 RUN chown -R node:node /app && \
     chmod -R 755 /app
 
+# 切换到非root用户
+USER node
+
 # 构建应用
 RUN npm run build
 
 # 生产环境
-FROM node:18-slim
+FROM node:18
 
 # 设置工作目录
 WORKDIR /app
@@ -51,7 +55,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
 # 设置目录权限
-RUN chown -R node:node /app
+RUN chown -R node:node /app && \
+    chmod -R 755 /app
 
 # 切换到非root用户
 USER node

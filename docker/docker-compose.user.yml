@@ -1,10 +1,10 @@
 services:
   user-api:
     build:
-      context: ../user-api
-      dockerfile: ../docker/Dockerfile.user-api
+      context: ..
+      dockerfile: docker/Dockerfile.user-api
     container_name: panda-quant-user-api
-    restart: always
+    restart: unless-stopped
     environment:
       - NODE_ENV=production
       - PORT=3001
@@ -16,16 +16,14 @@ services:
       - mongo
       - redis
     networks:
-      - docker_user-network
+      - user-network
 
   user-ui:
     build:
-      context: ../user-ui
-      dockerfile: ../docker/Dockerfile.user-ui
-      args:
-        - NODE_ENV=production
+      context: ..
+      dockerfile: docker/Dockerfile.user-ui
     container_name: panda-quant-user-ui
-    restart: always
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
@@ -33,7 +31,7 @@ services:
       - PORT=3000
       - API_URL=http://user-api:3001
     networks:
-      - docker_user-network
+      - user-network
     depends_on:
       - user-api
     healthcheck:
@@ -45,29 +43,32 @@ services:
   mongo:
     image: mongo:latest
     container_name: panda-quant-user-mongo
-    restart: always
+    restart: unless-stopped
     ports:
       - "27018:27017"
     volumes:
       - mongo_data:/data/db
+    command: mongod --bind_ip_all --nojournal
     networks:
-      - docker_user-network
+      - user-network
 
   redis:
     image: redis:latest
     container_name: panda-quant-user-redis
-    restart: always
+    restart: unless-stopped
     ports:
       - "6380:6379"
     volumes:
       - redis_data:/data
     networks:
-      - docker_user-network
+      - user-network
 
 volumes:
   mongo_data:
+    driver: local
   redis_data:
+    driver: local
 
 networks:
-  docker_user-network:
+  user-network:
     driver: bridge
