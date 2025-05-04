@@ -8,13 +8,15 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - MONGODB_URI=mongodb://mongo:27017/user
-      - REDIS_URI=redis://redis:6379
+      - MONGODB_URI=mongodb://mongo:27018/user
+      - REDIS_URI=redis://redis:6380
     ports:
       - "3001:3001"
     depends_on:
       - mongo
       - redis
+    networks:
+      - docker_user-network
 
   user-ui:
     build:
@@ -25,43 +27,47 @@ services:
     container_name: panda-quant-user-ui
     restart: always
     ports:
-      - "8082:80"
+      - "3000:3000"
     environment:
       - NODE_ENV=production
-      - PORT=80
-      - API_URL=http://user-api:8083
+      - PORT=3000
+      - API_URL=http://user-api:3001
     networks:
-      - panda-quant-network
+      - docker_user-network
     depends_on:
       - user-api
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
   mongo:
     image: mongo:latest
-    container_name: panda-quant-mongo
+    container_name: panda-quant-user-mongo
     restart: always
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - docker_user-network
 
   redis:
     image: redis:latest
-    container_name: panda-quant-redis
+    container_name: panda-quant-user-redis
     restart: always
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - docker_user-network
 
 volumes:
   mongo_data:
   redis_data:
 
 networks:
-  panda-quant-network:
+  docker_user-network:
     driver: bridge

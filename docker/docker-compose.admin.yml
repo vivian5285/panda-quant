@@ -16,7 +16,7 @@ services:
       - mongo
       - redis
     networks:
-      - admin-network
+      - docker_admin-network
 
   admin-ui:
     build:
@@ -35,7 +35,7 @@ services:
     depends_on:
       - admin-api
     networks:
-      - admin-network
+      - docker_admin-network
 
   mongo:
     image: mongo:latest
@@ -46,7 +46,7 @@ services:
     volumes:
       - mongo_data:/data/db
     networks:
-      - admin-network
+      - docker_admin-network
 
   redis:
     image: redis:latest
@@ -57,10 +57,10 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - admin-network
+      - docker_admin-network
 
 networks:
-  admin-network:
+  docker_admin-network:
     driver: bridge
 
 volumes:
