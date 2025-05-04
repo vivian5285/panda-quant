@@ -72,7 +72,7 @@ interface PandaAutocompleteProps extends BaseAutocompleteProps {
   open?: boolean;
   defaultValue?: AutocompleteOption[];
   filterOptions?: (options: AutocompleteOption[], state: { inputValue: string }) => AutocompleteOption[];
-  PaperComponent?: React.ComponentType<PaperProps>;
+  PaperComponent?: React.ComponentType<React.HTMLAttributes<HTMLElement>>;
   PopperComponent?: React.ComponentType<PopperProps>;
   ListboxComponent?: React.ComponentType<React.HTMLAttributes<HTMLElement>>;
   ListboxProps?: ListProps;

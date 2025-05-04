@@ -15,7 +15,7 @@ const metadata = {
 };
 
 // 配置支持的链
-const chains = [mainnet, sepolia] as const;
+const chains = [mainnet, sepolia];
 
 // 创建 wagmi 配置
 const wagmiConfig = defaultWagmiConfig({ 
@@ -39,8 +39,7 @@ createWeb3Modal({
     '--w3m-color-mix-strength': 20,
     '--w3m-accent': '#00FFB8',
   },
-  enableAnalytics: true,
-  enableOnramp: true
+  enableAnalytics: true
 });
 
 export { wagmiConfig }; 
