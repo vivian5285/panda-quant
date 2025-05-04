@@ -21,8 +21,8 @@ services:
 
   admin-ui:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile.admin-ui
+      context: ../admin-ui
+      dockerfile: Dockerfile
     container_name: panda-quant-admin-ui
     restart: unless-stopped
     ports:

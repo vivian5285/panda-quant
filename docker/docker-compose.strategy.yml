@@ -44,7 +44,7 @@ services:
       - "27018:27017"
     volumes:
       - mongo_data:/data/db
-    command: mongod --bind_ip_all --nojournal
+    command: mongod --bind_ip_all
     networks:
       - strategy-network
 
