@@ -315,6 +315,10 @@ cd "$DOCKER_DIR"
 echo "构建用户 API 镜像..."
 docker build --no-cache -t panda-quant-user-api -f Dockerfile.user-api .
 
+# 构建用户 UI 镜像
+echo "构建用户 UI 镜像..."
+docker build --no-cache -t panda-quant-user-ui -f Dockerfile.user-ui .
+
 # 启动用户服务
 echo "启动用户服务..."
 docker compose -f docker-compose.user.yml up -d --build

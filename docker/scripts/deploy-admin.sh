@@ -72,6 +72,10 @@ cd "$DOCKER_DIR"
 echo "构建管理后台 API 镜像..."
 docker build --no-cache -t panda-quant-admin-api -f Dockerfile.admin-api .
 
+# 构建管理后台 UI 镜像
+echo "构建管理后台 UI 镜像..."
+docker build --no-cache -t panda-quant-admin-ui -f Dockerfile.admin-ui .
+
 # 启动管理后台服务
 echo "启动管理后台服务..."
 docker compose -f docker-compose.admin.yml up -d --build

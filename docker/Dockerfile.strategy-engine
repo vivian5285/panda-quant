@@ -22,10 +22,24 @@ RUN npm install -g typescript@5.3.3 && \
 
 COPY strategy-engine/package.json strategy-engine/package-lock.json ./
 
-RUN npm install --save-dev @types/cors @types/helmet @types/morgan && \
-    npm install --save cors helmet morgan
-
-RUN npm install --legacy-peer-deps --no-audit
+# 安装所有依赖
+RUN npm install --legacy-peer-deps --no-audit && \
+    npm install --save-dev \
+        @types/cors \
+        @types/helmet \
+        @types/morgan \
+        @types/dotenv \
+        @types/node \
+        @types/express \
+        @types/jsonwebtoken \
+        @types/jest \
+        @types/uuid \
+        @types/winston && \
+    npm install --save \
+        cors \
+        helmet \
+        morgan \
+        dotenv
 
 # 创建必要的目录结构
 RUN mkdir -p src/types src/controllers src/models src/routes src/middleware src/config src/utils
