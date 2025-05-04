@@ -33,6 +33,7 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     rollupOptions: {
+      input: path.resolve(__dirname, 'index.html'),
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
@@ -66,7 +67,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://admin-api:3000',
         changeOrigin: true,
         secure: false
       }

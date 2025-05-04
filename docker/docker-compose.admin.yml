@@ -15,11 +15,11 @@ services:
     depends_on:
       - mongo
       - redis
+    networks:
+      - admin-network
 
   admin-ui:
-    build:
-      context: .
-      dockerfile: Dockerfile.admin-ui
+    image: panda-quant-admin-ui
     container_name: panda-quant-admin-ui
     restart: always
     ports:
@@ -30,6 +30,8 @@ services:
       - API_URL=http://admin-api:3000
     depends_on:
       - admin-api
+    networks:
+      - admin-network
 
   mongo:
     image: mongo:latest
@@ -39,6 +41,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - admin-network
 
   redis:
     image: redis:latest
@@ -48,6 +52,12 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - admin-network
+
+networks:
+  admin-network:
+    driver: bridge
 
 volumes:
   mongo_data:

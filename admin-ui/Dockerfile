@@ -17,8 +17,14 @@ RUN npm install && \
 # Copy source code
 COPY . .
 
+# Debug: List files
+RUN ls -la && \
+    ls -la src/ && \
+    cat index.html
+
 # Build the app
-RUN npm run build
+RUN echo "构建应用..." && \
+    npm run build
 
 # Production stage
 FROM nginx:alpine
