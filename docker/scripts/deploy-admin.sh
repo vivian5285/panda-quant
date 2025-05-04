@@ -20,6 +20,16 @@ fi
 
 echo "开始部署管理后台服务..."
 
+# 检查并停止占用端口的进程
+echo "检查并停止占用端口的进程..."
+for port in 3000 80 27017 6379; do
+    pid=$(lsof -t -i:$port)
+    if [ ! -z "$pid" ]; then
+        echo "端口 $port 被进程 $pid 占用，正在停止..."
+        kill -9 $pid
+    fi
+done
+
 # 停止并删除旧容器
 echo "停止并删除旧容器..."
 docker compose -f docker-compose.admin.yml down || true

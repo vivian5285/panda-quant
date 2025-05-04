@@ -15,9 +15,9 @@ PROJECT_DIR="$(dirname "$DOCKER_DIR")"
 cd "$PROJECT_DIR"
 
 # 加载环境变量
-if [ -f .env ]; then
+if [ -f "$DOCKER_DIR/.env" ]; then
     set -a
-    source .env
+    source "$DOCKER_DIR/.env"
     set +a
 fi
 

@@ -41,6 +41,16 @@ if ! command -v docker-compose &> /dev/null; then
     exit 1
 fi
 
+# 检查并停止占用端口的进程
+echo "检查并停止占用端口的进程..."
+for port in 3001 80 27017 6379; do
+    pid=$(lsof -t -i:$port)
+    if [ ! -z "$pid" ]; then
+        echo "端口 $port 被进程 $pid 占用，正在停止..."
+        kill -9 $pid
+    fi
+done
+
 # 停止并删除旧容器
 echo "停止并删除旧容器..."
 docker compose -f docker-compose.user.yml down || true
@@ -93,61 +103,8 @@ cd "$PROJECT_DIR/user-ui"
 # 确保目录权限正确
 chmod -R 755 .
 
-# 确保 nginx 配置文件存在
-if [ ! -f nginx.conf ]; then
-    echo "创建 nginx 配置文件..."
-    cat > nginx.conf << 'EOF'
-server {
-    listen 80;
-    server_name localhost;
-
-    # Root directory and index files
-    root /usr/share/nginx/html;
-    index index.html index.htm;
-
-    # Gzip compression
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN";
-    add_header X-XSS-Protection "1; mode=block";
-    add_header X-Content-Type-Options "nosniff";
-
-    # Cache static assets
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-        expires 1y;
-        add_header Cache-Control "public, no-transform";
-    }
-
-    # Handle React Router
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # API proxy
-    location /api {
-        proxy_pass http://user-api:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    # Error pages
-    error_page 404 /index.html;
-    error_page 500 502 503 504 /50x.html;
-    location = /50x.html {
-        root /usr/share/nginx/html;
-    }
-}
-EOF
-fi
-
 # 构建 UI 镜像
 echo "开始构建 UI 镜像..."
-cd "$PROJECT_DIR/user-ui"
 docker build --no-cache -t ${DOCKER_USERNAME}/panda-quant-user-ui -f "$DOCKER_DIR/Dockerfile.user-ui" .
 
 # 推送镜像到 Docker Hub
