@@ -1,16 +1,17 @@
+version: '3.8'
+
 services:
   admin-api:
     build:
-      context: ../admin-api
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile.admin-api
     container_name: panda-quant-admin-api
     restart: unless-stopped
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - MONGODB_URI=mongodb://mongo:27017/admin
+      - MONGO_URI=mongodb://mongo:27017/admin
       - REDIS_URI=redis://redis:6379
-      - JWT_SECRET=your_jwt_secret
     ports:
       - "3000:3000"
     depends_on:
@@ -19,25 +20,43 @@ services:
     networks:
       - admin-network
 
-  admin-ui:
+  admin:
     build:
       context: ..
-      dockerfile: docker/Dockerfile.admin-ui
-    container_name: panda-quant-admin-ui
+      dockerfile: docker/Dockerfile.admin
+    container_name: panda-quant-admin
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
-      - REACT_APP_API_URL=http://admin-api:3000
+      - PORT=3001
+      - API_URL=https://admin-api.pandatrade.space
+    ports:
+      - "3001:3001"
     depends_on:
       - admin-api
     networks:
       - admin-network
 
+  nginx-admin:
+    image: nginx:latest
+    container_name: panda-quant-admin-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/admin.nginx.conf:/etc/nginx/conf.d/admin.conf
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/log/nginx:/var/log/nginx
+    depends_on:
+      - admin-api
+      - admin
+    networks:
+      - admin-network
+
   mongo:
     image: mongo:latest
-    container_name: panda-quant-mongo
+    container_name: panda-quant-admin-mongo
     restart: unless-stopped
     ports:
       - "27017:27017"
@@ -49,7 +68,7 @@ services:
 
   redis:
     image: redis:latest
-    container_name: panda-quant-redis
+    container_name: panda-quant-admin-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -58,12 +77,12 @@ services:
     networks:
       - admin-network
 
-networks:
-  admin-network:
-    driver: bridge
-
 volumes:
   mongo_data:
     driver: local
   redis_data:
-    driver: local 
+    driver: local
+
+networks:
+  admin-network:
+    driver: bridge 

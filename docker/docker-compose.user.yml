@@ -1,54 +1,50 @@
+version: '3.8'
+
 services:
-  user-api:
+  api:
     build:
-      context: ../user-api
-      dockerfile: Dockerfile
-    container_name: panda-quant-user-api
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: panda-quant-api
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - PORT=3001
-      - MONGODB_URI=mongodb://mongo:27018/user
-      - REDIS_URI=redis://redis:6380
+      - PORT=4000
+      - MONGO_URI=mongodb://mongo:27017/api
+      - REDIS_URI=redis://redis:6379
     ports:
-      - "3001:3001"
+      - "4000:4000"
     depends_on:
       - mongo
       - redis
     networks:
       - user-network
 
-  user-ui:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.user-ui
-    container_name: panda-quant-user-ui
+  nginx-user:
+    image: nginx:latest
+    container_name: panda-quant-user-nginx
     restart: unless-stopped
     ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - API_URL=http://user-api:3001
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/user.conf:/etc/nginx/conf.d/user.conf
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/log/nginx:/var/log/nginx
+    depends_on:
+      - api
     networks:
       - user-network
-    depends_on:
-      - user-api
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   mongo:
     image: mongo:latest
     container_name: panda-quant-user-mongo
     restart: unless-stopped
     ports:
-      - "27018:27017"
+      - "27019:27017"
     volumes:
       - mongo_data:/data/db
-    command: mongod --bind_ip_all --nojournal
+    command: mongod --bind_ip_all
     networks:
       - user-network
 
@@ -57,7 +53,7 @@ services:
     container_name: panda-quant-user-redis
     restart: unless-stopped
     ports:
-      - "6380:6379"
+      - "6381:6379"
     volumes:
       - redis_data:/data
     networks:
