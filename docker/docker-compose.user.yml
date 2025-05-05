@@ -4,7 +4,7 @@ services:
   api:
     build:
       context: ..
-      dockerfile: docker/Dockerfile.api
+      dockerfile: docker/Dockerfile.user-api
     container_name: panda-quant-api
     restart: unless-stopped
     environment:

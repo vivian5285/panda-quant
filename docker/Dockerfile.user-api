@@ -1,24 +1,26 @@
-# 使用 Node.js 18 作为基础镜像
-FROM node:18-slim AS builder
-
-# 使用 root 用户
-USER root
+# 使用 Node.js 20 作为基础镜像
+FROM node:20-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
 
+# 配置国内镜像源
+RUN echo "https://mirrors.aliyun.com/alpine/v3.19/main" > /etc/apk/repositories && \
+    echo "https://mirrors.aliyun.com/alpine/v3.19/community" >> /etc/apk/repositories
+
 # 安装系统依赖
-RUN apt-get update && apt-get install -y \
+RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+    curl
+
+# 设置 npm 配置
+RUN npm config set registry https://registry.npmmirror.com/ && \
+    npm config set network-timeout 300000
 
 # 安装全局依赖
-RUN npm install -g typescript@5.3.3 && \
-    chmod -R 777 /usr/local/bin && \
-    chmod -R 777 /usr/local/lib/node_modules
+RUN npm install -g typescript@5.3.3
 
 # 复制 package.json 和 package-lock.json
 COPY user-api/package.json user-api/package-lock.json ./
@@ -30,16 +32,17 @@ RUN npm install --legacy-peer-deps --no-audit
 COPY user-api/ .
 
 # 设置目录权限
-RUN chmod -R 777 /app
+RUN chown -R node:node /app && \
+    chmod -R 755 /app
+
+# 切换到非root用户
+USER node
 
 # 构建应用
 RUN npm run build
 
 # 生产阶段
-FROM node:18-slim
-
-# 使用 root 用户
-USER root
+FROM node:20-alpine
 
 # 设置工作目录
 WORKDIR /app
@@ -51,7 +54,11 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/.env ./.env
 
 # 设置目录权限
-RUN chmod -R 777 /app
+RUN chown -R node:node /app && \
+    chmod -R 755 /app
+
+# 切换到非root用户
+USER node
 
 # 暴露端口
 EXPOSE 3001
