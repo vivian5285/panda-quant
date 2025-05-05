@@ -30,7 +30,8 @@ services:
     volumes:
       - ./nginx/strategy-engine.nginx.conf:/etc/nginx/conf.d/strategy-engine.conf
       - ./nginx/server.nginx.conf:/etc/nginx/conf.d/server.conf
-      - ./ssl:/etc/nginx/ssl
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/log/nginx:/var/log/nginx
     depends_on:
       - strategy-engine
     networks:
