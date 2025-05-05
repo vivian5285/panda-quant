@@ -46,8 +46,9 @@ WORKDIR /app
 # 安装 curl 用于健康检查
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# 创建非root用户
-RUN groupadd -r node && useradd -r -g node node
+# 创建非root用户（如果不存在）
+RUN groupadd -r node 2>/dev/null || true && \
+    useradd -r -g node node 2>/dev/null || true
 
 # 复制构建产物
 COPY --from=builder /app/dist ./dist
