@@ -1,7 +1,7 @@
 import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import { validateRequest } from '../middleware/validateRequest';
-import { errorHandler } from '../middleware/errorHandler';
+import { errorHandler } from '../middleware/error.middleware';
 import { requestLogger } from '../middleware/requestLogger';
 import { performanceMonitor } from '../middleware/performanceMonitor';
 import { rateLimiter } from '../middleware/rateLimiter';
@@ -17,7 +17,6 @@ const router = express.Router();
 
 // 中间件
 router.use(validateRequest);
-router.use(errorHandler);
 router.use(requestLogger);
 router.use(performanceMonitor);
 router.use(rateLimiter);
@@ -134,5 +133,8 @@ router.use((_req, res) => {
     message: 'Route not found'
   });
 });
+
+// 错误处理中间件
+router.use(errorHandler);
 
 export default router; 

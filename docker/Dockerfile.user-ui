@@ -78,11 +78,11 @@ RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html
 
 # 暴露端口
-EXPOSE 8081
+EXPOSE 3000
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:8081/health || exit 1
+  CMD curl -f http://localhost:3000/health || exit 1
 
 # 启动命令
 CMD ["nginx", "-g", "daemon off;"] 

@@ -9,8 +9,8 @@ export async function deductFees() {
     });
 
     for (const user of users) {
-      if (user.accountBalance >= user.subscriptionFee) {
-        user.accountBalance -= user.subscriptionFee;
+      if (user.balance >= user.subscriptionFee) {
+        user.balance -= user.subscriptionFee;
         await user.save();
 
         await Transaction.create({
@@ -19,10 +19,14 @@ export async function deductFees() {
           amount: -user.subscriptionFee,
           status: 'completed'
         });
+
+        logger.info(`Successfully deducted subscription fee for user ${user._id}`);
+      } else {
+        logger.warn(`Insufficient balance for user ${user._id}`);
       }
     }
   } catch (error) {
-    console.error('Error deducting fees:', error);
+    logger.error('Error deducting fees:', error);
     throw error;
   }
 } 

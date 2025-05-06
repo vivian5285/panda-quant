@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/User';
-import { IUserDocument } from '../models/User';
+import { User, IUserDocument } from '../models/User';
 
 interface AuthRequest extends Request {
   user?: IUserDocument;
@@ -16,7 +15,7 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as { _id: string };
-    const user = await User.findById(decoded._id);
+    const user = await User.findById(decoded._id) as IUserDocument | null;
 
     if (!user) {
       throw new Error();

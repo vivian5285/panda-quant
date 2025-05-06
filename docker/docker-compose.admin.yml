@@ -35,7 +35,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - API_URL=https://admin-api.pandatrade.space
+      - API_URL=http://admin-api:4000
     ports:
       - "3000:3000"
     depends_on:

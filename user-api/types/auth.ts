@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { IUser } from '../src/models/User';
 
 export interface AuthUser {
   id: string;

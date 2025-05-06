@@ -15,6 +15,7 @@ import { connectDB } from './utils/database';
 import { errorHandler } from './middleware/errorHandler';
 import { requestLogger, responseTime } from './middleware/logger';
 import { securityMiddleware, requestSizeLimit } from './middleware/security';
+import compression from 'compression';
 
 const app = express();
 
@@ -65,6 +66,7 @@ app.use(requestSizeLimit);
 app.use(requestLogger);
 app.use(responseTime);
 app.use(securityMiddleware);
+app.use(compression());
 
 // API 文档
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthUser } from '../types/auth.types';
+import { User } from '../models/user.model';
 
 declare global {
   namespace Express {
@@ -23,7 +24,17 @@ export const authenticate = async (
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || '') as AuthUser;
-    req.user = decoded;
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      res.status(401).json({ error: 'User not found' });
+      return;
+    }
+
+    req.user = {
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role
+    };
     next();
   } catch (error) {
     res.status(401).json({ error: 'Invalid token' });

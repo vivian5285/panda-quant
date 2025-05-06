@@ -22,7 +22,7 @@ const calculateDailyProfit = async (userId: string, strategyId: string, date: Da
   });
 
   // 计算当日收益（这里使用简单的随机算法模拟，实际应用中应该使用真实的交易数据）
-  const baseProfit = strategy.expectedReturn / 30; // 将月收益转换为日收益
+  const baseProfit = strategy.monthlyReturn / 30; // 将月收益转换为日收益
   const randomFactor = 0.8 + Math.random() * 0.4; // 0.8-1.2 的随机因子
   const dailyProfit = baseProfit * randomFactor;
 

@@ -81,11 +81,11 @@ RUN chown -R node:node /app && \
 USER node
 
 # 暴露端口
-EXPOSE 3002
+EXPOSE 4000
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:3002/health || exit 1
+  CMD curl -f http://localhost:4000/health || exit 1
 
 # 启动命令
 CMD ["node", "dist/index.js"] 

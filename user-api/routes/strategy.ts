@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import { Router } from 'express';
 import { authenticateToken } from '../middlewares/auth';
 import { getUserProfitData } from '../controllers/profitController';
 import { Strategy } from '../strategies/types';
@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 import { Strategy as StrategyModel } from '../models/strategy.model';
 import { AuthRequest } from '../types/auth';
 
-const router = express.Router();
+const router = Router();
 
 // 获取所有策略
 router.get('/', async (req: AuthRequest, res: Response) => {
