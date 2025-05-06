@@ -1,68 +1,57 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const userLevelController_1 = require("../controllers/userLevelController");
-const Auth_1 = require("../middleware/Auth");
-const router = (0, express_1.Router)();
-const userLevelController = new userLevelController_1.UserLevelController();
+import { Router } from 'express';
+import { UserLevelController } from '../controllers/userLevelController';
+import { authenticate, isAdmin } from '../middleware/Auth';
+const router = Router();
+const userLevelController = new UserLevelController();
 // Admin routes
-router.get('/admin/user-levels', Auth_1.authenticate, Auth_1.isAdmin, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/admin/user-levels', authenticate, isAdmin, async (req, res, next) => {
     try {
-        yield userLevelController.getAllLevels(req, res);
+        await userLevelController.getAllLevels(req, res);
     }
     catch (error) {
         next(error);
     }
-}));
-router.post('/admin/user-levels', Auth_1.authenticate, Auth_1.isAdmin, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.post('/admin/user-levels', authenticate, isAdmin, async (req, res, next) => {
     try {
-        yield userLevelController.createLevel(req, res);
+        await userLevelController.createLevel(req, res);
     }
     catch (error) {
         next(error);
     }
-}));
-router.put('/admin/user-levels/:id', Auth_1.authenticate, Auth_1.isAdmin, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.put('/admin/user-levels/:id', authenticate, isAdmin, async (req, res, next) => {
     try {
-        yield userLevelController.updateLevel(req, res);
+        await userLevelController.updateLevel(req, res);
     }
     catch (error) {
         next(error);
     }
-}));
-router.delete('/admin/user-levels/:id', Auth_1.authenticate, Auth_1.isAdmin, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.delete('/admin/user-levels/:id', authenticate, isAdmin, async (req, res, next) => {
     try {
-        yield userLevelController.deleteLevel(req, res);
+        await userLevelController.deleteLevel(req, res);
     }
     catch (error) {
         next(error);
     }
-}));
+});
 // User routes
-router.get('/user-levels', Auth_1.authenticate, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/user-levels', authenticate, async (req, res, next) => {
     try {
-        yield userLevelController.getUserLevel(req, res);
+        await userLevelController.getUserLevel(req, res);
     }
     catch (error) {
         next(error);
     }
-}));
-router.get('/user-levels/:id', Auth_1.authenticate, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+});
+router.get('/user-levels/:id', authenticate, async (req, res, next) => {
     try {
-        yield userLevelController.getUserLevel(req, res);
+        await userLevelController.getUserLevel(req, res);
     }
     catch (error) {
         next(error);
     }
-}));
-exports.default = router;
+});
+export default router;
 //# sourceMappingURL=userLevelRoutes.js.map

@@ -1,58 +1,61 @@
-import { Schema, model } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { IUserLevel } from '../types/UserLevel';
 
 const userLevelSchema = new Schema<IUserLevel>({
-  level: {
-    type: Number,
-    required: true,
-    unique: true
-  },
   name: {
     type: String,
     required: true
   },
-  description: String,
+  level: {
+    type: Number,
+    required: true
+  },
+  minDeposit: {
+    type: Number,
+    required: true
+  },
+  maxDeposit: {
+    type: Number,
+    required: true
+  },
+  commissionRate: {
+    type: Number,
+    required: true
+  },
   experience: {
     type: Number,
-    required: true,
-    default: 0
+    required: true
   },
   requiredExperience: {
     type: Number,
-    required: true,
-    default: 0
+    required: true
   },
   minCommission: {
     type: Number,
-    required: true,
-    default: 0
+    required: true
   },
   maxCommission: {
     type: Number,
-    required: true,
-    default: 0
+    required: true
   },
-  requirements: {
-    minBalance: { type: Number, default: 0 },
-    minTrades: { type: Number, default: 0 },
-    minVolume: { type: Number, default: 0 }
-  },
-  benefits: {
-    commissionRate: { type: Number, default: 0 },
-    withdrawalLimit: { type: Number, default: 0 },
-    features: [{ type: String }]
-  },
-  achievements: {
-    type: [String],
-    default: []
-  },
+  benefits: [{
+    type: String
+  }],
+  achievements: [{
+    type: String
+  }],
   metadata: {
-    type: Schema.Types.Mixed,
-    default: {}
+    type: Schema.Types.Mixed
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
-}, {
-  timestamps: true
 });
 
-export const UserLevel = model<IUserLevel>('UserLevel', userLevelSchema);
+export const UserLevel = mongoose.model<IUserLevel>('UserLevel', userLevelSchema);
 export default UserLevel; 

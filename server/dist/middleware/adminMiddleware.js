@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.adminMiddleware = void 0;
-const adminMiddleware = (req, res, next) => {
+export const adminMiddleware = (req, res, next) => {
     const authReq = req;
     if (!authReq.user || !authReq.user.isAdmin) {
         res.status(403).json({ message: 'Forbidden' });
@@ -9,5 +6,4 @@ const adminMiddleware = (req, res, next) => {
     }
     next();
 };
-exports.adminMiddleware = adminMiddleware;
 //# sourceMappingURL=adminMiddleware.js.map

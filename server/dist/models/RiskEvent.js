@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RiskEvent = void 0;
-const mongoose_1 = require("mongoose");
-const riskEventSchema = new mongoose_1.Schema({
+import { Schema, model, Types } from 'mongoose';
+const riskEventSchema = new Schema({
     userId: {
-        type: mongoose_1.Types.ObjectId,
+        type: Types.ObjectId,
         ref: 'User',
         required: true
     },
@@ -28,7 +25,7 @@ const riskEventSchema = new mongoose_1.Schema({
         required: true
     },
     metadata: {
-        type: mongoose_1.Schema.Types.Mixed,
+        type: Schema.Types.Mixed,
         default: {}
     },
     createdAt: {
@@ -40,5 +37,5 @@ const riskEventSchema = new mongoose_1.Schema({
         default: Date.now
     }
 });
-exports.RiskEvent = (0, mongoose_1.model)('RiskEvent', riskEventSchema);
+export const RiskEvent = model('RiskEvent', riskEventSchema);
 //# sourceMappingURL=RiskEvent.js.map

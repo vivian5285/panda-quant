@@ -12,11 +12,11 @@ services:
       - 223.5.5.5
     environment:
       - NODE_ENV=production
-      - PORT=4000
+      - PORT=3001
       - MONGO_URI=mongodb://mongo:27017/strategy
       - REDIS_URI=redis://redis:6379
     ports:
-      - "4000:4000"
+      - "3001:3001"
     depends_on:
       - mongo
       - redis
@@ -34,11 +34,11 @@ services:
       - 223.5.5.5
     environment:
       - NODE_ENV=production
-      - PORT=3000
+      - PORT=3003
       - MONGO_URI=mongodb://mongo:27017/strategy
       - REDIS_URI=redis://redis:6379
     ports:
-      - "3000:3000"
+      - "3003:3003"
     depends_on:
       - server
       - mongo

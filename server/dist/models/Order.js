@@ -1,28 +1,25 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Order = void 0;
-const mongoose_1 = require("mongoose");
-const Trading_1 = require("../types/Trading");
-const orderSchema = new mongoose_1.Schema({
-    userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
-    strategyId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Strategy', required: true },
-    positionId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Position' },
+import { Schema, model } from 'mongoose';
+import { OrderType, OrderStatus } from '../types/Trading';
+const orderSchema = new Schema({
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    strategyId: { type: Schema.Types.ObjectId, ref: 'Strategy', required: true },
+    positionId: { type: Schema.Types.ObjectId, ref: 'Position' },
     exchange: { type: String, required: true },
     symbol: { type: String, required: true },
     orderId: { type: String, required: true },
     clientOrderId: { type: String, required: true },
-    type: { type: String, enum: Object.values(Trading_1.OrderType), required: true },
+    type: { type: String, enum: Object.values(OrderType), required: true },
     side: { type: String, enum: ['buy', 'sell'], required: true },
     amount: { type: Number, required: true },
     price: { type: Number },
     stopPrice: { type: Number },
-    status: { type: String, enum: Object.values(Trading_1.OrderStatus), default: Trading_1.OrderStatus.PENDING },
+    status: { type: String, enum: Object.values(OrderStatus), default: OrderStatus.PENDING },
     filledAmount: { type: Number, default: 0 },
     averageFillPrice: { type: Number },
     fee: { type: Number, default: 0 },
     feeCurrency: { type: String, required: true },
     error: { type: String },
-    metadata: { type: mongoose_1.Schema.Types.Mixed },
+    metadata: { type: Schema.Types.Mixed },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     closedAt: { type: Date }
@@ -41,5 +38,5 @@ orderSchema.pre('save', function (next) {
     this.set('updatedAt', new Date());
     next();
 });
-exports.Order = (0, mongoose_1.model)('Order', orderSchema);
+export const Order = model('Order', orderSchema);
 //# sourceMappingURL=Order.js.map

@@ -47,7 +47,7 @@ export declare enum TradeStatus {
     CLOSED = "closed",
     CANCELLED = "cancelled"
 }
-export interface IOrder extends Document {
+export type IOrder = Document & {
     _id: string;
     userId: string;
     strategyId: string;
@@ -71,8 +71,8 @@ export interface IOrder extends Document {
     closedAt?: Date;
     error?: string;
     metadata?: Record<string, any>;
-}
-export interface ITrade extends Document {
+};
+export type ITrade = Document & {
     _id: Types.ObjectId;
     userId: Types.ObjectId;
     strategyId: Types.ObjectId;
@@ -88,8 +88,8 @@ export interface ITrade extends Document {
     metadata?: Record<string, any>;
     createdAt: Date;
     updatedAt: Date;
-}
-export interface IOrderBook extends Document {
+};
+export type IOrderBook = Document & {
     _id: Types.ObjectId;
     symbol: string;
     bids: {
@@ -103,8 +103,8 @@ export interface IOrderBook extends Document {
     timestamp: Date;
     createdAt: Date;
     updatedAt: Date;
-}
-export interface IOrderHistory extends Document {
+};
+export type IOrderHistory = Document & {
     _id: Types.ObjectId;
     userId: Types.ObjectId;
     strategyId: Types.ObjectId;
@@ -138,14 +138,10 @@ export interface IOrderHistory extends Document {
     };
     createdAt: Date;
     updatedAt: Date;
-}
+};
 export type Order = IOrder;
 export type Trade = ITrade;
-export interface OrderCreateInput extends Omit<IOrder, '_id' | 'createdAt' | 'updatedAt'> {
-}
-export interface OrderUpdateInput extends Partial<OrderCreateInput> {
-}
-export interface TradeCreateInput extends Omit<ITrade, '_id' | 'createdAt' | 'updatedAt'> {
-}
-export interface TradeUpdateInput extends Partial<TradeCreateInput> {
-}
+export type OrderCreateInput = Omit<IOrder, '_id' | 'createdAt' | 'updatedAt'>;
+export type OrderUpdateInput = Partial<OrderCreateInput>;
+export type TradeCreateInput = Omit<ITrade, '_id' | 'createdAt' | 'updatedAt'>;
+export type TradeUpdateInput = Partial<TradeCreateInput>;

@@ -1,15 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.StrategyRating = void 0;
-const mongoose_1 = require("mongoose");
-const strategyRatingSchema = new mongoose_1.Schema({
+import { Schema, model, Types } from 'mongoose';
+const strategyRatingSchema = new Schema({
     strategyId: {
-        type: mongoose_1.Types.ObjectId,
+        type: Types.ObjectId,
         ref: 'Strategy',
         required: true
     },
     userId: {
-        type: mongoose_1.Types.ObjectId,
+        type: Types.ObjectId,
         ref: 'User',
         required: true
     },
@@ -32,5 +29,5 @@ const strategyRatingSchema = new mongoose_1.Schema({
         default: Date.now
     }
 });
-exports.StrategyRating = (0, mongoose_1.model)('StrategyRating', strategyRatingSchema);
+export const StrategyRating = model('StrategyRating', strategyRatingSchema);
 //# sourceMappingURL=StrategyRating.js.map

@@ -1,6 +1,6 @@
 import express from 'express';
 import { connectMongoDB, connectRedis } from './database';
-import router from './routes/Index';
+import router from './routes/index';
 import { logger } from './utils/logger';
 import { config } from './config';
 

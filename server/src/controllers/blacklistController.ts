@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { BlacklistService } from '../services/BlacklistService';
 import { handleError } from '../utils/errorHandler';
-import { Blacklist } from '../models/Blacklist';
+import { BlacklistEntry } from '../models/Blacklist';
 import { logger } from '../utils/logger';
 
 const blacklistService = BlacklistService.getInstance();
@@ -10,7 +10,7 @@ export const blacklistController = {
   // 获取所有黑名单条目
   async getAllEntries(_req: Request, res: Response): Promise<void> {
     try {
-      const entries = await Blacklist.find();
+      const entries = await BlacklistEntry.find();
       res.json(entries);
     } catch (error) {
       logger.error('Error getting blacklist entries:', error);
@@ -37,7 +37,7 @@ export const blacklistController = {
   async createEntry(req: Request, res: Response): Promise<void> {
     try {
       const { address, reason } = req.body;
-      const entry = new Blacklist({ address, reason });
+      const entry = new BlacklistEntry({ address, reason });
       await entry.save();
       res.status(201).json(entry);
     } catch (error) {
@@ -51,7 +51,7 @@ export const blacklistController = {
     try {
       const { id } = req.params;
       const { reason } = req.body;
-      const entry = await Blacklist.findByIdAndUpdate(
+      const entry = await BlacklistEntry.findByIdAndUpdate(
         id,
         { reason },
         { new: true }
@@ -86,7 +86,7 @@ export const blacklistController = {
   async searchEntries(req: Request, res: Response): Promise<void> {
     try {
       const { query } = req.query;
-      const entries = await Blacklist.find({
+      const entries = await BlacklistEntry.find({
         $or: [
           { address: { $regex: query, $options: 'i' } },
           { reason: { $regex: query, $options: 'i' } }

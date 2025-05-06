@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Monitoring = void 0;
-const mongoose_1 = require("mongoose");
-const monitoringSchema = new mongoose_1.Schema({
+import { Schema, model } from 'mongoose';
+const monitoringSchema = new Schema({
     name: {
         type: String,
         required: true
@@ -23,6 +20,6 @@ const monitoringSchema = new mongoose_1.Schema({
 }, {
     timestamps: true
 });
-exports.Monitoring = (0, mongoose_1.model)('Monitoring', monitoringSchema);
-exports.default = exports.Monitoring;
+export const Monitoring = model('Monitoring', monitoringSchema);
+export default Monitoring;
 //# sourceMappingURL=Monitoring.js.map

@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.StrategyPerformance = void 0;
-const mongoose_1 = require("mongoose");
-const strategyPerformanceSchema = new mongoose_1.Schema({
+import { Schema, model } from 'mongoose';
+const strategyPerformanceSchema = new Schema({
     strategyId: { type: String, required: true },
     period: {
         start: { type: Date, required: true },
@@ -22,6 +19,6 @@ const strategyPerformanceSchema = new mongoose_1.Schema({
 }, {
     timestamps: true
 });
-exports.StrategyPerformance = (0, mongoose_1.model)('StrategyPerformance', strategyPerformanceSchema);
-exports.default = exports.StrategyPerformance;
+export const StrategyPerformance = model('StrategyPerformance', strategyPerformanceSchema);
+export default StrategyPerformance;
 //# sourceMappingURL=StrategyPerformance.js.map

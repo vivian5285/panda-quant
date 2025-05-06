@@ -40,4 +40,4 @@ export interface Transfer {
     createdAt: Date;
     updatedAt: Date;
 }
-export { ITransaction };
+export type { ITransaction };

@@ -11,12 +11,12 @@ declare global {
   }
 }
 
-export interface AuthenticatedRequest<
+export type AuthenticatedRequest<
   P = ParamsDictionary,
   ResBody = any,
   ReqBody = any,
   ReqQuery = ParsedQs
-> extends Request<P, ResBody, ReqBody, ReqQuery> {
+> = Request<P, ResBody, ReqBody, ReqQuery> & {
   user?: IUser;
 }
 

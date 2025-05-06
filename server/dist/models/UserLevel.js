@@ -1,59 +1,59 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserLevel = void 0;
-const mongoose_1 = require("mongoose");
-const userLevelSchema = new mongoose_1.Schema({
-    level: {
-        type: Number,
-        required: true,
-        unique: true
-    },
+import mongoose, { Schema } from 'mongoose';
+const userLevelSchema = new Schema({
     name: {
         type: String,
         required: true
     },
-    description: String,
+    level: {
+        type: Number,
+        required: true
+    },
+    minDeposit: {
+        type: Number,
+        required: true
+    },
+    maxDeposit: {
+        type: Number,
+        required: true
+    },
+    commissionRate: {
+        type: Number,
+        required: true
+    },
     experience: {
         type: Number,
-        required: true,
-        default: 0
+        required: true
     },
     requiredExperience: {
         type: Number,
-        required: true,
-        default: 0
+        required: true
     },
     minCommission: {
         type: Number,
-        required: true,
-        default: 0
+        required: true
     },
     maxCommission: {
         type: Number,
-        required: true,
-        default: 0
+        required: true
     },
-    requirements: {
-        minBalance: { type: Number, default: 0 },
-        minTrades: { type: Number, default: 0 },
-        minVolume: { type: Number, default: 0 }
-    },
-    benefits: {
-        commissionRate: { type: Number, default: 0 },
-        withdrawalLimit: { type: Number, default: 0 },
-        features: [{ type: String }]
-    },
-    achievements: {
-        type: [String],
-        default: []
-    },
+    benefits: [{
+            type: String
+        }],
+    achievements: [{
+            type: String
+        }],
     metadata: {
-        type: mongoose_1.Schema.Types.Mixed,
-        default: {}
+        type: Schema.Types.Mixed
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
     }
-}, {
-    timestamps: true
 });
-exports.UserLevel = (0, mongoose_1.model)('UserLevel', userLevelSchema);
-exports.default = exports.UserLevel;
+export const UserLevel = mongoose.model('UserLevel', userLevelSchema);
+export default UserLevel;
 //# sourceMappingURL=UserLevel.js.map

@@ -8,7 +8,7 @@ import morgan from 'morgan';
 import { config } from './config';
 import { rateLimiter } from './middleware/rateLimiter';
 import { cacheMiddleware } from './middleware/cache';
-import router from './routes/Index';
+import router from './routes/index';
 import { logger } from './utils/logger';
 import { AppError } from './utils/AppError';
 import { connectDB } from './utils/database';

@@ -21,11 +21,11 @@
 /// <reference types="mongoose/types/utility" />
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
-/// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="@/types/mongoose" />
+import mongoose from 'mongoose';
 import { IUserLevel } from '../types/UserLevel';
-export declare const UserLevel: import("mongoose").Model<IUserLevel, {}, {}, {}, import("mongoose").Document<unknown, {}, IUserLevel> & IUserLevel & {
-    _id: import("mongoose").Types.ObjectId;
+export declare const UserLevel: mongoose.Model<IUserLevel, {}, {}, {}, mongoose.Document<unknown, {}, IUserLevel> & IUserLevel & {
+    _id: mongoose.Types.ObjectId;
 }, any>;
 export default UserLevel;

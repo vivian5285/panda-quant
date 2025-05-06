@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommissionWithdrawal = void 0;
-const mongoose_1 = require("mongoose");
-const commissionWithdrawalSchema = new mongoose_1.Schema({
+import { Schema, model } from 'mongoose';
+const commissionWithdrawalSchema = new Schema({
     userId: {
         type: String,
         required: true
@@ -22,7 +19,7 @@ const commissionWithdrawalSchema = new mongoose_1.Schema({
     },
     paymentDetails: {
         type: Map,
-        of: mongoose_1.Schema.Types.Mixed,
+        of: Schema.Types.Mixed,
         required: true
     },
     description: {
@@ -30,7 +27,7 @@ const commissionWithdrawalSchema = new mongoose_1.Schema({
     },
     metadata: {
         type: Map,
-        of: mongoose_1.Schema.Types.Mixed
+        of: Schema.Types.Mixed
     }
 }, {
     timestamps: true
@@ -44,5 +41,5 @@ commissionWithdrawalSchema.pre('save', function (next) {
     this.updatedAt = new Date();
     next();
 });
-exports.CommissionWithdrawal = (0, mongoose_1.model)('CommissionWithdrawal', commissionWithdrawalSchema);
+export const CommissionWithdrawal = model('CommissionWithdrawal', commissionWithdrawalSchema);
 //# sourceMappingURL=CommissionWithdrawal.js.map

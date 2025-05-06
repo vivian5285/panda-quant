@@ -23,13 +23,23 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="@/types/mongoose" />
-import { Types } from 'mongoose';
+import { Document, Types } from 'mongoose';
 export interface IStrategyRating {
-    _id: Types.ObjectId;
-    strategyId: string;
-    userId: string;
+    strategyId: Types.ObjectId;
+    userId: Types.ObjectId;
     rating: number;
     comment?: string;
     createdAt: Date;
     updatedAt: Date;
+}
+export interface IStrategyRatingDocument extends Omit<IStrategyRating, '_id'>, Document {
+    _id: Types.ObjectId;
+}
+export interface IStrategyRatingService {
+    getRatingsByStrategyId(strategyId: string): Promise<IStrategyRatingDocument[]>;
+    getRatingById(id: string): Promise<IStrategyRatingDocument | null>;
+    createRating(rating: IStrategyRating): Promise<IStrategyRatingDocument>;
+    updateRating(id: string, rating: Partial<IStrategyRating>): Promise<IStrategyRatingDocument | null>;
+    deleteRating(id: string): Promise<boolean>;
+    getAverageRating(strategyId: string): Promise<number>;
 }

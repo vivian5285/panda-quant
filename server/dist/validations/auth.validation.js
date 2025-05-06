@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateAuthRequest = void 0;
-const validateAuthRequest = (schema) => {
+export const validateAuthRequest = (schema) => {
     return (req, res, next) => {
         const { error } = schema.validate(req.body);
         if (error) {
@@ -15,5 +12,4 @@ const validateAuthRequest = (schema) => {
         next();
     };
 };
-exports.validateAuthRequest = validateAuthRequest;
 //# sourceMappingURL=auth.validation.js.map

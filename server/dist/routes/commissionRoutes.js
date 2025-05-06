@@ -1,77 +1,66 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const commissionController_1 = require("../controllers/commissionController");
-const authMiddleware_1 = require("../middleware/authMiddleware");
-const ensureAuthenticated_1 = require("../middleware/ensureAuthenticated");
-const router = (0, express_1.Router)();
-const commissionController = new commissionController_1.CommissionController();
+import { Router } from 'express';
+import { CommissionController } from '../controllers/commissionController';
+import { authMiddleware } from '../middleware/authMiddleware';
+import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
+const router = Router();
+const commissionController = new CommissionController();
 // 所有路由都需要认证
-router.use(authMiddleware_1.authMiddleware);
+router.use(authMiddleware);
 // 获取所有用户的佣金
-router.get('/all', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/all', async (req, res, next) => {
     try {
-        yield commissionController.getCommissionByUserId(req, res);
+        await commissionController.getCommissionByUserId(req, res);
     }
     catch (error) {
         next(error);
     }
-}));
+});
 // 获取当前用户的佣金
-router.get('/my', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/my', async (req, res, next) => {
     try {
-        yield commissionController.getCommissionByUserId(req, res);
+        await commissionController.getCommissionByUserId(req, res);
     }
     catch (error) {
         next(error);
     }
-}));
+});
 const handleRequest = (handler) => {
-    return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    return async (req, res, next) => {
         try {
-            yield handler(req, res);
+            await handler(req, res);
         }
         catch (error) {
             next(error);
         }
-    });
+    };
 };
 // 获取佣金列表
-router.get('/', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionById(req, res)));
+router.get('/', ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionById(req, res)));
 // 获取佣金记录
-router.get('/:id', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionById(req, res)));
+router.get('/:id', ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionById(req, res)));
 // 创建佣金记录
-router.post('/', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.createCommission(req, res)));
+router.post('/', ensureAuthenticated, handleRequest((req, res) => commissionController.createCommission(req, res)));
 // 更新佣金记录
-router.put('/:id', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.updateCommission(req, res)));
+router.put('/:id', ensureAuthenticated, handleRequest((req, res) => commissionController.updateCommission(req, res)));
 // 删除佣金记录
-router.delete('/:id', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.deleteCommission(req, res)));
+router.delete('/:id', ensureAuthenticated, handleRequest((req, res) => commissionController.deleteCommission(req, res)));
 // 获取佣金规则
-router.get('/rules', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionRules(req, res)));
+router.get('/rules', ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionRules(req, res)));
 // 创建佣金规则
-router.post('/rules', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.createCommissionRule(req, res)));
+router.post('/rules', ensureAuthenticated, handleRequest((req, res) => commissionController.createCommissionRule(req, res)));
 // 更新佣金规则
-router.put('/rules/:id', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.updateCommissionRule(req, res)));
+router.put('/rules/:id', ensureAuthenticated, handleRequest((req, res) => commissionController.updateCommissionRule(req, res)));
 // 删除佣金规则
-router.delete('/rules/:id', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.deleteCommissionRule(req, res)));
+router.delete('/rules/:id', ensureAuthenticated, handleRequest((req, res) => commissionController.deleteCommissionRule(req, res)));
 // 按类型获取佣金
-router.get('/type/:type', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionsByType(req, res)));
+router.get('/type/:type', ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionsByType(req, res)));
 // 按状态、类型和金额获取佣金
-router.get('/filter/status-type-amount', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionsByStatusAndTypeAndAmount(req, res)));
+router.get('/filter/status-type-amount', ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionsByStatusAndTypeAndAmount(req, res)));
 // 按状态、类型、金额和货币获取佣金
-router.get('/filter/status-type-amount-currency', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionsByStatusAndTypeAndAmountAndCurrency(req, res)));
+router.get('/filter/status-type-amount-currency', ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionsByStatusAndTypeAndAmountAndCurrency(req, res)));
 // 按用户、状态、类型、金额和货币获取佣金
-router.get('/filter/user-status-type-amount-currency', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionsByUserAndStatusAndTypeAndAmountAndCurrency(req, res)));
+router.get('/filter/user-status-type-amount-currency', ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionsByUserAndStatusAndTypeAndAmountAndCurrency(req, res)));
 // 按状态、类型、金额、货币和描述获取佣金
-router.get('/filter/status-type-amount-currency-description', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionsByStatusAndTypeAndAmountAndCurrencyAndDescription(req, res)));
-exports.default = router;
+router.get('/filter/status-type-amount-currency-description', ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionsByStatusAndTypeAndAmountAndCurrencyAndDescription(req, res)));
+export default router;
 //# sourceMappingURL=commissionRoutes.js.map

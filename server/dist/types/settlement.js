@@ -1,12 +1,9 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SettlementStatus = void 0;
-var SettlementStatus;
+export var SettlementStatus;
 (function (SettlementStatus) {
     SettlementStatus["PENDING"] = "pending";
     SettlementStatus["PROCESSING"] = "processing";
     SettlementStatus["COMPLETED"] = "completed";
     SettlementStatus["FAILED"] = "failed";
     SettlementStatus["CANCELLED"] = "cancelled";
-})(SettlementStatus || (exports.SettlementStatus = SettlementStatus = {}));
+})(SettlementStatus || (SettlementStatus = {}));
 //# sourceMappingURL=Settlement.js.map

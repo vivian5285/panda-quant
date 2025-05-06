@@ -1,32 +1,39 @@
-import { Schema, model } from 'mongoose';
-import { IBlacklistEntryDocument, BlacklistStatus, BlacklistType } from '../types/Blacklist';
+import mongoose, { Schema } from 'mongoose';
+import { IBlacklistEntry, BlacklistStatus, BlacklistType } from '../types/Blacklist';
 
-const blacklistSchema = new Schema<IBlacklistEntryDocument>({
-  address: { type: String, required: true },
-  type: { 
-    type: String, 
+const blacklistEntrySchema = new Schema<IBlacklistEntry>({
+  type: {
+    type: String,
     enum: Object.values(BlacklistType),
-    required: true 
+    required: true
   },
-  reason: { type: String, required: true },
-  status: { 
-    type: String, 
+  value: {
+    type: String,
+    required: true
+  },
+  reason: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
     enum: Object.values(BlacklistStatus),
-    default: BlacklistStatus.ACTIVE,
-    required: true 
+    default: BlacklistStatus.ACTIVE
   },
-  expiresAt: { type: Date },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-}, {
-  timestamps: true
-});
-
-blacklistSchema.pre('save', function(this: IBlacklistEntryDocument, next) {
-  if (this.isModified()) {
-    this.updatedAt = new Date();
+  address: {
+    type: String
+  },
+  metadata: {
+    type: Schema.Types.Mixed
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
-  next();
 });
 
-export const Blacklist = model<IBlacklistEntryDocument>('Blacklist', blacklistSchema); 
+export const BlacklistEntry = mongoose.model<IBlacklistEntry>('BlacklistEntry', blacklistEntrySchema); 

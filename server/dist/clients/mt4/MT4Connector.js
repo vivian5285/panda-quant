@@ -1,30 +1,15 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MT4Connector = void 0;
-const net_1 = __importDefault(require("net"));
-const events_1 = require("events");
-const logger_1 = require("../../utils/logger");
-class MT4Connector extends events_1.EventEmitter {
+import net from 'net';
+import { EventEmitter } from 'events';
+import { createLogger } from '../../utils/logger';
+export class MT4Connector extends EventEmitter {
     constructor(account) {
         super();
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.reconnectInterval = 5000;
-        this.logger = (0, logger_1.createLogger)('MT4Connector');
+        this.logger = createLogger('MT4Connector');
         this.account = account;
-        this.socket = new net_1.default.Socket();
+        this.socket = new net.Socket();
         this.setupSocket();
     }
     setupSocket() {
@@ -182,88 +167,76 @@ class MT4Connector extends events_1.EventEmitter {
         return marketData;
     }
     // 公共方法
-    getPositions() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve) => {
-                const positions = [];
-                const handler = (position) => {
-                    positions.push(position);
-                };
-                this.on('position', handler);
-                this.socket.write(JSON.stringify({ type: 'get_positions' }) + '\n');
-                setTimeout(() => {
-                    this.removeListener('position', handler);
-                    resolve(positions);
-                }, 1000);
-            });
+    async getPositions() {
+        return new Promise((resolve) => {
+            const positions = [];
+            const handler = (position) => {
+                positions.push(position);
+            };
+            this.on('position', handler);
+            this.socket.write(JSON.stringify({ type: 'get_positions' }) + '\n');
+            setTimeout(() => {
+                this.removeListener('position', handler);
+                resolve(positions);
+            }, 1000);
         });
     }
-    getOrders() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve) => {
-                const orders = [];
-                const handler = (order) => {
-                    orders.push(order);
-                };
-                this.on('order', handler);
-                this.socket.write(JSON.stringify({ type: 'get_orders' }) + '\n');
-                setTimeout(() => {
+    async getOrders() {
+        return new Promise((resolve) => {
+            const orders = [];
+            const handler = (order) => {
+                orders.push(order);
+            };
+            this.on('order', handler);
+            this.socket.write(JSON.stringify({ type: 'get_orders' }) + '\n');
+            setTimeout(() => {
+                this.removeListener('order', handler);
+                resolve(orders);
+            }, 1000);
+        });
+    }
+    async getBalance() {
+        return new Promise((resolve) => {
+            const handler = (balance) => {
+                this.removeListener('balance', handler);
+                resolve(balance);
+            };
+            this.on('balance', handler);
+            this.socket.write(JSON.stringify({ type: 'get_balance' }) + '\n');
+        });
+    }
+    async getMarketData(symbol) {
+        return new Promise((resolve) => {
+            const handler = (marketData) => {
+                if (marketData.symbol === symbol) {
+                    this.removeListener('market_data', handler);
+                    resolve(marketData);
+                }
+            };
+            this.on('market_data', handler);
+            this.socket.write(JSON.stringify({ type: 'get_market_data', symbol }) + '\n');
+        });
+    }
+    async createOrder(order) {
+        return new Promise((resolve) => {
+            const handler = (newOrder) => {
+                if (newOrder['symbol'] === order['symbol'] && newOrder['type'] === order['type']) {
                     this.removeListener('order', handler);
-                    resolve(orders);
-                }, 1000);
-            });
+                    resolve(newOrder);
+                }
+            };
+            this.on('order', handler);
+            this.socket.write(JSON.stringify({
+                messageType: 'create_order',
+                ...order
+            }) + '\n');
         });
     }
-    getBalance() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve) => {
-                const handler = (balance) => {
-                    this.removeListener('balance', handler);
-                    resolve(balance);
-                };
-                this.on('balance', handler);
-                this.socket.write(JSON.stringify({ type: 'get_balance' }) + '\n');
-            });
-        });
+    async closePosition(ticket) {
+        this.socket.write(JSON.stringify({ type: 'close_position', ticket }) + '\n');
     }
-    getMarketData(symbol) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve) => {
-                const handler = (marketData) => {
-                    if (marketData.symbol === symbol) {
-                        this.removeListener('market_data', handler);
-                        resolve(marketData);
-                    }
-                };
-                this.on('market_data', handler);
-                this.socket.write(JSON.stringify({ type: 'get_market_data', symbol }) + '\n');
-            });
-        });
-    }
-    createOrder(order) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve) => {
-                const handler = (newOrder) => {
-                    if (newOrder['symbol'] === order['symbol'] && newOrder['type'] === order['type']) {
-                        this.removeListener('order', handler);
-                        resolve(newOrder);
-                    }
-                };
-                this.on('order', handler);
-                this.socket.write(JSON.stringify(Object.assign({ messageType: 'create_order' }, order)) + '\n');
-            });
-        });
-    }
-    closePosition(ticket) {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.socket.write(JSON.stringify({ type: 'close_position', ticket }) + '\n');
-        });
-    }
-    modifyOrder(ticket, changes) {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.socket.write(JSON.stringify(Object.assign({ type: 'modify_order', ticket }, changes)) + '\n');
-        });
+    async modifyOrder(ticket, changes) {
+        this.socket.write(JSON.stringify({ type: 'modify_order', ticket, ...changes }) + '\n');
     }
 }
-exports.MT4Connector = MT4Connector;
 //# sourceMappingURL=MT4Connector.js.map
