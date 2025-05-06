@@ -13,16 +13,17 @@ export interface IDepositNotification {
   updatedAt: Date;
 }
 
-export interface INotification extends Document {
-  _id: Types.ObjectId;
+export interface INotification {
   userId: Types.ObjectId;
-  type: 'deposit' | 'withdrawal' | 'trade' | 'system';
-  title: string;
+  type: string;
   message: string;
-  read: boolean;
-  metadata?: Record<string, any>;
+  isRead: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface INotificationDocument extends Omit<INotification, '_id'>, Document {
+  _id: Types.ObjectId;
 }
 
 export type Notification = INotification;

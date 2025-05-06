@@ -1,7 +1,7 @@
 import { Document, Types } from 'mongoose';
 
-export interface IAlert {
-  _id?: Types.ObjectId;
+export interface IAlert extends Document {
+  _id: Types.ObjectId;
   userId: Types.ObjectId;
   type: 'price' | 'volume' | 'technical' | 'strategy_loss' | 'news' | 'system';
   condition: string;
@@ -21,9 +21,9 @@ export interface IAlert {
 }
 
 export interface IAlertNotification extends Document {
-  _id: string;
-  alertId: string;
-  userId: string;
+  _id: Types.ObjectId;
+  alertId: Types.ObjectId;
+  userId: Types.ObjectId;
   type: 'email' | 'push' | 'sms';
   status: 'pending' | 'sent' | 'failed';
   sentAt?: Date;

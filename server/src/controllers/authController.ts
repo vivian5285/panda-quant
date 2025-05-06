@@ -1,8 +1,8 @@
 import { Response } from 'express';
-import { AuthenticatedRequest } from '../types/auth';
+import { AuthenticatedRequest } from '../types/Auth';
 import { logger } from '../utils/logger';
 import { AuthService } from '../services/AuthService';
-import { IUser } from '../types/user';
+import { IUser } from '../types/User';
 
 export class AuthController {
   private authService: AuthService;

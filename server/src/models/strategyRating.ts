@@ -1,5 +1,5 @@
 import { Schema, model, Document, Types } from 'mongoose';
-import { IStrategyRating } from '../types/strategyRating';
+import { IStrategyRating } from '../types/StrategyRating';
 
 const strategyRatingSchema = new Schema({
   strategyId: {

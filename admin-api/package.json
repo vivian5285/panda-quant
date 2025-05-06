@@ -3,15 +3,17 @@
   "version": "1.0.0",
   "description": "Admin API for Panda Quant",
   "main": "dist/index.js",
+  "license": "MIT",
   "scripts": {
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
     "clean": "rm -rf dist",
-    "build": "npm run clean && npx tsc",
+    "build": "npm run clean && tsc --skipLibCheck",
     "test": "jest",
     "init-admin": "ts-node scripts/initAdmin.ts",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy"
+    "prisma:migrate": "prisma migrate deploy",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",

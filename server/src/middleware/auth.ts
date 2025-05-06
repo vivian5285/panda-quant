@@ -1,47 +1,68 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { config } from '../config';
+import { UnauthorizedError, ForbiddenError } from '../utils/errors';
 import { User } from '../models/User';
-import { IUser } from '../types/user';
+import { IUser } from '../types/User';
 import { logger } from '../utils/logger';
 import { Types } from 'mongoose';
 
 const JWT_SECRET = process.env['JWT_SECRET'] || 'your-secret-key';
 
+interface JwtPayload {
+  userId: string;
+  role: string;
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: IUser;
+    }
+  }
+}
+
 export interface AuthenticatedRequest extends Request {
   user?: IUser;
 }
 
-export const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+
     if (!token) {
-      res.status(401).json({ message: 'No token provided' });
-      return;
+      throw new UnauthorizedError('No authentication token provided');
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
-    const user = await User.findById(decoded.id);
-    
+    const decoded = jwt.verify(token, config.jwtSecret as jwt.Secret) as JwtPayload;
+
+    // 从数据库获取完整的用户信息
+    const user = await User.findById(decoded.userId);
     if (!user) {
-      res.status(401).json({ message: 'User not found' });
-      return;
+      throw new UnauthorizedError('User not found');
     }
 
-    // Convert Mongoose document to plain object and ensure _id is ObjectId
-    const userObject = user.toObject();
-    const userId = user._id as Types.ObjectId;
-    req.user = {
-      ...userObject,
-      _id: userId,
-      id: userId.toString(),
-      isAdmin: userObject.role === 'admin'
-    } as IUser;
+    // 将完整的用户信息添加到请求对象中
+    req.user = user;
 
     next();
   } catch (error) {
-    logger.error('Authentication error:', error);
-    res.status(401).json({ message: 'Invalid token' });
+    next(new UnauthorizedError('Invalid authentication token'));
   }
+};
+
+export const authorize = (...roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      throw new UnauthorizedError('User not authenticated');
+    }
+
+    if (!roles.includes(req.user.role)) {
+      throw new ForbiddenError('Insufficient permissions');
+    }
+
+    next();
+  };
 };
 
 export const isAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
@@ -60,7 +81,7 @@ export const isAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunc
 
 export const hasPermission = (permission: string) => {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-    if (!req.user || !req.user.permissions.includes(permission)) {
+    if (!req.user || !req.user.permissions?.includes(permission)) {
       res.status(403).json({ message: 'Access denied' });
       return;
     }

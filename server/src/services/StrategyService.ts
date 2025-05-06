@@ -1,6 +1,6 @@
 import { Strategy } from '../models/Strategy';
 import { logger } from '../utils/logger';
-import { IStrategy } from '../types/strategy';
+import { IStrategy } from '../types/Strategy';
 
 export enum StrategyStatus {
   ACTIVE = 'active',

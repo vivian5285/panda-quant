@@ -23,7 +23,8 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
-import { IBlacklistEntryDocument } from '../types/blacklist';
+/// <reference types="@/types/mongoose" />
+import { IBlacklistEntryDocument } from '../types/Blacklist';
 export declare const Blacklist: import("mongoose").Model<IBlacklistEntryDocument, {}, {}, {}, import("mongoose").Document<unknown, {}, IBlacklistEntryDocument> & IBlacklistEntryDocument & Required<{
     _id: import("mongoose").Types.ObjectId;
 }>, any>;

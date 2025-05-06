@@ -7,6 +7,9 @@ services:
       dockerfile: docker/Dockerfile.user-api
     container_name: panda-quant-api
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 223.5.5.5
     environment:
       - NODE_ENV=production
       - PORT=4000
@@ -20,10 +23,33 @@ services:
     networks:
       - user-network
 
+  ui:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.user-ui
+    container_name: panda-quant-ui
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 223.5.5.5
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - API_URL=https://api.pandatrade.space
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - user-network
+
   nginx-user:
     image: nginx:latest
     container_name: panda-quant-user-nginx
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 223.5.5.5
     ports:
       - "80:80"
       - "443:443"
@@ -33,6 +59,7 @@ services:
       - /var/log/nginx:/var/log/nginx
     depends_on:
       - api
+      - ui
     networks:
       - user-network
 
@@ -40,6 +67,9 @@ services:
     image: mongo:latest
     container_name: panda-quant-user-mongo
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 223.5.5.5
     ports:
       - "27019:27017"
     volumes:
@@ -52,6 +82,9 @@ services:
     image: redis:latest
     container_name: panda-quant-user-redis
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 223.5.5.5
     ports:
       - "6381:6379"
     volumes:

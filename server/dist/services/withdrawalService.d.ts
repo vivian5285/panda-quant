@@ -1,44 +1,11 @@
-/// <reference types="mongoose/types/aggregate" />
-/// <reference types="mongoose/types/callback" />
-/// <reference types="mongoose/types/collection" />
-/// <reference types="mongoose/types/connection" />
-/// <reference types="mongoose/types/cursor" />
-/// <reference types="mongoose/types/document" />
-/// <reference types="mongoose/types/error" />
-/// <reference types="mongoose/types/expressions" />
-/// <reference types="mongoose/types/helpers" />
-/// <reference types="mongoose/types/middlewares" />
-/// <reference types="mongoose/types/indexes" />
-/// <reference types="mongoose/types/models" />
-/// <reference types="mongoose/types/mongooseoptions" />
-/// <reference types="mongoose/types/pipelinestage" />
-/// <reference types="mongoose/types/populate" />
-/// <reference types="mongoose/types/query" />
-/// <reference types="mongoose/types/schemaoptions" />
-/// <reference types="mongoose/types/schematypes" />
-/// <reference types="mongoose/types/session" />
-/// <reference types="mongoose/types/types" />
-/// <reference types="mongoose/types/utility" />
-/// <reference types="mongoose/types/validation" />
-/// <reference types="mongoose/types/virtuals" />
-/// <reference types="mongoose/types/inferschematype" />
-import { Types } from 'mongoose';
-import { IWithdrawalDocument } from '../models/Withdrawal';
+import { IWithdrawal } from '../types/Withdrawal';
 export declare class WithdrawalService {
     private static instance;
     private constructor();
     static getInstance(): WithdrawalService;
-    createWithdrawal(data: {
-        userId: Types.ObjectId;
-        amount: number;
-        walletAddress: string;
-        paymentMethod: 'crypto' | 'bank' | 'paypal';
-        paymentDetails: Record<string, any>;
-        status?: string;
-        metadata?: Record<string, any>;
-    }): Promise<IWithdrawalDocument>;
-    getWithdrawals(userId: Types.ObjectId): Promise<IWithdrawalDocument[]>;
-    getWithdrawalById(id: string): Promise<IWithdrawalDocument | null>;
-    updateWithdrawal(id: string, data: Partial<IWithdrawalDocument>): Promise<IWithdrawalDocument | null>;
+    createWithdrawal(data: Omit<IWithdrawal, '_id' | 'createdAt' | 'updatedAt'>): Promise<IWithdrawal>;
+    getWithdrawalById(id: string): Promise<IWithdrawal | null>;
+    updateWithdrawal(id: string, data: Partial<IWithdrawal>): Promise<IWithdrawal | null>;
     deleteWithdrawal(id: string): Promise<boolean>;
+    getWithdrawalsByUserId(userId: string): Promise<IWithdrawal[]>;
 }

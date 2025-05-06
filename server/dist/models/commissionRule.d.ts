@@ -22,12 +22,13 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { Document, Types } from 'mongoose';
-import { ICommissionRule } from '../types/commission';
+/// <reference types="@/types/mongoose" />
+import mongoose, { Document, Types } from 'mongoose';
+import { ICommissionRule } from '../types/Commission';
 export interface ICommissionRuleDocument extends Omit<ICommissionRule, '_id'>, Document {
     _id: Types.ObjectId;
 }
-declare const _default: import("mongoose").Model<ICommissionRuleDocument, {}, {}, {}, Document<unknown, {}, ICommissionRuleDocument> & ICommissionRuleDocument & Required<{
+declare const _default: mongoose.Model<ICommissionRuleDocument, {}, {}, {}, mongoose.Document<unknown, {}, ICommissionRuleDocument> & ICommissionRuleDocument & Required<{
     _id: Types.ObjectId;
 }>, any>;
 export default _default;

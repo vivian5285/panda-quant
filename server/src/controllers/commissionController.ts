@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { CommissionService } from '../services/CommissionService';
-import { AuthenticatedRequest } from '../types/auth';
+import { AuthenticatedRequest } from '../types/Auth';
 import { logger } from '../utils/logger';
 import { Types } from 'mongoose';
 

@@ -22,8 +22,9 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import mongoose from 'mongoose';
-import { IAlert } from '../types/alert';
-export declare const Alert: mongoose.Model<IAlert & mongoose.Document<any, any, any>, {}, {}, {}, mongoose.Document<unknown, {}, IAlert & mongoose.Document<any, any, any>> & IAlert & mongoose.Document<any, any, any> & {
-    _id: mongoose.Types.ObjectId;
-}, any>;
+/// <reference types="@/types/mongoose" />
+import mongoose, { Types } from 'mongoose';
+import { IAlert } from '../types/Alert';
+export declare const Alert: mongoose.Model<IAlert, {}, {}, {}, mongoose.Document<unknown, {}, IAlert> & IAlert & Required<{
+    _id: Types.ObjectId;
+}>, any>;

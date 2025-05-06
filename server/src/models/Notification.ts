@@ -1,34 +1,15 @@
-import { Schema, model } from 'mongoose';
-import { INotification, NotificationType } from '../types/notification';
+import mongoose, { Schema } from 'mongoose';
+import { INotification, INotificationDocument } from '../types/Notification';
 
-const notificationSchema = new Schema<INotification>({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  type: {
-    type: String,
-    enum: ['deposit', 'withdrawal', 'trade', 'system'] as NotificationType[],
-    required: true
-  },
-  title: {
-    type: String,
-    required: true
-  },
-  message: {
-    type: String,
-    required: true
-  },
-  read: {
-    type: Boolean,
-    default: false
-  },
-  metadata: {
-    type: Schema.Types.Mixed
-  }
+const notificationSchema = new Schema<INotificationDocument>({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  type: { type: String, required: true },
+  message: { type: String, required: true },
+  isRead: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
 }, {
   timestamps: true
 });
 
-export const Notification = model<INotification>('Notification', notificationSchema); 
+export const Notification = mongoose.model<INotificationDocument>('Notification', notificationSchema);
+export default Notification; 

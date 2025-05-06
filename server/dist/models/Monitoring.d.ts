@@ -23,6 +23,7 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="@/types/mongoose" />
 import { IMonitoring } from '../types/IMonitoring';
 export declare const Monitoring: import("mongoose").Model<IMonitoring, {}, {}, {}, import("mongoose").Document<unknown, {}, IMonitoring> & IMonitoring & Required<{
     _id: import("mongoose").Types.ObjectId;

@@ -1,4 +1,4 @@
-import { IOrder } from '../types/trading';
+import { IOrder } from '../types/Trading';
 export declare class OrderQueueService {
     private queue;
     addOrder(order: IOrder): Promise<void>;

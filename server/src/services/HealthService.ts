@@ -2,12 +2,12 @@ import mongoose from 'mongoose';
 import { createClient } from 'redis';
 import axios from 'axios';
 import { config } from '../config';
-import { INetworkStatus } from '../types/network';
+import { INetworkStatus } from '../types/Network';
 import NetworkStatus from '../models/NetworkStatus';
 import { logger } from '../utils/logger';
 import { EventEmitter } from 'events';
 import { Health, IHealthDocument } from '../models/health.model';
-import { IHealth } from '../types/health';
+import { IHealth } from '../types/Health';
 import { Types } from 'mongoose';
 
 export interface HealthCheckResult {
@@ -127,7 +127,7 @@ export class HealthService extends EventEmitter {
   private async checkApi(): Promise<{ status: 'online' | 'offline'; message?: string }> {
     try {
       const startTime = Date.now();
-      await axios.get(`${config.api.userBaseUrl}/health`);
+      await axios.get(`${config.server.port}/health`);
       const endTime = Date.now();
       const responseTime = endTime - startTime;
       await this.updateNetworkComponentStatus('api', 'online', undefined, responseTime);
@@ -142,7 +142,10 @@ export class HealthService extends EventEmitter {
   private async checkRedis(): Promise<{ status: 'online' | 'offline'; message?: string }> {
     try {
       const startTime = Date.now();
-      const client = createClient({ url: config.redis.url });
+      const client = createClient({ 
+        url: config.redis.url,
+        password: config.redis.password
+      });
       await client.connect();
       await client.ping();
       await client.quit();

@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
-import { AuthenticatedRequest } from '../types/auth';
-import { IUser } from '../types/user';
+import { AuthenticatedRequest } from '../types/Auth';
+import { IUser, IUserBase } from '../types/User';
 import { logger } from '../utils/logger';
 import { Types } from 'mongoose';
 
@@ -31,23 +31,7 @@ export const authMiddleware = async (
     const userId = user._id as Types.ObjectId;
     
     // Create a new object with all required fields
-    const userData: IUser = {
-      _id: userId,
-      id: userId.toString(),
-      email: userObj.email,
-      password: userObj.password,
-      username: userObj.username,
-      name: userObj.name || '',
-      level: userObj.level || 1,
-      role: userObj.role || 'user',
-      status: userObj.status || 'active',
-      permissions: userObj.permissions || [],
-      isAdmin: userObj.role === 'admin',
-      createdAt: userObj.createdAt,
-      updatedAt: userObj.updatedAt
-    };
-
-    (req as AuthenticatedRequest).user = userData;
+    (req as AuthenticatedRequest).user = user;
     next();
   } catch (error) {
     logger.error('Authentication error:', error);

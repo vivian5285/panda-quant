@@ -1,5 +1,5 @@
 import { BaseExchangeClient } from './BaseExchangeClient';
-import { IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData } from '../../types/exchange';
+import { IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData } from '../../types/Exchange';
 import axios from 'axios';
 import crypto from 'crypto';
 import { logger } from '../../utils/logger';

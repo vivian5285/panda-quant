@@ -22,8 +22,9 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
-import { IRiskEvent } from '../types/risk';
+import { IRiskEvent } from '../types/Risk';
 export interface IRiskEventDocument extends IRiskEvent, Document {
     _id: Types.ObjectId;
 }

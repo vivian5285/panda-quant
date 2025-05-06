@@ -1,18 +1,24 @@
-import { Types } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export interface ITransaction {
-  _id?: Types.ObjectId;
   userId: Types.ObjectId;
-  type: 'deposit' | 'withdrawal' | 'commission' | 'subscription' | 'transfer' | 'trade' | 'fee';
+  type: 'deposit' | 'withdrawal' | 'trade' | 'commission';
   amount: number;
   currency: string;
-  status: 'pending' | 'completed' | 'failed' | 'processing';
-  referenceId?: Types.ObjectId;
+  status: 'pending' | 'completed' | 'failed';
+  referenceId: Types.ObjectId;
+  referenceType: 'Deposit' | 'Withdrawal' | 'CommissionRecord';
   description?: string;
   metadata?: Record<string, any>;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export type TransactionCreateInput = Omit<ITransaction, '_id' | 'createdAt' | 'updatedAt'>;
-export type TransactionUpdateInput = Partial<TransactionCreateInput>; 
+export interface ITransactionDocument extends Omit<ITransaction, '_id'>, Document {
+  _id: Types.ObjectId;
+}
+
+export type Transaction = ITransaction;
+
+export interface TransactionCreateInput extends Omit<ITransaction, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface TransactionUpdateInput extends Partial<TransactionCreateInput> {} 

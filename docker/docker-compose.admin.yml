@@ -7,31 +7,37 @@ services:
       dockerfile: docker/Dockerfile.admin-api
     container_name: panda-quant-admin-api
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 223.5.5.5
     environment:
       - NODE_ENV=production
-      - PORT=3000
+      - PORT=4000
       - MONGO_URI=mongodb://mongo:27017/admin
       - REDIS_URI=redis://redis:6379
     ports:
-      - "3000:3000"
+      - "4000:4000"
     depends_on:
       - mongo
       - redis
     networks:
       - admin-network
 
-  admin:
+  admin-ui:
     build:
       context: ..
-      dockerfile: docker/Dockerfile.admin
-    container_name: panda-quant-admin
+      dockerfile: docker/Dockerfile.admin-ui
+    container_name: panda-quant-admin-ui
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 223.5.5.5
     environment:
       - NODE_ENV=production
-      - PORT=3001
+      - PORT=3000
       - API_URL=https://admin-api.pandatrade.space
     ports:
-      - "3001:3001"
+      - "3000:3000"
     depends_on:
       - admin-api
     networks:
@@ -41,6 +47,9 @@ services:
     image: nginx:latest
     container_name: panda-quant-admin-nginx
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 223.5.5.5
     ports:
       - "80:80"
       - "443:443"
@@ -50,7 +59,7 @@ services:
       - /var/log/nginx:/var/log/nginx
     depends_on:
       - admin-api
-      - admin
+      - admin-ui
     networks:
       - admin-network
 
@@ -58,6 +67,9 @@ services:
     image: mongo:latest
     container_name: panda-quant-admin-mongo
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 223.5.5.5
     ports:
       - "27017:27017"
     volumes:
@@ -70,6 +82,9 @@ services:
     image: redis:latest
     container_name: panda-quant-admin-redis
     restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 223.5.5.5
     ports:
       - "6379:6379"
     volumes:

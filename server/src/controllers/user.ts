@@ -1,83 +1,297 @@
-import { Request, Response } from 'express';
-import { UserService } from '../services/UserService';
-import { AuthenticatedRequest } from '../types/auth';
+import { Request, Response, NextFunction } from 'express';
+import bcrypt from 'bcryptjs';
+import jwt, { SignOptions } from 'jsonwebtoken';
+import { User } from '../models/User';
+import { config } from '../config';
+import { BadRequestError, NotFoundError, UnauthorizedError } from '../utils/errors';
 import { logger } from '../utils/logger';
 
 export class UserController {
-  private userService: UserService;
+  // 用户注册
+  async register(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, password, name } = req.body;
 
-  constructor() {
-    this.userService = UserService.getInstance();
+      // 检查邮箱是否已存在
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        throw new BadRequestError('Email already exists');
+      }
+
+      // 创建新用户
+      const user = await User.create({
+        email,
+        password,
+        name,
+        username: email.split('@')[0],
+        role: 'user',
+        level: 1,
+        status: 'active',
+        permissions: []
+      });
+
+      // 生成 JWT
+      const token = jwt.sign(
+        { userId: user._id, role: user.role },
+        config.jwtSecret as jwt.Secret,
+        { expiresIn: config.jwtExpiresIn } as SignOptions
+      );
+
+      res.status(201).json({
+        success: true,
+        data: {
+          user: {
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+          },
+          token
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 
-  async login(req: Request, res: Response) {
+  // 用户登录
+  async login(req: Request, res: Response, next: NextFunction) {
     try {
       const { email, password } = req.body;
-      const result = await this.userService.authenticate(email, password);
-      res.json(result);
+
+      // 查找用户
+      const user = await User.findOne({ email });
+      if (!user) {
+        throw new UnauthorizedError('Invalid credentials');
+      }
+
+      // 验证密码
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        throw new UnauthorizedError('Invalid credentials');
+      }
+
+      // 生成 JWT
+      const token = jwt.sign(
+        { userId: user._id, role: user.role },
+        config.jwtSecret as jwt.Secret,
+        { expiresIn: config.jwtExpiresIn } as SignOptions
+      );
+
+      res.json({
+        success: true,
+        data: {
+          user: {
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+          },
+          token
+        }
+      });
     } catch (error) {
-      logger.error('Login error:', error);
-      res.status(401).json({ message: 'Invalid credentials' });
+      next(error);
     }
   }
 
-  async register(req: Request, res: Response) {
+  // 获取当前用户信息
+  async getCurrentUser(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await this.userService.createUser(req.body);
-      res.status(201).json(user);
+      const user = await User.findById(req.user!.id).select('-password');
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      res.json({
+        success: true,
+        data: {
+          user: {
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+          }
+        }
+      });
     } catch (error) {
-      logger.error('Registration error:', error);
-      res.status(400).json({ message: 'Registration failed' });
+      next(error);
     }
   }
 
-  public getProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  // 更新用户信息
+  async updateUser(req: Request, res: Response, next: NextFunction) {
     try {
-      if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
-        return;
-      }
-      const user = await this.userService.getUserById(req.user._id.toString());
-      if (!user) {
-        res.status(404).json({ message: 'User not found' });
-        return;
-      }
-      res.json(user);
-    } catch (error) {
-      logger.error('Error getting profile:', error);
-      res.status(500).json({ message: 'Error getting profile', error });
-    }
-  };
+      const { name, email } = req.body;
+      const user = await User.findById(req.user!.id);
 
-  public updateProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
-        return;
-      }
-      const user = await this.userService.updateUser(req.user._id.toString(), req.body);
       if (!user) {
-        res.status(404).json({ message: 'User not found' });
-        return;
+        throw new NotFoundError('User not found');
       }
-      res.json(user);
-    } catch (error) {
-      logger.error('Error updating profile:', error);
-      res.status(500).json({ message: 'Error updating profile', error });
-    }
-  };
 
-  public deleteUser = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
-        return;
+      if (email && email !== user.email) {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          throw new BadRequestError('Email already exists');
+        }
+        user.email = email;
       }
-      await this.userService.deleteUser(req.user._id.toString());
-      res.status(204).send();
+
+      if (name) {
+        user.name = name;
+      }
+
+      await user.save();
+
+      res.json({
+        success: true,
+        data: {
+          user: {
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+          }
+        }
+      });
     } catch (error) {
-      logger.error('Error deleting user:', error);
-      res.status(500).json({ message: 'Error deleting user', error });
+      next(error);
     }
-  };
+  }
+
+  // 更改密码
+  async changePassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      const user = await User.findById(req.user!.id);
+
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      // 验证当前密码
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        throw new UnauthorizedError('Current password is incorrect');
+      }
+
+      // 更新密码
+      user.password = newPassword;
+      await user.save();
+
+      res.json({
+        success: true,
+        message: 'Password updated successfully'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // 获取所有用户（管理员）
+  async getAllUsers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const users = await User.find().select('-password');
+      res.json({
+        success: true,
+        data: {
+          users: users.map(user => ({
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+          }))
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // 根据ID获取用户（管理员）
+  async getUserById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = await User.findById(req.params.id).select('-password');
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      res.json({
+        success: true,
+        data: {
+          user: {
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+          }
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // 更新用户信息（管理员）
+  async updateUserById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { name, email, role } = req.body;
+      const user = await User.findById(req.params.id);
+
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      if (email && email !== user.email) {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          throw new BadRequestError('Email already exists');
+        }
+        user.email = email;
+      }
+
+      if (name) {
+        user.name = name;
+      }
+
+      if (role) {
+        user.role = role;
+      }
+
+      await user.save();
+
+      res.json({
+        success: true,
+        data: {
+          user: {
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+          }
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // 删除用户（管理员）
+  async deleteUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = await User.findById(req.params.id);
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      await user.deleteOne();
+
+      res.json({
+        success: true,
+        message: 'User deleted successfully'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 } 

@@ -23,7 +23,8 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
-import { IUserLevel } from '../types/userLevel';
+/// <reference types="@/types/mongoose" />
+import { IUserLevel } from '../types/UserLevel';
 export declare const UserLevel: import("mongoose").Model<IUserLevel, {}, {}, {}, import("mongoose").Document<unknown, {}, IUserLevel> & IUserLevel & {
     _id: import("mongoose").Types.ObjectId;
 }, any>;

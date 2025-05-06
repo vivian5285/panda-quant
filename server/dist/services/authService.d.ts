@@ -1,5 +1,5 @@
-import { IUser } from '../types/user';
-import { IAuthToken } from '../types/auth';
+import { IUser } from '../types/User';
+import { IAuthToken } from '../types/Auth';
 export declare class AuthService {
     private convertToIUser;
     register(userData: IUser): Promise<IUser>;

@@ -22,9 +22,10 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { Types, Document } from 'mongoose';
-import { StrategyType, StrategyStatus } from './enums';
-import { IPerformanceMetrics } from './performance';
+/// <reference types="@/types/mongoose" />
+import { Document, Types } from 'mongoose';
+import { StrategyType, StrategyStatus } from './Enums';
+import { IPerformanceMetrics } from './Performance';
 export interface IStrategyPerformanceMetrics {
     totalTrades: number;
     winningTrades: number;
@@ -43,9 +44,9 @@ export interface IStrategyPerformanceMetrics {
 export interface IStrategy {
     userId: Types.ObjectId;
     name: string;
-    description?: string;
-    type: StrategyType;
-    status: StrategyStatus;
+    description: string;
+    type: string;
+    status: 'active' | 'inactive' | 'pending';
     parameters: Record<string, any>;
     performance?: {
         totalTrades: number;
@@ -57,7 +58,13 @@ export interface IStrategy {
     createdAt: Date;
     updatedAt: Date;
 }
-export interface IStrategyDocument extends IStrategy, Document {
+export interface IStrategyDocument extends Omit<IStrategy, '_id'>, Document {
+    _id: Types.ObjectId;
+}
+export type Strategy = IStrategy;
+export interface StrategyCreateInput extends Omit<IStrategy, '_id' | 'createdAt' | 'updatedAt'> {
+}
+export interface StrategyUpdateInput extends Partial<StrategyCreateInput> {
 }
 export interface IStrategyPerformance {
     strategyId: string;
@@ -137,10 +144,5 @@ export interface IStrategyBacktest {
     updatedAt: Date;
 }
 export interface IStrategyBacktestDocument extends IStrategyBacktest, Document {
-}
-export type Strategy = IStrategy;
-export interface StrategyCreateInput extends Omit<IStrategy, 'createdAt' | 'updatedAt'> {
-}
-export interface StrategyUpdateInput extends Partial<StrategyCreateInput> {
 }
 export { StrategyType, StrategyStatus };

@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -61,87 +70,100 @@ class HealthService extends events_1.EventEmitter {
     getAllStatus() {
         return Object.fromEntries(this.status);
     }
-    async checkHealth() {
-        const components = {
-            database: await this.checkDatabase(),
-            api: await this.checkApi(),
-            redis: await this.checkRedis(),
-            websocket: await this.checkWebSocket(),
-            userApi: { status: 'online' },
-            adminApi: { status: 'online' },
-            strategyEngine: { status: 'online' }
-        };
-        const status = this.determineOverallStatus(components);
-        return { status, components };
+    checkHealth() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const components = {
+                database: yield this.checkDatabase(),
+                api: yield this.checkApi(),
+                redis: yield this.checkRedis(),
+                websocket: yield this.checkWebSocket(),
+                userApi: { status: 'online' },
+                adminApi: { status: 'online' },
+                strategyEngine: { status: 'online' }
+            };
+            const status = this.determineOverallStatus(components);
+            return { status, components };
+        });
     }
-    async checkDatabase() {
-        try {
-            const startTime = Date.now();
-            if (!mongoose_1.default.connection.readyState) {
-                throw new Error('Database not connected');
+    checkDatabase() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const startTime = Date.now();
+                if (!mongoose_1.default.connection.readyState) {
+                    throw new Error('Database not connected');
+                }
+                if (!mongoose_1.default.connection.db) {
+                    throw new Error('Database connection not established');
+                }
+                yield mongoose_1.default.connection.db.admin().ping();
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+                yield this.updateNetworkComponentStatus('database', 'online', undefined, responseTime);
+                return { status: 'online', message: `Response time: ${responseTime}ms` };
             }
-            if (!mongoose_1.default.connection.db) {
-                throw new Error('Database connection not established');
+            catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                yield this.updateNetworkComponentStatus('database', 'offline', errorMessage);
+                return { status: 'offline', message: errorMessage };
             }
-            await mongoose_1.default.connection.db.admin().ping();
-            const endTime = Date.now();
-            const responseTime = endTime - startTime;
-            await this.updateNetworkComponentStatus('database', 'online', undefined, responseTime);
-            return { status: 'online', message: `Response time: ${responseTime}ms` };
-        }
-        catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            await this.updateNetworkComponentStatus('database', 'offline', errorMessage);
-            return { status: 'offline', message: errorMessage };
-        }
+        });
     }
-    async checkApi() {
-        try {
-            const startTime = Date.now();
-            await axios_1.default.get(`${config_1.config.api.userBaseUrl}/health`);
-            const endTime = Date.now();
-            const responseTime = endTime - startTime;
-            await this.updateNetworkComponentStatus('api', 'online', undefined, responseTime);
-            return { status: 'online', message: `Response time: ${responseTime}ms` };
-        }
-        catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            await this.updateNetworkComponentStatus('api', 'offline', errorMessage);
-            return { status: 'offline', message: errorMessage };
-        }
+    checkApi() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const startTime = Date.now();
+                yield axios_1.default.get(`${config_1.config.server.port}/health`);
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+                yield this.updateNetworkComponentStatus('api', 'online', undefined, responseTime);
+                return { status: 'online', message: `Response time: ${responseTime}ms` };
+            }
+            catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                yield this.updateNetworkComponentStatus('api', 'offline', errorMessage);
+                return { status: 'offline', message: errorMessage };
+            }
+        });
     }
-    async checkRedis() {
-        try {
-            const startTime = Date.now();
-            const client = (0, redis_1.createClient)({ url: config_1.config.redis.url });
-            await client.connect();
-            await client.ping();
-            await client.quit();
-            const endTime = Date.now();
-            const responseTime = endTime - startTime;
-            await this.updateNetworkComponentStatus('redis', 'online', undefined, responseTime);
-            return { status: 'online', message: `Response time: ${responseTime}ms` };
-        }
-        catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            await this.updateNetworkComponentStatus('redis', 'offline', errorMessage);
-            return { status: 'offline', message: errorMessage };
-        }
+    checkRedis() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const startTime = Date.now();
+                const client = (0, redis_1.createClient)({
+                    url: config_1.config.redis.url,
+                    password: config_1.config.redis.password
+                });
+                yield client.connect();
+                yield client.ping();
+                yield client.quit();
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+                yield this.updateNetworkComponentStatus('redis', 'online', undefined, responseTime);
+                return { status: 'online', message: `Response time: ${responseTime}ms` };
+            }
+            catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                yield this.updateNetworkComponentStatus('redis', 'offline', errorMessage);
+                return { status: 'offline', message: errorMessage };
+            }
+        });
     }
-    async checkWebSocket() {
-        try {
-            const startTime = Date.now();
-            // Add WebSocket health check logic here
-            const endTime = Date.now();
-            const responseTime = endTime - startTime;
-            await this.updateNetworkComponentStatus('websocket', 'online', undefined, responseTime);
-            return { status: 'online', message: `Response time: ${responseTime}ms` };
-        }
-        catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            await this.updateNetworkComponentStatus('websocket', 'offline', errorMessage);
-            return { status: 'offline', message: errorMessage };
-        }
+    checkWebSocket() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const startTime = Date.now();
+                // Add WebSocket health check logic here
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+                yield this.updateNetworkComponentStatus('websocket', 'online', undefined, responseTime);
+                return { status: 'online', message: `Response time: ${responseTime}ms` };
+            }
+            catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                yield this.updateNetworkComponentStatus('websocket', 'offline', errorMessage);
+                return { status: 'offline', message: errorMessage };
+            }
+        });
     }
     determineOverallStatus(components) {
         const onlineCount = Object.values(components).filter(c => c.status === 'online').length;
@@ -152,133 +174,153 @@ class HealthService extends events_1.EventEmitter {
             return 'degraded';
         return 'unhealthy';
     }
-    async updateNetworkComponentStatus(type, status, error, responseTime) {
-        try {
-            await this.networkStatusModel.create({
-                network: type,
-                status,
-                lastChecked: new Date(),
-                latency: responseTime || 0,
-                type,
-                responseTime: responseTime || 0,
-                error
-            });
-        }
-        catch (error) {
-            logger_1.logger.error('Error updating network status:', error);
-        }
+    updateNetworkComponentStatus(type, status, error, responseTime) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield this.networkStatusModel.create({
+                    network: type,
+                    status,
+                    lastChecked: new Date(),
+                    latency: responseTime || 0,
+                    type,
+                    responseTime: responseTime || 0,
+                    error
+                });
+            }
+            catch (error) {
+                logger_1.logger.error('Error updating network status:', error);
+            }
+        });
     }
-    async getNetworkStatus() {
-        try {
-            const statuses = await this.networkStatusModel.find().sort({ updatedAt: -1 });
-            return statuses.map(status => ({
-                _id: status._id,
-                network: status.network,
-                type: status.type,
-                status: status.status,
-                lastChecked: status.lastChecked,
-                latency: status.latency,
-                responseTime: status.responseTime,
-                error: status.error || undefined,
-                createdAt: status.createdAt,
-                updatedAt: status.updatedAt
-            }));
-        }
-        catch (error) {
-            logger_1.logger.error('Error getting network status:', error);
-            throw error;
-        }
+    getNetworkStatus() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const statuses = yield this.networkStatusModel.find().sort({ updatedAt: -1 });
+                return statuses.map(status => ({
+                    _id: status._id,
+                    network: status.network,
+                    type: status.type,
+                    status: status.status,
+                    lastChecked: status.lastChecked,
+                    latency: status.latency,
+                    responseTime: status.responseTime,
+                    error: status.error || undefined,
+                    createdAt: status.createdAt,
+                    updatedAt: status.updatedAt
+                }));
+            }
+            catch (error) {
+                logger_1.logger.error('Error getting network status:', error);
+                throw error;
+            }
+        });
     }
-    async createHealth(data) {
-        try {
-            const health = new health_model_1.Health(data);
-            await health.save();
-            return this.mapToIHealth(health);
-        }
-        catch (error) {
-            logger_1.logger.error('Error creating health record:', error);
-            throw error;
-        }
+    createHealth(data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const health = new health_model_1.Health(data);
+                yield health.save();
+                return this.mapToIHealth(health);
+            }
+            catch (error) {
+                logger_1.logger.error('Error creating health record:', error);
+                throw error;
+            }
+        });
     }
-    async getHealthById(id) {
-        try {
-            const health = await health_model_1.Health.findById(id);
-            return health ? this.mapToIHealth(health) : null;
-        }
-        catch (error) {
-            logger_1.logger.error('Error getting health by ID:', error);
-            throw error;
-        }
+    getHealthById(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const health = yield health_model_1.Health.findById(id);
+                return health ? this.mapToIHealth(health) : null;
+            }
+            catch (error) {
+                logger_1.logger.error('Error getting health by ID:', error);
+                throw error;
+            }
+        });
     }
-    async updateHealth(id, data) {
-        try {
-            const health = await health_model_1.Health.findByIdAndUpdate(id, data, { new: true });
-            return health ? this.mapToIHealth(health) : null;
-        }
-        catch (error) {
-            logger_1.logger.error('Error updating health:', error);
-            throw error;
-        }
+    updateHealth(id, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const health = yield health_model_1.Health.findByIdAndUpdate(id, data, { new: true });
+                return health ? this.mapToIHealth(health) : null;
+            }
+            catch (error) {
+                logger_1.logger.error('Error updating health:', error);
+                throw error;
+            }
+        });
     }
-    async deleteHealth(id) {
-        try {
-            const result = await health_model_1.Health.findByIdAndDelete(id);
-            return !!result;
-        }
-        catch (error) {
-            logger_1.logger.error('Error deleting health:', error);
-            throw error;
-        }
+    deleteHealth(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const result = yield health_model_1.Health.findByIdAndDelete(id);
+                return !!result;
+            }
+            catch (error) {
+                logger_1.logger.error('Error deleting health:', error);
+                throw error;
+            }
+        });
     }
-    async checkDatabaseConnection() {
-        try {
-            if (!mongoose_1.default.connection.db) {
+    checkDatabaseConnection() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!mongoose_1.default.connection.db) {
+                    return false;
+                }
+                yield mongoose_1.default.connection.db.admin().ping();
+                return true;
+            }
+            catch (error) {
+                logger_1.logger.error('Database connection check failed:', error);
                 return false;
             }
-            await mongoose_1.default.connection.db.admin().ping();
-            return true;
-        }
-        catch (error) {
-            logger_1.logger.error('Database connection check failed:', error);
-            return false;
-        }
+        });
     }
-    async getHealth() {
-        try {
-            const health = await health_model_1.Health.findOne().sort({ createdAt: -1 });
-            if (!health) {
-                throw new Error('No health record found');
+    getHealth() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const health = yield health_model_1.Health.findOne().sort({ createdAt: -1 });
+                if (!health) {
+                    throw new Error('No health record found');
+                }
+                return this.mapToIHealth(health);
             }
-            return this.mapToIHealth(health);
-        }
-        catch (error) {
-            logger_1.logger.error('Error getting health:', error);
-            throw error;
-        }
+            catch (error) {
+                logger_1.logger.error('Error getting health:', error);
+                throw error;
+            }
+        });
     }
-    async updateHealthStatus(data) {
-        try {
-            const health = await health_model_1.Health.findOneAndUpdate({}, data, { new: true, upsert: true });
-            return this.mapToIHealth(health);
-        }
-        catch (error) {
-            logger_1.logger.error('Error updating health status:', error);
-            throw error;
-        }
+    updateHealthStatus(data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const health = yield health_model_1.Health.findOneAndUpdate({}, data, { new: true, upsert: true });
+                return this.mapToIHealth(health);
+            }
+            catch (error) {
+                logger_1.logger.error('Error updating health status:', error);
+                throw error;
+            }
+        });
     }
-    async updateHealthWithNetworkStatus(networkStatus) {
-        try {
-            const health = await health_model_1.Health.findOneAndUpdate({}, {
-                networkStatus,
-                lastChecked: new Date(),
-                updatedAt: new Date()
-            }, { new: true, upsert: true });
-            return this.mapToIHealth(health);
-        }
-        catch (error) {
-            logger_1.logger.error('Error updating network status:', error);
-            throw error;
-        }
+    updateHealthWithNetworkStatus(networkStatus) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const health = yield health_model_1.Health.findOneAndUpdate({}, {
+                    networkStatus,
+                    lastChecked: new Date(),
+                    updatedAt: new Date()
+                }, { new: true, upsert: true });
+                return this.mapToIHealth(health);
+            }
+            catch (error) {
+                logger_1.logger.error('Error updating network status:', error);
+                throw error;
+            }
+        });
     }
     mapToIHealth(doc) {
         return {

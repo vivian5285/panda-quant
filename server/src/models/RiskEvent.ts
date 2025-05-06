@@ -1,5 +1,5 @@
 import { Schema, model, Document, Types } from 'mongoose';
-import { IRiskEvent } from '../types/risk';
+import { IRiskEvent } from '../types/Risk';
 
 const riskEventSchema = new Schema({
   userId: {

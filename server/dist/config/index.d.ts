@@ -1,58 +1,27 @@
-export interface Config {
+interface Config {
+    env: string;
     port: number;
     mongoUri: string;
-    redis: {
-        url: string;
-        password?: string;
-    };
-    api: {
-        userBaseUrl: string;
-        adminBaseUrl: string;
-        strategyEngineUrl: string;
-    };
+    jwtSecret: string;
+    jwtExpiresIn: string;
+    corsOrigins: string[];
+    rateLimitWindowMs: number;
+    rateLimitMax: number;
+    logLevel: string;
+    nodeEnv: string;
     server: {
-        env: string;
         port: number;
     };
     mongodb: {
         uri: string;
-        options: {
-            useNewUrlParser: boolean;
-            useUnifiedTopology: boolean;
-            useCreateIndex: boolean;
-            useFindAndModify: boolean;
-        };
     };
-    jwt: {
-        secret: string;
-        expiresIn: string;
-    };
-    userApi: {
+    redis: {
         url: string;
-    };
-    adminApi: {
-        url: string;
-    };
-    strategyEngine: {
-        url: string;
-    };
-    logging: {
-        level: string;
-        format: string;
-    };
-    rateLimit: {
-        windowMs: number;
-        max: number;
+        password: string;
     };
     cache: {
         ttl: number;
-        checkPeriod: number;
-    };
-    monitoring: {
-        enabled: boolean;
-        prometheus: {
-            port: number;
-        };
     };
 }
-export declare const config: Config;
+declare const config: Config;
+export { config };

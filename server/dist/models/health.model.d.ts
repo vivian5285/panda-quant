@@ -22,8 +22,9 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
-import { INetworkStatus } from '../types/network';
+import { INetworkStatus } from '../types/Network';
 export interface IHealthDocument extends Document {
     _id: Types.ObjectId;
     networkStatus: INetworkStatus;

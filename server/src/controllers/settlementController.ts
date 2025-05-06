@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { SettlementService } from '../services/SettlementService';
-import { AuthenticatedRequest } from '../types/auth';
-import { SettlementStatus } from '../types/enums';
+import { AuthenticatedRequest } from '../types/Auth';
+import { SettlementStatus } from '../types/Enums';
 import Settlement from '../models/Settlement';
 import { logger } from '../utils/logger';
 import { Types } from 'mongoose';

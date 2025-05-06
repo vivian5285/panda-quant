@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { IMT4Account, IMT4Position, IMT4Order, IMT4Balance, IMT4MarketData } from '../../types/mt4';
+import { IMT4Account, IMT4Position, IMT4Order, IMT4Balance, IMT4MarketData } from '../../types/Mt4';
 import { EventEmitter } from 'events';
 export declare class MT4Connector extends EventEmitter {
     private socket;

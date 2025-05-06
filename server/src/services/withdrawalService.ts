@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
-import { Withdrawal, IWithdrawalDocument } from '../models/Withdrawal';
+import { Withdrawal } from '../models/Withdrawal';
+import { IWithdrawal } from '../types/Withdrawal';
 import { logger } from '../utils/logger';
 
 export class WithdrawalService {
@@ -14,49 +15,31 @@ export class WithdrawalService {
     return WithdrawalService.instance;
   }
 
-  async createWithdrawal(data: {
-    userId: Types.ObjectId;
-    amount: number;
-    walletAddress: string;
-    paymentMethod: 'crypto' | 'bank' | 'paypal';
-    paymentDetails: Record<string, any>;
-    status?: string;
-    metadata?: Record<string, any>;
-  }): Promise<IWithdrawalDocument> {
+  async createWithdrawal(data: Omit<IWithdrawal, '_id' | 'createdAt' | 'updatedAt'>): Promise<IWithdrawal> {
     try {
-      const withdrawal = new Withdrawal({
-        ...data,
-        status: data.status || 'pending',
-        metadata: data.metadata || {}
-      });
-      return await withdrawal.save();
+      const withdrawal = new Withdrawal(data);
+      const savedWithdrawal = await withdrawal.save();
+      return savedWithdrawal.toObject();
     } catch (error) {
       logger.error('Error creating withdrawal:', error);
       throw error;
     }
   }
 
-  async getWithdrawals(userId: Types.ObjectId): Promise<IWithdrawalDocument[]> {
+  async getWithdrawalById(id: string): Promise<IWithdrawal | null> {
     try {
-      return await Withdrawal.find({ userId });
-    } catch (error) {
-      logger.error('Error getting withdrawals:', error);
-      throw error;
-    }
-  }
-
-  async getWithdrawalById(id: string): Promise<IWithdrawalDocument | null> {
-    try {
-      return await Withdrawal.findById(id);
+      const withdrawal = await Withdrawal.findById(id);
+      return withdrawal ? withdrawal.toObject() : null;
     } catch (error) {
       logger.error('Error getting withdrawal:', error);
       throw error;
     }
   }
 
-  async updateWithdrawal(id: string, data: Partial<IWithdrawalDocument>): Promise<IWithdrawalDocument | null> {
+  async updateWithdrawal(id: string, data: Partial<IWithdrawal>): Promise<IWithdrawal | null> {
     try {
-      return await Withdrawal.findByIdAndUpdate(id, data, { new: true });
+      const withdrawal = await Withdrawal.findByIdAndUpdate(id, data, { new: true });
+      return withdrawal ? withdrawal.toObject() : null;
     } catch (error) {
       logger.error('Error updating withdrawal:', error);
       throw error;
@@ -69,6 +52,16 @@ export class WithdrawalService {
       return result !== null;
     } catch (error) {
       logger.error('Error deleting withdrawal:', error);
+      throw error;
+    }
+  }
+
+  async getWithdrawalsByUserId(userId: string): Promise<IWithdrawal[]> {
+    try {
+      const withdrawals = await Withdrawal.find({ userId });
+      return withdrawals.map(withdrawal => withdrawal.toObject());
+    } catch (error) {
+      logger.error('Error getting withdrawals by user:', error);
       throw error;
     }
   }

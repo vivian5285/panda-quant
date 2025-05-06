@@ -15,4 +15,4 @@ var SettlementType;
     SettlementType["REFUND"] = "REFUND";
     SettlementType["FEE"] = "FEE";
 })(SettlementType || (exports.SettlementType = SettlementType = {}));
-//# sourceMappingURL=settlement.types.js.map
+//# sourceMappingURL=Settlement.types.js.map

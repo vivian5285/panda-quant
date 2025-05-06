@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const database_1 = require("./database");
-const routes_1 = __importDefault(require("./routes"));
+const Index_1 = __importDefault(require("./routes/Index"));
 const app = (0, express_1.default)();
 const PORT = process.env['PORT'] || 3005;
 // 连接数据库
@@ -14,7 +14,7 @@ const PORT = process.env['PORT'] || 3005;
 // 设置中间件
 app.use(express_1.default.json());
 // 设置路由
-app.use(routes_1.default);
+app.use(Index_1.default);
 // 启动服务器
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

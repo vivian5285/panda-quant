@@ -1,39 +1,84 @@
-const isDevelopment = process.env['NODE_ENV'] === 'development';
+import winston from 'winston';
+import path from 'path';
 
-class Logger {
-  private prefix: string;
+const logDir = 'logs';
+const { combine, timestamp, printf, colorize } = winston.format;
 
-  constructor(prefix = '') {
-    this.prefix = prefix ? `[${prefix}] ` : '';
+const logFormat = printf(({ level, message, timestamp, ...metadata }) => {
+  let msg = `${timestamp} [${level}] : ${message}`;
+  if (Object.keys(metadata).length > 0) {
+    msg += ` ${JSON.stringify(metadata)}`;
   }
+  return msg;
+});
 
-  info(message: string, ...args: unknown[]) {
-    if (isDevelopment) {
-      console.log(`${this.prefix}${message}`, ...args);
-    }
+const logger = winston.createLogger({
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  format: combine(
+    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    logFormat
+  ),
+  transports: [
+    new winston.transports.Console({
+      format: combine(
+        colorize(),
+        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        logFormat
+      )
+    }),
+    new winston.transports.File({
+      filename: path.join(logDir, 'error.log'),
+      level: 'error'
+    }),
+    new winston.transports.File({
+      filename: path.join(logDir, 'combined.log')
+    })
+  ]
+});
+
+// Create a stream object for Morgan
+export const stream = {
+  write: (message: string) => {
+    logger.info(message.trim());
   }
+};
 
-  warn(message: string, ...args: unknown[]) {
-    console.warn(`${this.prefix}${message}`, ...args);
-  }
+export const createLogger = (module: string) => {
+  return winston.createLogger({
+    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+    format: combine(
+      timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+      printf(({ level, message, timestamp, ...metadata }) => {
+        let msg = `${timestamp} [${level}] [${module}] : ${message}`;
+        if (Object.keys(metadata).length > 0) {
+          msg += ` ${JSON.stringify(metadata)}`;
+        }
+        return msg;
+      })
+    ),
+    transports: [
+      new winston.transports.Console({
+        format: combine(
+          colorize(),
+          timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+          printf(({ level, message, timestamp, ...metadata }) => {
+            let msg = `${timestamp} [${level}] [${module}] : ${message}`;
+            if (Object.keys(metadata).length > 0) {
+              msg += ` ${JSON.stringify(metadata)}`;
+            }
+            return msg;
+          })
+        )
+      }),
+      new winston.transports.File({
+        filename: path.join(logDir, 'error.log'),
+        level: 'error'
+      }),
+      new winston.transports.File({
+        filename: path.join(logDir, 'combined.log')
+      })
+    ]
+  });
+};
 
-  error(message: string, ...args: unknown[]) {
-    console.error(`${this.prefix}${message}`, ...args);
-  }
-
-  debug(message: string, ...args: unknown[]) {
-    if (isDevelopment) {
-      console.debug(`${this.prefix}${message}`, ...args);
-    }
-  }
-}
-
-// 创建默认logger实例
-export const logger = new Logger();
-
-// 创建带有特定前缀的logger实例
-export const createLogger = (prefix: string) => new Logger(prefix);
-
-// 创建特定用途的logger实例
-export const requestLogger = createLogger('request');
-export const errorLogger = createLogger('error'); 
+export { logger }; 

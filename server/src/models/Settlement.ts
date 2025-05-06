@@ -1,6 +1,6 @@
 import { Schema, model, Document, Types } from 'mongoose';
-import { ISettlement, SettlementStatus } from '../types/settlement';
-import { SettlementType } from '../types/enums';
+import { ISettlement, SettlementStatus } from '../types/Settlement';
+import { SettlementType } from '../types/Enums';
 
 export interface ISettlementDocument extends Omit<ISettlement, '_id'>, Document {
   _id: Types.ObjectId;

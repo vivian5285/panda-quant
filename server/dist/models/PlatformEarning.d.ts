@@ -22,6 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="@/types/mongoose" />
 import mongoose, { Document } from 'mongoose';
 export interface IPlatformEarning extends Document {
     userId: string;

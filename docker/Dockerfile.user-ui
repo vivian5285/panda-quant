@@ -1,78 +1,88 @@
-# 使用 Node.js 18 作为基础镜像
-FROM node:18 AS builder
+# 使用 Node.js 20 作为基础镜像
+FROM node:20-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
 
-# 配置国内镜像源
-RUN echo "deb http://mirrors.aliyun.com/debian/ bookworm main non-free non-free-firmware contrib" > /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian-security/ bookworm-security main" >> /etc/apt/sources.list && \
-    echo "deb http://mirrors.aliyun.com/debian/ bookworm-updates main" >> /etc/apt/sources.list
+# 配置 DNS 和网络设置 - 使用 Google DNS 和 Cloudflare DNS
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
+    echo "nameserver 8.8.4.4" >> /etc/resolv.conf && \
+    echo "nameserver 1.1.1.1" >> /etc/resolv.conf && \
+    echo "nameserver 1.0.0.1" >> /etc/resolv.conf
+
+# 配置 Alpine 镜像源 - 使用阿里云镜像源
+RUN echo "https://mirrors.aliyun.com/alpine/v3.18/main" > /etc/apk/repositories && \
+    echo "https://mirrors.aliyun.com/alpine/v3.18/community" >> /etc/apk/repositories
 
 # 安装系统依赖
-RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
-    curl \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+RUN for i in $(seq 1 3); do \
+        apk add --no-cache --virtual .build-deps \
+            python3 \
+            make \
+            g++ \
+            git \
+            && break || sleep 1; \
+    done
 
-# 配置 npm 镜像源
-RUN npm config set registry https://registry.npmmirror.com/
+# 配置 npm 镜像源和网络设置
+RUN npm config set registry https://registry.npmmirror.com/ && \
+    npm config set fetch-retries 3 && \
+    npm config set fetch-retry-mintimeout 10000 && \
+    npm config set fetch-retry-maxtimeout 60000 && \
+    npm config set timeout 60000 && \
+    npm config set 'strict-ssl' false
 
-# 复制 package.json 和 package-lock.json
-COPY user-ui/package.json user-ui/package-lock.json ./
+# 复制 package.json
+COPY user-ui/package.json ./
 
 # 安装依赖
-RUN npm install --legacy-peer-deps --no-audit
+RUN npm install
 
 # 复制源代码
-COPY user-ui/src ./src
-COPY user-ui/public ./public
-COPY user-ui/index.html ./
-COPY user-ui/tsconfig.json ./
-COPY user-ui/vite.config.ts ./
-
-# 构建应用
-RUN npm run build
-
-# 生产环境
-FROM node:18
-
-# 设置工作目录
-WORKDIR /app
-
-# 安装 curl 用于健康检查
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
-# 创建非root用户（如果不存在）
-RUN groupadd -r node 2>/dev/null || true && \
-    useradd -r -g node node 2>/dev/null || true
-
-# 复制构建产物
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/index.html ./
-
-# 设置环境变量
-ENV NODE_ENV=production
-ENV HOST=0.0.0.0
-ENV PORT=3000
+COPY user-ui/ ./
 
 # 设置目录权限
-RUN chown -R node:node /app
+RUN chown -R node:node /app && \
+    chmod -R 755 /app
 
 # 切换到非root用户
 USER node
 
+# 构建应用
+RUN npm run build
+
+# 生产阶段
+FROM nginx:alpine
+
+# 配置 Alpine 镜像源 - 使用阿里云镜像源
+RUN echo "https://mirrors.aliyun.com/alpine/v3.18/main" > /etc/apk/repositories && \
+    echo "https://mirrors.aliyun.com/alpine/v3.18/community" >> /etc/apk/repositories
+
+# 安装系统依赖
+RUN apk add --no-cache \
+    curl \
+    ca-certificates \
+    openssl
+
+# 更新证书
+RUN update-ca-certificates
+
+# 复制构建产物
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# 复制 nginx 配置
+COPY docker/nginx/user-ui.conf /etc/nginx/conf.d/default.conf
+
+# 设置目录权限
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
+
 # 暴露端口
-EXPOSE 3000
+EXPOSE 8081
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:3000/health || exit 1
+  CMD curl -f http://localhost:8081/health || exit 1
 
 # 启动命令
-CMD ["npm", "run", "preview"] 
+CMD ["nginx", "-g", "daemon off;"] 

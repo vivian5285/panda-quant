@@ -1,8 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { UserController } from '../controllers/userController';
-import strategyController from '../controllers/strategy';
-import { AuthenticatedRequest, AuthRequest } from '../types/auth';
-import { authenticate, isAdmin } from '../middleware/auth';
+import strategyController from '../controllers/Strategy';
+import { AuthenticatedRequest, AuthRequest } from '../types/Auth';
+import { authenticate, isAdmin } from '../middleware/Auth';
 
 const router = Router();
 const userController = new UserController();

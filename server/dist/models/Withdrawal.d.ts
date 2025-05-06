@@ -22,19 +22,10 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { Document, Types } from 'mongoose';
-export interface IWithdrawalDocument extends Document {
-    userId: Types.ObjectId;
-    amount: number;
-    status: string;
-    walletAddress: string;
-    paymentMethod: 'crypto' | 'bank' | 'paypal';
-    paymentDetails: Record<string, any>;
-    metadata: Record<string, any>;
-    createdAt: Date;
-    updatedAt: Date;
-}
-export declare const Withdrawal: import("mongoose").Model<IWithdrawalDocument, {}, {}, {}, Document<unknown, {}, IWithdrawalDocument> & IWithdrawalDocument & {
-    _id: Types.ObjectId;
-}, any>;
+/// <reference types="@/types/mongoose" />
+import mongoose from 'mongoose';
+import { IWithdrawalDocument } from '../types/Withdrawal';
+export declare const Withdrawal: mongoose.Model<IWithdrawalDocument, {}, {}, {}, mongoose.Document<unknown, {}, IWithdrawalDocument> & IWithdrawalDocument & Required<{
+    _id: mongoose.Types.ObjectId;
+}>, any>;
 export default Withdrawal;

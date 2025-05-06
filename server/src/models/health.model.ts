@@ -1,5 +1,5 @@
 import { Schema, model, Document, Types } from 'mongoose';
-import { INetworkStatus } from '../types/network';
+import { INetworkStatus } from '../types/Network';
 
 export interface IHealthDocument extends Document {
   _id: Types.ObjectId;

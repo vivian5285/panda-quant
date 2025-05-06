@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { UserLevel } from '../models/UserLevel';
-import { IUserLevel } from '../types/userLevel';
+import { IUserLevel } from '../types/UserLevel';
 
 export class UserLevelService {
   async getUserLevelById(id: string): Promise<IUserLevel | null> {

@@ -1,4 +1,4 @@
-import { INetworkStatus } from './network';
+import { INetworkStatus } from './Network';
 
 export interface IHealth {
   _id: string;

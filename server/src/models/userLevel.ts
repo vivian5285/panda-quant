@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { IUserLevel } from '../types/userLevel';
+import { IUserLevel } from '../types/UserLevel';
 
 const userLevelSchema = new Schema<IUserLevel>({
   level: {

@@ -1,26 +1,54 @@
-import { Types, Document } from 'mongoose';
-
-export interface IUser {
-  _id: Types.ObjectId;
-  id: string;
-  email: string;
-  password: string;
-  name: string;
-  username: string;
-  role: string;
-  level: number;
-  status: string;
-  permissions: string[];
-  isAdmin: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+import { Document, Types } from 'mongoose';
 
 export interface IUserBase {
   email: string;
   password: string;
-  username: string;
   name: string;
+  username: string;
+  role: 'user' | 'admin';
+  level: number;
+  status: string;
+  permissions: string[];
+  isAdmin: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IUser extends IUserBase, Document {
+  comparePassword(candidatePassword: string): Promise<boolean>;
+}
+
+export interface UserResponse {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  name: string;
+}
+
+export interface UpdateUserRequest {
+  name?: string;
+  email?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface UpdateUserByIdRequest {
+  name?: string;
+  email?: string;
   level: number;
   role: string;
   status: string;

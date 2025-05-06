@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-export declare const validateRequest: (validations: any[]) => (req: Request, res: Response, next: NextFunction) => Promise<void>;
+import { ValidationChain } from 'express-validator';
+export declare const validate: (validations: ValidationChain[]) => (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const validateQuery: (validations: ValidationChain[]) => (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const validateParams: (validations: ValidationChain[]) => (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const commonValidators: {
     email: (field?: string) => {
         field: string;

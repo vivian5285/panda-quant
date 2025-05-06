@@ -21,9 +21,11 @@
 /// <reference types="mongoose/types/utility" />
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
-/// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
-import { INotification } from '../types/notification';
-export declare const Notification: import("mongoose").Model<INotification, {}, {}, {}, import("mongoose").Document<unknown, {}, INotification> & INotification & Required<{
-    _id: import("mongoose").Types.ObjectId;
+/// <reference types="@/types/mongoose" />
+import mongoose from 'mongoose';
+import { INotificationDocument } from '../types/Notification';
+export declare const Notification: mongoose.Model<INotificationDocument, {}, {}, {}, mongoose.Document<unknown, {}, INotificationDocument> & INotificationDocument & Required<{
+    _id: mongoose.Types.ObjectId;
 }>, any>;
+export default Notification;

@@ -1,7 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import { validationResult } from 'express-validator';
+import { validationResult, ValidationChain } from 'express-validator';
+import { ValidationError } from '../utils/errors';
 
-export const validateRequest = (validations: any[]) => {
+interface ValidationErrorItem {
+  field: string;
+  message: string;
+}
+
+export const validate = (validations: ValidationChain[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     await Promise.all(validations.map(validation => validation.run(req)));
 
@@ -10,7 +16,48 @@ export const validateRequest = (validations: any[]) => {
       return next();
     }
 
-    res.status(400).json({ errors: errors.array() });
+    const extractedErrors: ValidationErrorItem[] = errors.array().map(err => ({
+      field: err.type === 'field' ? err.path : err.type,
+      message: err.msg
+    }));
+
+    throw new ValidationError(extractedErrors);
+  };
+};
+
+export const validateQuery = (validations: ValidationChain[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    await Promise.all(validations.map(validation => validation.run(req)));
+
+    const errors = validationResult(req);
+    if (errors.isEmpty()) {
+      return next();
+    }
+
+    const extractedErrors: ValidationErrorItem[] = errors.array().map(err => ({
+      field: err.type === 'field' ? err.path : err.type,
+      message: err.msg
+    }));
+
+    throw new ValidationError(extractedErrors);
+  };
+};
+
+export const validateParams = (validations: ValidationChain[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    await Promise.all(validations.map(validation => validation.run(req)));
+
+    const errors = validationResult(req);
+    if (errors.isEmpty()) {
+      return next();
+    }
+
+    const extractedErrors: ValidationErrorItem[] = errors.array().map(err => ({
+      field: err.type === 'field' ? err.path : err.type,
+      message: err.msg
+    }));
+
+    throw new ValidationError(extractedErrors);
   };
 };
 

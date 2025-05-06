@@ -4,7 +4,7 @@ import {
   StrategyExecutionRequest, 
   StrategyExecutionResponse,
   UserApiResponse
-} from '../types/api';
+} from '../types/Api';
 
 // User API client
 export const userApi = axios.create({

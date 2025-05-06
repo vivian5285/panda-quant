@@ -23,7 +23,8 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
-import { IPosition } from '../types/position';
+/// <reference types="@/types/mongoose" />
+import { IPosition } from '../types/Position';
 export declare const Position: import("mongoose").Model<IPosition, {}, {}, {}, import("mongoose").Document<unknown, {}, IPosition> & IPosition & Required<{
     _id: string;
 }>, any>;

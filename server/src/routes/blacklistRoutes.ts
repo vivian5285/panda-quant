@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate, hasPermission } from '../middleware/auth';
+import { authenticate, hasPermission } from '../middleware/Auth';
 import { blacklistController } from '../controllers/blacklistController';
 
 const router = Router();

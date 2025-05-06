@@ -27,31 +27,25 @@ exports.Alert = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const alertSchema = new mongoose_1.Schema({
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
-    type: {
-        type: String,
-        required: true,
-        enum: ['price', 'volume', 'technical', 'strategy_loss', 'news', 'system']
-    },
+    type: { type: String, enum: ['price', 'volume', 'technical', 'strategy_loss', 'news', 'system'], required: true },
     condition: { type: String, required: true },
     value: { type: Number, required: true },
-    status: {
-        type: String,
-        required: true,
-        enum: ['active', 'triggered', 'disabled'],
-        default: 'active'
-    },
+    status: { type: String, enum: ['active', 'triggered', 'disabled'], default: 'active' },
     exchange: { type: String, required: true },
     symbol: { type: String, required: true },
     timeframe: { type: String },
     triggeredAt: { type: Date },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
     error: { type: String },
     metadata: { type: mongoose_1.Schema.Types.Mixed },
     message: { type: String, required: true },
     data: { type: mongoose_1.Schema.Types.Mixed },
-    isRead: { type: Boolean, default: false }
+    isRead: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+}, {
+    timestamps: true
 });
+// 添加中间件来自动更新updatedAt字段
 alertSchema.pre('save', function (next) {
     this.updatedAt = new Date();
     next();

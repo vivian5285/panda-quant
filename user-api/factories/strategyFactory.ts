@@ -1,4 +1,4 @@
-import { Strategy } from '../models/strategy';
+import { Strategy } from '../models/Strategy';
 import { SuperTrendStrategy } from '../strategies/superTrendStrategy';
 import { StrategyPreset } from '../types';
 

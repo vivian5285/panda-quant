@@ -1,4 +1,4 @@
-import { ITransaction } from './transaction';
+import { ITransaction } from './Transaction';
 export interface Wallet {
     userId: string;
     currency: string;

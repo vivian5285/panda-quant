@@ -22,8 +22,9 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
-import { SettlementType } from './enums';
+import { SettlementType } from './Enums';
 export declare enum SettlementStatus {
     PENDING = "pending",
     PROCESSING = "processing",

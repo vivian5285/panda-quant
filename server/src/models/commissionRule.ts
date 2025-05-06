@@ -1,5 +1,5 @@
-import { Schema, model, Document, Types } from 'mongoose';
-import { ICommissionRule } from '../types/commission';
+import mongoose, { Schema, model, Document, Types } from 'mongoose';
+import { ICommissionRule } from '../types/Commission';
 
 export interface ICommissionRuleDocument extends Omit<ICommissionRule, '_id'>, Document {
   _id: Types.ObjectId;

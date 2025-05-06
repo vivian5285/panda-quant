@@ -1,4 +1,4 @@
-import { OrderType, OrderStatus, TradeStatus } from './trading';
+import { OrderType, OrderStatus, TradeStatus } from './Trading';
 export declare enum StrategyType {
     SPOT = "spot",
     FUTURES = "futures",

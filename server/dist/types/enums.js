@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TradeStatus = exports.OrderStatus = exports.OrderType = exports.TradeType = exports.UserStatus = exports.UserRole = exports.SettlementType = exports.SettlementStatus = exports.WithdrawalStatus = exports.CommissionStatus = exports.CommissionType = exports.RiskLevel = exports.AlertType = exports.NotificationType = exports.UserLevel = exports.StrategyStatus = exports.StrategyType = void 0;
-const trading_1 = require("./trading");
-Object.defineProperty(exports, "OrderType", { enumerable: true, get: function () { return trading_1.OrderType; } });
-Object.defineProperty(exports, "OrderStatus", { enumerable: true, get: function () { return trading_1.OrderStatus; } });
-Object.defineProperty(exports, "TradeStatus", { enumerable: true, get: function () { return trading_1.TradeStatus; } });
+const Trading_1 = require("./Trading");
+Object.defineProperty(exports, "OrderType", { enumerable: true, get: function () { return Trading_1.OrderType; } });
+Object.defineProperty(exports, "OrderStatus", { enumerable: true, get: function () { return Trading_1.OrderStatus; } });
+Object.defineProperty(exports, "TradeStatus", { enumerable: true, get: function () { return Trading_1.TradeStatus; } });
 var StrategyType;
 (function (StrategyType) {
     StrategyType["SPOT"] = "spot";
@@ -94,4 +94,4 @@ var TradeType;
     TradeType["LONG"] = "long";
     TradeType["SHORT"] = "short";
 })(TradeType || (exports.TradeType = TradeType = {}));
-//# sourceMappingURL=enums.js.map
+//# sourceMappingURL=Enums.js.map

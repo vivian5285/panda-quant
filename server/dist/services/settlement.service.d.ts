@@ -1,4 +1,4 @@
-import { SettlementStatus, ISettlementDocument } from '../types/settlement';
+import { SettlementStatus, ISettlementDocument } from '../types/Settlement';
 export declare class SettlementService {
     private static instance;
     private constructor();

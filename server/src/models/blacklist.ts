@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { IBlacklistEntryDocument, BlacklistStatus, BlacklistType } from '../types/blacklist';
+import { IBlacklistEntryDocument, BlacklistStatus, BlacklistType } from '../types/Blacklist';
 
 const blacklistSchema = new Schema<IBlacklistEntryDocument>({
   address: { type: String, required: true },

@@ -22,19 +22,9 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import mongoose, { Document } from 'mongoose';
-import { Types } from 'mongoose';
-export interface IDeposit extends Document {
-    userId: Types.ObjectId;
-    amount: number;
-    currency: string;
-    status: 'pending' | 'completed' | 'failed';
-    transactionId: string;
-    network: string;
-    address: string;
-    createdAt: Date;
-    updatedAt: Date;
-}
-export declare const Deposit: mongoose.Model<IDeposit, {}, {}, {}, mongoose.Document<unknown, {}, IDeposit> & IDeposit & {
-    _id: Types.ObjectId;
-}, any>;
+/// <reference types="@/types/mongoose" />
+import mongoose from 'mongoose';
+import { IDepositDocument } from '../types/Deposit';
+export declare const Deposit: mongoose.Model<IDepositDocument, {}, {}, {}, mongoose.Document<unknown, {}, IDepositDocument> & IDepositDocument & Required<{
+    _id: mongoose.Types.ObjectId;
+}>, any>;

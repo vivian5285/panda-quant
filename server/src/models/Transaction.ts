@@ -1,30 +1,26 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { Types } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { ITransaction, ITransactionDocument } from '../types/Transaction';
 
-export interface ITransaction extends Document {
-  userId: Types.ObjectId;
-  type: 'deposit' | 'withdrawal' | 'commission' | 'refund';
-  amount: number;
-  currency: string;
-  status: 'pending' | 'completed' | 'failed';
-  referenceId: Types.ObjectId;
-  referenceType: 'Deposit' | 'Withdrawal' | 'CommissionRecord';
-  description?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const transactionSchema = new Schema<ITransaction>({
+const transactionSchema = new Schema<ITransactionDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { type: String, enum: ['deposit', 'withdrawal', 'commission', 'refund'], required: true },
+  type: { type: String, enum: ['deposit', 'withdrawal', 'trade', 'commission'], required: true },
   amount: { type: Number, required: true },
   currency: { type: String, required: true },
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
   referenceId: { type: Schema.Types.ObjectId, required: true },
   referenceType: { type: String, enum: ['Deposit', 'Withdrawal', 'CommissionRecord'], required: true },
   description: { type: String },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  metadata: { type: Schema.Types.Mixed, default: {} },
+  createdAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true
 });
 
-export const Transaction = mongoose.model<ITransaction>('Transaction', transactionSchema); 
+// 添加索引
+transactionSchema.index({ userId: 1 });
+transactionSchema.index({ type: 1 });
+transactionSchema.index({ status: 1 });
+transactionSchema.index({ createdAt: -1 });
+
+export const Transaction = mongoose.model<ITransactionDocument>('Transaction', transactionSchema);
+export default Transaction; 

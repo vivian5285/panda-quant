@@ -1,31 +1,13 @@
-import { Schema, model } from 'mongoose';
-import { IStrategy, StrategyStatus } from '../types/strategy';
+import mongoose, { Schema } from 'mongoose';
+import { IStrategy, IStrategyDocument } from '../types/Strategy';
 
-const strategySchema = new Schema<IStrategy>({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  name: {
-    type: String,
-    required: true
-  },
-  description: String,
-  type: {
-    type: String,
-    enum: Object.values(StrategyStatus),
-    required: true
-  },
-  status: {
-    type: String,
-    enum: Object.values(StrategyStatus),
-    default: StrategyStatus.ACTIVE
-  },
-  parameters: {
-    type: Schema.Types.Mixed,
-    default: {}
-  },
+const strategySchema = new Schema<IStrategyDocument>({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  type: { type: String, required: true },
+  status: { type: String, enum: ['active', 'inactive', 'pending'], default: 'pending' },
+  parameters: { type: Schema.Types.Mixed, required: true },
   performance: {
     totalTrades: { type: Number, default: 0 },
     winRate: { type: Number, default: 0 },
@@ -35,10 +17,23 @@ const strategySchema = new Schema<IStrategy>({
   metadata: {
     type: Schema.Types.Mixed,
     default: {}
-  }
+  },
+  createdAt: { type: Date, default: Date.now }
 }, {
   timestamps: true
 });
 
-export const Strategy = model<IStrategy>('Strategy', strategySchema);
+// 添加中间件来自动更新updatedAt字段
+strategySchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  next();
+});
+
+// 添加索引
+strategySchema.index({ userId: 1 });
+strategySchema.index({ type: 1 });
+strategySchema.index({ status: 1 });
+strategySchema.index({ createdAt: -1 });
+
+export const Strategy = mongoose.model<IStrategyDocument>('Strategy', strategySchema);
 export default Strategy; 

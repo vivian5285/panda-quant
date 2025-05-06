@@ -22,15 +22,16 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
-import { CommissionType, CommissionStatus } from './enums';
+import { CommissionType, CommissionStatus } from './Enums';
 export interface ICommissionBase {
-    userId: Types.ObjectId | string;
+    userId: Types.ObjectId;
     amount: number;
     type: CommissionType;
     status: CommissionStatus;
     description?: string;
-    referenceId: string;
+    referenceId: Types.ObjectId;
     referenceType: string;
     metadata?: Record<string, any>;
     createdAt?: Date;
@@ -39,7 +40,7 @@ export interface ICommissionBase {
 export interface ICommission extends ICommissionBase, Document {
 }
 export interface ICommissionRule {
-    _id: string;
+    _id: Types.ObjectId;
     name: string;
     description: string;
     type: 'percentage' | 'fixed';
@@ -58,8 +59,8 @@ export interface ICommissionRule {
     updatedAt: Date;
 }
 export interface ICommissionWithdrawal {
-    _id: string;
-    userId: string;
+    _id: Types.ObjectId;
+    userId: Types.ObjectId;
     amount: number;
     status: 'pending' | 'approved' | 'rejected' | 'completed';
     walletAddress: string;

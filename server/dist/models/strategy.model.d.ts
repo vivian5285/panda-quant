@@ -22,19 +22,10 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { Document } from 'mongoose';
-import { IStrategy } from '../types/strategy';
-export declare enum StrategyStatus {
-    ACTIVE = "active",
-    INACTIVE = "inactive",
-    PAUSED = "paused",
-    COMPLETED = "completed"
-}
-export interface IStrategyDocument extends IStrategy, Document {
-    createdAt: Date;
-    updatedAt: Date;
-}
-export declare const Strategy: import("mongoose").Model<IStrategyDocument, {}, {}, {}, Document<unknown, {}, IStrategyDocument> & IStrategyDocument & {
-    _id: import("mongoose").Types.ObjectId;
-}, any>;
+/// <reference types="@/types/mongoose" />
+import mongoose from 'mongoose';
+import { IStrategyDocument } from '../types/Strategy';
+export declare const Strategy: mongoose.Model<IStrategyDocument, {}, {}, {}, mongoose.Document<unknown, {}, IStrategyDocument> & IStrategyDocument & Required<{
+    _id: mongoose.Types.ObjectId;
+}>, any>;
 export default Strategy;

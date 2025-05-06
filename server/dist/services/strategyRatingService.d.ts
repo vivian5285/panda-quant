@@ -1,4 +1,4 @@
-import { IStrategyRating } from '../types/strategyRating';
+import { IStrategyRating } from '../types/StrategyRating';
 export declare class StrategyRatingService {
     createRating(data: {
         userId: string;

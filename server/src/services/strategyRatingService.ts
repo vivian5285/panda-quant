@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { StrategyRating } from '../models/StrategyRating';
-import { IStrategyRating } from '../types/strategyRating';
+import { IStrategyRating } from '../types/StrategyRating';
 import { AppError } from '../utils/AppError';
 import { logger } from '../utils/logger';
 

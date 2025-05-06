@@ -1,6 +1,7 @@
 import express from 'express';
 import { connectMongoDB, connectRedis } from './database';
-import router from './routes';
+import router from './routes/Index';
+import { logger } from './utils/logger';
 
 const app = express();
 const PORT = process.env['PORT'] || 3005;

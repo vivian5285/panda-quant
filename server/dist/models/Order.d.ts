@@ -21,10 +21,10 @@
 /// <reference types="mongoose/types/utility" />
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
-/// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
-import { IOrder } from '../types/IOrder';
-export type OrderStatus = 'pending' | 'completed' | 'cancelled' | 'failed';
-export declare const Order: import("mongoose").Model<IOrder, {}, {}, {}, import("mongoose").Document<unknown, {}, IOrder> & IOrder & Required<{
-    _id: import("mongoose").Types.ObjectId;
+/// <reference types="@/types/mongoose" />
+import { Document } from 'mongoose';
+import { IOrder } from '../types/Trading';
+export declare const Order: import("mongoose").Model<IOrder, {}, {}, {}, Document<unknown, {}, IOrder> & IOrder & Required<{
+    _id: string;
 }>, any>;

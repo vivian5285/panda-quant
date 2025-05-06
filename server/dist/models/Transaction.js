@@ -27,15 +27,23 @@ exports.Transaction = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const transactionSchema = new mongoose_1.Schema({
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
-    type: { type: String, enum: ['deposit', 'withdrawal', 'commission', 'refund'], required: true },
+    type: { type: String, enum: ['deposit', 'withdrawal', 'trade', 'commission'], required: true },
     amount: { type: Number, required: true },
     currency: { type: String, required: true },
     status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
     referenceId: { type: mongoose_1.Schema.Types.ObjectId, required: true },
     referenceType: { type: String, enum: ['Deposit', 'Withdrawal', 'CommissionRecord'], required: true },
     description: { type: String },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
+    metadata: { type: mongoose_1.Schema.Types.Mixed, default: {} },
+    createdAt: { type: Date, default: Date.now }
+}, {
+    timestamps: true
 });
+// 添加索引
+transactionSchema.index({ userId: 1 });
+transactionSchema.index({ type: 1 });
+transactionSchema.index({ status: 1 });
+transactionSchema.index({ createdAt: -1 });
 exports.Transaction = mongoose_1.default.model('Transaction', transactionSchema);
+exports.default = exports.Transaction;
 //# sourceMappingURL=Transaction.js.map

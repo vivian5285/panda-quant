@@ -1,4 +1,4 @@
-import { IUserLevel } from '../types/userLevel';
+import { IUserLevel } from '../types/UserLevel';
 export declare class UserLevelService {
     getUserLevelById(id: string): Promise<IUserLevel | null>;
     updateUserLevel(id: string, data: Partial<IUserLevel>): Promise<IUserLevel | null>;

@@ -1,4 +1,4 @@
-import { IStrategy } from '../types/strategy';
+import { IStrategy } from '../types/Strategy';
 export declare enum StrategyStatus {
     ACTIVE = "active",
     INACTIVE = "inactive",

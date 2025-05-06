@@ -1,7 +1,8 @@
 import { Response } from 'express';
 import { WithdrawalService } from '../services/WithdrawalService';
 import { handleError } from '../utils/errorHandler';
-import { AuthenticatedRequest } from '../types/auth';
+import { AuthenticatedRequest } from '../types/Auth';
+import { IWithdrawal } from '../types/Withdrawal';
 
 const withdrawalService = WithdrawalService.getInstance();
 
@@ -13,14 +14,14 @@ export class WithdrawalController {
         return;
       }
 
-      const withdrawalData = {
+      const withdrawalData: Omit<IWithdrawal, '_id' | 'createdAt' | 'updatedAt'> = {
         userId: req.user._id,
         amount: req.body.amount,
-        walletAddress: req.body.walletAddress,
-        paymentMethod: req.body.paymentMethod,
-        paymentDetails: req.body.paymentDetails,
-        status: req.body.status,
-        metadata: req.body.metadata
+        currency: req.body.currency,
+        status: req.body.status || 'pending',
+        network: req.body.network,
+        address: req.body.address,
+        transactionId: req.body.transactionId
       };
 
       const withdrawal = await withdrawalService.createWithdrawal(withdrawalData);
@@ -37,7 +38,7 @@ export class WithdrawalController {
         return;
       }
 
-      const withdrawals = await withdrawalService.getWithdrawals(req.user._id);
+      const withdrawals = await withdrawalService.getWithdrawalsByUserId(req.user._id.toString());
       res.json(withdrawals);
     } catch (error) {
       handleError(res, error);

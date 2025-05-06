@@ -1,7 +1,7 @@
 /// <reference types="node" />
-import { INetworkStatus } from '../types/network';
+import { INetworkStatus } from '../types/Network';
 import { EventEmitter } from 'events';
-import { IHealth } from '../types/health';
+import { IHealth } from '../types/Health';
 export interface HealthCheckResult {
     status: 'healthy' | 'unhealthy';
     error?: string;

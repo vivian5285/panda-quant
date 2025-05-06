@@ -21,10 +21,11 @@
 /// <reference types="mongoose/types/utility" />
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
-/// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
-import { IStrategyReviewDocument } from '../types/IStrategyReview';
-export declare const StrategyReview: import("mongoose").Model<IStrategyReviewDocument, {}, {}, {}, import("mongoose").Document<unknown, {}, IStrategyReviewDocument> & IStrategyReviewDocument & {
-    _id: import("mongoose").Types.ObjectId;
-}, any>;
+/// <reference types="@/types/mongoose" />
+import mongoose, { Types } from 'mongoose';
+import { IStrategyReview } from '../types/StrategyReview';
+export declare const StrategyReview: mongoose.Model<IStrategyReview, {}, {}, {}, mongoose.Document<unknown, {}, IStrategyReview> & IStrategyReview & Required<{
+    _id: Types.ObjectId;
+}>, any>;
 export default StrategyReview;

@@ -1,4 +1,4 @@
-import { IStrategy } from '../types/strategy';
+import { IStrategy } from '../types/Strategy';
 import { IOrder } from '../types/IOrder';
 import { logger } from '../utils/logger';
 import { Types } from 'mongoose';

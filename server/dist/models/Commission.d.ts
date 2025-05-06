@@ -22,20 +22,9 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { Schema, Document } from 'mongoose';
-import { CommissionStatus, CommissionType } from '../types/enums';
-export interface ICommission extends Document {
-    userId: Schema.Types.ObjectId;
-    amount: number;
-    type: CommissionType;
-    status: CommissionStatus;
-    description?: string;
-    referenceId?: string;
-    referenceType?: string;
-    metadata?: Record<string, any>;
-    createdAt: Date;
-    updatedAt: Date;
-}
-export declare const Commission: import("mongoose").Model<ICommission, {}, {}, {}, Document<unknown, {}, ICommission> & ICommission & {
-    _id: import("mongoose").Types.ObjectId;
+/// <reference types="@/types/mongoose" />
+import mongoose, { Types } from 'mongoose';
+import { ICommission } from '../types/Commission';
+export declare const Commission: mongoose.Model<ICommission, {}, {}, {}, mongoose.Document<unknown, {}, ICommission> & ICommission & {
+    _id: Types.ObjectId;
 }, any>;

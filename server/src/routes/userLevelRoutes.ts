@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { UserLevelController } from '../controllers/userLevelController';
-import { authenticate, isAdmin } from '../middleware/auth';
-import { AuthenticatedRequest } from '../types/auth';
+import { authenticate, isAdmin } from '../middleware/Auth';
+import { AuthenticatedRequest } from '../types/Auth';
 
 const router = Router();
 const userLevelController = new UserLevelController();

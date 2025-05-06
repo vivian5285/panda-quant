@@ -1,0 +1,62 @@
+module.exports = {
+  apps: [
+    {
+      name: 'admin-api',
+      cwd: './admin-api',
+      script: 'dist/index.js',
+      env: {
+        NODE_ENV: 'production'
+      },
+      watch: false,
+      max_memory_restart: '1G',
+      exp_backoff_restart_delay: 100
+    },
+    {
+      name: 'user-api',
+      cwd: './user-api',
+      script: 'dist/index.js',
+      env: {
+        NODE_ENV: 'production'
+      },
+      watch: false,
+      max_memory_restart: '1G',
+      exp_backoff_restart_delay: 100
+    },
+    {
+      name: 'strategy-engine',
+      cwd: './strategy-engine',
+      script: 'dist/index.js',
+      env: {
+        NODE_ENV: 'production'
+      },
+      watch: false,
+      max_memory_restart: '1G',
+      exp_backoff_restart_delay: 100
+    },
+    {
+      name: 'admin-ui',
+      cwd: './admin-ui',
+      script: 'node_modules/next/dist/bin/next',
+      args: 'start',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3003
+      },
+      watch: false,
+      max_memory_restart: '1G',
+      exp_backoff_restart_delay: 100
+    },
+    {
+      name: 'user-ui',
+      cwd: './user-ui',
+      script: 'node_modules/vite/bin/vite.js',
+      args: 'preview --host 0.0.0.0 --port 3004',
+      env: {
+        NODE_ENV: 'production'
+      },
+      watch: false,
+      max_memory_restart: '1G',
+      exp_backoff_restart_delay: 100
+    }
+  ]
+}; 

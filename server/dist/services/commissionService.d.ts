@@ -22,8 +22,9 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="@/types/mongoose" />
 import { Types } from 'mongoose';
-import { ICommission, ICommissionRule } from '../types/commission';
+import { ICommission, ICommissionRule } from '../types/Commission';
 export declare class CommissionService {
     private static instance;
     private constructor();

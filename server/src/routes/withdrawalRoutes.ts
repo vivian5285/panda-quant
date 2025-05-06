@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { WithdrawalController } from '../controllers/withdrawalController';
-import { authenticate, isAdmin } from '../middleware/auth';
-import { AuthenticatedRequest } from '../types/auth';
+import { authenticate, isAdmin } from '../middleware/Auth';
+import { AuthenticatedRequest } from '../types/Auth';
 import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();

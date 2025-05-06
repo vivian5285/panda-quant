@@ -1,27 +1,62 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Backtest = void 0;
-const mongoose_1 = require("mongoose");
+const mongoose_1 = __importStar(require("mongoose"));
 const backtestSchema = new mongoose_1.Schema({
-    strategyId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Strategy', required: true },
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
+    strategyId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Strategy', required: true },
+    name: { type: String, required: true },
+    description: { type: String },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     initialBalance: { type: Number, required: true },
     finalBalance: { type: Number, required: true },
     totalReturn: { type: Number, required: true },
     annualizedReturn: { type: Number, required: true },
-    sharpeRatio: { type: Number, required: true },
-    maxDrawdown: { type: Number, required: true },
-    winRate: { type: Number, required: true },
-    profitFactor: { type: Number, required: true },
     averageTrade: { type: Number, required: true },
-    totalTrades: { type: Number, required: true },
-    winningTrades: { type: Number, required: true },
-    losingTrades: { type: Number, required: true }
+    trades: [{
+            symbol: { type: String, required: true },
+            type: { type: String, enum: ['long', 'short'], required: true },
+            entryPrice: { type: Number, required: true },
+            exitPrice: { type: Number, required: true },
+            quantity: { type: Number, required: true },
+            profit: { type: Number, required: true },
+            timestamp: { type: Date, required: true }
+        }],
+    parameters: { type: mongoose_1.Schema.Types.Mixed, required: true },
+    status: { type: String, enum: ['running', 'completed', 'failed'], default: 'running' },
+    createdAt: { type: Date, default: Date.now }
 }, {
     timestamps: true
 });
-exports.Backtest = (0, mongoose_1.model)('Backtest', backtestSchema);
+// 添加索引
+backtestSchema.index({ userId: 1 });
+backtestSchema.index({ strategyId: 1 });
+backtestSchema.index({ status: 1 });
+backtestSchema.index({ createdAt: -1 });
+exports.Backtest = mongoose_1.default.model('Backtest', backtestSchema);
 exports.default = exports.Backtest;
-//# sourceMappingURL=backtest.js.map
+//# sourceMappingURL=Backtest.js.map

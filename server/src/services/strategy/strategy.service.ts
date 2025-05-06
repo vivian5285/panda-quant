@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import { logger } from '../../utils/logger';
 import { Strategy } from '../../models/Strategy';
-import { IStrategy } from '../../types/strategy';
+import { IStrategy } from '../../types/Strategy';
 
 export class StrategyService {
   private static instance: StrategyService;

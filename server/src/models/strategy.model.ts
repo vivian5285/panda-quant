@@ -1,44 +1,17 @@
-import { Schema, model, Document } from 'mongoose';
-import { IStrategy } from '../types/strategy';
-
-export enum StrategyStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  PAUSED = 'paused',
-  COMPLETED = 'completed'
-}
-
-export interface IStrategyDocument extends IStrategy, Document {
-  createdAt: Date;
-  updatedAt: Date;
-}
+import mongoose, { Schema } from 'mongoose';
+import { IStrategy, IStrategyDocument } from '../types/Strategy';
 
 const strategySchema = new Schema<IStrategyDocument>({
-  userId: { 
-    type: Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
-  },
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   name: { type: String, required: true },
   description: { type: String, required: true },
-  status: { 
-    type: String, 
-    enum: Object.values(StrategyStatus), 
-    required: true, 
-    default: StrategyStatus.ACTIVE 
-  },
-  parameters: { type: Schema.Types.Mixed },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  type: { type: String, required: true },
+  status: { type: String, enum: ['active', 'inactive', 'pending'], default: 'pending' },
+  parameters: { type: Schema.Types.Mixed, required: true },
+  createdAt: { type: Date, default: Date.now }
 }, {
   timestamps: true
 });
 
-strategySchema.methods['toJSON'] = function() {
-  const obj = this['toObject']();
-  delete obj.__v;
-  return obj;
-};
-
-export const Strategy = model<IStrategyDocument>('Strategy', strategySchema);
+export const Strategy = mongoose.model<IStrategyDocument>('Strategy', strategySchema);
 export default Strategy; 

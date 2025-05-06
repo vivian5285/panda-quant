@@ -1,29 +1,26 @@
-import { Types, Document } from 'mongoose';
-import { ICommissionWithdrawal } from './commissionWithdrawal';
-import { WithdrawalStatus } from './enums';
+import { Document, Types } from 'mongoose';
+import { ICommissionWithdrawal } from './CommissionWithdrawal';
+import { WithdrawalStatus } from './Enums';
 
 export interface IWithdrawal {
-  _id?: Types.ObjectId;
   userId: Types.ObjectId;
   amount: number;
-  status: WithdrawalStatus;
-  walletAddress: string;
-  paymentMethod: 'crypto' | 'bank' | 'paypal';
-  paymentDetails: Record<string, any>;
-  adminComment?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-  completedAt?: Date;
-  metadata?: Record<string, any>;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed';
+  network: string;
+  address: string;
+  transactionId?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface IWithdrawalDocument extends IWithdrawal, Document {
+export interface IWithdrawalDocument extends Omit<IWithdrawal, '_id'>, Document {
   _id: Types.ObjectId;
 }
 
-export type Withdrawal = IWithdrawalDocument;
+export type Withdrawal = IWithdrawal;
 
-export interface WithdrawalCreateInput extends Omit<ICommissionWithdrawal, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface WithdrawalCreateInput extends Omit<IWithdrawal, '_id' | 'createdAt' | 'updatedAt'> {}
 export interface WithdrawalUpdateInput extends Partial<WithdrawalCreateInput> {}
 
 export interface WithdrawalNotification {

@@ -1,113 +1,144 @@
-# PandaQuant 部署指南
+# Panda Quant Docker 配置
 
-本目录包含 PandaQuant 交易系统的所有部署相关文件。
+本项目使用 Docker 和 Docker Compose 来管理多个服务。主要包括三个部分：用户端、管理端和策略引擎。
 
-## 目录结构
+## 服务架构
 
-```
-docker/
-├── Dockerfile.admin-api      # 管理后台 API 镜像构建文件
-├── Dockerfile.admin-ui       # 管理后台前端镜像构建文件
-├── Dockerfile.server         # 服务器镜像构建文件
-├── Dockerfile.strategy-engine # 策略引擎镜像构建文件
-├── Dockerfile.user-api       # 用户 API 镜像构建文件
-├── Dockerfile.user-ui        # 用户前端镜像构建文件
-├── docker-compose.admin.yml  # 管理端服务编排配置
-├── docker-compose.strategy.yml # 策略引擎服务编排配置
-├── docker-compose.user.yml   # 用户端服务编排配置
-├── .env                      # 环境变量配置文件
-├── .env.example              # 环境变量配置示例文件
-├── nginx/                    # Nginx 配置文件目录
-│   ├── nginx.conf            # Nginx 主配置文件
-│   ├── admin.conf            # 管理后台 Nginx 配置
-│   ├── user.conf             # 用户端 Nginx 配置
-│   ├── strategy.conf         # 策略引擎 Nginx 配置
-│   └── server.conf           # 服务器 Nginx 配置
-├── scripts/                  # 部署和维护脚本目录
-│   ├── monitor.sh            # 系统监控脚本
-│   ├── backup.sh             # 数据备份脚本
-│   ├── restore.sh            # 数据恢复脚本
-│   ├── admin-deploy.sh       # 管理端部署脚本
-│   ├── user-deploy.sh        # 用户端部署脚本
-│   └── ssl-setup.sh          # SSL 证书配置脚本
-└── README.md                 # 部署文档
-```
+### 1. 用户端 (docker-compose.user.yml)
+- **API 服务**: 用户端 API 服务
+  - 端口: 4000
+  - 依赖: MongoDB, Redis
+- **UI 服务**: 用户端界面
+  - 端口: 3000
+  - 依赖: API 服务
+- **Nginx**: 反向代理和静态文件服务
+  - 端口: 80/443
+  - 域名: pandatrade.space
+- **MongoDB**: 用户数据存储
+  - 端口: 27019:27017
+- **Redis**: 缓存服务
+  - 端口: 6381:6379
 
-## 部署说明
+### 2. 管理端 (docker-compose.admin.yml)
+- **Admin API**: 管理端 API 服务
+  - 端口: 4000
+  - 依赖: MongoDB, Redis
+- **Admin UI**: 管理端界面
+  - 端口: 3000
+  - 依赖: Admin API
+- **Nginx**: 反向代理和静态文件服务
+  - 端口: 80/443
+  - 域名: admin.pandatrade.space
+- **MongoDB**: 管理数据存储
+  - 端口: 27017:27017
+- **Redis**: 缓存服务
+  - 端口: 6379:6379
 
-### 1. 环境准备
+### 3. 策略引擎 (docker-compose.strategy.yml)
+- **Server**: 策略服务器
+  - 端口: 4000
+  - 依赖: MongoDB, Redis
+- **Strategy Engine**: 策略引擎
+  - 端口: 3000
+  - 依赖: Server, MongoDB, Redis
+- **Nginx**: 反向代理
+  - 端口: 80/443
+  - 域名: strategy.pandatrade.space
+- **MongoDB**: 策略数据存储
+  - 端口: 27018:27017
+- **Redis**: 缓存服务
+  - 端口: 6380:6379
 
-确保服务器已安装以下软件：
-- Docker 和 Docker Compose
-- Nginx
-- Node.js 和 PM2
-- Certbot（用于 SSL 证书）
+## 网络配置
 
-### 2. 部署步骤
+每个服务组使用独立的网络：
+- user-network: 用户端服务网络
+- admin-network: 管理端服务网络
+- strategy-network: 策略引擎服务网络
 
+## DNS 配置
+
+所有服务都配置了多个 DNS 服务器以确保网络可靠性：
+- 8.8.8.8 (Google DNS)
+- 223.5.5.5 (阿里 DNS)
+
+## 构建和运行
+
+### 用户端
 ```bash
-# 1. 克隆项目到服务器
-git clone <项目仓库地址> panda-quant
-cd panda-quant/docker
-
-# 2. 复制环境变量文件
-cp .env.example .env
-
-# 3. 编辑环境变量文件
-nano .env
-# 根据您的配置修改必要的环境变量
-
-# 4. 部署管理端
-bash scripts/admin-deploy.sh
-
-# 5. 部署用户端
-bash scripts/user-deploy.sh
-
-# 6. 配置 SSL 证书
-bash scripts/ssl-setup.sh
+docker-compose -f docker-compose.user.yml up -d --build
 ```
 
-### 3. 服务说明
+### 管理端
+```bash
+docker-compose -f docker-compose.admin.yml up -d --build
+```
 
-- 管理端服务：
-  - 管理后台 API (admin-api)
-  - 管理后台前端 (admin-ui)
-  - MongoDB 和 Redis
-- 用户端服务：
-  - 用户 API (user-api)
-  - 用户前端 (user-ui)
-  - 策略引擎 (strategy-engine)
-  - 服务器 (server)
+### 策略引擎
+```bash
+docker-compose -f docker-compose.strategy.yml up -d --build
+```
 
-### 4. 域名配置
+## 环境变量
 
-需要配置以下域名：
-- 管理后台：admin.pandatrade.space
-- 管理 API：admin-api.pandatrade.space
-- 用户端：pandatrade.space
-- 用户 API：api.pandatrade.space
-- 策略引擎：strategy.pandatrade.space
-- 服务器：server.pandatrade.space
+所有服务都使用以下环境变量：
+- NODE_ENV: 环境类型 (production)
+- PORT: 服务端口
+- MONGO_URI: MongoDB 连接字符串
+- REDIS_URI: Redis 连接字符串
 
-### 5. 维护工具
+## 数据持久化
 
-- `scripts/monitor.sh`：系统监控脚本
-- `scripts/backup.sh`：数据备份脚本
-- `scripts/restore.sh`：数据恢复脚本
+使用 Docker volumes 持久化数据：
+- mongo_data: MongoDB 数据
+- redis_data: Redis 数据
 
-### 6. 注意事项
+## 安全配置
 
-- 部署前确保所有域名已正确配置 DNS 记录
-- 确保服务器防火墙已开放必要端口
-- 建议使用 PM2 管理 Node.js 进程
-- 定期检查日志和系统状态
+- 所有服务都配置了 SSL/TLS
+- 使用 Let's Encrypt 证书
+- 配置了安全相关的 HTTP 头
+- 使用非 root 用户运行服务
 
-### 7. 故障排除
+## 监控和健康检查
 
-- 使用 `pm2 list` 检查服务状态
-- 使用 `pm2 logs` 查看服务日志
-- 使用 `sudo nginx -t` 检查 Nginx 配置
-- 使用 `sudo certbot certificates` 检查 SSL 证书状态
+所有服务都配置了健康检查：
+```bash
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD curl -f http://localhost:${PORT}/health || exit 1
+```
+
+## 日志管理
+
+- 所有服务日志都通过 Docker 日志系统管理
+- Nginx 访问日志和错误日志存储在 /var/log/nginx 目录
+
+## 维护命令
+
+### 查看服务状态
+```bash
+docker-compose -f docker-compose.*.yml ps
+```
+
+### 查看服务日志
+```bash
+docker-compose -f docker-compose.*.yml logs -f
+```
+
+### 重启服务
+```bash
+docker-compose -f docker-compose.*.yml restart
+```
+
+### 停止服务
+```bash
+docker-compose -f docker-compose.*.yml down
+```
+
+### 清理未使用的资源
+```bash
+docker system prune -f
+```
 
 ## 技术支持
 

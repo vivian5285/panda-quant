@@ -22,8 +22,9 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="@/types/mongoose" />
 import { Types } from 'mongoose';
-import { IStrategy } from '../../types/strategy';
+import { IStrategy } from '../../types/Strategy';
 export declare class StrategyService {
     private static instance;
     private strategyModel;

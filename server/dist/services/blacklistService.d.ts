@@ -1,4 +1,4 @@
-import { IBlacklist, IBlacklistEntryDocument } from '../types/blacklist';
+import { IBlacklist, IBlacklistEntryDocument } from '../types/Blacklist';
 export declare class BlacklistService {
     private static instance;
     private constructor();

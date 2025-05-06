@@ -1,3 +1,3 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-//# sourceMappingURL=backtest.js.map
+//# sourceMappingURL=Backtest.js.map

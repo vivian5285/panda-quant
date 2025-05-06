@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { AuthenticatedRequest } from '../types/auth';
+import { AuthenticatedRequest } from '../types/Auth';
 export declare class WithdrawalController {
     createWithdrawal(req: AuthenticatedRequest, res: Response): Promise<void>;
     getWithdrawals(req: AuthenticatedRequest, res: Response): Promise<void>;

@@ -1,4 +1,4 @@
-import { IBlacklistEntry, BlacklistType, BlacklistStatus } from '../types/blacklist';
+import { IBlacklistEntry, BlacklistType, BlacklistStatus } from '../types/Blacklist';
 import { body } from 'express-validator';
 
 export const blacklistValidator = [

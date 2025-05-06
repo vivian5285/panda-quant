@@ -22,8 +22,9 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
-import { ISettlement } from '../types/settlement';
+import { ISettlement } from '../types/Settlement';
 export interface ISettlementDocument extends Omit<ISettlement, '_id'>, Document {
     _id: Types.ObjectId;
 }

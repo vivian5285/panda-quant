@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { AuthenticatedRequest } from '../types/auth';
+import { AuthenticatedRequest } from '../types/Auth';
 import { logger } from '../utils/logger';
 import { CommissionService } from '../services/CommissionService';
 import { ProfitService } from '../services/ProfitService';

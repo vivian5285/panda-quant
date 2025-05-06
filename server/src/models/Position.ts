@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { IPosition } from '../types/position';
+import { IPosition } from '../types/Position';
 
 const positionSchema = new Schema<IPosition>({
   userId: { type: String, required: true },

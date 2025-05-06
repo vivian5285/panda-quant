@@ -9,4 +9,4 @@ var SettlementStatus;
     SettlementStatus["FAILED"] = "failed";
     SettlementStatus["CANCELLED"] = "cancelled";
 })(SettlementStatus || (exports.SettlementStatus = SettlementStatus = {}));
-//# sourceMappingURL=settlement.js.map
+//# sourceMappingURL=Settlement.js.map

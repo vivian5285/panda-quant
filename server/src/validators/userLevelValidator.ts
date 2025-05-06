@@ -1,4 +1,4 @@
-import { IUserLevel } from '../types/userLevel';
+import { IUserLevel } from '../types/UserLevel';
 import { body, ValidationChain } from 'express-validator';
 
 export const userLevelValidator: ValidationChain[] = [

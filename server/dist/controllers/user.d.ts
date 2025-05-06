@@ -1,11 +1,12 @@
-import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../types/auth';
+import { Request, Response, NextFunction } from 'express';
 export declare class UserController {
-    private userService;
-    constructor();
-    login(req: Request, res: Response): Promise<void>;
-    register(req: Request, res: Response): Promise<void>;
-    getProfile: (req: AuthenticatedRequest, res: Response) => Promise<void>;
-    updateProfile: (req: AuthenticatedRequest, res: Response) => Promise<void>;
-    deleteUser: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+    register(req: Request, res: Response, next: NextFunction): Promise<void>;
+    login(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getCurrentUser(req: Request, res: Response, next: NextFunction): Promise<void>;
+    updateUser(req: Request, res: Response, next: NextFunction): Promise<void>;
+    changePassword(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getUserById(req: Request, res: Response, next: NextFunction): Promise<void>;
+    updateUserById(req: Request, res: Response, next: NextFunction): Promise<void>;
+    deleteUser(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

@@ -28,4 +28,4 @@ var TradeStatus;
     TradeStatus["CLOSED"] = "closed";
     TradeStatus["CANCELLED"] = "cancelled";
 })(TradeStatus || (exports.TradeStatus = TradeStatus = {}));
-//# sourceMappingURL=trading.js.map
+//# sourceMappingURL=Trading.js.map

@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const commissionController_1 = require("../controllers/commissionController");
@@ -9,32 +18,32 @@ const commissionController = new commissionController_1.CommissionController();
 // 所有路由都需要认证
 router.use(authMiddleware_1.authMiddleware);
 // 获取所有用户的佣金
-router.get('/all', async (req, res, next) => {
+router.get('/all', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        await commissionController.getCommissionByUserId(req, res);
+        yield commissionController.getCommissionByUserId(req, res);
     }
     catch (error) {
         next(error);
     }
-});
+}));
 // 获取当前用户的佣金
-router.get('/my', async (req, res, next) => {
+router.get('/my', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        await commissionController.getCommissionByUserId(req, res);
+        yield commissionController.getCommissionByUserId(req, res);
     }
     catch (error) {
         next(error);
     }
-});
+}));
 const handleRequest = (handler) => {
-    return async (req, res, next) => {
+    return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            await handler(req, res);
+            yield handler(req, res);
         }
         catch (error) {
             next(error);
         }
-    };
+    });
 };
 // 获取佣金列表
 router.get('/', ensureAuthenticated_1.ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionById(req, res)));

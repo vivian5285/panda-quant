@@ -22,6 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export type NotificationType = 'trade' | 'deposit' | 'withdrawal' | 'commission' | 'alert' | 'admin' | 'risk';
 export interface IDepositNotification {
@@ -34,16 +35,16 @@ export interface IDepositNotification {
     createdAt: Date;
     updatedAt: Date;
 }
-export interface INotification extends Document {
-    _id: Types.ObjectId;
+export interface INotification {
     userId: Types.ObjectId;
-    type: 'deposit' | 'withdrawal' | 'trade' | 'system';
-    title: string;
+    type: string;
     message: string;
-    read: boolean;
-    metadata?: Record<string, any>;
+    isRead: boolean;
     createdAt: Date;
     updatedAt: Date;
+}
+export interface INotificationDocument extends Omit<INotification, '_id'>, Document {
+    _id: Types.ObjectId;
 }
 export type Notification = INotification;
 export interface NotificationCreateInput extends Omit<INotification, '_id' | 'createdAt' | 'updatedAt'> {

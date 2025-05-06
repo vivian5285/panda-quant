@@ -1,22 +1,22 @@
 import { Request } from 'express';
 import { Document } from 'mongoose';
-import { IUser } from './user';
-import { IStrategy } from './strategy';
-import { ICommission } from './commission';
-import { ICommissionWithdrawal } from './commissionWithdrawal';
-import { IAlert } from './alert';
-import { IDeposit } from './deposit';
-import { IPosition } from './position';
-import { IStrategyRating } from './strategyRating';
-import { IBlacklistEntry } from './blacklist';
-import { IUserLevel } from './userLevel';
-import { AuthRequest as IAuthRequest } from './auth';
-import { IOrder, OrderType, OrderStatus } from './trading';
-import { IStrategyPerformance } from './performance';
-import { INotification } from './notification';
-import { IApiResponse, IApiError, IApiRequest } from './api';
-import { IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData } from './exchange';
-import { IMT4Account, IMT4Position, IMT4Order, IMT4Balance, IMT4MarketData } from './mt4';
+import { IUser } from './User';
+import { IStrategy } from './Strategy';
+import { ICommission } from './Commission';
+import { ICommissionWithdrawal } from './CommissionWithdrawal';
+import { IAlert } from './Alert';
+import { IDeposit } from './Deposit';
+import { IPosition } from './Position';
+import { IStrategyRating } from './StrategyRating';
+import { IBlacklistEntry } from './Blacklist';
+import { IUserLevel } from './UserLevel';
+import { AuthRequest as IAuthRequest } from './Auth';
+import { IOrder, OrderType, OrderStatus } from './Trading';
+import { IStrategyPerformance } from './Performance';
+import { INotification } from './Notification';
+import { IApiResponse, IApiError, IApiRequest } from './Api';
+import { IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData } from './Exchange';
+import { IMT4Account, IMT4Position, IMT4Order, IMT4Balance, IMT4MarketData } from './Mt4';
 
 // Base types
 export type User = IUser & Document;
@@ -115,7 +115,7 @@ export {
   PerformanceTrade,
   PerformanceChart,
   PerformanceComparison
-} from './performance';
+} from './Performance';
 
 // Trading types
 export {
@@ -129,7 +129,7 @@ export {
   OrderUpdateInput,
   TradeCreateInput,
   TradeUpdateInput
-} from './trading';
+} from './Trading';
 
 // Enum types
 export {
@@ -140,14 +140,19 @@ export {
   CommissionType,
   CommissionStatus,
   WithdrawalStatus
-} from './enums';
+} from './Enums';
 
 // Other types
-export * from './transaction';
-export * from './withdrawal';
-export * from './settlement';
-export * from './notification';
-export * from './risk';
-export * from './network';
-export * from './backtest';
-export * from './express.d'; 
+export * from './Transaction';
+export * from './Withdrawal';
+export * from './Settlement';
+export * from './Notification';
+export * from './Risk';
+export * from './Network';
+export * from './Backtest';
+export { AuthenticatedRequest } from './express';
+
+export * from './User';
+export * from './Auth';
+export * from './Commission';
+export * from './Strategy'; 

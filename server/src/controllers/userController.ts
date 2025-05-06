@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/UserService';
-import { AuthRequest } from '../types/auth';
+import { AuthRequest } from '../types/Auth';
 import { handleError } from '../utils/errorHandler';
 import { logger } from '../utils/logger';
 import { AppError } from '../utils/AppError';
 import { User } from '../models/User';
 import { AuthenticatedRequest } from '../types/express';
-import { IUser } from '../types/user';
+import { IUser } from '../types/User';
 
 export class UserController {
   private userService: UserService;

@@ -12,4 +12,4 @@ var BlacklistStatus;
     BlacklistStatus["ACTIVE"] = "active";
     BlacklistStatus["INACTIVE"] = "inactive";
 })(BlacklistStatus || (exports.BlacklistStatus = BlacklistStatus = {}));
-//# sourceMappingURL=blacklist.js.map
+//# sourceMappingURL=Blacklist.js.map

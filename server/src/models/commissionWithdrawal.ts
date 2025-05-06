@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { ICommissionWithdrawal } from '../types/commissionWithdrawal';
+import { ICommissionWithdrawal } from '../types/CommissionWithdrawal';
 
 const commissionWithdrawalSchema = new Schema<ICommissionWithdrawal>({
   userId: {

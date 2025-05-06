@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { authenticate, isAdmin } from '../middleware/auth';
+import { authenticate, isAdmin } from '../middleware/Auth';
 import { SettlementController } from '../controllers/settlement.controller';
-import { AuthenticatedRequest } from '../types/auth';
+import { AuthenticatedRequest } from '../types/Auth';
 import { authenticateToken } from '../middleware/auth.middleware';
 
 const router = Router();

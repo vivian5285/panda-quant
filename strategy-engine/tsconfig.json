@@ -15,14 +15,16 @@
       "@/*": ["src/*"]
     },
     "typeRoots": [
-      "./node_modules/@types",
-      "./src/types",
-      "./src/interfaces"
-    ]
+      "./node_modules/@types"
+    ],
+    "types": ["node"],
+    "allowJs": true,
+    "checkJs": false,
+    "noImplicitAny": false,
+    "sourceMap": true
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",

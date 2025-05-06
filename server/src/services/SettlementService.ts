@@ -2,14 +2,14 @@ import { Types } from 'mongoose';
 import Settlement from '../models/Settlement';
 import { PlatformEarning, IPlatformEarning } from '../models/PlatformEarning';
 import { NotFoundError } from '../utils/errors';
-import { SettlementFilter, SettlementResponse, SettlementSummary } from '../types/settlement';
+import { SettlementFilter, SettlementResponse, SettlementSummary } from '../types/Settlement';
 import { Commission } from '../models/Commission';
 import { format } from 'date-fns';
 import { Model } from 'mongoose';
 import { logger } from '../utils/logger';
-import { ISettlement, ISettlementDocument, SettlementMetadata, SettlementStatus } from '../types/settlement';
+import { ISettlement, ISettlementDocument, SettlementMetadata, SettlementStatus } from '../types/Settlement';
 import SettlementModel from '../models/settlement.model';
-import { CommissionStatus } from '../types/enums';
+import { CommissionStatus } from '../types/Enums';
 import User from '../models/User';
 
 export class SettlementService {

@@ -28,13 +28,20 @@ const mongoose_1 = __importStar(require("mongoose"));
 const depositSchema = new mongoose_1.Schema({
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
     amount: { type: Number, required: true },
-    currency: { type: String, required: true, default: 'USDT' },
+    currency: { type: String, required: true },
     status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
-    transactionId: { type: String, required: true },
+    transactionId: { type: String },
     network: { type: String, required: true },
     address: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
+}, {
+    timestamps: true
+});
+// 添加中间件来自动更新updatedAt字段
+depositSchema.pre('save', function (next) {
+    this.updatedAt = new Date();
+    next();
 });
 exports.Deposit = mongoose_1.default.model('Deposit', depositSchema);
 //# sourceMappingURL=Deposit.js.map

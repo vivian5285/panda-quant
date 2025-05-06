@@ -1,87 +1,47 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const userController_1 = require("../controllers/userController");
-const authMiddleware_1 = require("../middleware/authMiddleware");
-const adminMiddleware_1 = require("../middleware/adminMiddleware");
+const Auth_1 = require("../middleware/Auth");
+const validator_1 = require("../middleware/validator");
+const express_validator_1 = require("express-validator");
+const User_1 = require("../controllers/User");
 const router = (0, express_1.Router)();
-const userController = new userController_1.UserController();
-// 公共路由
-router.post('/login', async (req, res, next) => {
-    try {
-        await userController.login(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.post('/register', async (req, res, next) => {
-    try {
-        await userController.register(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-// 需要认证的路由
-router.use(authMiddleware_1.authMiddleware);
-router.post('/change-password', async (req, res, next) => {
-    try {
-        await userController.changePassword(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.get('/profile', async (req, res, next) => {
-    try {
-        await userController.getProfile(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
+const userController = new User_1.UserController();
+// 用户注册
+router.post('/register', (0, validator_1.validate)([
+    (0, express_validator_1.body)('email').isEmail().withMessage('Please provide a valid email'),
+    (0, express_validator_1.body)('password')
+        .isLength({ min: 6 })
+        .withMessage('Password must be at least 6 characters long'),
+    (0, express_validator_1.body)('name').notEmpty().withMessage('Name is required')
+]), userController.register);
+// 用户登录
+router.post('/login', (0, validator_1.validate)([
+    (0, express_validator_1.body)('email').isEmail().withMessage('Please provide a valid email'),
+    (0, express_validator_1.body)('password').notEmpty().withMessage('Password is required')
+]), userController.login);
+// 获取当前用户信息
+router.get('/me', Auth_1.authenticate, userController.getCurrentUser);
+// 更新用户信息
+router.put('/me', Auth_1.authenticate, (0, validator_1.validate)([
+    (0, express_validator_1.body)('name').optional().notEmpty().withMessage('Name cannot be empty'),
+    (0, express_validator_1.body)('email').optional().isEmail().withMessage('Please provide a valid email')
+]), userController.updateUser);
+// 更改密码
+router.put('/me/password', Auth_1.authenticate, (0, validator_1.validate)([
+    (0, express_validator_1.body)('currentPassword').notEmpty().withMessage('Current password is required'),
+    (0, express_validator_1.body)('newPassword')
+        .isLength({ min: 6 })
+        .withMessage('New password must be at least 6 characters long')
+]), userController.changePassword);
 // 管理员路由
-router.use(adminMiddleware_1.adminMiddleware);
-router.get('/users', async (req, res, next) => {
-    try {
-        await userController.getAllUsers(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.get('/users/:id', async (req, res, next) => {
-    try {
-        await userController.getUserById(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.post('/users', async (req, res, next) => {
-    try {
-        await userController.register(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.put('/users/:id', async (req, res, next) => {
-    try {
-        await userController.updateUser(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.delete('/users/:id', async (req, res, next) => {
-    try {
-        await userController.deleteUser(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
+router.get('/', Auth_1.authenticate, (0, Auth_1.authorize)('admin'), userController.getAllUsers);
+router.get('/:id', Auth_1.authenticate, (0, Auth_1.authorize)('admin'), userController.getUserById);
+router.put('/:id', Auth_1.authenticate, (0, Auth_1.authorize)('admin'), (0, validator_1.validate)([
+    (0, express_validator_1.body)('name').optional().notEmpty().withMessage('Name cannot be empty'),
+    (0, express_validator_1.body)('email').optional().isEmail().withMessage('Please provide a valid email'),
+    (0, express_validator_1.body)('role').optional().isIn(['user', 'admin']).withMessage('Invalid role')
+]), userController.updateUserById);
+router.delete('/:id', Auth_1.authenticate, (0, Auth_1.authorize)('admin'), userController.deleteUser);
 exports.default = router;
-//# sourceMappingURL=user.js.map
+//# sourceMappingURL=User.js.map

@@ -1,21 +1,25 @@
-import { Types, Document } from 'mongoose';
-
-export type TradeStatus = 'pending' | 'completed' | 'cancelled' | 'failed';
+import { Document, Types } from 'mongoose';
 
 export interface ITrade {
-  _id: Types.ObjectId;
   userId: Types.ObjectId;
   strategyId: Types.ObjectId;
   symbol: string;
-  type: 'buy' | 'sell';
+  type: 'long' | 'short';
+  side: 'buy' | 'sell';
   quantity: number;
   price: number;
-  status: TradeStatus;
-  metadata: Map<string, any>;
+  status: 'pending' | 'executed' | 'cancelled' | 'failed';
+  executedAt?: Date;
+  metadata?: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface ITradeDocument extends ITrade, Document {
+export interface ITradeDocument extends Omit<ITrade, '_id'>, Document {
   _id: Types.ObjectId;
-} 
+}
+
+export type Trade = ITrade;
+
+export interface TradeCreateInput extends Omit<ITrade, '_id' | 'createdAt' | 'updatedAt'> {}
+export interface TradeUpdateInput extends Partial<TradeCreateInput> {} 

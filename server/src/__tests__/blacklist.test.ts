@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import mongoose from 'mongoose';
-import { BlacklistEntry } from '../models/blacklist';
+import { BlacklistEntry } from '../models/Blacklist';
 import { BlacklistService } from '../services/BlacklistService';
 import { IBlacklistEntry } from '../types/IBlacklistEntry';
 import { Blacklist } from '../models/Blacklist';

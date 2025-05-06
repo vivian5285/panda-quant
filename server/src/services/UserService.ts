@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { User } from '../models/User';
-import { IUser } from '../types/user';
+import { IUser, IUserBase } from '../types/User';
 import bcrypt from 'bcrypt';
 import { logger } from '../utils/logger';
 
@@ -18,16 +18,9 @@ export class UserService {
 
   private convertToIUser(user: any): IUser | null {
     if (!user) return null;
-    const userObj = user.toObject ? user.toObject() : user;
     return {
-      ...userObj,
-      _id: user._id as Types.ObjectId,
-      id: user._id.toString(),
-      name: userObj.name || '',
-      level: userObj.level || 1,
-      role: userObj.role || 'user',
-      status: userObj.status || 'active',
-      permissions: userObj.permissions || []
+      ...user.toObject(),
+      _id: user._id
     };
   }
 
@@ -58,7 +51,7 @@ export class UserService {
     }
   }
 
-  async createUser(data: Partial<IUser>): Promise<IUser> {
+  async createUser(data: Partial<IUserBase>): Promise<IUser> {
     const user = new User({
       ...data,
       _id: new Types.ObjectId(),
@@ -81,7 +74,7 @@ export class UserService {
     return this.convertToIUser(user);
   }
 
-  async updateUser(id: string, data: Partial<IUser>): Promise<IUser | null> {
+  async updateUser(id: string, data: Partial<IUserBase>): Promise<IUser | null> {
     const user = await User.findByIdAndUpdate(id, data, { new: true });
     return this.convertToIUser(user);
   }

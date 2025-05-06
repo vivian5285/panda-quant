@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthRequest } from '../types/auth';
+import { AuthRequest } from '../types/Auth';
 import { AuthenticatedRequest } from '../types/express';
 export declare class UserController {
     private userService;

@@ -1,4 +1,4 @@
-import { IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData } from '../../types/exchange';
+import { IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData } from '../../types/Exchange';
 
 export abstract class BaseExchangeClient {
   protected credentials: IExchangeCredentials;

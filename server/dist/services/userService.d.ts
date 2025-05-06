@@ -1,4 +1,4 @@
-import { IUser } from '../types/user';
+import { IUser, IUserBase } from '../types/User';
 export declare class UserService {
     private static instance;
     private constructor();
@@ -8,9 +8,9 @@ export declare class UserService {
         user: IUser;
         token: string;
     }>;
-    createUser(data: Partial<IUser>): Promise<IUser>;
+    createUser(data: Partial<IUserBase>): Promise<IUser>;
     getUserById(id: string): Promise<IUser | null>;
-    updateUser(id: string, data: Partial<IUser>): Promise<IUser | null>;
+    updateUser(id: string, data: Partial<IUserBase>): Promise<IUser | null>;
     deleteUser(id: string): Promise<boolean>;
     getUserByEmail(email: string): Promise<IUser | null>;
     getUserByUsername(username: string): Promise<IUser | null>;

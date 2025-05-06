@@ -1,7 +1,8 @@
 import { Types } from 'mongoose';
 import { Commission } from '../models/Commission';
 import CommissionRule from '../models/CommissionRule';
-import { ICommission, ICommissionRule } from '../types/commission';
+import { ICommission, ICommissionRule } from '../types/Commission';
+import { CommissionType, CommissionStatus } from '../types/Enums';
 import { logger } from '../utils/logger';
 
 export class CommissionService {
@@ -21,7 +22,10 @@ export class CommissionService {
     return {
       ...commissionObject,
       _id: commissionObject._id.toString(),
-      userId: commissionObject.userId.toString()
+      userId: commissionObject.userId.toString(),
+      type: commissionObject.type as CommissionType,
+      status: commissionObject.status as CommissionStatus,
+      referenceId: commissionObject.referenceId.toString()
     } as ICommission;
   }
 
@@ -32,10 +36,10 @@ export class CommissionService {
       _id: ruleObject._id.toString(),
       name: ruleObject.name || '',
       description: ruleObject.description || '',
-      type: ruleObject.type || '',
+      type: ruleObject.type as 'percentage' | 'fixed',
       value: ruleObject.value || 0,
       conditions: ruleObject.conditions || {},
-      isActive: ruleObject.isActive || true,
+      isActive: ruleObject.isActive ?? true,
       createdAt: ruleObject.createdAt || new Date(),
       updatedAt: ruleObject.updatedAt || new Date()
     } as ICommissionRule;

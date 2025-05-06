@@ -1,5 +1,5 @@
 import { Document, Types } from 'mongoose';
-import { SettlementType } from './enums';
+import { SettlementType } from './Enums';
 
 export enum SettlementStatus {
   PENDING = 'pending',

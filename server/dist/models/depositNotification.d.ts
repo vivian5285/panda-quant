@@ -22,12 +22,10 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { Document, Types } from 'mongoose';
-import { IDepositNotification } from '../types/notification';
-export interface IDepositNotificationDocument extends IDepositNotification, Document {
-    _id: Types.ObjectId;
-}
-export declare const DepositNotification: import("mongoose").Model<IDepositNotificationDocument, {}, {}, {}, Document<unknown, {}, IDepositNotificationDocument> & IDepositNotificationDocument & Required<{
-    _id: Types.ObjectId;
+/// <reference types="@/types/mongoose" />
+import mongoose from 'mongoose';
+import { IDepositNotificationDocument } from '../types/DepositNotification';
+export declare const DepositNotification: mongoose.Model<IDepositNotificationDocument, {}, {}, {}, mongoose.Document<unknown, {}, IDepositNotificationDocument> & IDepositNotificationDocument & Required<{
+    _id: mongoose.Types.ObjectId;
 }>, any>;
 export default DepositNotification;

@@ -22,10 +22,11 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="@/types/mongoose" />
 import { Types } from 'mongoose';
 import { IPlatformEarning } from '../models/PlatformEarning';
-import { SettlementFilter, SettlementResponse, SettlementSummary } from '../types/settlement';
-import { ISettlement, ISettlementDocument, SettlementMetadata, SettlementStatus } from '../types/settlement';
+import { SettlementFilter, SettlementResponse, SettlementSummary } from '../types/Settlement';
+import { ISettlement, ISettlementDocument, SettlementMetadata, SettlementStatus } from '../types/Settlement';
 export declare class SettlementService {
     private static instance;
     private model;

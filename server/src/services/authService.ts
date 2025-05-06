@@ -1,9 +1,11 @@
-import { IUser } from '../types/user';
-import { IAuthToken } from '../types/auth';
+import { IUser } from '../types/User';
+import { IAuthToken } from '../types/Auth';
 import { User } from '../models/User';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { logger } from '../utils/logger';
+import { config } from '../config';
+import { UnauthorizedError, BadRequestError } from '../utils/errors';
 
 export class AuthService {
   private convertToIUser(user: any): IUser {

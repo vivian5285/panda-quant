@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import Settlement from '../models/Settlement';
 import { logger } from '../utils/logger';
-import { SettlementStatus, ISettlementDocument } from '../types/settlement';
+import { SettlementStatus, ISettlementDocument } from '../types/Settlement';
 
 export class SettlementService {
   private static instance: SettlementService;

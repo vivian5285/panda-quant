@@ -1,7 +1,13 @@
-import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
-import { Error } from 'mongoose';
+import { Request, Response, NextFunction } from 'express';
+import { ValidationError } from 'express-validator';
+import { Error as MongooseError } from 'mongoose';
 import { NotFoundError, BadRequestError, UnauthorizedError, ForbiddenError } from './errors';
 import { logger } from './logger';
+
+interface CustomError extends Error {
+  statusCode?: number;
+  errors?: ValidationError[];
+}
 
 export function handleError(res: Response, error: any): void {
   logger.error(error);
@@ -14,7 +20,7 @@ export function handleError(res: Response, error: any): void {
     res.status(401).json({ error: error.message });
   } else if (error instanceof ForbiddenError) {
     res.status(403).json({ error: error.message });
-  } else if (error instanceof Error.ValidationError) {
+  } else if (error instanceof MongooseError.ValidationError) {
     const errors = Object.values(error.errors).map(err => ({
       field: err.path,
       message: err.message
@@ -23,7 +29,7 @@ export function handleError(res: Response, error: any): void {
       success: false,
       errors: errors
     });
-  } else if (error instanceof Error.CastError) {
+  } else if (error instanceof MongooseError.CastError) {
     res.status(400).json({
       success: false,
       message: 'Invalid ID format'
@@ -33,18 +39,62 @@ export function handleError(res: Response, error: any): void {
   }
 }
 
-export const errorHandlerMiddleware: ErrorRequestHandler = (
-  err: Error,
-  _req: Request,
+export const errorHandlerMiddleware = (
+  err: CustomError,
+  req: Request,
   res: Response,
-  _next: NextFunction
-): void => {
-  logger.error('Error:', err);
+  next: NextFunction
+) => {
+  console.error(err);
 
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  // Mongoose validation error
+  if (err instanceof MongooseError.ValidationError) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        name: 'ValidationError',
+        message: 'Validation Error',
+        details: Object.values(err.errors).map(error => ({
+          field: error.path,
+          message: error.message
+        }))
+      }
+    });
+  }
+
+  // Express validator error
+  if (err.errors && Array.isArray(err.errors)) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        name: 'ValidationError',
+        message: 'Validation Error',
+        details: err.errors
+      }
+    });
+  }
+
+  // JWT error
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({
+      success: false,
+      error: {
+        name: 'AuthenticationError',
+        message: 'Invalid token'
+      }
+    });
+  }
+
+  // Default error
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
+
   res.status(statusCode).json({
-    status: 'error',
-    message: err.message || 'Internal Server Error',
-    stack: process.env['NODE_ENV'] === 'development' ? err.stack : undefined
+    success: false,
+    error: {
+      name: err.name || 'Error',
+      message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    }
   });
 }; 

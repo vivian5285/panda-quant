@@ -4,15 +4,16 @@
   "description": "User API for Panda Quant",
   "main": "src/index.ts",
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "build": "tsc",
+    "build": "tsc --skipLibCheck",
     "build:skip-type-check": "tsc --skipLibCheck --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:init-db": "node -r dotenv/config scripts/init-test-db.js dotenv_config_path=.env.test",
-    "init-test-user": "ts-node src/scripts/init-test-user.ts"
+    "init-test-user": "ts-node src/scripts/init-test-user.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.10.0",

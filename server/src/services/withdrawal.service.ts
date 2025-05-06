@@ -1,140 +1,67 @@
-import { Types, Model } from 'mongoose';
+import { Types } from 'mongoose';
 import { Withdrawal } from '../models/Withdrawal';
-import { WithdrawalStatus } from '../types/enums';
-import { IWithdrawal, IWithdrawalDocument } from '../types/withdrawal';
+import { IWithdrawal, IWithdrawalDocument } from '../types/Withdrawal';
 import { logger } from '../utils/logger';
 
 export class WithdrawalService {
-  private withdrawalModel: Model<IWithdrawalDocument>;
+  private static instance: WithdrawalService;
 
-  constructor() {
-    this.withdrawalModel = Withdrawal as Model<IWithdrawalDocument>;
+  private constructor() {}
+
+  public static getInstance(): WithdrawalService {
+    if (!WithdrawalService.instance) {
+      WithdrawalService.instance = new WithdrawalService();
+    }
+    return WithdrawalService.instance;
   }
 
-  async createWithdrawal(data: Partial<IWithdrawal>): Promise<IWithdrawalDocument> {
+  async createWithdrawal(data: Omit<IWithdrawal, '_id' | 'createdAt' | 'updatedAt'>): Promise<IWithdrawal> {
     try {
-      const withdrawal = new this.withdrawalModel({
-        ...data,
-        status: data.status || WithdrawalStatus.PENDING,
-        userId: new Types.ObjectId(data.userId)
-      });
-      return await withdrawal.save();
+      const withdrawal = new Withdrawal(data);
+      const savedWithdrawal = await withdrawal.save();
+      return savedWithdrawal.toObject();
     } catch (error) {
       logger.error('Error creating withdrawal:', error);
       throw error;
     }
   }
 
-  async getWithdrawals(userId: string): Promise<IWithdrawalDocument[]> {
+  async getWithdrawalById(id: string): Promise<IWithdrawal | null> {
     try {
-      return await this.withdrawalModel.find({ userId: new Types.ObjectId(userId) });
-    } catch (error) {
-      logger.error('Error getting withdrawals:', error);
-      throw error;
-    }
-  }
-
-  async getWithdrawal(id: string, userId: string): Promise<IWithdrawalDocument | null> {
-    try {
-      return await this.withdrawalModel.findOne({ 
-        _id: new Types.ObjectId(id), 
-        userId: new Types.ObjectId(userId) 
-      });
+      const withdrawal = await Withdrawal.findById(id);
+      return withdrawal ? withdrawal.toObject() : null;
     } catch (error) {
       logger.error('Error getting withdrawal:', error);
       throw error;
     }
   }
 
-  async updateWithdrawal(id: string, userId: string, data: Partial<IWithdrawal>): Promise<IWithdrawalDocument | null> {
+  async updateWithdrawal(id: string, data: Partial<IWithdrawal>): Promise<IWithdrawal | null> {
     try {
-      return await this.withdrawalModel.findOneAndUpdate(
-        { _id: new Types.ObjectId(id), userId: new Types.ObjectId(userId) },
-        { $set: data },
-        { new: true }
-      );
+      const withdrawal = await Withdrawal.findByIdAndUpdate(id, data, { new: true });
+      return withdrawal ? withdrawal.toObject() : null;
     } catch (error) {
       logger.error('Error updating withdrawal:', error);
       throw error;
     }
   }
 
-  async deleteWithdrawal(id: string, userId: string): Promise<IWithdrawalDocument | null> {
+  async deleteWithdrawal(id: string): Promise<boolean> {
     try {
-      return await this.withdrawalModel.findOneAndDelete({ 
-        _id: new Types.ObjectId(id), 
-        userId: new Types.ObjectId(userId) 
-      });
+      const result = await Withdrawal.findByIdAndDelete(id);
+      return result !== null;
     } catch (error) {
       logger.error('Error deleting withdrawal:', error);
       throw error;
     }
   }
 
-  async getWithdrawalsByStatus(userId: string, status: WithdrawalStatus): Promise<IWithdrawalDocument[]> {
+  async getWithdrawalsByUserId(userId: string): Promise<IWithdrawal[]> {
     try {
-      return await this.withdrawalModel.find({ 
-        userId: new Types.ObjectId(userId), 
-        status 
-      });
+      const withdrawals = await Withdrawal.find({ userId });
+      return withdrawals.map(withdrawal => withdrawal.toObject());
     } catch (error) {
-      logger.error('Error getting withdrawals by status:', error);
-      throw error;
-    }
-  }
-
-  async getWithdrawalsByPaymentMethod(userId: string, paymentMethod: string): Promise<IWithdrawalDocument[]> {
-    try {
-      return await this.withdrawalModel.find({ 
-        userId: new Types.ObjectId(userId), 
-        paymentMethod 
-      });
-    } catch (error) {
-      logger.error('Error getting withdrawals by payment method:', error);
-      throw error;
-    }
-  }
-
-  async getWithdrawalStats(userId: string): Promise<{
-    totalWithdrawals: number;
-    totalAmount: number;
-    pendingWithdrawals: number;
-  }> {
-    try {
-      const stats = await this.withdrawalModel.aggregate([
-        { $match: { userId: new Types.ObjectId(userId) } },
-        {
-          $group: {
-            _id: null,
-            totalWithdrawals: { $sum: 1 },
-            totalAmount: { $sum: '$amount' },
-            pendingWithdrawals: {
-              $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] }
-            }
-          }
-        }
-      ]);
-
-      return stats[0] || {
-        totalWithdrawals: 0,
-        totalAmount: 0,
-        pendingWithdrawals: 0
-      };
-    } catch (error) {
-      logger.error('Error getting withdrawal stats:', error);
-      throw error;
-    }
-  }
-
-  async cancelWithdrawal(data: { _id: Types.ObjectId; status: string }): Promise<IWithdrawalDocument | null> {
-    try {
-      return await this.withdrawalModel.findByIdAndUpdate(
-        data._id,
-        { status: data.status },
-        { new: true }
-      );
-    } catch (error) {
-      logger.error('Error cancelling withdrawal:', error);
+      logger.error('Error getting withdrawals by user:', error);
       throw error;
     }
   }

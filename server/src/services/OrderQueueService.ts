@@ -1,4 +1,4 @@
-import { IOrder } from '../types/trading';
+import { IOrder } from '../types/Trading';
 import { AppError } from '../utils/AppError';
 import { logger } from '../utils/logger';
 

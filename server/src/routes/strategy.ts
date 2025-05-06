@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { strategyController } from '../controllers/StrategyController';
-import { AuthenticatedRequest } from '../types/auth';
+import { AuthenticatedRequest } from '../types/Auth';
 import { authenticateToken } from '../middleware/auth.middleware';
 
 const router = Router();

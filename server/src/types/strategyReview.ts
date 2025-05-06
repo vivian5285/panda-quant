@@ -1,15 +1,25 @@
 import { Document, Types } from 'mongoose';
 
-export interface IStrategyReview {
+export interface IStrategyReview extends Document {
   _id: Types.ObjectId;
-  strategyId: Types.ObjectId;
   userId: Types.ObjectId;
+  strategyId: Types.ObjectId;
   rating: number;
-  comment: string;
+  comment?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface IStrategyReviewDocument extends IStrategyReview, Document {
-  _id: Types.ObjectId;
+export type StrategyReview = IStrategyReview;
+
+export interface StrategyReviewCreateInput {
+  userId: Types.ObjectId;
+  strategyId: Types.ObjectId;
+  rating: number;
+  comment?: string;
+}
+
+export interface StrategyReviewUpdateInput {
+  rating?: number;
+  comment?: string;
 } 

@@ -1,28 +1,24 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { Types } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { IDeposit, IDepositDocument } from '../types/Deposit';
 
-export interface IDeposit extends Document {
-  userId: Types.ObjectId;
-  amount: number;
-  currency: string;
-  status: 'pending' | 'completed' | 'failed';
-  transactionId: string;
-  network: string;
-  address: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const depositSchema = new Schema<IDeposit>({
+const depositSchema = new Schema<IDepositDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   amount: { type: Number, required: true },
-  currency: { type: String, required: true, default: 'USDT' },
+  currency: { type: String, required: true },
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
-  transactionId: { type: String, required: true },
+  transactionId: { type: String },
   network: { type: String, required: true },
   address: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true
 });
 
-export const Deposit = mongoose.model<IDeposit>('Deposit', depositSchema); 
+// 添加中间件来自动更新updatedAt字段
+depositSchema.pre('save', function(this: IDepositDocument, next) {
+  this.updatedAt = new Date();
+  next();
+});
+
+export const Deposit = mongoose.model<IDepositDocument>('Deposit', depositSchema); 

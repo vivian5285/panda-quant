@@ -1,5 +1,5 @@
 import { Blacklist } from '../models/Blacklist';
-import { IBlacklist, IBlacklistEntryDocument, BlacklistStatus } from '../types/blacklist';
+import { IBlacklist, IBlacklistEntryDocument, BlacklistStatus } from '../types/Blacklist';
 import { logger } from '../utils/logger';
 
 export class BlacklistService {

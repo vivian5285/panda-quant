@@ -1,31 +1,28 @@
-import { Schema, model, Document } from 'mongoose';
-import { CommissionStatus, CommissionType } from '../types/enums';
+import mongoose, { Schema, Document, Types } from 'mongoose';
+import { ICommission, ICommissionBase } from '../types/Commission';
+import { CommissionType, CommissionStatus } from '../types/Enums';
 
-export interface ICommission extends Document {
-  userId: Schema.Types.ObjectId;
-  amount: number;
-  type: CommissionType;
-  status: CommissionStatus;
-  description?: string;
-  referenceId?: string;
-  referenceType?: string;
-  metadata?: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
+type ICommissionDocument = ICommission;
 
-const CommissionSchema = new Schema<ICommission>(
-  {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    amount: { type: Number, required: true },
-    type: { type: String, enum: Object.values(CommissionType), required: true },
-    status: { type: String, enum: Object.values(CommissionStatus), default: CommissionStatus.PENDING },
-    description: { type: String },
-    referenceId: { type: String },
-    referenceType: { type: String },
-    metadata: { type: Schema.Types.Mixed }
-  },
-  { timestamps: true }
-);
+const commissionSchema = new Schema<ICommissionDocument>({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  amount: { type: Number, required: true },
+  type: { type: String, enum: Object.values(CommissionType), required: true },
+  status: { type: String, enum: Object.values(CommissionStatus), default: CommissionStatus.PENDING },
+  description: { type: String },
+  referenceId: { type: Schema.Types.ObjectId, required: true },
+  referenceType: { type: String, required: true },
+  metadata: { type: Schema.Types.Mixed },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+}, {
+  timestamps: true
+});
 
-export const Commission = model<ICommission>('Commission', CommissionSchema); 
+// 添加中间件来自动更新updatedAt字段
+commissionSchema.pre('save', function(this: ICommissionDocument, next) {
+  this.updatedAt = new Date();
+  next();
+});
+
+export const Commission = mongoose.model<ICommissionDocument>('Commission', commissionSchema); 

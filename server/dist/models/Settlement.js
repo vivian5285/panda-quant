@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
-const settlement_1 = require("../types/settlement");
-const enums_1 = require("../types/enums");
+const Settlement_1 = require("../types/Settlement");
+const Enums_1 = require("../types/Enums");
 const settlementSchema = new mongoose_1.Schema({
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
     amount: { type: Number, required: true },
-    type: { type: String, required: true, enum: Object.values(enums_1.SettlementType) },
-    status: { type: String, required: true, enum: Object.values(settlement_1.SettlementStatus) },
+    type: { type: String, required: true, enum: Object.values(Enums_1.SettlementType) },
+    status: { type: String, required: true, enum: Object.values(Settlement_1.SettlementStatus) },
     referenceId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Commission', required: true },
     referenceType: { type: String, required: true },
     description: { type: String },
