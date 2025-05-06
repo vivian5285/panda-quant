@@ -1,5 +1,7 @@
-import { Schema, model } from 'mongoose';
-const CommissionRuleSchema = new Schema({
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const mongoose_1 = require("mongoose");
+const CommissionRuleSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
     description: { type: String, required: true },
     type: { type: String, required: true, enum: ['percentage', 'fixed'] },
@@ -26,5 +28,5 @@ CommissionRuleSchema.pre('save', function (next) {
     this.updatedAt = new Date();
     next();
 });
-export default model('CommissionRule', CommissionRuleSchema);
+exports.default = (0, mongoose_1.model)('CommissionRule', CommissionRuleSchema);
 //# sourceMappingURL=CommissionRule.js.map

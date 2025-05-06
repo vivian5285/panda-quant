@@ -1,7 +1,10 @@
-import { CommissionService } from '../services/CommissionService';
-import { logger } from '../utils/logger';
-import { Types } from 'mongoose';
-export class CommissionController {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CommissionController = void 0;
+const CommissionService_1 = require("../services/CommissionService");
+const logger_1 = require("../utils/logger");
+const mongoose_1 = require("mongoose");
+class CommissionController {
     constructor() {
         this.getCommissionById = async (req, res) => {
             try {
@@ -14,7 +17,7 @@ export class CommissionController {
                 res.json(commission);
             }
             catch (error) {
-                logger.error('Error getting commission details:', error);
+                logger_1.logger.error('Error getting commission details:', error);
                 res.status(500).json({ message: 'Error getting commission details', error });
             }
         };
@@ -29,7 +32,7 @@ export class CommissionController {
                 res.json(commission);
             }
             catch (error) {
-                logger.error('Error getting commission by user id:', error);
+                logger_1.logger.error('Error getting commission by user id:', error);
                 res.status(500).json({ message: 'Error getting commission by user id', error });
             }
         };
@@ -45,7 +48,7 @@ export class CommissionController {
                 res.status(201).json(commission);
             }
             catch (error) {
-                logger.error('Error creating commission:', error);
+                logger_1.logger.error('Error creating commission:', error);
                 res.status(500).json({ message: 'Error creating commission', error });
             }
         };
@@ -60,7 +63,7 @@ export class CommissionController {
                 res.json(commission);
             }
             catch (error) {
-                logger.error('Error updating commission:', error);
+                logger_1.logger.error('Error updating commission:', error);
                 res.status(500).json({ message: 'Error updating commission', error });
             }
         };
@@ -75,7 +78,7 @@ export class CommissionController {
                 res.json({ message: 'Commission deleted successfully' });
             }
             catch (error) {
-                logger.error('Error deleting commission:', error);
+                logger_1.logger.error('Error deleting commission:', error);
                 res.status(500).json({ message: 'Error deleting commission', error });
             }
         };
@@ -85,7 +88,7 @@ export class CommissionController {
                 res.json(rules);
             }
             catch (error) {
-                logger.error('Error getting commission rules:', error);
+                logger_1.logger.error('Error getting commission rules:', error);
                 res.status(500).json({ message: 'Error getting commission rules', error });
             }
         };
@@ -95,7 +98,7 @@ export class CommissionController {
                 res.status(201).json(rule);
             }
             catch (error) {
-                logger.error('Error creating commission rule:', error);
+                logger_1.logger.error('Error creating commission rule:', error);
                 res.status(500).json({ message: 'Error creating commission rule', error });
             }
         };
@@ -103,7 +106,7 @@ export class CommissionController {
             try {
                 const { id } = req.params;
                 const rule = await this.commissionService.updateCommissionRule({
-                    _id: new Types.ObjectId(id),
+                    _id: new mongoose_1.Types.ObjectId(id),
                     ...req.body
                 });
                 if (!rule) {
@@ -113,14 +116,14 @@ export class CommissionController {
                 res.json(rule);
             }
             catch (error) {
-                logger.error('Error updating commission rule:', error);
+                logger_1.logger.error('Error updating commission rule:', error);
                 res.status(500).json({ message: 'Error updating commission rule', error });
             }
         };
         this.deleteCommissionRule = async (req, res) => {
             try {
                 const { id } = req.params;
-                const success = await this.commissionService.deleteCommissionRule(new Types.ObjectId(id));
+                const success = await this.commissionService.deleteCommissionRule(new mongoose_1.Types.ObjectId(id));
                 if (!success) {
                     res.status(404).json({ message: 'Commission rule not found' });
                     return;
@@ -128,7 +131,7 @@ export class CommissionController {
                 res.json({ message: 'Commission rule deleted successfully' });
             }
             catch (error) {
-                logger.error('Error deleting commission rule:', error);
+                logger_1.logger.error('Error deleting commission rule:', error);
                 res.status(500).json({ message: 'Error deleting commission rule', error });
             }
         };
@@ -139,7 +142,7 @@ export class CommissionController {
                 res.json(commissions);
             }
             catch (error) {
-                logger.error('Error getting commissions by type:', error);
+                logger_1.logger.error('Error getting commissions by type:', error);
                 res.status(500).json({ message: 'Error getting commissions by type', error });
             }
         };
@@ -150,7 +153,7 @@ export class CommissionController {
                 res.json(commissions);
             }
             catch (error) {
-                logger.error('Error getting commissions by status, type and amount:', error);
+                logger_1.logger.error('Error getting commissions by status, type and amount:', error);
                 res.status(500).json({ message: 'Error getting commissions by status, type and amount', error });
             }
         };
@@ -161,7 +164,7 @@ export class CommissionController {
                 res.json(commissions);
             }
             catch (error) {
-                logger.error('Error getting commissions by status, type, amount and currency:', error);
+                logger_1.logger.error('Error getting commissions by status, type, amount and currency:', error);
                 res.status(500).json({ message: 'Error getting commissions by status, type, amount and currency', error });
             }
         };
@@ -172,7 +175,7 @@ export class CommissionController {
                 res.json(commissions);
             }
             catch (error) {
-                logger.error('Error getting commissions by user, status, type, amount and currency:', error);
+                logger_1.logger.error('Error getting commissions by user, status, type, amount and currency:', error);
                 res.status(500).json({ message: 'Error getting commissions by user, status, type, amount and currency', error });
             }
         };
@@ -183,11 +186,12 @@ export class CommissionController {
                 res.json(commissions);
             }
             catch (error) {
-                logger.error('Error getting commissions by status, type, amount, currency and description:', error);
+                logger_1.logger.error('Error getting commissions by status, type, amount, currency and description:', error);
                 res.status(500).json({ message: 'Error getting commissions by status, type, amount, currency and description', error });
             }
         };
-        this.commissionService = CommissionService.getInstance();
+        this.commissionService = CommissionService_1.CommissionService.getInstance();
     }
 }
+exports.CommissionController = CommissionController;
 //# sourceMappingURL=commissionController.js.map

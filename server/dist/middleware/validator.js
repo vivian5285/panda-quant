@@ -1,9 +1,12 @@
-import { validationResult } from 'express-validator';
-import { ValidationError } from '../utils/errors';
-export const validate = (validations) => {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.commonValidators = exports.validateParams = exports.validateQuery = exports.validate = void 0;
+const express_validator_1 = require("express-validator");
+const errors_1 = require("../utils/errors");
+const validate = (validations) => {
     return async (req, res, next) => {
         await Promise.all(validations.map(validation => validation.run(req)));
-        const errors = validationResult(req);
+        const errors = (0, express_validator_1.validationResult)(req);
         if (errors.isEmpty()) {
             return next();
         }
@@ -11,13 +14,14 @@ export const validate = (validations) => {
             field: err.type === 'field' ? err.path : err.type,
             message: err.msg
         }));
-        throw new ValidationError(extractedErrors);
+        throw new errors_1.ValidationError(extractedErrors);
     };
 };
-export const validateQuery = (validations) => {
+exports.validate = validate;
+const validateQuery = (validations) => {
     return async (req, res, next) => {
         await Promise.all(validations.map(validation => validation.run(req)));
-        const errors = validationResult(req);
+        const errors = (0, express_validator_1.validationResult)(req);
         if (errors.isEmpty()) {
             return next();
         }
@@ -25,13 +29,14 @@ export const validateQuery = (validations) => {
             field: err.type === 'field' ? err.path : err.type,
             message: err.msg
         }));
-        throw new ValidationError(extractedErrors);
+        throw new errors_1.ValidationError(extractedErrors);
     };
 };
-export const validateParams = (validations) => {
+exports.validateQuery = validateQuery;
+const validateParams = (validations) => {
     return async (req, res, next) => {
         await Promise.all(validations.map(validation => validation.run(req)));
-        const errors = validationResult(req);
+        const errors = (0, express_validator_1.validationResult)(req);
         if (errors.isEmpty()) {
             return next();
         }
@@ -39,10 +44,11 @@ export const validateParams = (validations) => {
             field: err.type === 'field' ? err.path : err.type,
             message: err.msg
         }));
-        throw new ValidationError(extractedErrors);
+        throw new errors_1.ValidationError(extractedErrors);
     };
 };
-export const commonValidators = {
+exports.validateParams = validateParams;
+exports.commonValidators = {
     email: (field = 'email') => {
         return {
             field,

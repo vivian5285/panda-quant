@@ -1,6 +1,9 @@
-import { logger } from '../utils/logger';
-import { StrategyService } from '../services/StrategyService';
-export class StrategyController {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.StrategyController = void 0;
+const logger_1 = require("../utils/logger");
+const StrategyService_1 = require("../services/StrategyService");
+class StrategyController {
     constructor() {
         this.getStrategies = async (req, res) => {
             try {
@@ -12,7 +15,7 @@ export class StrategyController {
                 res.json(strategies);
             }
             catch (error) {
-                logger.error('Error getting strategies:', error);
+                logger_1.logger.error('Error getting strategies:', error);
                 res.status(500).json({ message: 'Error getting strategies', error: error.message });
             }
         };
@@ -26,7 +29,7 @@ export class StrategyController {
                 res.json(strategy);
             }
             catch (error) {
-                logger.error('Error getting strategy:', error);
+                logger_1.logger.error('Error getting strategy:', error);
                 res.status(500).json({ message: 'Error getting strategy', error: error.message });
             }
         };
@@ -43,7 +46,7 @@ export class StrategyController {
                 res.status(201).json({ message: 'Strategy created successfully', strategy });
             }
             catch (error) {
-                logger.error('Error creating strategy:', error);
+                logger_1.logger.error('Error creating strategy:', error);
                 res.status(500).json({ message: 'Error creating strategy', error });
             }
         };
@@ -57,7 +60,7 @@ export class StrategyController {
                 res.json({ message: 'Strategy updated successfully', strategy });
             }
             catch (error) {
-                logger.error('Error updating strategy:', error);
+                logger_1.logger.error('Error updating strategy:', error);
                 res.status(500).json({ message: 'Error updating strategy', error });
             }
         };
@@ -71,13 +74,14 @@ export class StrategyController {
                 res.json({ message: 'Strategy deleted successfully' });
             }
             catch (error) {
-                logger.error('Error deleting strategy:', error);
+                logger_1.logger.error('Error deleting strategy:', error);
                 res.status(500).json({ message: 'Error deleting strategy', error });
             }
         };
-        this.strategyService = StrategyService.getInstance();
+        this.strategyService = StrategyService_1.StrategyService.getInstance();
     }
 }
+exports.StrategyController = StrategyController;
 const strategyController = new StrategyController();
-export default strategyController;
+exports.default = strategyController;
 //# sourceMappingURL=Strategy.js.map

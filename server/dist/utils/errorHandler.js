@@ -1,21 +1,24 @@
-import { Error as MongooseError } from 'mongoose';
-import { NotFoundError, BadRequestError, UnauthorizedError, ForbiddenError } from './errors';
-import { logger } from './logger';
-export function handleError(res, error) {
-    logger.error(error);
-    if (error instanceof NotFoundError) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.errorHandlerMiddleware = exports.handleError = void 0;
+const mongoose_1 = require("mongoose");
+const errors_1 = require("./errors");
+const logger_1 = require("./logger");
+function handleError(res, error) {
+    logger_1.logger.error(error);
+    if (error instanceof errors_1.NotFoundError) {
         res.status(404).json({ error: error.message });
     }
-    else if (error instanceof BadRequestError) {
+    else if (error instanceof errors_1.BadRequestError) {
         res.status(400).json({ error: error.message });
     }
-    else if (error instanceof UnauthorizedError) {
+    else if (error instanceof errors_1.UnauthorizedError) {
         res.status(401).json({ error: error.message });
     }
-    else if (error instanceof ForbiddenError) {
+    else if (error instanceof errors_1.ForbiddenError) {
         res.status(403).json({ error: error.message });
     }
-    else if (error instanceof MongooseError.ValidationError) {
+    else if (error instanceof mongoose_1.Error.ValidationError) {
         const errors = Object.values(error.errors).map(err => ({
             field: err.path,
             message: err.message
@@ -25,7 +28,7 @@ export function handleError(res, error) {
             errors: errors
         });
     }
-    else if (error instanceof MongooseError.CastError) {
+    else if (error instanceof mongoose_1.Error.CastError) {
         res.status(400).json({
             success: false,
             message: 'Invalid ID format'
@@ -35,10 +38,11 @@ export function handleError(res, error) {
         res.status(500).json({ error: '服务器内部错误' });
     }
 }
-export const errorHandlerMiddleware = (err, req, res, next) => {
+exports.handleError = handleError;
+const errorHandlerMiddleware = (err, req, res, next) => {
     console.error(err);
     // Mongoose validation error
-    if (err instanceof MongooseError.ValidationError) {
+    if (err instanceof mongoose_1.Error.ValidationError) {
         return res.status(400).json({
             success: false,
             error: {
@@ -84,4 +88,5 @@ export const errorHandlerMiddleware = (err, req, res, next) => {
         }
     });
 };
+exports.errorHandlerMiddleware = errorHandlerMiddleware;
 //# sourceMappingURL=errorHandler.js.map

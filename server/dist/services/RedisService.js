@@ -1,12 +1,15 @@
-import { createClient } from 'redis';
-import { logger } from '../utils/logger';
-export class RedisService {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.RedisService = void 0;
+const redis_1 = require("redis");
+const logger_1 = require("../utils/logger");
+class RedisService {
     constructor() {
-        this.client = createClient({
+        this.client = (0, redis_1.createClient)({
             url: process.env['REDIS_URL'] || 'redis://localhost:6379'
         });
         this.client.on('error', (err) => {
-            logger.error('Redis Client Error:', err);
+            logger_1.logger.error('Redis Client Error:', err);
         });
         this.client.connect();
     }
@@ -41,4 +44,5 @@ export class RedisService {
         return await this.client.expire(key, seconds);
     }
 }
+exports.RedisService = RedisService;
 //# sourceMappingURL=RedisService.js.map

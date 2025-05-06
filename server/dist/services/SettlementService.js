@@ -1,20 +1,26 @@
-import { Types } from 'mongoose';
-import Settlement from '../models/Settlement';
-import { PlatformEarning } from '../models/PlatformEarning';
-import { NotFoundError } from '../utils/errors';
-import { Commission } from '../models/Commission';
-import { format } from 'date-fns';
-import { logger } from '../utils/logger';
-import { SettlementStatus } from '../types/Settlement';
-import SettlementModel from '../models/settlement.model';
-import { CommissionStatus } from '../types/Enums';
-import User from '../models/User';
-export class SettlementService {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SettlementService = void 0;
+const mongoose_1 = require("mongoose");
+const Settlement_1 = __importDefault(require("../models/Settlement"));
+const PlatformEarning_1 = require("../models/PlatformEarning");
+const errors_1 = require("../utils/errors");
+const Commission_1 = require("../models/Commission");
+const date_fns_1 = require("date-fns");
+const logger_1 = require("../utils/logger");
+const Settlement_2 = require("../types/Settlement");
+const settlement_model_1 = __importDefault(require("../models/settlement.model"));
+const Enums_1 = require("../types/Enums");
+const User_1 = __importDefault(require("../models/User"));
+class SettlementService {
     constructor() {
-        this.model = SettlementModel;
-        this.commissionModel = Commission;
-        this.platformEarningModel = PlatformEarning;
-        this.userModel = User;
+        this.model = settlement_model_1.default;
+        this.commissionModel = Commission_1.Commission;
+        this.platformEarningModel = PlatformEarning_1.PlatformEarning;
+        this.userModel = User_1.default;
     }
     static getInstance() {
         if (!SettlementService.instance) {
@@ -78,20 +84,20 @@ export class SettlementService {
             return settlement;
         }
         catch (error) {
-            logger.error('Error getting settlement details:', error);
+            logger_1.logger.error('Error getting settlement details:', error);
             throw error;
         }
     }
     async updateSettlementStatus(id, status) {
         try {
-            const updatedSettlement = await SettlementModel.findByIdAndUpdate(id, { status }, { new: true });
+            const updatedSettlement = await settlement_model_1.default.findByIdAndUpdate(id, { status }, { new: true });
             if (!updatedSettlement) {
                 return null;
             }
             return this.convertToISettlement(updatedSettlement);
         }
         catch (error) {
-            logger.error('Error updating settlement status:', error);
+            logger_1.logger.error('Error updating settlement status:', error);
             throw error;
         }
     }
@@ -103,7 +109,7 @@ export class SettlementService {
             settlement.userId.toString(),
             settlement.amount.toString(),
             settlement.metadata?.commissionIds?.join(',') || '',
-            format(settlement.createdAt || new Date(), 'yyyy-MM-dd HH:mm:ss'),
+            (0, date_fns_1.format)(settlement.createdAt || new Date(), 'yyyy-MM-dd HH:mm:ss'),
             settlement.status
         ]);
         return [headers, ...rows].join('\n');
@@ -146,8 +152,8 @@ export class SettlementService {
                 }
             }
             // 创建结算记录
-            const settlement = new Settlement({
-                userId: new Types.ObjectId(userId),
+            const settlement = new Settlement_1.default({
+                userId: new mongoose_1.Types.ObjectId(userId),
                 amount: userShare,
                 type: 'deposit',
                 status: 'pending',
@@ -165,18 +171,18 @@ export class SettlementService {
     }
     async processPayment(id) {
         try {
-            const settlement = await SettlementModel.findById(id);
+            const settlement = await settlement_model_1.default.findById(id);
             if (!settlement) {
                 return null;
             }
-            settlement.status = SettlementStatus.COMPLETED;
+            settlement.status = Settlement_2.SettlementStatus.COMPLETED;
             settlement.completedAt = new Date();
             settlement.updatedAt = new Date();
             const updatedSettlement = await settlement.save();
             return this.convertToISettlement(updatedSettlement);
         }
         catch (error) {
-            logger.error('Error processing payment:', error);
+            logger_1.logger.error('Error processing payment:', error);
             throw error;
         }
     }
@@ -185,7 +191,7 @@ export class SettlementService {
             userId,
             amount,
             type,
-            status: SettlementStatus.PENDING,
+            status: Settlement_2.SettlementStatus.PENDING,
             metadata,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -198,42 +204,42 @@ export class SettlementService {
     }
     async getSettlementById(id) {
         try {
-            const settlement = await SettlementModel.findById(id);
+            const settlement = await settlement_model_1.default.findById(id);
             if (!settlement) {
                 return null;
             }
             return this.convertToISettlement(settlement);
         }
         catch (error) {
-            logger.error('Error getting settlement by ID:', error);
+            logger_1.logger.error('Error getting settlement by ID:', error);
             throw error;
         }
     }
     async updateSettlement(id, settlement) {
         try {
-            const updatedSettlement = await Settlement.findByIdAndUpdate(id, settlement, { new: true });
+            const updatedSettlement = await Settlement_1.default.findByIdAndUpdate(id, settlement, { new: true });
             if (!updatedSettlement) {
                 return null;
             }
             return this.convertToISettlement(updatedSettlement);
         }
         catch (error) {
-            logger.error('Error updating settlement:', error);
+            logger_1.logger.error('Error updating settlement:', error);
             throw error;
         }
     }
     async deleteSettlement(id) {
         try {
-            const result = await Settlement.findByIdAndDelete(id);
+            const result = await Settlement_1.default.findByIdAndDelete(id);
             return !!result;
         }
         catch (error) {
-            logger.error('Error deleting settlement:', error);
+            logger_1.logger.error('Error deleting settlement:', error);
             throw error;
         }
     }
     async createPlatformEarning(earningData) {
-        const earning = new PlatformEarning(earningData);
+        const earning = new PlatformEarning_1.PlatformEarning(earningData);
         return await earning.save();
     }
     async getAllPlatformEarnings() {
@@ -242,21 +248,21 @@ export class SettlementService {
     async getPlatformEarningById(id) {
         const earning = await this.platformEarningModel.findById(id);
         if (!earning) {
-            throw new NotFoundError('平台收益记录不存在');
+            throw new errors_1.NotFoundError('平台收益记录不存在');
         }
         return earning;
     }
     async updatePlatformEarning(id, earningData) {
         const earning = await this.platformEarningModel.findByIdAndUpdate(id, earningData, { new: true });
         if (!earning) {
-            throw new NotFoundError('平台收益记录不存在');
+            throw new errors_1.NotFoundError('平台收益记录不存在');
         }
         return earning;
     }
     async deletePlatformEarning(id) {
         const result = await this.platformEarningModel.findByIdAndDelete(id);
         if (!result) {
-            throw new NotFoundError('Platform earning not found');
+            throw new errors_1.NotFoundError('Platform earning not found');
         }
     }
     async calculateSettlementSummary() {
@@ -297,13 +303,13 @@ export class SettlementService {
             session.startTransaction();
             try {
                 // 更新结算状态
-                settlement.status = SettlementStatus.COMPLETED;
+                settlement.status = Settlement_2.SettlementStatus.COMPLETED;
                 settlement.completedAt = new Date();
                 await settlement.save({ session });
                 // 更新相关佣金记录
                 const metadata = settlement.metadata;
                 if (metadata?.commissionIds?.length) {
-                    await this.commissionModel.updateMany({ _id: { $in: metadata.commissionIds } }, { status: CommissionStatus.COMPLETED }, { session });
+                    await this.commissionModel.updateMany({ _id: { $in: metadata.commissionIds } }, { status: Enums_1.CommissionStatus.COMPLETED }, { session });
                 }
                 // 创建平台收益记录
                 if (metadata?.platformShare) {
@@ -328,7 +334,7 @@ export class SettlementService {
             }
         }
         catch (error) {
-            logger.error('Error processing settlement:', error);
+            logger_1.logger.error('Error processing settlement:', error);
             throw error;
         }
     }
@@ -370,7 +376,7 @@ export class SettlementService {
         return summary;
     }
     async getSettlementByUserId(userId) {
-        return await this.model.find({ userId: new Types.ObjectId(userId) });
+        return await this.model.find({ userId: new mongoose_1.Types.ObjectId(userId) });
     }
     async getSettlementSummaryByUser(userId) {
         const settlements = await this.getSettlementByUserId(userId);
@@ -388,15 +394,15 @@ export class SettlementService {
                 level1Share: amount * 0.2,
                 level2Share: amount * 0.1
             };
-            await this.createSettlement(new Types.ObjectId(userId), amount, 'deposit', metadata);
-            commission.status = SettlementStatus.COMPLETED;
+            await this.createSettlement(new mongoose_1.Types.ObjectId(userId), amount, 'deposit', metadata);
+            commission.status = Settlement_2.SettlementStatus.COMPLETED;
             await commission.save();
         }
     }
     async getSettlementsByUserId(userId, page = 1, limit = 10) {
         try {
             const skip = (page - 1) * limit;
-            const query = { userId: new Types.ObjectId(userId) };
+            const query = { userId: new mongoose_1.Types.ObjectId(userId) };
             const [settlements, total] = await Promise.all([
                 this.model.find(query)
                     .sort({ createdAt: -1 })
@@ -407,7 +413,7 @@ export class SettlementService {
             return { settlements, total };
         }
         catch (error) {
-            logger.error('Error getting settlements by user ID:', error);
+            logger_1.logger.error('Error getting settlements by user ID:', error);
             throw error;
         }
     }
@@ -434,14 +440,14 @@ export class SettlementService {
         try {
             const settlement = await this.model.findByIdAndUpdate(id, {
                 $set: {
-                    status: SettlementStatus.COMPLETED,
+                    status: Settlement_2.SettlementStatus.COMPLETED,
                     completedAt: new Date()
                 }
             }, { new: true });
             return settlement ? this.convertToISettlement(settlement) : null;
         }
         catch (error) {
-            logger.error('Error completing settlement:', error);
+            logger_1.logger.error('Error completing settlement:', error);
             throw error;
         }
     }
@@ -449,16 +455,17 @@ export class SettlementService {
         try {
             const settlement = await this.model.findByIdAndUpdate(id, {
                 $set: {
-                    status: SettlementStatus.FAILED,
+                    status: Settlement_2.SettlementStatus.FAILED,
                     completedAt: new Date()
                 }
             }, { new: true });
             return settlement ? this.convertToISettlement(settlement) : null;
         }
         catch (error) {
-            logger.error('Error failing settlement:', error);
+            logger_1.logger.error('Error failing settlement:', error);
             throw error;
         }
     }
 }
+exports.SettlementService = SettlementService;
 //# sourceMappingURL=SettlementService.js.map

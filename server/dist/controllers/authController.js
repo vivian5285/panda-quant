@@ -1,6 +1,9 @@
-import { logger } from '../utils/logger';
-import { AuthService } from '../services/AuthService';
-export class AuthController {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AuthController = void 0;
+const logger_1 = require("../utils/logger");
+const AuthService_1 = require("../services/AuthService");
+class AuthController {
     constructor() {
         this.login = async (req, res) => {
             try {
@@ -9,7 +12,7 @@ export class AuthController {
                 res.json(result);
             }
             catch (error) {
-                logger.error('Error during login:', error);
+                logger_1.logger.error('Error during login:', error);
                 res.status(401).json({ message: 'Invalid credentials' });
             }
         };
@@ -30,7 +33,7 @@ export class AuthController {
                 res.status(201).json(user);
             }
             catch (error) {
-                logger.error('Error during registration:', error);
+                logger_1.logger.error('Error during registration:', error);
                 res.status(400).json({ message: 'Registration failed', error: error.message });
             }
         };
@@ -44,12 +47,13 @@ export class AuthController {
                 res.json(user);
             }
             catch (error) {
-                logger.error('Error getting current user:', error);
+                logger_1.logger.error('Error getting current user:', error);
                 res.status(500).json({ message: 'Error getting current user', error: error.message });
             }
         };
-        this.authService = new AuthService();
+        this.authService = new AuthService_1.AuthService();
     }
 }
-export default new AuthController();
+exports.AuthController = AuthController;
+exports.default = new AuthController();
 //# sourceMappingURL=authController.js.map

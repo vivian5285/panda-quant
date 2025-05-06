@@ -1,4 +1,7 @@
-export const responseHandler = (_req, res, next) => {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.responseHandler = void 0;
+const responseHandler = (_req, res, next) => {
     res.success = (data, message = 'Success') => {
         res.json({
             success: true,
@@ -14,4 +17,5 @@ export const responseHandler = (_req, res, next) => {
     };
     next();
 };
+exports.responseHandler = responseHandler;
 //# sourceMappingURL=response.js.map

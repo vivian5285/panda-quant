@@ -1,13 +1,15 @@
-import { Router } from 'express';
-import { strategyController } from '../controllers/StrategyController';
-import { authenticateToken } from '../middleware/auth.middleware';
-const router = Router();
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const StrategyController_1 = require("../controllers/StrategyController");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const router = (0, express_1.Router)();
 // 所有路由都需要认证
-router.use(authenticateToken);
+router.use(auth_middleware_1.authenticateToken);
 // 获取策略列表
 router.get('/', async (req, res, next) => {
     try {
-        await strategyController.getAllStrategies(req, res);
+        await StrategyController_1.strategyController.getAllStrategies(req, res);
     }
     catch (error) {
         next(error);
@@ -16,7 +18,7 @@ router.get('/', async (req, res, next) => {
 // 创建策略
 router.post('/', async (req, res, next) => {
     try {
-        await strategyController.createStrategy(req, res);
+        await StrategyController_1.strategyController.createStrategy(req, res);
     }
     catch (error) {
         next(error);
@@ -25,7 +27,7 @@ router.post('/', async (req, res, next) => {
 // 获取单个策略
 router.get('/:id', async (req, res, next) => {
     try {
-        await strategyController.getStrategyById(req, res);
+        await StrategyController_1.strategyController.getStrategyById(req, res);
     }
     catch (error) {
         next(error);
@@ -34,7 +36,7 @@ router.get('/:id', async (req, res, next) => {
 // 更新策略
 router.put('/:id', async (req, res, next) => {
     try {
-        await strategyController.updateStrategy(req, res);
+        await StrategyController_1.strategyController.updateStrategy(req, res);
     }
     catch (error) {
         next(error);
@@ -43,11 +45,11 @@ router.put('/:id', async (req, res, next) => {
 // 删除策略
 router.delete('/:id', async (req, res, next) => {
     try {
-        await strategyController.deleteStrategy(req, res);
+        await StrategyController_1.strategyController.deleteStrategy(req, res);
     }
     catch (error) {
         next(error);
     }
 });
-export default router;
+exports.default = router;
 //# sourceMappingURL=Strategy.js.map

@@ -1,9 +1,35 @@
-import mongoose, { Schema } from 'mongoose';
-import { BlacklistStatus, BlacklistType } from '../types/Blacklist';
-const blacklistEntrySchema = new Schema({
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BlacklistEntry = void 0;
+const mongoose_1 = __importStar(require("mongoose"));
+const Blacklist_1 = require("../types/Blacklist");
+const blacklistEntrySchema = new mongoose_1.Schema({
     type: {
         type: String,
-        enum: Object.values(BlacklistType),
+        enum: Object.values(Blacklist_1.BlacklistType),
         required: true
     },
     value: {
@@ -16,14 +42,14 @@ const blacklistEntrySchema = new Schema({
     },
     status: {
         type: String,
-        enum: Object.values(BlacklistStatus),
-        default: BlacklistStatus.ACTIVE
+        enum: Object.values(Blacklist_1.BlacklistStatus),
+        default: Blacklist_1.BlacklistStatus.ACTIVE
     },
     address: {
         type: String
     },
     metadata: {
-        type: Schema.Types.Mixed
+        type: mongoose_1.Schema.Types.Mixed
     },
     createdAt: {
         type: Date,
@@ -34,5 +60,5 @@ const blacklistEntrySchema = new Schema({
         default: Date.now
     }
 });
-export const BlacklistEntry = mongoose.model('BlacklistEntry', blacklistEntrySchema);
+exports.BlacklistEntry = mongoose_1.default.model('BlacklistEntry', blacklistEntrySchema);
 //# sourceMappingURL=Blacklist.js.map

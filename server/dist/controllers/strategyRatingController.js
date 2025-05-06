@@ -1,8 +1,11 @@
-import { StrategyRatingService } from '../services/StrategyRatingService';
-import { logger } from '../utils/logger';
-export class StrategyRatingController {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.StrategyRatingController = void 0;
+const StrategyRatingService_1 = require("../services/StrategyRatingService");
+const logger_1 = require("../utils/logger");
+class StrategyRatingController {
     constructor() {
-        this.strategyRatingService = new StrategyRatingService();
+        this.strategyRatingService = new StrategyRatingService_1.StrategyRatingService();
     }
     async createRating(req, res) {
         try {
@@ -17,7 +20,7 @@ export class StrategyRatingController {
             res.status(201).json(rating);
         }
         catch (error) {
-            logger.error('Error creating strategy rating:', error);
+            logger_1.logger.error('Error creating strategy rating:', error);
             res.status(500).json({ message: 'Error creating strategy rating' });
         }
     }
@@ -31,7 +34,7 @@ export class StrategyRatingController {
             res.json(ratings);
         }
         catch (error) {
-            logger.error('Error getting strategy ratings:', error);
+            logger_1.logger.error('Error getting strategy ratings:', error);
             res.status(500).json({ message: 'Error getting strategy ratings' });
         }
     }
@@ -48,7 +51,7 @@ export class StrategyRatingController {
             res.json(rating);
         }
         catch (error) {
-            logger.error('Error updating strategy rating:', error);
+            logger_1.logger.error('Error updating strategy rating:', error);
             res.status(500).json({ message: 'Error updating strategy rating' });
         }
     }
@@ -62,9 +65,10 @@ export class StrategyRatingController {
             res.json({ message: 'Strategy rating deleted successfully' });
         }
         catch (error) {
-            logger.error('Error deleting strategy rating:', error);
+            logger_1.logger.error('Error deleting strategy rating:', error);
             res.status(500).json({ message: 'Error deleting strategy rating' });
         }
     }
 }
+exports.StrategyRatingController = StrategyRatingController;
 //# sourceMappingURL=strategyRatingController.js.map

@@ -1,7 +1,33 @@
-import mongoose, { Schema } from 'mongoose';
-const tradeSchema = new Schema({
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    strategyId: { type: Schema.Types.ObjectId, ref: 'Strategy', required: true },
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Trade = void 0;
+const mongoose_1 = __importStar(require("mongoose"));
+const tradeSchema = new mongoose_1.Schema({
+    userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
+    strategyId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Strategy', required: true },
     symbol: { type: String, required: true },
     type: { type: String, enum: ['long', 'short'], required: true },
     side: { type: String, enum: ['buy', 'sell'], required: true },
@@ -9,7 +35,7 @@ const tradeSchema = new Schema({
     price: { type: Number, required: true },
     status: { type: String, enum: ['pending', 'executed', 'cancelled', 'failed'], default: 'pending' },
     executedAt: { type: Date },
-    metadata: { type: Schema.Types.Mixed, default: {} },
+    metadata: { type: mongoose_1.Schema.Types.Mixed, default: {} },
     createdAt: { type: Date, default: Date.now }
 }, {
     timestamps: true
@@ -20,6 +46,6 @@ tradeSchema.index({ strategyId: 1 });
 tradeSchema.index({ symbol: 1 });
 tradeSchema.index({ status: 1 });
 tradeSchema.index({ createdAt: -1 });
-export const Trade = mongoose.model('Trade', tradeSchema);
-export default Trade;
+exports.Trade = mongoose_1.default.model('Trade', tradeSchema);
+exports.default = exports.Trade;
 //# sourceMappingURL=Trade.js.map

@@ -48,6 +48,7 @@ export interface IStrategy {
     type: string;
     status: 'active' | 'inactive' | 'pending';
     parameters: Record<string, any>;
+    expectedReturn?: number;
     performance?: {
         totalTrades: number;
         winRate: number;
@@ -58,10 +59,7 @@ export interface IStrategy {
     createdAt: Date;
     updatedAt: Date;
 }
-export interface IStrategyDocument extends Omit<IStrategy, '_id'>, Document {
-    _id: Types.ObjectId;
-}
-export type Strategy = IStrategy;
+export type Strategy = IStrategy & Document;
 export interface StrategyCreateInput extends Omit<IStrategy, '_id' | 'createdAt' | 'updatedAt'> {
 }
 export interface StrategyUpdateInput extends Partial<StrategyCreateInput> {

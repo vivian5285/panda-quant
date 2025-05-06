@@ -1,13 +1,16 @@
-import { SettlementService } from '../services/SettlementService';
-import { SettlementStatus } from '../types/Enums';
-import { logger } from '../utils/logger';
-import { Types } from 'mongoose';
-export class SettlementController {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SettlementController = void 0;
+const SettlementService_1 = require("../services/SettlementService");
+const Enums_1 = require("../types/Enums");
+const logger_1 = require("../utils/logger");
+const mongoose_1 = require("mongoose");
+class SettlementController {
     constructor() {
         this.getSettlements = async (req, res, next) => {
             try {
                 const { startDate, endDate, status } = req.query;
-                const userId = req.user?.id ? new Types.ObjectId(req.user.id) : undefined;
+                const userId = req.user?.id ? new mongoose_1.Types.ObjectId(req.user.id) : undefined;
                 const filter = {
                     startDate: startDate ? new Date(startDate) : undefined,
                     endDate: endDate ? new Date(endDate) : undefined,
@@ -18,7 +21,7 @@ export class SettlementController {
                 res.json(result);
             }
             catch (error) {
-                logger.error('Error getting settlements:', error);
+                logger_1.logger.error('Error getting settlements:', error);
                 next(error);
             }
         };
@@ -33,7 +36,7 @@ export class SettlementController {
                 res.json(settlement);
             }
             catch (error) {
-                logger.error('Error getting settlement by id:', error);
+                logger_1.logger.error('Error getting settlement by id:', error);
                 next(error);
             }
         };
@@ -48,7 +51,7 @@ export class SettlementController {
                 res.status(201).json(settlement);
             }
             catch (error) {
-                logger.error('Error creating settlement:', error);
+                logger_1.logger.error('Error creating settlement:', error);
                 next(error);
             }
         };
@@ -64,7 +67,7 @@ export class SettlementController {
                 res.json(settlement);
             }
             catch (error) {
-                logger.error('Error updating settlement status:', error);
+                logger_1.logger.error('Error updating settlement status:', error);
                 next(error);
             }
         };
@@ -79,17 +82,17 @@ export class SettlementController {
                 res.json(summary);
             }
             catch (error) {
-                logger.error('Error getting settlement summary:', error);
+                logger_1.logger.error('Error getting settlement summary:', error);
                 next(error);
             }
         };
         this.getPendingSettlements = async (_req, res, next) => {
             try {
-                const settlements = await this.settlementService.getSettlements({ status: SettlementStatus.PENDING });
+                const settlements = await this.settlementService.getSettlements({ status: Enums_1.SettlementStatus.PENDING });
                 res.json(settlements);
             }
             catch (error) {
-                logger.error('Error getting pending settlements:', error);
+                logger_1.logger.error('Error getting pending settlements:', error);
                 next(error);
             }
         };
@@ -97,7 +100,7 @@ export class SettlementController {
             try {
                 const { type } = req.params;
                 const settlements = await this.settlementService.getSettlements({
-                    status: SettlementStatus.PENDING,
+                    status: Enums_1.SettlementStatus.PENDING,
                     startDate: new Date(0),
                     endDate: new Date()
                 });
@@ -108,14 +111,14 @@ export class SettlementController {
                 });
             }
             catch (error) {
-                logger.error('Error getting settlements by type:', error);
+                logger_1.logger.error('Error getting settlements by type:', error);
                 next(error);
             }
         };
         this.exportSettlements = async (req, res, next) => {
             try {
                 const { startDate, endDate, status } = req.query;
-                const userId = req.user?.id ? new Types.ObjectId(req.user.id) : undefined;
+                const userId = req.user?.id ? new mongoose_1.Types.ObjectId(req.user.id) : undefined;
                 const filter = {
                     startDate: startDate ? new Date(startDate) : undefined,
                     endDate: endDate ? new Date(endDate) : undefined,
@@ -128,7 +131,7 @@ export class SettlementController {
                 res.send(csv);
             }
             catch (error) {
-                logger.error('Error exporting settlements:', error);
+                logger_1.logger.error('Error exporting settlements:', error);
                 next(error);
             }
         };
@@ -138,7 +141,7 @@ export class SettlementController {
                 res.status(201).json({ message: 'Settlements generated successfully' });
             }
             catch (error) {
-                logger.error('Error generating settlements:', error);
+                logger_1.logger.error('Error generating settlements:', error);
                 next(error);
             }
         };
@@ -153,11 +156,12 @@ export class SettlementController {
                 res.json(settlement);
             }
             catch (error) {
-                logger.error('Error processing payment:', error);
+                logger_1.logger.error('Error processing payment:', error);
                 next(error);
             }
         };
-        this.settlementService = SettlementService.getInstance();
+        this.settlementService = SettlementService_1.SettlementService.getInstance();
     }
 }
+exports.SettlementController = SettlementController;
 //# sourceMappingURL=settlement.controller.js.map

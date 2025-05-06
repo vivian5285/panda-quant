@@ -37,6 +37,8 @@ export interface IUser {
     referrer?: string;
     isAdmin: boolean;
     balance: number;
+    accountBalance: number;
+    subscriptionFee: number;
 }
 export interface IUserDocument extends Document {
     username: string;
@@ -51,6 +53,8 @@ export interface IUserDocument extends Document {
     referrer?: string;
     isAdmin: boolean;
     balance: number;
+    accountBalance: number;
+    subscriptionFee: number;
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;

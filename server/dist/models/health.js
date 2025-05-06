@@ -1,5 +1,8 @@
-import { Schema, model } from 'mongoose';
-const healthSchema = new Schema({
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Health = void 0;
+const mongoose_1 = require("mongoose");
+const healthSchema = new mongoose_1.Schema({
     status: {
         type: String,
         required: true,
@@ -9,6 +12,6 @@ const healthSchema = new Schema({
 }, {
     timestamps: true
 });
-export const Health = model('Health', healthSchema);
-export default Health;
+exports.Health = (0, mongoose_1.model)('Health', healthSchema);
+exports.default = exports.Health;
 //# sourceMappingURL=health.js.map

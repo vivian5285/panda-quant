@@ -1,12 +1,15 @@
-import { Strategy } from '../models/Strategy';
-import { logger } from '../utils/logger';
-export var StrategyStatus;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.StrategyService = exports.StrategyStatus = void 0;
+const Strategy_1 = require("../models/Strategy");
+const logger_1 = require("../utils/logger");
+var StrategyStatus;
 (function (StrategyStatus) {
     StrategyStatus["ACTIVE"] = "active";
     StrategyStatus["INACTIVE"] = "inactive";
     StrategyStatus["PAUSED"] = "paused";
-})(StrategyStatus || (StrategyStatus = {}));
-export class StrategyService {
+})(StrategyStatus || (exports.StrategyStatus = StrategyStatus = {}));
+class StrategyService {
     constructor() { }
     static getInstance() {
         if (!StrategyService.instance) {
@@ -16,47 +19,47 @@ export class StrategyService {
     }
     async createStrategy(strategy) {
         try {
-            const newStrategy = new Strategy(strategy);
+            const newStrategy = new Strategy_1.Strategy(strategy);
             return await newStrategy.save();
         }
         catch (error) {
-            logger.error('Error creating strategy:', error);
+            logger_1.logger.error('Error creating strategy:', error);
             throw error;
         }
     }
     async getStrategies(userId) {
         try {
-            return await Strategy.find({ userId });
+            return await Strategy_1.Strategy.find({ userId });
         }
         catch (error) {
-            logger.error('Error getting strategies:', error);
+            logger_1.logger.error('Error getting strategies:', error);
             throw error;
         }
     }
     async getStrategy(id) {
         try {
-            return await Strategy.findById(id);
+            return await Strategy_1.Strategy.findById(id);
         }
         catch (error) {
-            logger.error('Error getting strategy:', error);
+            logger_1.logger.error('Error getting strategy:', error);
             throw error;
         }
     }
     async updateStrategy(id, updates) {
         try {
-            return await Strategy.findByIdAndUpdate(id, updates, { new: true });
+            return await Strategy_1.Strategy.findByIdAndUpdate(id, updates, { new: true });
         }
         catch (error) {
-            logger.error('Error updating strategy:', error);
+            logger_1.logger.error('Error updating strategy:', error);
             throw error;
         }
     }
     async deleteStrategy(id) {
         try {
-            return await Strategy.findByIdAndUpdate(id, { status: StrategyStatus.INACTIVE }, { new: true });
+            return await Strategy_1.Strategy.findByIdAndUpdate(id, { status: StrategyStatus.INACTIVE }, { new: true });
         }
         catch (error) {
-            logger.error('Error deleting strategy:', error);
+            logger_1.logger.error('Error deleting strategy:', error);
             throw error;
         }
     }
@@ -74,47 +77,48 @@ export class StrategyService {
             };
         }
         catch (error) {
-            logger.error('Error getting strategy performance:', error);
+            logger_1.logger.error('Error getting strategy performance:', error);
             throw error;
         }
     }
     async getAllStrategies() {
         try {
-            return await Strategy.find();
+            return await Strategy_1.Strategy.find();
         }
         catch (error) {
-            logger.error('Error getting all strategies:', error);
+            logger_1.logger.error('Error getting all strategies:', error);
             throw error;
         }
     }
     async getStrategiesByUser(userId) {
         try {
-            return await Strategy.find({ userId });
+            return await Strategy_1.Strategy.find({ userId });
         }
         catch (error) {
-            logger.error('Error getting strategies by user:', error);
+            logger_1.logger.error('Error getting strategies by user:', error);
             throw error;
         }
     }
     async getActiveStrategies() {
         try {
-            return await Strategy.find({ status: StrategyStatus.ACTIVE });
+            return await Strategy_1.Strategy.find({ status: StrategyStatus.ACTIVE });
         }
         catch (error) {
-            logger.error('Error getting active strategies:', error);
+            logger_1.logger.error('Error getting active strategies:', error);
             throw error;
         }
     }
     async getPopularStrategies(limit = 10) {
         try {
-            return await Strategy.find()
+            return await Strategy_1.Strategy.find()
                 .sort({ followers: -1 })
                 .limit(limit);
         }
         catch (error) {
-            logger.error('Error getting popular strategies:', error);
+            logger_1.logger.error('Error getting popular strategies:', error);
             throw error;
         }
     }
 }
+exports.StrategyService = StrategyService;
 //# sourceMappingURL=StrategyService.js.map

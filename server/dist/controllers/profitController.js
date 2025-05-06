@@ -1,7 +1,10 @@
-import { logger } from '../utils/logger';
-import { CommissionService } from '../services/CommissionService';
-import { ProfitService } from '../services/ProfitService';
-export class ProfitController {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ProfitController = void 0;
+const logger_1 = require("../utils/logger");
+const CommissionService_1 = require("../services/CommissionService");
+const ProfitService_1 = require("../services/ProfitService");
+class ProfitController {
     constructor() {
         this.getProfitSummary = async (_req, res) => {
             try {
@@ -9,7 +12,7 @@ export class ProfitController {
                 res.json(summary);
             }
             catch (error) {
-                logger.error('Error getting profit summary:', error);
+                logger_1.logger.error('Error getting profit summary:', error);
                 res.status(500).json({ message: 'Error getting profit summary', error: error.message });
             }
         };
@@ -21,7 +24,7 @@ export class ProfitController {
                 res.status(200).json(commission);
             }
             catch (error) {
-                logger.error('Error updating commission:', error);
+                logger_1.logger.error('Error updating commission:', error);
                 res.status(500).json({ message: 'Error updating commission', error });
             }
         };
@@ -32,13 +35,14 @@ export class ProfitController {
                 res.status(204).send();
             }
             catch (error) {
-                logger.error('Error deleting commission:', error);
+                logger_1.logger.error('Error deleting commission:', error);
                 res.status(500).json({ message: 'Error deleting commission', error });
             }
         };
-        this.commissionService = CommissionService.getInstance();
-        this.profitService = ProfitService.getInstance();
+        this.commissionService = CommissionService_1.CommissionService.getInstance();
+        this.profitService = ProfitService_1.ProfitService.getInstance();
     }
 }
-export default new ProfitController();
+exports.ProfitController = ProfitController;
+exports.default = new ProfitController();
 //# sourceMappingURL=profitController.js.map

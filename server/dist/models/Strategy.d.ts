@@ -24,8 +24,5 @@
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="@/types/mongoose" />
 import mongoose from 'mongoose';
-import { IStrategyDocument } from '../types/Strategy';
-export declare const Strategy: mongoose.Model<IStrategyDocument, {}, {}, {}, mongoose.Document<unknown, {}, IStrategyDocument> & IStrategyDocument & Required<{
-    _id: mongoose.Types.ObjectId;
-}>, any>;
+export declare const Strategy: mongoose.Model<any, unknown, unknown, unknown, any, IStrategyDocument>;
 export default Strategy;

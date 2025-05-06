@@ -1,9 +1,15 @@
-import mongoose from 'mongoose';
-import { createLogger } from '../utils/logger';
-const dbLogger = createLogger('Database');
-export async function connectDB() {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.disconnectDB = exports.connectDB = void 0;
+const mongoose_1 = __importDefault(require("mongoose"));
+const logger_1 = require("../utils/logger");
+const dbLogger = (0, logger_1.createLogger)('Database');
+async function connectDB() {
     try {
-        await mongoose.connect(process.env['MONGODB_URI'] || 'mongodb://localhost:27017/panda-quant');
+        await mongoose_1.default.connect(process.env['MONGODB_URI'] || 'mongodb://localhost:27017/panda-quant');
         dbLogger.info('Successfully connected to MongoDB.');
     }
     catch (error) {
@@ -11,9 +17,10 @@ export async function connectDB() {
         process.exit(1);
     }
 }
-export async function disconnectDB() {
+exports.connectDB = connectDB;
+async function disconnectDB() {
     try {
-        await mongoose.disconnect();
+        await mongoose_1.default.disconnect();
         dbLogger.info('Successfully disconnected from MongoDB.');
     }
     catch (error) {
@@ -21,10 +28,11 @@ export async function disconnectDB() {
         process.exit(1);
     }
 }
-mongoose.connection.on('error', (error) => {
+exports.disconnectDB = disconnectDB;
+mongoose_1.default.connection.on('error', (error) => {
     dbLogger.error('MongoDB connection error:', error);
 });
-mongoose.connection.on('disconnected', () => {
+mongoose_1.default.connection.on('disconnected', () => {
     dbLogger.warn('MongoDB disconnected');
 });
 //# sourceMappingURL=database.js.map

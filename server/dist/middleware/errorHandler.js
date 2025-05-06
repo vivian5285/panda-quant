@@ -1,14 +1,17 @@
-import { logger } from '../utils/logger';
-import { ValidationError, NotFoundError, BadRequestError, UnauthorizedError, ForbiddenError } from '../utils/errors';
-export const errorHandler = (err, req, res, next) => {
-    logger.error('Error:', {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.errorHandler = void 0;
+const logger_1 = require("../utils/logger");
+const errors_1 = require("../utils/errors");
+const errorHandler = (err, req, res, next) => {
+    logger_1.logger.error('Error:', {
         error: err.message,
         stack: err.stack,
         path: req.path,
         method: req.method,
         ip: req.ip
     });
-    if (err instanceof ValidationError) {
+    if (err instanceof errors_1.ValidationError) {
         return res.status(400).json({
             success: false,
             error: {
@@ -18,7 +21,7 @@ export const errorHandler = (err, req, res, next) => {
             }
         });
     }
-    if (err instanceof NotFoundError) {
+    if (err instanceof errors_1.NotFoundError) {
         return res.status(404).json({
             success: false,
             error: {
@@ -27,7 +30,7 @@ export const errorHandler = (err, req, res, next) => {
             }
         });
     }
-    if (err instanceof BadRequestError) {
+    if (err instanceof errors_1.BadRequestError) {
         return res.status(400).json({
             success: false,
             error: {
@@ -36,7 +39,7 @@ export const errorHandler = (err, req, res, next) => {
             }
         });
     }
-    if (err instanceof UnauthorizedError) {
+    if (err instanceof errors_1.UnauthorizedError) {
         return res.status(401).json({
             success: false,
             error: {
@@ -45,7 +48,7 @@ export const errorHandler = (err, req, res, next) => {
             }
         });
     }
-    if (err instanceof ForbiddenError) {
+    if (err instanceof errors_1.ForbiddenError) {
         return res.status(403).json({
             success: false,
             error: {
@@ -66,4 +69,5 @@ export const errorHandler = (err, req, res, next) => {
         }
     });
 };
+exports.errorHandler = errorHandler;
 //# sourceMappingURL=errorHandler.js.map

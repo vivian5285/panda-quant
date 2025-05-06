@@ -1,15 +1,21 @@
-import mongoose from 'mongoose';
-import { createClient } from 'redis';
-import axios from 'axios';
-import { config } from '../config';
-import NetworkStatus from '../models/NetworkStatus';
-import { logger } from '../utils/logger';
-import { EventEmitter } from 'events';
-import { Health } from '../models/health.model';
-export class HealthService extends EventEmitter {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.healthService = exports.HealthService = void 0;
+const mongoose_1 = __importDefault(require("mongoose"));
+const redis_1 = require("redis");
+const axios_1 = __importDefault(require("axios"));
+const config_1 = require("../config");
+const NetworkStatus_1 = __importDefault(require("../models/NetworkStatus"));
+const logger_1 = require("../utils/logger");
+const events_1 = require("events");
+const health_model_1 = require("../models/health.model");
+class HealthService extends events_1.EventEmitter {
     constructor() {
         super();
-        this.networkStatusModel = NetworkStatus;
+        this.networkStatusModel = NetworkStatus_1.default;
         this.status = new Map();
         this.initializeStatus();
     }
@@ -26,19 +32,19 @@ export class HealthService extends EventEmitter {
         this.status.set('userApi', false);
         this.status.set('adminApi', false);
         this.status.set('strategyEngine', false);
-        logger.info('Health status initialized');
+        logger_1.logger.info('Health status initialized');
     }
     setDatabaseStatus(isHealthy) {
         this.status.set('database', isHealthy);
-        logger.info(`Database health status updated: ${isHealthy}`);
+        logger_1.logger.info(`Database health status updated: ${isHealthy}`);
     }
     setRedisStatus(isHealthy) {
         this.status.set('redis', isHealthy);
-        logger.info(`Redis health status updated: ${isHealthy}`);
+        logger_1.logger.info(`Redis health status updated: ${isHealthy}`);
     }
     setApiStatus(isHealthy) {
         this.status.set('api', isHealthy);
-        logger.info(`API health status updated: ${isHealthy}`);
+        logger_1.logger.info(`API health status updated: ${isHealthy}`);
     }
     getDatabaseStatus() {
         return this.status.get('database') || false;
@@ -71,13 +77,13 @@ export class HealthService extends EventEmitter {
     async checkDatabase() {
         try {
             const startTime = Date.now();
-            if (!mongoose.connection.readyState) {
+            if (!mongoose_1.default.connection.readyState) {
                 throw new Error('Database not connected');
             }
-            if (!mongoose.connection.db) {
+            if (!mongoose_1.default.connection.db) {
                 throw new Error('Database connection not established');
             }
-            await mongoose.connection.db.admin().ping();
+            await mongoose_1.default.connection.db.admin().ping();
             const endTime = Date.now();
             const responseTime = endTime - startTime;
             await this.updateNetworkComponentStatus('database', 'online', undefined, responseTime);
@@ -92,7 +98,7 @@ export class HealthService extends EventEmitter {
     async checkApi() {
         try {
             const startTime = Date.now();
-            await axios.get(`${config.server.port}/health`);
+            await axios_1.default.get(`${config_1.config.server.port}/health`);
             const endTime = Date.now();
             const responseTime = endTime - startTime;
             await this.updateNetworkComponentStatus('api', 'online', undefined, responseTime);
@@ -107,9 +113,9 @@ export class HealthService extends EventEmitter {
     async checkRedis() {
         try {
             const startTime = Date.now();
-            const client = createClient({
-                url: config.redis.url,
-                password: config.redis.password
+            const client = (0, redis_1.createClient)({
+                url: config_1.config.redis.url,
+                password: config_1.config.redis.password
             });
             await client.connect();
             await client.ping();
@@ -162,7 +168,7 @@ export class HealthService extends EventEmitter {
             });
         }
         catch (error) {
-            logger.error('Error updating network status:', error);
+            logger_1.logger.error('Error updating network status:', error);
         }
     }
     async getNetworkStatus() {
@@ -182,90 +188,90 @@ export class HealthService extends EventEmitter {
             }));
         }
         catch (error) {
-            logger.error('Error getting network status:', error);
+            logger_1.logger.error('Error getting network status:', error);
             throw error;
         }
     }
     async createHealth(data) {
         try {
-            const health = new Health(data);
+            const health = new health_model_1.Health(data);
             await health.save();
             return this.mapToIHealth(health);
         }
         catch (error) {
-            logger.error('Error creating health record:', error);
+            logger_1.logger.error('Error creating health record:', error);
             throw error;
         }
     }
     async getHealthById(id) {
         try {
-            const health = await Health.findById(id);
+            const health = await health_model_1.Health.findById(id);
             return health ? this.mapToIHealth(health) : null;
         }
         catch (error) {
-            logger.error('Error getting health by ID:', error);
+            logger_1.logger.error('Error getting health by ID:', error);
             throw error;
         }
     }
     async updateHealth(id, data) {
         try {
-            const health = await Health.findByIdAndUpdate(id, data, { new: true });
+            const health = await health_model_1.Health.findByIdAndUpdate(id, data, { new: true });
             return health ? this.mapToIHealth(health) : null;
         }
         catch (error) {
-            logger.error('Error updating health:', error);
+            logger_1.logger.error('Error updating health:', error);
             throw error;
         }
     }
     async deleteHealth(id) {
         try {
-            const result = await Health.findByIdAndDelete(id);
+            const result = await health_model_1.Health.findByIdAndDelete(id);
             return !!result;
         }
         catch (error) {
-            logger.error('Error deleting health:', error);
+            logger_1.logger.error('Error deleting health:', error);
             throw error;
         }
     }
     async checkDatabaseConnection() {
         try {
-            if (!mongoose.connection.db) {
+            if (!mongoose_1.default.connection.db) {
                 return false;
             }
-            await mongoose.connection.db.admin().ping();
+            await mongoose_1.default.connection.db.admin().ping();
             return true;
         }
         catch (error) {
-            logger.error('Database connection check failed:', error);
+            logger_1.logger.error('Database connection check failed:', error);
             return false;
         }
     }
     async getHealth() {
         try {
-            const health = await Health.findOne().sort({ createdAt: -1 });
+            const health = await health_model_1.Health.findOne().sort({ createdAt: -1 });
             if (!health) {
                 throw new Error('No health record found');
             }
             return this.mapToIHealth(health);
         }
         catch (error) {
-            logger.error('Error getting health:', error);
+            logger_1.logger.error('Error getting health:', error);
             throw error;
         }
     }
     async updateHealthStatus(data) {
         try {
-            const health = await Health.findOneAndUpdate({}, data, { new: true, upsert: true });
+            const health = await health_model_1.Health.findOneAndUpdate({}, data, { new: true, upsert: true });
             return this.mapToIHealth(health);
         }
         catch (error) {
-            logger.error('Error updating health status:', error);
+            logger_1.logger.error('Error updating health status:', error);
             throw error;
         }
     }
     async updateHealthWithNetworkStatus(networkStatus) {
         try {
-            const health = await Health.findOneAndUpdate({}, {
+            const health = await health_model_1.Health.findOneAndUpdate({}, {
                 networkStatus,
                 lastChecked: new Date(),
                 updatedAt: new Date()
@@ -273,7 +279,7 @@ export class HealthService extends EventEmitter {
             return this.mapToIHealth(health);
         }
         catch (error) {
-            logger.error('Error updating network status:', error);
+            logger_1.logger.error('Error updating network status:', error);
             throw error;
         }
     }
@@ -297,5 +303,6 @@ export class HealthService extends EventEmitter {
         };
     }
 }
-export const healthService = HealthService.getInstance();
+exports.HealthService = HealthService;
+exports.healthService = HealthService.getInstance();
 //# sourceMappingURL=HealthService.js.map

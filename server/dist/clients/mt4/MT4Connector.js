@@ -1,15 +1,21 @@
-import net from 'net';
-import { EventEmitter } from 'events';
-import { createLogger } from '../../utils/logger';
-export class MT4Connector extends EventEmitter {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MT4Connector = void 0;
+const net_1 = __importDefault(require("net"));
+const events_1 = require("events");
+const logger_1 = require("../../utils/logger");
+class MT4Connector extends events_1.EventEmitter {
     constructor(account) {
         super();
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
         this.reconnectInterval = 5000;
-        this.logger = createLogger('MT4Connector');
+        this.logger = (0, logger_1.createLogger)('MT4Connector');
         this.account = account;
-        this.socket = new net.Socket();
+        this.socket = new net_1.default.Socket();
         this.setupSocket();
     }
     setupSocket() {
@@ -239,4 +245,5 @@ export class MT4Connector extends EventEmitter {
         this.socket.write(JSON.stringify({ type: 'modify_order', ticket, ...changes }) + '\n');
     }
 }
+exports.MT4Connector = MT4Connector;
 //# sourceMappingURL=MT4Connector.js.map

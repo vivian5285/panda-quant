@@ -1,9 +1,15 @@
-import { SettlementService } from '../services/SettlementService';
-import { SettlementStatus } from '../types/Enums';
-import Settlement from '../models/Settlement';
-import { logger } from '../utils/logger';
-import { Types } from 'mongoose';
-export class SettlementController {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SettlementController = void 0;
+const SettlementService_1 = require("../services/SettlementService");
+const Enums_1 = require("../types/Enums");
+const Settlement_1 = __importDefault(require("../models/Settlement"));
+const logger_1 = require("../utils/logger");
+const mongoose_1 = require("mongoose");
+class SettlementController {
     constructor() {
         this.getSettlements = async (req, res) => {
             try {
@@ -11,11 +17,11 @@ export class SettlementController {
                     res.status(401).json({ message: 'Unauthorized' });
                     return;
                 }
-                const settlements = await Settlement.find({ userId: new Types.ObjectId(req.user['id']) });
+                const settlements = await Settlement_1.default.find({ userId: new mongoose_1.Types.ObjectId(req.user['id']) });
                 res.json(settlements);
             }
             catch (error) {
-                logger.error('Error getting settlements:', error);
+                logger_1.logger.error('Error getting settlements:', error);
                 res.status(500).json({ message: 'Internal server error' });
             }
         };
@@ -42,15 +48,15 @@ export class SettlementController {
                     res.status(401).json({ message: 'Unauthorized' });
                     return;
                 }
-                const settlement = new Settlement({
+                const settlement = new Settlement_1.default({
                     ...req.body,
-                    userId: new Types.ObjectId(req.user['id'])
+                    userId: new mongoose_1.Types.ObjectId(req.user['id'])
                 });
                 await settlement.save();
                 res.status(201).json(settlement);
             }
             catch (error) {
-                logger.error('Error creating settlement:', error);
+                logger_1.logger.error('Error creating settlement:', error);
                 res.status(500).json({ message: 'Internal server error' });
             }
         };
@@ -62,11 +68,11 @@ export class SettlementController {
                 }
                 const { id } = req.params;
                 const { status } = req.body;
-                if (!Object.values(SettlementStatus).includes(status)) {
+                if (!Object.values(Enums_1.SettlementStatus).includes(status)) {
                     res.status(400).json({ error: 'Invalid status' });
                     return;
                 }
-                const settlement = await Settlement.findByIdAndUpdate(new Types.ObjectId(id), { status }, { new: true });
+                const settlement = await Settlement_1.default.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), { status }, { new: true });
                 if (!settlement) {
                     res.status(404).json({ error: 'Settlement not found' });
                     return;
@@ -74,7 +80,7 @@ export class SettlementController {
                 res.json(settlement);
             }
             catch (error) {
-                logger.error('Error updating settlement status:', error);
+                logger_1.logger.error('Error updating settlement status:', error);
                 res.status(500).json({ message: 'Internal server error' });
             }
         };
@@ -102,11 +108,11 @@ export class SettlementController {
                     res.status(401).json({ message: 'Unauthorized' });
                     return;
                 }
-                const settlements = await Settlement.find({ userId: new Types.ObjectId(req.user['id']) });
+                const settlements = await Settlement_1.default.find({ userId: new mongoose_1.Types.ObjectId(req.user['id']) });
                 res.json(settlements);
             }
             catch (error) {
-                logger.error('Error exporting settlements:', error);
+                logger_1.logger.error('Error exporting settlements:', error);
                 res.status(500).json({ message: 'Internal server error' });
             }
         };
@@ -120,7 +126,7 @@ export class SettlementController {
                 res.json({ message: 'Settlements generated successfully' });
             }
             catch (error) {
-                logger.error('Error generating settlements:', error);
+                logger_1.logger.error('Error generating settlements:', error);
                 res.status(500).json({ message: 'Internal server error' });
             }
         };
@@ -131,7 +137,7 @@ export class SettlementController {
                     return;
                 }
                 const { id } = req.params;
-                const settlement = await Settlement.findById(new Types.ObjectId(id));
+                const settlement = await Settlement_1.default.findById(new mongoose_1.Types.ObjectId(id));
                 if (!settlement) {
                     res.status(404).json({ message: 'Settlement not found' });
                     return;
@@ -140,7 +146,7 @@ export class SettlementController {
                 res.json({ message: 'Payment processed successfully' });
             }
             catch (error) {
-                logger.error('Error processing payment:', error);
+                logger_1.logger.error('Error processing payment:', error);
                 res.status(500).json({ message: 'Internal server error' });
             }
         };
@@ -151,7 +157,7 @@ export class SettlementController {
                     return;
                 }
                 const { id } = req.params;
-                const settlement = await Settlement.findByIdAndUpdate(new Types.ObjectId(id), req.body, { new: true });
+                const settlement = await Settlement_1.default.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), req.body, { new: true });
                 if (!settlement) {
                     res.status(404).json({ message: 'Settlement not found' });
                     return;
@@ -159,11 +165,12 @@ export class SettlementController {
                 res.json(settlement);
             }
             catch (error) {
-                logger.error('Error updating settlement:', error);
+                logger_1.logger.error('Error updating settlement:', error);
                 res.status(500).json({ message: 'Internal server error' });
             }
         };
-        this.settlementService = SettlementService.getInstance();
+        this.settlementService = SettlementService_1.SettlementService.getInstance();
     }
 }
+exports.SettlementController = SettlementController;
 //# sourceMappingURL=settlementController.js.map

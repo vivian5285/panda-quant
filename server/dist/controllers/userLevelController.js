@@ -1,8 +1,11 @@
-import { UserLevelService } from '../services/UserLevelService';
-import { logger } from '../utils/logger';
-export class UserLevelController {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.UserLevelController = void 0;
+const UserLevelService_1 = require("../services/UserLevelService");
+const logger_1 = require("../utils/logger");
+class UserLevelController {
     constructor() {
-        this.userLevelService = new UserLevelService();
+        this.userLevelService = new UserLevelService_1.UserLevelService();
     }
     // 获取所有用户等级
     async getAllLevels(_req, res) {
@@ -11,7 +14,7 @@ export class UserLevelController {
             res.json(levels);
         }
         catch (error) {
-            logger.error('Error getting all levels:', error);
+            logger_1.logger.error('Error getting all levels:', error);
             res.status(500).json({ error: 'Internal server error' });
         }
     }
@@ -37,7 +40,7 @@ export class UserLevelController {
             res.status(201).json(level);
         }
         catch (error) {
-            logger.error('Error creating level:', error);
+            logger_1.logger.error('Error creating level:', error);
             res.status(500).json({ error: 'Internal server error' });
         }
     }
@@ -53,7 +56,7 @@ export class UserLevelController {
             res.json(level);
         }
         catch (error) {
-            logger.error('Error updating level:', error);
+            logger_1.logger.error('Error updating level:', error);
             res.status(500).json({ error: 'Internal server error' });
         }
     }
@@ -69,7 +72,7 @@ export class UserLevelController {
             res.status(204).send();
         }
         catch (error) {
-            logger.error('Error deleting level:', error);
+            logger_1.logger.error('Error deleting level:', error);
             res.status(500).json({ error: 'Internal server error' });
         }
     }
@@ -103,4 +106,5 @@ export class UserLevelController {
         }
     }
 }
+exports.UserLevelController = UserLevelController;
 //# sourceMappingURL=userLevelController.js.map

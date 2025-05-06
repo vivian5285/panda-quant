@@ -1,8 +1,11 @@
-import { logger } from '../../utils/logger';
-import { Strategy } from '../../models/Strategy';
-export class StrategyService {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.StrategyService = void 0;
+const logger_1 = require("../../utils/logger");
+const Strategy_1 = require("../../models/Strategy");
+class StrategyService {
     constructor() {
-        this.strategyModel = Strategy;
+        this.strategyModel = Strategy_1.Strategy;
     }
     static getInstance() {
         if (!StrategyService.instance) {
@@ -17,7 +20,7 @@ export class StrategyService {
             return savedStrategy.toObject();
         }
         catch (error) {
-            logger.error('Error creating strategy:', error);
+            logger_1.logger.error('Error creating strategy:', error);
             throw error;
         }
     }
@@ -27,7 +30,7 @@ export class StrategyService {
             return strategy ? strategy.toObject() : null;
         }
         catch (error) {
-            logger.error('Error getting strategy by ID:', error);
+            logger_1.logger.error('Error getting strategy by ID:', error);
             throw error;
         }
     }
@@ -37,7 +40,7 @@ export class StrategyService {
             return strategy ? strategy.toObject() : null;
         }
         catch (error) {
-            logger.error('Error updating strategy:', error);
+            logger_1.logger.error('Error updating strategy:', error);
             throw error;
         }
     }
@@ -47,7 +50,7 @@ export class StrategyService {
             return !!result;
         }
         catch (error) {
-            logger.error('Error deleting strategy:', error);
+            logger_1.logger.error('Error deleting strategy:', error);
             throw error;
         }
     }
@@ -57,9 +60,10 @@ export class StrategyService {
             return strategies.map(strategy => strategy.toObject());
         }
         catch (error) {
-            logger.error('Error getting strategies by user ID:', error);
+            logger_1.logger.error('Error getting strategies by user ID:', error);
             throw error;
         }
     }
 }
+exports.StrategyService = StrategyService;
 //# sourceMappingURL=strategy.service.js.map

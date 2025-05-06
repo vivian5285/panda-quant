@@ -1,8 +1,14 @@
-import { Types } from 'mongoose';
-import { User } from '../models/User';
-import bcrypt from 'bcrypt';
-import { logger } from '../utils/logger';
-export class UserService {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.UserService = void 0;
+const mongoose_1 = require("mongoose");
+const User_1 = require("../models/User");
+const bcrypt_1 = __importDefault(require("bcrypt"));
+const logger_1 = require("../utils/logger");
+class UserService {
     constructor() { }
     static getInstance() {
         if (!UserService.instance) {
@@ -20,11 +26,11 @@ export class UserService {
     }
     async authenticate(email, password) {
         try {
-            const user = await User.findOne({ email });
+            const user = await User_1.User.findOne({ email });
             if (!user) {
                 throw new Error('User not found');
             }
-            const isValid = await bcrypt.compare(password, user.password);
+            const isValid = await bcrypt_1.default.compare(password, user.password);
             if (!isValid) {
                 throw new Error('Invalid password');
             }
@@ -37,14 +43,14 @@ export class UserService {
             return { user: convertedUser, token };
         }
         catch (error) {
-            logger.error('Authentication error:', error);
+            logger_1.logger.error('Authentication error:', error);
             throw error;
         }
     }
     async createUser(data) {
-        const user = new User({
+        const user = new User_1.User({
             ...data,
-            _id: new Types.ObjectId(),
+            _id: new mongoose_1.Types.ObjectId(),
             name: data.name || '',
             level: data.level || 1,
             role: data.role || 'user',
@@ -59,28 +65,29 @@ export class UserService {
         return convertedUser;
     }
     async getUserById(id) {
-        const user = await User.findById(id);
+        const user = await User_1.User.findById(id);
         return this.convertToIUser(user);
     }
     async updateUser(id, data) {
-        const user = await User.findByIdAndUpdate(id, data, { new: true });
+        const user = await User_1.User.findByIdAndUpdate(id, data, { new: true });
         return this.convertToIUser(user);
     }
     async deleteUser(id) {
-        const result = await User.findByIdAndDelete(id);
+        const result = await User_1.User.findByIdAndDelete(id);
         return result !== null;
     }
     async getUserByEmail(email) {
-        const user = await User.findOne({ email });
+        const user = await User_1.User.findOne({ email });
         return this.convertToIUser(user);
     }
     async getUserByUsername(username) {
-        const user = await User.findOne({ username });
+        const user = await User_1.User.findOne({ username });
         return this.convertToIUser(user);
     }
     async getUsers() {
-        const users = await User.find();
+        const users = await User_1.User.find();
         return users.map(user => this.convertToIUser(user)).filter((user) => user !== null);
     }
 }
+exports.UserService = UserService;
 //# sourceMappingURL=UserService.js.map

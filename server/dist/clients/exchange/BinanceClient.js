@@ -1,8 +1,14 @@
-import { BaseExchangeClient } from './BaseExchangeClient';
-import axios from 'axios';
-import crypto from 'crypto';
-import { logger } from '../../utils/logger';
-export class BinanceClient extends BaseExchangeClient {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BinanceClient = void 0;
+const BaseExchangeClient_1 = require("./BaseExchangeClient");
+const axios_1 = __importDefault(require("axios"));
+const crypto_1 = __importDefault(require("crypto"));
+const logger_1 = require("../../utils/logger");
+class BinanceClient extends BaseExchangeClient_1.BaseExchangeClient {
     constructor(credentials, isTestnet = false) {
         super('binance', credentials);
         this.baseUrl = isTestnet ? 'https://testnet.binance.vision' : 'https://api.binance.com';
@@ -13,7 +19,7 @@ export class BinanceClient extends BaseExchangeClient {
         if (isPrivate) {
             params.timestamp = timestamp;
             const queryString = new URLSearchParams(params).toString();
-            const signature = crypto
+            const signature = crypto_1.default
                 .createHmac('sha256', this.credentials.apiSecret)
                 .update(queryString)
                 .digest('hex');
@@ -25,7 +31,7 @@ export class BinanceClient extends BaseExchangeClient {
         if (isPrivate) {
             headers['X-MBX-APIKEY'] = this.credentials.apiKey;
         }
-        const response = await axios({
+        const response = await (0, axios_1.default)({
             method,
             url,
             params,
@@ -134,7 +140,7 @@ export class BinanceClient extends BaseExchangeClient {
             return response.data;
         }
         catch (error) {
-            logger.error('Error getting account info:', error);
+            logger_1.logger.error('Error getting account info:', error);
             throw error;
         }
     }
@@ -206,4 +212,5 @@ export class BinanceClient extends BaseExchangeClient {
         };
     }
 }
+exports.BinanceClient = BinanceClient;
 //# sourceMappingURL=BinanceClient.js.map

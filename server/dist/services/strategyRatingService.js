@@ -1,45 +1,48 @@
-import { Types } from 'mongoose';
-import { StrategyRating } from '../models/StrategyRating';
-import { AppError } from '../utils/AppError';
-import { logger } from '../utils/logger';
-export class StrategyRatingService {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.StrategyRatingService = void 0;
+const mongoose_1 = require("mongoose");
+const StrategyRating_1 = require("../models/StrategyRating");
+const AppError_1 = require("../utils/AppError");
+const logger_1 = require("../utils/logger");
+class StrategyRatingService {
     async createRating(data) {
         try {
-            const ratingDoc = new StrategyRating({
+            const ratingDoc = new StrategyRating_1.StrategyRating({
                 ...data,
-                userId: new Types.ObjectId(data.userId),
-                strategyId: new Types.ObjectId(data.strategyId)
+                userId: new mongoose_1.Types.ObjectId(data.userId),
+                strategyId: new mongoose_1.Types.ObjectId(data.strategyId)
             });
             await ratingDoc.save();
             return ratingDoc;
         }
         catch (error) {
-            logger.error('Error creating rating:', error);
-            throw new AppError('Failed to create rating', 500);
+            logger_1.logger.error('Error creating rating:', error);
+            throw new AppError_1.AppError('Failed to create rating', 500);
         }
     }
     async getStrategyRatings(strategyId) {
         try {
-            return await StrategyRating.find({ strategyId: new Types.ObjectId(strategyId) });
+            return await StrategyRating_1.StrategyRating.find({ strategyId: new mongoose_1.Types.ObjectId(strategyId) });
         }
         catch (error) {
-            logger.error('Error getting strategy ratings:', error);
-            throw new AppError('Failed to get strategy ratings', 500);
+            logger_1.logger.error('Error getting strategy ratings:', error);
+            throw new AppError_1.AppError('Failed to get strategy ratings', 500);
         }
     }
     async getUserRatings(userId) {
         try {
-            return await StrategyRating.find({ userId: new Types.ObjectId(userId) });
+            return await StrategyRating_1.StrategyRating.find({ userId: new mongoose_1.Types.ObjectId(userId) });
         }
         catch (error) {
-            logger.error('Error getting user ratings:', error);
-            throw new AppError('Failed to get user ratings', 500);
+            logger_1.logger.error('Error getting user ratings:', error);
+            throw new AppError_1.AppError('Failed to get user ratings', 500);
         }
     }
     async getAverageRating(strategyId) {
         try {
-            const result = await StrategyRating.aggregate([
-                { $match: { strategyId: new Types.ObjectId(strategyId) } },
+            const result = await StrategyRating_1.StrategyRating.aggregate([
+                { $match: { strategyId: new mongoose_1.Types.ObjectId(strategyId) } },
                 {
                     $group: {
                         _id: null,
@@ -51,41 +54,42 @@ export class StrategyRatingService {
             return result[0] || { average: 0, count: 0 };
         }
         catch (error) {
-            logger.error('Error getting average rating:', error);
-            throw new AppError('Failed to get average rating', 500);
+            logger_1.logger.error('Error getting average rating:', error);
+            throw new AppError_1.AppError('Failed to get average rating', 500);
         }
     }
     async updateRating(id, userId, data) {
         try {
-            return await StrategyRating.findOneAndUpdate({ _id: new Types.ObjectId(id), userId: new Types.ObjectId(userId) }, { $set: { ...data, updatedAt: new Date() } }, { new: true });
+            return await StrategyRating_1.StrategyRating.findOneAndUpdate({ _id: new mongoose_1.Types.ObjectId(id), userId: new mongoose_1.Types.ObjectId(userId) }, { $set: { ...data, updatedAt: new Date() } }, { new: true });
         }
         catch (error) {
-            logger.error('Error updating rating:', error);
-            throw new AppError('Failed to update rating', 500);
+            logger_1.logger.error('Error updating rating:', error);
+            throw new AppError_1.AppError('Failed to update rating', 500);
         }
     }
     async deleteRating(id, userId) {
         try {
-            const result = await StrategyRating.deleteOne({
-                _id: new Types.ObjectId(id),
-                userId: new Types.ObjectId(userId)
+            const result = await StrategyRating_1.StrategyRating.deleteOne({
+                _id: new mongoose_1.Types.ObjectId(id),
+                userId: new mongoose_1.Types.ObjectId(userId)
             });
             return result.deletedCount > 0;
         }
         catch (error) {
-            logger.error('Error deleting rating:', error);
-            throw new AppError('Failed to delete rating', 500);
+            logger_1.logger.error('Error deleting rating:', error);
+            throw new AppError_1.AppError('Failed to delete rating', 500);
         }
     }
     async getRatings(strategyId) {
         try {
-            const query = strategyId ? { strategyId: new Types.ObjectId(strategyId) } : {};
-            return await StrategyRating.find(query);
+            const query = strategyId ? { strategyId: new mongoose_1.Types.ObjectId(strategyId) } : {};
+            return await StrategyRating_1.StrategyRating.find(query);
         }
         catch (error) {
-            logger.error('Error getting ratings:', error);
-            throw new AppError('Failed to get ratings', 500);
+            logger_1.logger.error('Error getting ratings:', error);
+            throw new AppError_1.AppError('Failed to get ratings', 500);
         }
     }
 }
+exports.StrategyRatingService = StrategyRatingService;
 //# sourceMappingURL=StrategyRatingService.js.map

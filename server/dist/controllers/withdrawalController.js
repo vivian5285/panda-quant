@@ -1,7 +1,10 @@
-import { WithdrawalService } from '../services/WithdrawalService';
-import { handleError } from '../utils/errorHandler';
-const withdrawalService = WithdrawalService.getInstance();
-export class WithdrawalController {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.WithdrawalController = void 0;
+const WithdrawalService_1 = require("../services/WithdrawalService");
+const errorHandler_1 = require("../utils/errorHandler");
+const withdrawalService = WithdrawalService_1.WithdrawalService.getInstance();
+class WithdrawalController {
     async createWithdrawal(req, res) {
         try {
             if (!req.user) {
@@ -21,7 +24,7 @@ export class WithdrawalController {
             res.status(201).json(withdrawal);
         }
         catch (error) {
-            handleError(res, error);
+            (0, errorHandler_1.handleError)(res, error);
         }
     }
     async getWithdrawals(req, res) {
@@ -34,7 +37,7 @@ export class WithdrawalController {
             res.json(withdrawals);
         }
         catch (error) {
-            handleError(res, error);
+            (0, errorHandler_1.handleError)(res, error);
         }
     }
     async getWithdrawalById(req, res) {
@@ -48,7 +51,7 @@ export class WithdrawalController {
             res.json(withdrawal);
         }
         catch (error) {
-            handleError(res, error);
+            (0, errorHandler_1.handleError)(res, error);
         }
     }
     async updateWithdrawal(req, res) {
@@ -62,7 +65,7 @@ export class WithdrawalController {
             res.json(withdrawal);
         }
         catch (error) {
-            handleError(res, error);
+            (0, errorHandler_1.handleError)(res, error);
         }
     }
     async deleteWithdrawal(req, res) {
@@ -76,8 +79,9 @@ export class WithdrawalController {
             res.json({ message: 'Withdrawal deleted successfully' });
         }
         catch (error) {
-            handleError(res, error);
+            (0, errorHandler_1.handleError)(res, error);
         }
     }
 }
+exports.WithdrawalController = WithdrawalController;
 //# sourceMappingURL=withdrawalController.js.map

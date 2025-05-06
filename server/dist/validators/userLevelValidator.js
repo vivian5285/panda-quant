@@ -1,20 +1,23 @@
-import { body } from 'express-validator';
-export const userLevelValidator = [
-    body('name').isString().notEmpty().withMessage('Name is required'),
-    body('level').isNumeric().withMessage('Level must be a number'),
-    body('experience').isNumeric().withMessage('Experience must be a number'),
-    body('requiredExperience').isNumeric().withMessage('Required experience must be a number'),
-    body('minCommission').isNumeric().withMessage('Min commission must be a number'),
-    body('maxCommission').isNumeric().withMessage('Max commission must be a number'),
-    body('benefits.commissionRate').isNumeric().withMessage('Commission rate must be a number'),
-    body('benefits.withdrawalLimit').isNumeric().withMessage('Withdrawal limit must be a number'),
-    body('benefits.strategyLimit').isNumeric().withMessage('Strategy limit must be a number'),
-    body('requirements').isObject().withMessage('Requirements must be an object'),
-    body('requirements.minBalance').optional().isNumeric().withMessage('Min balance must be a number'),
-    body('requirements.minTradingVolume').optional().isNumeric().withMessage('Min trading volume must be a number'),
-    body('requirements.minHoldingTime').optional().isNumeric().withMessage('Min holding time must be a number')
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.validateUserLevel = exports.userLevelValidator = void 0;
+const express_validator_1 = require("express-validator");
+exports.userLevelValidator = [
+    (0, express_validator_1.body)('name').isString().notEmpty().withMessage('Name is required'),
+    (0, express_validator_1.body)('level').isNumeric().withMessage('Level must be a number'),
+    (0, express_validator_1.body)('experience').isNumeric().withMessage('Experience must be a number'),
+    (0, express_validator_1.body)('requiredExperience').isNumeric().withMessage('Required experience must be a number'),
+    (0, express_validator_1.body)('minCommission').isNumeric().withMessage('Min commission must be a number'),
+    (0, express_validator_1.body)('maxCommission').isNumeric().withMessage('Max commission must be a number'),
+    (0, express_validator_1.body)('benefits.commissionRate').isNumeric().withMessage('Commission rate must be a number'),
+    (0, express_validator_1.body)('benefits.withdrawalLimit').isNumeric().withMessage('Withdrawal limit must be a number'),
+    (0, express_validator_1.body)('benefits.strategyLimit').isNumeric().withMessage('Strategy limit must be a number'),
+    (0, express_validator_1.body)('requirements').isObject().withMessage('Requirements must be an object'),
+    (0, express_validator_1.body)('requirements.minBalance').optional().isNumeric().withMessage('Min balance must be a number'),
+    (0, express_validator_1.body)('requirements.minTradingVolume').optional().isNumeric().withMessage('Min trading volume must be a number'),
+    (0, express_validator_1.body)('requirements.minHoldingTime').optional().isNumeric().withMessage('Min holding time must be a number')
 ];
-export function validateUserLevel(levelData) {
+function validateUserLevel(levelData) {
     if (!levelData.name || typeof levelData.name !== 'string') {
         throw new Error('Invalid name');
     }
@@ -40,4 +43,5 @@ export function validateUserLevel(levelData) {
         throw new Error('Invalid metadata');
     }
 }
+exports.validateUserLevel = validateUserLevel;
 //# sourceMappingURL=userLevelValidator.js.map

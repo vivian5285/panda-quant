@@ -1,7 +1,10 @@
-import { Schema, model, Types } from 'mongoose';
-const riskEventSchema = new Schema({
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.RiskEvent = void 0;
+const mongoose_1 = require("mongoose");
+const riskEventSchema = new mongoose_1.Schema({
     userId: {
-        type: Types.ObjectId,
+        type: mongoose_1.Types.ObjectId,
         ref: 'User',
         required: true
     },
@@ -25,7 +28,7 @@ const riskEventSchema = new Schema({
         required: true
     },
     metadata: {
-        type: Schema.Types.Mixed,
+        type: mongoose_1.Schema.Types.Mixed,
         default: {}
     },
     createdAt: {
@@ -37,5 +40,5 @@ const riskEventSchema = new Schema({
         default: Date.now
     }
 });
-export const RiskEvent = model('RiskEvent', riskEventSchema);
+exports.RiskEvent = (0, mongoose_1.model)('RiskEvent', riskEventSchema);
 //# sourceMappingURL=RiskEvent.js.map

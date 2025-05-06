@@ -1,12 +1,16 @@
-import { logger } from '../utils/logger';
-export class ValidationError extends Error {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.errorHandler = exports.ValidationError = void 0;
+const logger_1 = require("../utils/logger");
+class ValidationError extends Error {
     constructor(message) {
         super(message);
         this.name = 'ValidationError';
     }
 }
-export const errorHandler = (err, _req, res, _next) => {
-    logger.error('Error:', err);
+exports.ValidationError = ValidationError;
+const errorHandler = (err, _req, res, _next) => {
+    logger_1.logger.error('Error:', err);
     if (err instanceof ValidationError) {
         res.status(400).json({
             error: 'Validation Error',
@@ -19,4 +23,5 @@ export const errorHandler = (err, _req, res, _next) => {
         message: err.message
     });
 };
+exports.errorHandler = errorHandler;
 //# sourceMappingURL=error.js.map

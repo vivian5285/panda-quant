@@ -1,7 +1,13 @@
-import dotenv from 'dotenv';
-import path from 'path';
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.config = void 0;
+const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
 // 加载环境变量
-dotenv.config({ path: path.join(__dirname, '../../.env') });
+dotenv_1.default.config({ path: path_1.default.join(__dirname, '../../.env') });
 const config = {
     env: process.env.NODE_ENV || 'development',
     port: parseInt(process.env.PORT || '3000', 10),
@@ -27,11 +33,11 @@ const config = {
         ttl: parseInt(process.env.CACHE_TTL || '3600', 10)
     }
 };
+exports.config = config;
 // 验证必需的配置
 const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET'];
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 if (missingEnvVars.length > 0) {
     throw new Error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
 }
-export { config };
 //# sourceMappingURL=index.js.map

@@ -1,4 +1,7 @@
-export const validateUserRequest = (schema) => {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.validateUserRequest = void 0;
+const validateUserRequest = (schema) => {
     return (req, res, next) => {
         const { error } = schema.validate(req.body);
         if (error) {
@@ -12,4 +15,5 @@ export const validateUserRequest = (schema) => {
         next();
     };
 };
+exports.validateUserRequest = validateUserRequest;
 //# sourceMappingURL=user.validation.js.map

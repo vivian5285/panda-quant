@@ -1,5 +1,8 @@
-import { logger } from '../utils/logger';
-export class ProfitService {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ProfitService = void 0;
+const logger_1 = require("../utils/logger");
+class ProfitService {
     constructor() { }
     static getInstance() {
         if (!ProfitService.instance) {
@@ -13,7 +16,7 @@ export class ProfitService {
             return null;
         }
         catch (error) {
-            logger.error('Error getting profit by id:', error);
+            logger_1.logger.error('Error getting profit by id:', error);
             throw error;
         }
     }
@@ -23,7 +26,7 @@ export class ProfitService {
             return null;
         }
         catch (error) {
-            logger.error('Error creating profit:', error);
+            logger_1.logger.error('Error creating profit:', error);
             throw error;
         }
     }
@@ -33,7 +36,7 @@ export class ProfitService {
             return null;
         }
         catch (error) {
-            logger.error('Error updating profit:', error);
+            logger_1.logger.error('Error updating profit:', error);
             throw error;
         }
     }
@@ -43,7 +46,7 @@ export class ProfitService {
             return false;
         }
         catch (error) {
-            logger.error('Error deleting profit:', error);
+            logger_1.logger.error('Error deleting profit:', error);
             throw error;
         }
     }
@@ -57,9 +60,10 @@ export class ProfitService {
             };
         }
         catch (error) {
-            logger.error('Error getting profit summary:', error);
+            logger_1.logger.error('Error getting profit summary:', error);
             throw error;
         }
     }
 }
+exports.ProfitService = ProfitService;
 //# sourceMappingURL=ProfitService.js.map
