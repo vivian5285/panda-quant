@@ -1,11 +1,11 @@
-import { Request, Response } from 'express';
+import { Request } from 'express';
 import { IUser } from '../models/user.model';
 
-export type AuthUser = {
+export interface AuthUser {
   id: string;
   email: string;
   role: 'user' | 'admin';
-};
+}
 
 declare global {
   namespace Express {

@@ -31,7 +31,11 @@ export const authenticateToken = async (
       });
       return;
     }
-    req.user = user;
+    req.user = {
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role as 'user' | 'admin'
+    };
     next();
   } catch (error) {
     res.status(403).json({

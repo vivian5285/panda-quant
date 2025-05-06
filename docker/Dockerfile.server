@@ -19,11 +19,11 @@ RUN npm config set fetch-retries 5 && \
     npm config set fetch-retry-maxtimeout 120000 && \
     npm config set fetch-timeout 120000
 
-# 复制 package.json
-COPY server/package.json ./
+# 复制 package.json 和 tsconfig.json
+COPY server/package.json server/tsconfig.json ./
 
 # 安装依赖
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # 复制源代码
 COPY server/ ./

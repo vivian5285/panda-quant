@@ -6,7 +6,7 @@ import { AuthRequest } from '../types/auth';
 // 获取资产概览
 export const getAssetSummary = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    if (!req.user) {
+    if (!req.user?.id) {
       res.status(401).json({ message: 'Unauthorized' });
       return;
     }
@@ -60,7 +60,7 @@ export const getAssetSummary = async (req: AuthRequest, res: Response): Promise<
 };
 
 // 获取链地址
-export const getChainAddresses = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getChainAddresses = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const addresses = await ChainAddress.find({
       isActive: true,

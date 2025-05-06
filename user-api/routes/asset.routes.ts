@@ -16,13 +16,27 @@ import { AuthRequest } from '../types/auth';
 const router = express.Router();
 
 // 获取资产概览
-router.get('/summary', authenticateToken, getAssetSummary);
+router.get('/summary', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    await getAssetSummary(req, res);
+  } catch (error) {
+    console.error('Error in asset summary route:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 // 获取链地址
 router.get('/chain-addresses', authenticateToken, getChainAddresses);
 
 // 创建充值记录
-router.post('/deposit', authenticateToken, createDeposit);
+router.post('/deposit', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    await createDeposit(req, res);
+  } catch (error) {
+    console.error('Error in create deposit route:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 // 确认充值
 router.post('/deposit/:paymentId/confirm', authenticateToken, confirmDeposit);
@@ -73,10 +87,10 @@ router.get('/overview', authenticateToken, async (req: AuthRequest, res: Respons
       }))
     };
 
-    res.json(assetOverview);
+    return res.json(assetOverview);
   } catch (error) {
     console.error('Error fetching asset overview:', error);
-    res.status(500).json({ message: '获取资产概览失败' });
+    return res.status(500).json({ message: '获取资产概览失败' });
   }
 });
 
@@ -97,7 +111,7 @@ router.get('/transactions', authenticateToken, async (req: AuthRequest, res: Res
 
     const total = await Transaction.countDocuments({ userId: new mongoose.Types.ObjectId(userId) });
 
-    res.json({
+    return res.json({
       transactions: transactions.map(tx => ({
         id: tx._id,
         date: tx.createdAt,
@@ -115,7 +129,7 @@ router.get('/transactions', authenticateToken, async (req: AuthRequest, res: Res
     });
   } catch (error) {
     console.error('Error fetching transaction history:', error);
-    res.status(500).json({ message: '获取交易历史失败' });
+    return res.status(500).json({ message: '获取交易历史失败' });
   }
 });
 
