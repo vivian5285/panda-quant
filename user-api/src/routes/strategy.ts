@@ -1,6 +1,7 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import { StrategyController } from '../controllers/strategy.controller';
 import { authenticate } from '../middlewares/auth';
+import { AuthRequest } from '../types/express.d';
 
 const router = Router();
 const strategyController = new StrategyController();
@@ -9,24 +10,38 @@ const strategyController = new StrategyController();
 router.use(authenticate);
 
 // 创建策略
-router.post('/', (req, res) => strategyController.createStrategy(req, res));
+router.post('/', async (req: AuthRequest, res: Response) => {
+  await strategyController.createStrategy(req, res);
+});
 
 // 获取策略列表
-router.get('/', (req, res) => strategyController.getStrategies(req, res));
+router.get('/', async (req: AuthRequest, res: Response) => {
+  await strategyController.getStrategies(req, res);
+});
 
 // 获取单个策略详情
-router.get('/:id', (req, res) => strategyController.getStrategyById(req, res));
+router.get('/:id', async (req: AuthRequest, res: Response) => {
+  await strategyController.getStrategyById(req, res);
+});
 
 // 更新策略
-router.put('/:id', (req, res) => strategyController.updateStrategy(req, res));
+router.put('/:id', async (req: AuthRequest, res: Response) => {
+  await strategyController.updateStrategy(req, res);
+});
 
 // 删除策略
-router.delete('/:id', (req, res) => strategyController.deleteStrategy(req, res));
+router.delete('/:id', async (req: AuthRequest, res: Response) => {
+  await strategyController.deleteStrategy(req, res);
+});
 
 // 运行策略
-router.post('/:id/run', (req, res) => strategyController.runStrategy(req, res));
+router.post('/:id/run', async (req: AuthRequest, res: Response) => {
+  await strategyController.runStrategy(req, res);
+});
 
 // 停止策略
-router.post('/:id/stop', (req, res) => strategyController.stopStrategy(req, res));
+router.post('/:id/stop', async (req: AuthRequest, res: Response) => {
+  await strategyController.stopStrategy(req, res);
+});
 
 export default router; 

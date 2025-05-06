@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthUser } from '../types/auth.types';
-import { User } from '../models/user.model';
+import { User, IUser } from '../models/User';
 
 declare global {
   namespace Express {
@@ -24,7 +24,7 @@ export const authenticate = async (
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || '') as AuthUser;
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id) as IUser | null;
     if (!user) {
       res.status(401).json({ error: 'User not found' });
       return;

@@ -1,4 +1,4 @@
-import { User } from '../models/user.model';
+import { User } from '../models/User';
 import { Transaction } from '../models/transaction.model';
 import { logger } from '../utils/logger';
 
@@ -9,8 +9,8 @@ export async function deductFees() {
     });
 
     for (const user of users) {
-      if (user.balance >= user.subscriptionFee) {
-        user.balance -= user.subscriptionFee;
+      if (user.accountBalance >= user.subscriptionFee) {
+        user.accountBalance -= user.subscriptionFee;
         await user.save();
 
         await Transaction.create({
