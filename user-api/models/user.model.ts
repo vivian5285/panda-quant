@@ -7,6 +7,7 @@ interface DepositAddress {
 }
 
 export interface IUser extends Document {
+  id: string;
   _id: mongoose.Types.ObjectId;
   email: string;
   password: string;

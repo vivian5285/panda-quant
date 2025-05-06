@@ -1,32 +1,7 @@
 import { Request, Response } from 'express';
+import { IUser } from '../models/user.model';
 
-export interface AuthUser {
-  id: string;
-  _id: string;
-  email: string;
-  role: 'user' | 'admin';
-  password: string;
-  name: string;
-  balance: number;
-  hostingFee: number;
-  subscriptionFee: number;
-  accountBalance: number;
-  subscriptionEndDate: Date | null;
-  status: 'active' | 'inactive' | 'suspended';
-  referralCode: string;
-  referralRewards: number;
-  referredBy?: string;
-  inviteCode?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  isVerified: boolean;
-  totalDeposits: number;
-  depositAddresses: Array<{
-    chain: string;
-    address: string;
-  }>;
-  walletAddress?: string;
-}
+export type AuthUser = IUser;
 
 declare global {
   namespace Express {
