@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Response } from 'express';
 import { authenticateToken } from '../middlewares/auth';
 import {
   getAssetSummary,
@@ -11,14 +11,7 @@ import { User } from '../models/user.model';
 import { Transaction } from '../models/transaction.model';
 import { Strategy } from '../models/strategy.model';
 import mongoose from 'mongoose';
-
-interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
-}
+import { AuthRequest } from '../types/auth';
 
 const router = express.Router();
 

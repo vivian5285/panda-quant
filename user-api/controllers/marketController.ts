@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../types/auth';
 
-export const getMarketData = async (req: Request, res: Response) => {
+export const getMarketData = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     // 这里应该是从数据库或外部 API 获取市场数据
     // 现在返回一些模拟数据

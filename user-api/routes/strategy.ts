@@ -1,11 +1,12 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { authenticateToken } from '../middleware/auth';
 import { getUserProfitData } from '../controllers/profitController';
-import { StrategyPreset, Strategy } from '../strategies/types';
+import { Strategy } from '../strategies/types';
 import { StrategyManager } from '../managers/strategyManager';
 import { User } from '../models/user.model';
 import mongoose from 'mongoose';
 import { Strategy as StrategyModel } from '../models/strategy.model';
+import { AuthRequest } from '../types/auth';
 
 interface AuthRequest extends Request {
   user?: {
@@ -18,7 +19,7 @@ interface AuthRequest extends Request {
 const router = express.Router();
 
 // 获取所有策略
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: AuthRequest, res: Response) => {
   try {
     const strategyManager = req.app.get('strategyManager') as StrategyManager;
     const strategies = strategyManager.getAllStrategies();
@@ -58,7 +59,7 @@ router.get('/user', authenticateToken, async (req: AuthRequest, res: Response) =
 });
 
 // 按风险等级获取策略
-router.get('/risk/:level', async (req: Request, res: Response) => {
+router.get('/risk/:level', async (req: AuthRequest, res: Response) => {
   try {
     const { level } = req.params;
     const strategyManager = req.app.get('strategyManager') as StrategyManager;
@@ -206,10 +207,9 @@ router.get('/list', authenticateToken, async (req: AuthRequest, res: Response) =
         name: strategy.name,
         type: strategy.type,
         status: strategy.status,
-        profit: strategy.get('profit') || 0,
-        startTime: strategy.startTime,
-        description: strategy.description,
-        parameters: strategy.parameters
+        profit: strategy.profit,
+        createdAt: strategy.createdAt,
+        updatedAt: strategy.updatedAt
       })),
       pagination: {
         total,

@@ -1,51 +1,47 @@
-# Build stage
-FROM node:18-alpine AS build
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apk add --no-cache python3 make g++
+# 安装构建依赖
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++
 
-# Copy package files
+# 设置 npm 配置
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-timeout 300000
+
+# 复制 package.json 和 package-lock.json
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install && \
-    npm install -g vite && \
-    chmod -R 755 /app
+# 安装依赖
+RUN npm install
 
-# Copy source code
+# 复制源代码
 COPY . .
 
-# Debug: List files
-RUN ls -la && \
-    ls -la src/ && \
-    cat index.html
+# 构建应用
+RUN npm run build
 
-# Build the app
-RUN echo "构建应用..." && \
-    npm run build
-
-# Production stage
+# 生产环境镜像
 FROM nginx:alpine
 
-# Install wget for healthcheck
-RUN apk add --no-cache wget
+# 安装 curl 用于健康检查
+RUN apk add --no-cache curl
 
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# 复制 nginx 配置
+COPY docker/nginx/admin-ui.conf /etc/nginx/conf.d/default.conf
 
-# Copy built assets from build stage
-COPY --from=build /app/dist /usr/share/nginx/html
+# 从构建阶段复制构建产物
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Set permissions
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
+# 暴露端口
+EXPOSE 3003
 
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s \
+    CMD curl -f http://localhost:3003/ || exit 1
 
-EXPOSE 80
-
+# 启动 nginx
 CMD ["nginx", "-g", "daemon off;"] 

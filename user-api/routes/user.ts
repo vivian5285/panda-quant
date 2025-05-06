@@ -12,7 +12,7 @@ const router = Router();
 // Get user info
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
     if (!userId) {
       res.status(401).json({ message: '未授权' });
       return;
@@ -40,7 +40,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response): Prom
 // Get user account information
 router.get('/account-info', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
     if (!userId) {
       res.status(401).json({ message: '未授权' });
       return;
@@ -100,7 +100,7 @@ router.get('/account-info', authenticateToken, async (req: AuthRequest, res: Res
 // Get user profile
 router.get('/profile', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
     if (!userId) {
       res.status(401).json({ message: '未授权' });
       return;
@@ -128,7 +128,7 @@ router.get('/profile', authenticateToken, async (req: AuthRequest, res: Response
 // Update user profile
 router.put('/profile', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const userId = req.user?._id;
+    const userId = req.user?.id;
     if (!userId) {
       res.status(401).json({ message: '未授权' });
       return;

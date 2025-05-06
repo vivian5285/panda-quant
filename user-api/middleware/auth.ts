@@ -22,24 +22,8 @@ export const authenticateToken = (
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as AuthUser;
     req.user = {
       id: decoded.id,
-      _id: decoded.id,
       email: decoded.email,
-      role: decoded.role,
-      password: '',
-      name: '',
-      balance: 0,
-      hostingFee: 0,
-      subscriptionFee: 0,
-      accountBalance: 0,
-      subscriptionEndDate: null,
-      status: 'active',
-      referralCode: '',
-      referralRewards: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      isVerified: false,
-      totalDeposits: 0,
-      depositAddresses: []
+      role: decoded.role
     };
     next();
   } catch (error) {

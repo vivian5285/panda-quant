@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { Strategy as StrategyModel, IStrategy } from '../models/strategy.model';
 import { Profit } from '../models/profit.model';
 import { AuthRequest } from '../types/auth';
@@ -38,14 +38,15 @@ const calculateDailyProfit = async (userId: string, strategyId: string, date: Da
 };
 
 // 获取用户收益数据
-export const getUserProfitData = async (req: AuthRequest, res: Response) => {
+export const getUserProfitData = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         message: '用户未认证'
       });
+      return;
     }
 
     // 获取最近30天的日期范围
@@ -91,7 +92,7 @@ export const getUserProfitData = async (req: AuthRequest, res: Response) => {
 };
 
 // 更新每日收益
-export const updateDailyProfits = async () => {
+export const updateDailyProfits = async (): Promise<void> => {
   try {
     const strategies = await StrategyModel.find({ active: true });
     const today = new Date();

@@ -199,16 +199,12 @@ export const updateUserProfit = async (req: AuthRequest, res: Response): Promise
       userId,
       type: 'FEE',
       amount: hostingFee,
-      status: 'PENDING'
+      status: 'COMPLETED'
     });
 
-    res.json({ 
-      message: 'Profit updated successfully',
-      totalProfit: asset.totalProfit,
-      hostingFee
-    });
+    res.json({ message: 'Profit updated successfully' });
   } catch (error) {
-    console.error('Error updating user profit:', error);
+    console.error('Error updating profit:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }; 
