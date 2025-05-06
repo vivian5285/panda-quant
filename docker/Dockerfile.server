@@ -11,6 +11,8 @@ RUN for i in $(seq 1 3); do \
             make \
             g++ \
             git \
+            openssl \
+            openssl-dev \
             && break || sleep 1; \
     done
 
@@ -20,14 +22,27 @@ RUN npm config set fetch-retries 5 && \
     npm config set fetch-retry-maxtimeout 120000 && \
     npm config set fetch-timeout 120000
 
-# 复制 package.json
+# 复制 package.json 和 tsconfig.json
 COPY server/package.json ./
+COPY server/tsconfig.json ./
 
 # 安装依赖
 RUN npm install
 
-# 复制源代码
-COPY server/ ./
+# 创建 src 目录
+RUN mkdir -p src
+
+# 复制源代码到 src 目录
+COPY server/*.ts ./src/
+COPY server/controllers ./src/controllers/
+COPY server/models ./src/models/
+COPY server/routes ./src/routes/
+COPY server/services ./src/services/
+COPY server/utils ./src/utils/
+COPY server/middleware ./src/middleware/
+COPY server/types ./src/types/
+COPY server/interfaces ./src/interfaces/
+COPY server/config ./src/config/
 
 # 设置目录权限
 RUN chown -R node:node /app && \
