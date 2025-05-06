@@ -28,6 +28,15 @@ RUN npm install --legacy-peer-deps
 # 复制源代码和类型定义
 COPY server/src ./src
 
+# 统一类型文件命名
+RUN cd src/types && \
+    mv blacklist.ts Blacklist.ts.new && mv Blacklist.ts.new Blacklist.ts && \
+    mv settlement.ts Settlement.ts.new && mv Settlement.ts.new Settlement.ts && \
+    mv strategyRating.ts StrategyRating.ts.new && mv StrategyRating.ts.new StrategyRating.ts && \
+    mv userLevel.ts UserLevel.ts.new && mv UserLevel.ts.new UserLevel.ts && \
+    mv withdrawal.ts Withdrawal.ts.new && mv Withdrawal.ts.new Withdrawal.ts && \
+    mv trading.ts Trading.ts.new && mv Trading.ts.new Trading.ts
+
 # 设置目录权限
 RUN chown -R node:node /app && \
     chmod -R 755 /app

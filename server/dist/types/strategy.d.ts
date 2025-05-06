@@ -60,6 +60,8 @@ export interface IStrategy {
     updatedAt: Date;
 }
 export type Strategy = IStrategy & Document;
+export interface IStrategyDocument extends IStrategy, Document {
+}
 export interface StrategyCreateInput extends Omit<IStrategy, '_id' | 'createdAt' | 'updatedAt'> {
 }
 export interface StrategyUpdateInput extends Partial<StrategyCreateInput> {

@@ -7,6 +7,7 @@ export interface IStrategy {
     profit: number;
     risk: number;
     expectedReturn: number;
+    monthlyReturn: number;
     createdAt: Date;
     updatedAt: Date;
 }
