@@ -6,6 +6,7 @@ export interface IStrategy {
     status: 'active' | 'inactive';
     profit: number;
     risk: number;
+    expectedReturn: number;
     createdAt: Date;
     updatedAt: Date;
 }

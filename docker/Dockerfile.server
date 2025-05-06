@@ -25,8 +25,8 @@ COPY server/package.json server/tsconfig.json ./
 # 安装依赖
 RUN npm install --legacy-peer-deps
 
-# 复制源代码
-COPY server/ ./
+# 复制源代码和类型定义
+COPY server/src ./src
 
 # 设置目录权限
 RUN chown -R node:node /app && \
