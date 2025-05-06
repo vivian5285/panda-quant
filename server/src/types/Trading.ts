@@ -1,4 +1,5 @@
 import { Document, Types } from 'mongoose';
+import { TradeType } from './Enums';
 
 export enum OrderType {
   MARKET = 'market',
@@ -13,12 +14,6 @@ export enum OrderStatus {
   CLOSED = 'closed',
   CANCELLED = 'cancelled',
   FAILED = 'failed'
-}
-
-export enum TradeType {
-  SPOT = 'spot',
-  FUTURES = 'futures',
-  MT4 = 'mt4'
 }
 
 export enum TradeStatus {

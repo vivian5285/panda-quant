@@ -1,8 +1,8 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface ITransaction extends Document {
-  userId: string;
-  type: 'deposit' | 'withdrawal' | 'trade';
+  userId: Types.ObjectId;
+  type: 'deposit' | 'withdrawal' | 'trade' | 'subscription';
   amount: number;
   status: 'pending' | 'completed' | 'failed';
   createdAt: Date;
@@ -11,7 +11,7 @@ export interface ITransaction extends Document {
 
 const TransactionSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { type: String, enum: ['deposit', 'withdrawal', 'trade'], required: true },
+  type: { type: String, enum: ['deposit', 'withdrawal', 'trade', 'subscription'], required: true },
   amount: { type: Number, required: true },
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
 }, { timestamps: true });

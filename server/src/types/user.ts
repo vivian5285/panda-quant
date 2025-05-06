@@ -1,13 +1,14 @@
 import { Document, Types } from 'mongoose';
+import { UserRole, UserLevel, UserStatus } from './Enums';
 
 export interface IUserBase {
   email: string;
   password: string;
   name: string;
   username: string;
-  role: 'user' | 'admin';
-  level: number;
-  status: string;
+  role: UserRole;
+  level: UserLevel;
+  status: UserStatus;
   permissions: string[];
   isAdmin: boolean;
   createdAt: Date;

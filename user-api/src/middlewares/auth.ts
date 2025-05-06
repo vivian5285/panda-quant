@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthUser } from '../types/auth.types';
 import { User, IUser } from '../models/User';
+import { Types } from 'mongoose';
 
 declare global {
   namespace Express {
@@ -31,7 +32,7 @@ export const authenticate = async (
     }
 
     req.user = {
-      id: user._id.toString(),
+      id: user._id instanceof Types.ObjectId ? user._id.toString() : user._id,
       email: user.email,
       role: user.role
     };

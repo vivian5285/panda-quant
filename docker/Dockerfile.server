@@ -24,6 +24,15 @@ RUN npm install --legacy-peer-deps
 # 复制源代码
 COPY server/src ./src
 
+# 统一类型文件命名
+RUN cd src/types && \
+    for f in *.ts; do \
+        if [ -f "$f" ]; then \
+            mv "$f" "${f%.ts}.ts.new" && \
+            mv "${f%.ts}.ts.new" "$f"; \
+        fi; \
+    done
+
 # 构建应用
 RUN npm run build
 

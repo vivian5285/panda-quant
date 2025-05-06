@@ -6,6 +6,7 @@ export interface IStrategy extends Document {
   description: string;
   parameters: Record<string, number>;
   status: 'active' | 'inactive' | 'paused';
+  monthlyReturn: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +35,11 @@ const strategySchema = new Schema<IStrategy>({
     type: String,
     enum: ['active', 'inactive', 'paused'],
     default: 'inactive'
+  },
+  monthlyReturn: {
+    type: Number,
+    required: true,
+    default: 0
   }
 }, {
   timestamps: true

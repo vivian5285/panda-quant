@@ -22,8 +22,8 @@ export interface IStrategy {
   userId: Types.ObjectId;
   name: string;
   description: string;
-  type: string;
-  status: 'active' | 'inactive' | 'pending';
+  type: StrategyType;
+  status: StrategyStatus;
   parameters: Record<string, any>;
   expectedReturn?: number;
   performance?: {

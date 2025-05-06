@@ -1,5 +1,14 @@
 import { Request } from 'express';
 import { Document } from 'mongoose';
+import type {
+  StrategyType,
+  StrategyStatus,
+  AlertType,
+  RiskLevel,
+  CommissionType,
+  CommissionStatus,
+  WithdrawalStatus
+} from './Enums';
 import type { IUser } from './User';
 import type { IStrategy } from './Strategy';
 import type { ICommission } from './Commission';
@@ -97,7 +106,14 @@ export type {
   IMT4MarketData,
   OrderType,
   OrderStatus,
-  AuthenticatedRequest
+  AuthenticatedRequest,
+  StrategyType,
+  StrategyStatus,
+  AlertType,
+  RiskLevel,
+  CommissionType,
+  CommissionStatus,
+  WithdrawalStatus
 };
 
 // Base types
@@ -145,15 +161,4 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages: number;
-}
-
-// Enum types
-export type {
-  StrategyType,
-  StrategyStatus,
-  AlertType,
-  RiskLevel,
-  CommissionType,
-  CommissionStatus,
-  WithdrawalStatus
-} from './Enums'; 
+} 

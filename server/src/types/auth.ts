@@ -1,5 +1,6 @@
-import { Request } from 'express';
+import type { Request } from 'express-serve-static-core';
 import { IUser } from './User';
+import { UserRole } from './Enums';
 
 export interface AuthenticatedRequest extends Request {
   user?: IUser;
@@ -42,7 +43,7 @@ export interface IRegisterCredentials {
 export interface ITokenPayload {
   userId: string;
   email: string;
-  role: string;
+  role: UserRole;
   permissions: string[];
   exp: number;
 }

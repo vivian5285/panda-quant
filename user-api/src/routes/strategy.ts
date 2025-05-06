@@ -10,38 +10,38 @@ const strategyController = new StrategyController();
 router.use(authenticate);
 
 // 创建策略
-router.post('/', async (req: AuthRequest, res: Response) => {
-  await strategyController.createStrategy(req, res);
+router.post('/', (req: AuthRequest, res: Response) => {
+  strategyController.createStrategy(req, res);
 });
 
 // 获取策略列表
-router.get('/', async (req: AuthRequest, res: Response) => {
-  await strategyController.getStrategies(req, res);
+router.get('/', (req: AuthRequest, res: Response) => {
+  strategyController.getStrategies(req, res);
 });
 
 // 获取单个策略详情
-router.get('/:id', async (req: AuthRequest, res: Response) => {
-  await strategyController.getStrategyById(req, res);
+router.get('/:id', (req: AuthRequest, res: Response) => {
+  strategyController.getStrategyById(req, res);
 });
 
 // 更新策略
-router.put('/:id', async (req: AuthRequest, res: Response) => {
-  await strategyController.updateStrategy(req, res);
+router.put('/:id', (req: AuthRequest, res: Response) => {
+  strategyController.updateStrategy(req, res);
 });
 
 // 删除策略
-router.delete('/:id', async (req: AuthRequest, res: Response) => {
-  await strategyController.deleteStrategy(req, res);
+router.delete('/:id', (req: AuthRequest, res: Response) => {
+  strategyController.deleteStrategy(req, res);
 });
 
 // 运行策略
-router.post('/:id/run', async (req: AuthRequest, res: Response) => {
-  await strategyController.runStrategy(req, res);
+router.post('/:id/run', (req: AuthRequest, res: Response) => {
+  strategyController.runStrategy(req, res);
 });
 
 // 停止策略
-router.post('/:id/stop', async (req: AuthRequest, res: Response) => {
-  await strategyController.stopStrategy(req, res);
+router.post('/:id/stop', (req: AuthRequest, res: Response) => {
+  strategyController.stopStrategy(req, res);
 });
 
 export default router; 

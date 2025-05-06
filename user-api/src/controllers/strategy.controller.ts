@@ -1,11 +1,12 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { ValidationError } from '../utils/errors';
+import { AuthRequest } from '../types/express.d';
 
 export class StrategyController {
   constructor() {}
 
   // 创建策略
-  async createStrategy(_req: Request, res: Response) {
+  async createStrategy(req: AuthRequest, res: Response) {
     try {
       // TODO: 实现创建策略的逻辑
       res.status(201).json({ message: 'Create strategy - Not implemented' });
@@ -19,7 +20,7 @@ export class StrategyController {
   }
 
   // 获取策略列表
-  async getStrategies(_req: Request, res: Response) {
+  async getStrategies(req: AuthRequest, res: Response) {
     try {
       // TODO: 实现获取策略列表的逻辑
       res.json({ message: 'Get strategies - Not implemented' });
@@ -33,7 +34,7 @@ export class StrategyController {
   }
 
   // 获取单个策略详情
-  async getStrategyById(req: Request, res: Response) {
+  async getStrategyById(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
       // TODO: 实现获取单个策略详情的逻辑
@@ -48,7 +49,7 @@ export class StrategyController {
   }
 
   // 更新策略
-  async updateStrategy(req: Request, res: Response) {
+  async updateStrategy(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
       // TODO: 实现更新策略的逻辑
@@ -63,7 +64,7 @@ export class StrategyController {
   }
 
   // 删除策略
-  async deleteStrategy(req: Request, res: Response) {
+  async deleteStrategy(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
       // TODO: 实现删除策略的逻辑
@@ -78,7 +79,7 @@ export class StrategyController {
   }
 
   // 运行策略
-  async runStrategy(req: Request, res: Response) {
+  async runStrategy(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
       // TODO: 实现运行策略的逻辑
@@ -93,7 +94,7 @@ export class StrategyController {
   }
 
   // 停止策略
-  async stopStrategy(req: Request, res: Response) {
+  async stopStrategy(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
       // TODO: 实现停止策略的逻辑
