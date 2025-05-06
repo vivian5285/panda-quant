@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken } from '../middlewares/auth';
 import { getUserProfitData } from '../controllers/profitController';
 import { Strategy } from '../strategies/types';
 import { StrategyManager } from '../managers/strategyManager';

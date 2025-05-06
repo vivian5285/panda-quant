@@ -12,14 +12,14 @@ RUN apk add --no-cache \
 RUN npm config set fetch-retries 5 && \
     npm config set fetch-timeout 300000
 
-# 复制 package.json 和 package-lock.json
-COPY package*.json ./
+# 复制 package.json、package-lock.json 和 tsconfig.json
+COPY package*.json tsconfig.json ./
 
 # 安装依赖
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # 复制源代码
-COPY . .
+COPY src/ ./src/
 
 # 构建应用
 RUN npm run build
@@ -36,7 +36,7 @@ RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 
 # 只安装生产环境依赖
-RUN npm ci --only=production
+RUN npm install --production --legacy-peer-deps
 
 # 从构建阶段复制构建产物
 COPY --from=builder /app/dist ./dist
