@@ -14,6 +14,8 @@ export interface IUser {
   referrer?: string;
   isAdmin: boolean;
   balance: number;
+  accountBalance: number;
+  subscriptionFee: number;
 }
 
 export interface IUserDocument extends Document {
@@ -29,6 +31,8 @@ export interface IUserDocument extends Document {
   referrer?: string;
   isAdmin: boolean;
   balance: number;
+  accountBalance: number;
+  subscriptionFee: number;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -82,6 +86,14 @@ const userSchema = new Schema<IUserDocument>({
     default: false
   },
   balance: {
+    type: Number,
+    default: 0
+  },
+  accountBalance: {
+    type: Number,
+    default: 0
+  },
+  subscriptionFee: {
     type: Number,
     default: 0
   }

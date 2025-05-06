@@ -25,6 +25,7 @@ export interface IStrategy {
   type: string;
   status: 'active' | 'inactive' | 'pending';
   parameters: Record<string, any>;
+  expectedReturn?: number;
   performance?: {
     totalTrades: number;
     winRate: number;
