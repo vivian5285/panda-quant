@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { IUser } from '../models/user.model';
 
-export interface AuthUser {
+export interface AuthUser extends IUser {
   id: string;
   role: 'user' | 'admin';
 }
@@ -9,13 +9,13 @@ export interface AuthUser {
 declare global {
   namespace Express {
     interface Request {
-      user?: IUser;
+      user?: AuthUser;
     }
   }
 }
 
 export interface AuthRequest extends Request {
-  user?: IUser;
+  user?: AuthUser;
 }
 
 export interface AuthResponse extends Response {

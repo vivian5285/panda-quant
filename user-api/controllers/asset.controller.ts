@@ -1,19 +1,22 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { Asset, Payment, ChainAddress } from '../models/asset.model';
 import { User } from '../models/user.model';
+import { AuthRequest } from '../types/auth';
 
 // 获取资产概览
-export const getAssetSummary = async (req: Request, res: Response) => {
+export const getAssetSummary = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
     }
 
     const userId = req.user.id;
     const user = await User.findById(userId);
     
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
 
     // 获取或创建资产记录
@@ -57,7 +60,7 @@ export const getAssetSummary = async (req: Request, res: Response) => {
 };
 
 // 获取链地址
-export const getChainAddresses = async (req: Request, res: Response) => {
+export const getChainAddresses = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const addresses = await ChainAddress.find({
       isActive: true,
@@ -71,10 +74,11 @@ export const getChainAddresses = async (req: Request, res: Response) => {
 };
 
 // 创建充值记录
-export const createDeposit = async (req: Request, res: Response) => {
+export const createDeposit = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
     }
 
     const { chain, amount } = req.body;
@@ -82,20 +86,23 @@ export const createDeposit = async (req: Request, res: Response) => {
 
     // 验证链类型
     if (!['BSC', 'TRC20', 'ARB', 'OP', 'SOL'].includes(chain)) {
-      return res.status(400).json({ message: 'Invalid chain type' });
+      res.status(400).json({ message: 'Invalid chain type' });
+      return;
     }
 
     // 获取链地址信息
     const chainAddress = await ChainAddress.findOne({ chain, isActive: true });
     if (!chainAddress) {
-      return res.status(400).json({ message: 'Chain address not found' });
+      res.status(400).json({ message: 'Chain address not found' });
+      return;
     }
 
     // 验证最小充值金额
     if (amount < chainAddress.minAmount) {
-      return res.status(400).json({ 
+      res.status(400).json({ 
         message: `Minimum deposit amount is ${chainAddress.minAmount} USDT` 
       });
+      return;
     }
 
     // 创建充值记录
@@ -120,10 +127,11 @@ export const createDeposit = async (req: Request, res: Response) => {
 };
 
 // 确认充值
-export const confirmDeposit = async (req: Request, res: Response) => {
+export const confirmDeposit = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
     }
 
     const { paymentId } = req.params;
@@ -139,7 +147,8 @@ export const confirmDeposit = async (req: Request, res: Response) => {
     });
 
     if (!payment) {
-      return res.status(404).json({ message: 'Payment not found' });
+      res.status(404).json({ message: 'Payment not found' });
+      return;
     }
 
     // 更新充值状态
@@ -162,10 +171,11 @@ export const confirmDeposit = async (req: Request, res: Response) => {
 };
 
 // 更新用户收益
-export const updateUserProfit = async (req: Request, res: Response) => {
+export const updateUserProfit = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
     }
 
     const { userId } = req.params;
@@ -173,7 +183,8 @@ export const updateUserProfit = async (req: Request, res: Response) => {
 
     const asset = await Asset.findOne({ userId });
     if (!asset) {
-      return res.status(404).json({ message: 'Asset not found' });
+      res.status(404).json({ message: 'Asset not found' });
+      return;
     }
 
     // 更新总收益
