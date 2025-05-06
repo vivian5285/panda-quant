@@ -19,16 +19,11 @@ RUN npm config set fetch-retries 5 && \
     npm config set fetch-retry-maxtimeout 120000 && \
     npm config set fetch-timeout 120000
 
-# 复制 package.json 和 tsconfig.json
-COPY server/package.json ./
-COPY server/tsconfig.json ./
+# 复制所有源代码文件
+COPY server/ ./
 
 # 安装依赖
 RUN npm install
-
-# 复制源代码和环境文件
-COPY server/src ./src
-COPY server/.env ./.env
 
 # 设置目录权限
 RUN chown -R node:node /app && \

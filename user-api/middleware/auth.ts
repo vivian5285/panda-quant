@@ -1,7 +1,6 @@
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthRequest, AuthUser } from '../types/auth';
-import { IUser } from '../models/user.model';
 
 export const authenticateToken = (
   req: AuthRequest,
@@ -22,11 +21,26 @@ export const authenticateToken = (
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as AuthUser;
     req.user = {
-      ...decoded,
+      id: decoded.id,
       _id: decoded.id,
       email: decoded.email,
-      role: decoded.role
-    } as AuthUser;
+      role: decoded.role,
+      password: '',
+      name: '',
+      balance: 0,
+      hostingFee: 0,
+      subscriptionFee: 0,
+      accountBalance: 0,
+      subscriptionEndDate: null,
+      status: 'active',
+      referralCode: '',
+      referralRewards: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isVerified: false,
+      totalDeposits: 0,
+      depositAddresses: []
+    };
     next();
   } catch (error) {
     res.status(403).json({
