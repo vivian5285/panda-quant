@@ -1,20 +1,11 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VerificationController = void 0;
 const verification_service_1 = require("../services/verification.service");
 const errors_1 = require("../utils/errors");
 class VerificationController {
     constructor() {
-        this.sendCode = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.sendCode = async (req, res) => {
             try {
                 const { email, type } = req.body;
                 if (!email || !type) {
@@ -23,7 +14,9 @@ class VerificationController {
                 if (type !== 'register' && type !== 'reset-password') {
                     throw new errors_1.ValidationError('Invalid verification type');
                 }
-                yield this.verificationService.sendVerificationCode(email, type);
+                const code = await this.verificationService.generateCode(type, email);
+                const verificationUser = { email, verificationCode: code };
+                await this.verificationService.sendVerificationEmail(verificationUser);
                 res.json({
                     success: true,
                     message: 'Verification code sent successfully'
@@ -43,8 +36,8 @@ class VerificationController {
                     });
                 }
             }
-        });
-        this.verifyCode = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.verifyCode = async (req, res) => {
             try {
                 const { email, code, type } = req.body;
                 if (!email || !code || !type) {
@@ -53,7 +46,7 @@ class VerificationController {
                 if (type !== 'register' && type !== 'reset-password') {
                     throw new errors_1.ValidationError('Invalid verification type');
                 }
-                const isValid = yield this.verificationService.verifyCode(email, code, type);
+                const isValid = await this.verificationService.verifyCode(email, code, type);
                 if (!isValid) {
                     res.status(400).json({
                         success: false,
@@ -80,8 +73,9 @@ class VerificationController {
                     });
                 }
             }
-        });
+        };
         this.verificationService = new verification_service_1.VerificationService();
     }
 }
 exports.VerificationController = VerificationController;
+//# sourceMappingURL=verification.controller.js.map

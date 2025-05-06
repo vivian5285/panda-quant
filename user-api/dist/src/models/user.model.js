@@ -32,274 +32,120 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserModel = exports.User = void 0;
+exports.User = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const bcrypt_1 = __importDefault(require("bcrypt"));
 const errors_1 = require("../utils/errors");
+const validation_1 = require("../utils/validation");
 const userSchema = new mongoose_1.Schema({
-    email: { type: String, required: true, unique: true },
-    username: { type: String, unique: true, sparse: true },
-    password: { type: String, required: true },
-    walletAddress: { type: String, unique: true, sparse: true },
-    role: { type: String, default: 'user' },
-    status: { type: String, default: 'active' },
-    isAdmin: { type: Boolean, default: false },
-    adminType: { type: String },
-    permissions: { type: mongoose_1.Schema.Types.Mixed },
-    lastLogin: { type: Date },
+    email: {
+        type: String,
+        required: [true, 'Email is required'],
+        unique: true,
+        trim: true,
+        lowercase: true,
+        validate: {
+            validator: validation_1.validateEmail,
+            message: 'Invalid email format'
+        }
+    },
+    password: {
+        type: String,
+        required: [true, 'Password is required'],
+        validate: {
+            validator: validation_1.validatePassword,
+            message: 'Password must be at least 8 characters long'
+        }
+    },
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
+    status: {
+        type: String,
+        default: 'active'
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false
+    },
+    permissions: {
+        type: mongoose_1.SchemaTypes.Mixed,
+        default: {}
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    verificationCode: {
+        type: String,
+        default: undefined
+    },
+    verificationCodeExpires: {
+        type: Date,
+        default: undefined
+    },
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    walletAddress: {
+        type: String,
+        default: undefined
+    }
 }, {
     timestamps: true
 });
-// 密码哈希中间件
-userSchema.pre('save', function (next) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!this.isModified('password'))
-            return next();
-        try {
-            const salt = yield bcryptjs_1.default.genSalt(10);
-            this.password = yield bcryptjs_1.default.hash(this.password, salt);
-            next();
-        }
-        catch (error) {
-            next(error);
-        }
-    });
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password'))
+        return next();
+    try {
+        const salt = await bcrypt_1.default.genSalt(10);
+        this.password = await bcrypt_1.default.hash(this.password, salt);
+        next();
+    }
+    catch (error) {
+        next(error);
+    }
 });
-// 密码验证方法
-userSchema.methods.comparePassword = function (candidatePassword) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            return yield bcryptjs_1.default.compare(candidatePassword, this.password);
-        }
-        catch (error) {
-            throw error;
-        }
-    });
+userSchema.methods.comparePassword = async function (candidatePassword) {
+    return bcrypt_1.default.compare(candidatePassword, this.password);
+};
+userSchema.statics.findByEmail = async function (email) {
+    return this.findOne({ email });
+};
+userSchema.statics.updateVerificationCode = async function (userId, code, expires) {
+    try {
+        await this.findByIdAndUpdate(userId, {
+            verificationCode: code,
+            verificationCodeExpires: expires
+        });
+    }
+    catch (error) {
+        throw new errors_1.DatabaseError('Failed to update verification code');
+    }
+};
+userSchema.statics.verifyEmail = async function (userId) {
+    try {
+        await this.findByIdAndUpdate(userId, {
+            isVerified: true,
+            verificationCode: undefined,
+            verificationCodeExpires: undefined
+        });
+    }
+    catch (error) {
+        throw new errors_1.DatabaseError('Failed to verify email');
+    }
 };
 exports.User = mongoose_1.default.model('User', userSchema);
-class UserModel {
-    findByEmail(email) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield exports.User.findOne({ email }).exec();
-                return result || null;
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error finding user by email', error);
-            }
-        });
-    }
-    findByUsername(username) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield exports.User.findOne({ username }).exec();
-                return result || null;
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error finding user by username', error);
-            }
-        });
-    }
-    findById(id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield exports.User.findById(id).exec();
-                return result || null;
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error finding user by id', error);
-            }
-        });
-    }
-    findByWalletAddress(walletAddress) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield exports.User.findOne({ walletAddress }).exec();
-                return result || null;
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error finding user by wallet address', error);
-            }
-        });
-    }
-    create(email, password, walletAddress) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const user = new exports.User({
-                    email,
-                    password,
-                    walletAddress: walletAddress || null
-                });
-                const result = yield user.save();
-                return result;
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error creating user', error);
-            }
-        });
-    }
-    updateUsername(id, username) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield exports.User.findByIdAndUpdate(id, { username }, { new: true }).exec();
-                return result;
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error updating username', error);
-            }
-        });
-    }
-    updateStatus(id, status) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield exports.User.findByIdAndUpdate(id, { status }, { new: true }).exec();
-                return result;
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error updating user status', error);
-            }
-        });
-    }
-    updateLastLogin(id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                yield exports.User.findByIdAndUpdate(id, { lastLogin: Date.now() }).exec();
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error updating last login', error);
-            }
-        });
-    }
-    verifyPassword(user, password) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                return yield user.comparePassword(password);
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error verifying password', error);
-            }
-        });
-    }
-    findAllUsers() {
-        return __awaiter(this, arguments, void 0, function* (page = 1, limit = 10) {
-            try {
-                const offset = (page - 1) * limit;
-                const [usersResult, countResult] = yield Promise.all([
-                    exports.User.find().sort({ createdAt: -1 }).skip(offset).limit(limit).exec(),
-                    exports.User.countDocuments().exec()
-                ]);
-                return {
-                    users: usersResult,
-                    total: countResult
-                };
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error finding users', error);
-            }
-        });
-    }
-    updateUserRole(id, role, isAdmin, adminType) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield exports.User.findByIdAndUpdate(id, { role, isAdmin, adminType }, { new: true }).exec();
-                return result;
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error updating user role', error);
-            }
-        });
-    }
-    updateUserPermissions(id, permissions) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield exports.User.findByIdAndUpdate(id, { permissions }, { new: true }).exec();
-                return result;
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error updating user permissions', error);
-            }
-        });
-    }
-    deleteUser(id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                yield exports.User.findByIdAndDelete(id).exec();
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error deleting user', error);
-            }
-        });
-    }
-    searchUsers(query_1) {
-        return __awaiter(this, arguments, void 0, function* (query, page = 1, limit = 10) {
-            try {
-                const offset = (page - 1) * limit;
-                const searchPattern = new RegExp(query, 'i');
-                const [usersResult, countResult] = yield Promise.all([
-                    exports.User.find({
-                        $or: [
-                            { email: searchPattern },
-                            { username: searchPattern }
-                        ]
-                    }).sort({ createdAt: -1 }).skip(offset).limit(limit).exec(),
-                    exports.User.countDocuments({
-                        $or: [
-                            { email: searchPattern },
-                            { username: searchPattern }
-                        ]
-                    }).exec()
-                ]);
-                return {
-                    users: usersResult,
-                    total: countResult
-                };
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error searching users', error);
-            }
-        });
-    }
-    findByRole(role_1) {
-        return __awaiter(this, arguments, void 0, function* (role, page = 1, limit = 10) {
-            try {
-                const offset = (page - 1) * limit;
-                const [usersResult, countResult] = yield Promise.all([
-                    exports.User.find({ role }).sort({ createdAt: -1 }).skip(offset).limit(limit).exec(),
-                    exports.User.countDocuments({ role }).exec()
-                ]);
-                return {
-                    users: usersResult,
-                    total: countResult
-                };
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error finding users by role', error);
-            }
-        });
-    }
-    updateWalletAddress(id, walletAddress) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const result = yield exports.User.findByIdAndUpdate(id, { walletAddress }, { new: true }).exec();
-                return result;
-            }
-            catch (error) {
-                throw new errors_1.DatabaseError('Error updating wallet address', error);
-            }
-        });
-    }
-}
-exports.UserModel = UserModel;
+//# sourceMappingURL=user.model.js.map

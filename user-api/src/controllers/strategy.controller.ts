@@ -6,7 +6,7 @@ export class StrategyController {
   constructor() {}
 
   // 创建策略
-  async createStrategy(req: AuthRequest, res: Response) {
+  async createStrategy(_req: AuthRequest, res: Response) {
     try {
       // TODO: 实现创建策略的逻辑
       res.status(201).json({ message: 'Create strategy - Not implemented' });
@@ -20,7 +20,7 @@ export class StrategyController {
   }
 
   // 获取策略列表
-  async getStrategies(req: AuthRequest, res: Response) {
+  async getStrategies(_req: AuthRequest, res: Response) {
     try {
       // TODO: 实现获取策略列表的逻辑
       res.json({ message: 'Get strategies - Not implemented' });

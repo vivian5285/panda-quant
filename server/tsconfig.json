@@ -19,7 +19,7 @@
       "./node_modules/@types",
       "./src/types"
     ],
-    "types": ["node"],
+    "types": ["node", "express"],
     "allowJs": true,
     "checkJs": false,
     "noImplicitAny": false,

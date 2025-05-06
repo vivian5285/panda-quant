@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import { authenticateToken } from '../middlewares/auth';
 import { getUserProfitData } from '../controllers/profitController';
 import { Strategy } from '../strategies/types';

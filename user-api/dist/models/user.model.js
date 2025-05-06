@@ -38,114 +38,127 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const bcrypt_1 = __importDefault(require("bcrypt"));
-const errors_1 = require("../utils/errors");
-const validation_1 = require("../utils/validation");
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const userSchema = new mongoose_1.Schema({
     email: {
         type: String,
-        required: [true, 'Email is required'],
+        required: true,
         unique: true,
         trim: true,
-        lowercase: true,
-        validate: {
-            validator: validation_1.validateEmail,
-            message: 'Invalid email format'
-        }
+        lowercase: true
     },
     password: {
         type: String,
-        required: [true, 'Password is required'],
-        validate: {
-            validator: validation_1.validatePassword,
-            message: 'Password must be at least 8 characters long'
-        }
+        required: true
     },
     name: {
         type: String,
-        required: true,
-        trim: true
+        required: true
+    },
+    username: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    balance: {
+        type: Number,
+        default: 0
+    },
+    hostingFee: {
+        type: Number,
+        default: 0
+    },
+    subscriptionFee: {
+        type: Number,
+        default: 0
+    },
+    accountBalance: {
+        type: Number,
+        default: 0
+    },
+    subscriptionEndDate: {
+        type: Date,
+        default: null
+    },
+    status: {
+        type: String,
+        enum: ['active', 'inactive', 'suspended'],
+        default: 'inactive'
+    },
+    referralCode: {
+        type: String,
+        unique: true
+    },
+    referralRewards: {
+        type: Number,
+        default: 0
+    },
+    referredBy: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    inviteCode: {
+        type: String,
+        unique: true,
+        sparse: true
     },
     role: {
         type: String,
         enum: ['user', 'admin'],
         default: 'user'
     },
-    status: {
-        type: String,
-        default: 'active'
-    },
-    isAdmin: {
-        type: Boolean,
-        default: false
-    },
-    permissions: {
-        type: mongoose_1.SchemaTypes.Mixed,
-        default: {}
-    },
     isVerified: {
         type: Boolean,
         default: false
     },
-    verificationCode: {
-        type: String,
-        default: undefined
+    totalDeposits: {
+        type: Number,
+        default: 0
     },
-    verificationCodeExpires: {
-        type: Date,
-        default: undefined
-    },
-    isEmailVerified: {
-        type: Boolean,
-        default: false
-    },
-    walletAddress: {
-        type: String,
-        default: undefined
-    }
+    depositAddresses: [{
+            chain: String,
+            address: String
+        }],
+    walletAddress: String
 }, {
     timestamps: true
 });
+userSchema.methods.comparePassword = async function (candidatePassword) {
+    return bcryptjs_1.default.compare(candidatePassword, this.password);
+};
 userSchema.pre('save', async function (next) {
-    if (!this.isModified('password'))
+    if (!this.isModified('password')) {
         return next();
+    }
     try {
-        const salt = await bcrypt_1.default.genSalt(10);
-        this.password = await bcrypt_1.default.hash(this.password, salt);
+        const salt = await bcryptjs_1.default.genSalt(10);
+        this.password = await bcryptjs_1.default.hash(this.password, salt);
         next();
     }
     catch (error) {
         next(error);
     }
 });
-userSchema.methods.comparePassword = async function (candidatePassword) {
-    return bcrypt_1.default.compare(candidatePassword, this.password);
-};
-userSchema.statics.findByEmail = async function (email) {
+userSchema.statics.findByEmail = function (email) {
     return this.findOne({ email });
 };
-userSchema.statics.updateVerificationCode = async function (userId, code, expires) {
-    try {
-        await this.findByIdAndUpdate(userId, {
-            verificationCode: code,
-            verificationCodeExpires: expires
-        });
-    }
-    catch (error) {
-        throw new errors_1.DatabaseError('Failed to update verification code');
-    }
+userSchema.statics.findByUsername = function (username) {
+    return this.findOne({ username });
 };
-userSchema.statics.verifyEmail = async function (userId) {
-    try {
-        await this.findByIdAndUpdate(userId, {
-            isVerified: true,
-            verificationCode: undefined,
-            verificationCodeExpires: undefined
-        });
+userSchema.statics.findByInviteCode = function (inviteCode) {
+    return this.findOne({ inviteCode });
+};
+userSchema.statics.generateInviteCode = async function () {
+    let inviteCode;
+    let isUnique = false;
+    while (!isUnique) {
+        inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const existingUser = await this.findOne({ inviteCode });
+        if (!existingUser) {
+            isUnique = true;
+        }
     }
-    catch (error) {
-        throw new errors_1.DatabaseError('Failed to verify email');
-    }
+    return inviteCode;
 };
 exports.User = mongoose_1.default.model('User', userSchema);
 //# sourceMappingURL=user.model.js.map

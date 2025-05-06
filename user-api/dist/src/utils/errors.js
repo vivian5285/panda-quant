@@ -1,10 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ServiceError = exports.DatabaseError = exports.AuthorizationError = exports.AuthenticationError = exports.ValidationError = void 0;
+exports.PermissionError = exports.NotFoundError = exports.ServiceError = exports.DatabaseError = exports.AuthorizationError = exports.AuthenticationError = exports.ValidationError = void 0;
 class ValidationError extends Error {
-    constructor(message, originalError) {
+    constructor(message) {
         super(message);
-        this.originalError = originalError;
         this.name = 'ValidationError';
     }
 }
@@ -41,3 +40,18 @@ class ServiceError extends Error {
     }
 }
 exports.ServiceError = ServiceError;
+class NotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'NotFoundError';
+    }
+}
+exports.NotFoundError = NotFoundError;
+class PermissionError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'PermissionError';
+    }
+}
+exports.PermissionError = PermissionError;
+//# sourceMappingURL=errors.js.map
