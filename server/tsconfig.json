@@ -20,7 +20,7 @@
       "types/*": ["src/types/*"]
     },
     "typeRoots": ["./node_modules/@types", "./src/types"],
-    "types": ["node", "express", "express-serve-static-core", "serve-static", "mongoose"],
+    "types": ["node", "express", "express-serve-static-core", "serve-static"],
     "allowJs": true,
     "checkJs": true,
     "experimentalDecorators": true,
