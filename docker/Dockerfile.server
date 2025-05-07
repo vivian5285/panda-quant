@@ -22,11 +22,20 @@ COPY server/package.json server/tsconfig.json ./
 RUN npm install --legacy-peer-deps && \
     npm install --save-dev @types/express @types/node
 
-# 复制源代码
+# 复制所有源代码和类型文件
 COPY server/src ./src
+COPY server/types ./types
+COPY server/models ./models
+COPY server/services ./services
+COPY server/controllers ./controllers
+COPY server/routes ./routes
+COPY server/middleware ./middleware
+COPY server/validations ./validations
+COPY server/clients ./clients
+COPY server/engine ./engine
 
 # 设置权限
-RUN chmod -R 755 src
+RUN chmod -R 755 src types models services controllers routes middleware validations clients engine
 
 # 构建应用
 RUN npm run build
@@ -46,8 +55,7 @@ RUN apk add --no-cache \
     curl \
     musl-dev \
     ca-certificates \
-    openssl \
-    openssl-dev
+    openssl
 
 # 更新证书
 RUN update-ca-certificates
@@ -55,7 +63,10 @@ RUN update-ca-certificates
 # 复制构建产物
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY server/package.json ./
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/.env ./.env
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/types ./types
 
 # 设置环境变量
 ENV NODE_ENV=production
@@ -68,11 +79,11 @@ RUN chown -R node:node /app && \
 USER node
 
 # 暴露端口
-EXPOSE 3000
+EXPOSE 3001
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:3000/health || exit 1
+  CMD curl -f http://localhost:3001/health || exit 1
 
 # 启动应用
 CMD ["npm", "start"] 
