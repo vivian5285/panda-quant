@@ -37,8 +37,7 @@ RUN npm install --legacy-peer-deps && \
 COPY user-ui/ ./
 
 # 设置目录权限
-RUN addgroup -S node && adduser -S node -G node && \
-    chown -R node:node /app && \
+RUN chown -R node:node /app && \
     chmod -R 755 /app
 
 # 切换到非root用户

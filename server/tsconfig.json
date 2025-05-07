@@ -37,7 +37,8 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "moduleDetection": "force",
-    "declarationMap": true
+    "declarationMap": true,
+    "composite": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

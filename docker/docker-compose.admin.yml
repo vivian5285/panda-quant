@@ -68,7 +68,7 @@ services:
       - 8.8.8.8
       - 223.5.5.5
     ports:
-      - "27018:27017"
+      - "27019:27017"
     volumes:
       - mongo_data:/data/db
     command: mongod --bind_ip_all
@@ -83,7 +83,7 @@ services:
       - 8.8.8.8
       - 223.5.5.5
     ports:
-      - "6380:6379"
+      - "6381:6379"
     volumes:
       - redis_data:/data
     networks:
