@@ -4,7 +4,11 @@ import { mainnet, sepolia } from 'wagmi/chains';
 import { defineChain } from 'viem';
 
 // 1. Get projectId at https://cloud.walletconnect.com
-const projectId = 'YOUR_PROJECT_ID';
+const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '';
+
+if (!projectId) {
+  console.warn('Missing NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID environment variable');
+}
 
 // 2. Create wagmiConfig
 const metadata = {
@@ -15,7 +19,7 @@ const metadata = {
 };
 
 // 配置支持的链
-const chains = [mainnet, sepolia];
+const chains = [mainnet, sepolia] as const;
 
 // 创建 wagmi 配置
 const wagmiConfig = defaultWagmiConfig({ 

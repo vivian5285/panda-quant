@@ -22,17 +22,40 @@ COPY server/package.json server/tsconfig.json ./
 RUN npm install --legacy-peer-deps && \
     npm install --save-dev @types/express @types/node
 
-# 复制源代码
+# 创建类型文件目录
+RUN mkdir -p src/types
+
+# 按依赖顺序复制类型文件
+COPY server/src/types/Enums.ts ./src/types/
+COPY server/src/types/Trading.ts ./src/types/
+COPY server/src/types/User.ts ./src/types/
+COPY server/src/types/Strategy.ts ./src/types/
+COPY server/src/types/Commission.ts ./src/types/
+COPY server/src/types/CommissionWithdrawal.ts ./src/types/
+COPY server/src/types/Alert.ts ./src/types/
+COPY server/src/types/Deposit.ts ./src/types/
+COPY server/src/types/Position.ts ./src/types/
+COPY server/src/types/StrategyRating.ts ./src/types/
+COPY server/src/types/Blacklist.ts ./src/types/
+COPY server/src/types/UserLevel.ts ./src/types/
+COPY server/src/types/Auth.ts ./src/types/
+COPY server/src/types/Performance.ts ./src/types/
+COPY server/src/types/Exchange.ts ./src/types/
+COPY server/src/types/Mt4.ts ./src/types/
+COPY server/src/types/Network.ts ./src/types/
+COPY server/src/types/Health.ts ./src/types/
+COPY server/src/types/Transaction.ts ./src/types/
+COPY server/src/types/Index.ts ./src/types/
+
+# 复制其他类型文件
+COPY server/src/types/*.ts ./src/types/
+COPY server/src/types/*.d.ts ./src/types/
+
+# 复制其他源代码
 COPY server/src ./src
 
-# 统一类型文件命名
-RUN cd src/types && \
-    for f in *.ts; do \
-        if [ -f "$f" ]; then \
-            mv "$f" "${f%.ts}.ts.new" && \
-            mv "${f%.ts}.ts.new" "$f"; \
-        fi; \
-    done
+# 设置权限
+RUN chmod -R 755 src/types
 
 # 构建应用
 RUN npm run build
