@@ -16,22 +16,26 @@ RUN npm config set fetch-retries 5 && \
     npm config set registry https://registry.npmmirror.com
 
 # 复制 package.json 和 tsconfig.json
-COPY server/package.json server/tsconfig.json ./
+COPY server/package.json server/tsconfig.json server/tsconfig.node.json ./
 
 # 安装依赖
 RUN npm install --legacy-peer-deps && \
-    npm install --save-dev @types/express @types/node
+    npm install --save-dev @types/express @types/node @types/express-serve-static-core @types/serve-static
 
-# 复制源代码
+# 复制源代码和类型定义
 COPY server/src ./src
 COPY server/locales ./locales
 COPY server/mt4 ./mt4
+COPY server/types ./types
+COPY server/.env ./.env
+COPY server/.eslintrc.json ./.eslintrc.json
+COPY server/knexfile.ts ./knexfile.ts
 
 # 设置权限
-RUN chmod -R 755 src locales mt4
+RUN chmod -R 755 src locales mt4 types
 
 # 构建应用
-RUN npm run build
+RUN npm run build || (cat /app/npm-debug.log && exit 1)
 
 # 生产阶段
 FROM node:20-alpine
@@ -59,6 +63,9 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/locales ./locales
 COPY --from=builder /app/mt4 ./mt4
+COPY --from=builder /app/types ./types
+COPY --from=builder /app/.env ./.env
+COPY --from=builder /app/knexfile.ts ./knexfile.ts
 
 # 设置环境变量
 ENV NODE_ENV=production

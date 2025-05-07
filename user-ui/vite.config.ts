@@ -64,7 +64,14 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: (id) => {
@@ -101,7 +108,7 @@ export default defineConfig({
   },
   define: {
     'process.env': {
-      NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+      NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'production'),
     },
     'global': 'window',
     '__REACT_ROUTER_FUTURE_FLAGS': JSON.stringify({
