@@ -57,7 +57,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/strategy.nginx.conf:/etc/nginx/conf.d/strategy.conf
+      - ./nginx/server.nginx.conf:/etc/nginx/conf.d/server.conf
+      - ./nginx/strategy-engine.nginx.conf:/etc/nginx/conf.d/strategy-engine.conf
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/log/nginx:/var/log/nginx
     depends_on:
