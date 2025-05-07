@@ -22,13 +22,13 @@ COPY server/package.json server/tsconfig.json ./
 RUN npm install --legacy-peer-deps && \
     npm install --save-dev @types/express @types/node
 
-# 复制所有源代码和配置文件
+# 复制源代码
 COPY server/src ./src
-COPY server/prisma ./prisma
-COPY server/.env ./.env
+COPY server/locales ./locales
+COPY server/mt4 ./mt4
 
 # 设置权限
-RUN chmod -R 755 src prisma
+RUN chmod -R 755 src locales mt4
 
 # 构建应用
 RUN npm run build
@@ -57,8 +57,8 @@ RUN update-ca-certificates
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/.env ./.env
-COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/locales ./locales
+COPY --from=builder /app/mt4 ./mt4
 
 # 设置环境变量
 ENV NODE_ENV=production
