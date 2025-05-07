@@ -36,11 +36,15 @@ RUN npx prisma generate
 COPY admin-api/ ./
 
 # 设置目录权限
-RUN chown -R node:node /app && \
+RUN addgroup -S node && adduser -S node -G node && \
+    chown -R node:node /app && \
     chmod -R 755 /app
 
 # 切换到非root用户
 USER node
+
+# 设置环境变量
+ENV NODE_ENV=production
 
 # 构建应用
 RUN npm run build
@@ -66,7 +70,7 @@ RUN apk add --no-cache \
 # 更新证书
 RUN update-ca-certificates
 
-# 复制构建产物
+# 复制构建产物和必要文件
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
@@ -74,11 +78,15 @@ COPY --from=builder /app/.env ./.env
 COPY --from=builder /app/prisma ./prisma
 
 # 设置目录权限
-RUN chown -R node:node /app && \
+RUN addgroup -S node && adduser -S node -G node && \
+    chown -R node:node /app && \
     chmod -R 755 /app
 
 # 切换到非root用户
 USER node
+
+# 设置环境变量
+ENV NODE_ENV=production
 
 # 暴露端口
 EXPOSE 3001
