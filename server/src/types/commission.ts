@@ -14,13 +14,15 @@ export interface ICommissionBase {
   updatedAt?: Date;
 }
 
-export interface ICommission extends ICommissionBase, Document {}
+export interface ICommission extends ICommissionBase, Document {
+  _id: Types.ObjectId;
+}
 
 export interface ICommissionRule {
   _id: Types.ObjectId;
   name: string;
   description: string;
-  type: 'percentage' | 'fixed';
+  type: CommissionType;
   value: number;
   conditions: {
     minVolume?: number;
@@ -32,6 +34,7 @@ export interface ICommissionRule {
     pairs?: string[];
   };
   isActive: boolean;
+  status: CommissionStatus;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,7 +43,7 @@ export interface ICommissionWithdrawal {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
   amount: number;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  status: CommissionStatus;
   walletAddress: string;
   paymentMethod: 'crypto' | 'bank' | 'paypal';
   paymentDetails: Record<string, any>;

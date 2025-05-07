@@ -3,53 +3,42 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const userController_1 = require("../controllers/userController");
-const Strategy_1 = __importDefault(require("../controllers/Strategy"));
-const Auth_1 = require("../middleware/Auth");
-const router = (0, express_1.Router)();
-const userController = new userController_1.UserController();
-// 所有路由都需要认证和管理员权限
-router.use(Auth_1.authenticate);
-router.use(Auth_1.isAdmin);
-// 用户管理路由
-router.get('/users', async (req, res) => {
-    await userController.getAllUsers(req, res);
-});
-router.post('/users', async (req, res, next) => {
-    try {
-        await userController.register(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.put('/users/:id', async (req, res, next) => {
-    try {
-        await userController.updateUser(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.delete('/users/:id', async (req, res) => {
-    await userController.deleteUser(req, res);
-});
-// 策略管理路由
-router.get('/strategies', async (req, res) => {
-    await Strategy_1.default.getStrategies(req, res);
-});
-router.get('/strategies/:id', async (req, res) => {
-    await Strategy_1.default.getStrategy(req, res);
-});
-router.post('/strategies', async (req, res) => {
-    await Strategy_1.default.createStrategy(req, res);
-});
-router.put('/strategies/:id', async (req, res) => {
-    await Strategy_1.default.updateStrategy(req, res);
-});
-router.delete('/strategies/:id', async (req, res) => {
-    await Strategy_1.default.deleteStrategy(req, res);
-});
+const express_1 = __importDefault(require("express"));
+const requestHandler_1 = require("../utils/requestHandler");
+const ensureAuthenticated_1 = require("../middleware/ensureAuthenticated");
+const adminMiddleware_1 = require("../middleware/adminMiddleware");
+const AdminController_1 = require("../controllers/AdminController");
+const router = express_1.default.Router();
+const adminController = new AdminController_1.AdminController();
+// All admin routes require authentication and admin privileges
+router.use(ensureAuthenticated_1.ensureAuthenticated);
+router.use(adminMiddleware_1.adminMiddleware);
+// User management
+router.get('/users', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await adminController.getAllUsers(req, res);
+}));
+router.get('/users/:id', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await adminController.getUserById(req, res);
+}));
+router.put('/users/:id', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await adminController.updateUser(req, res);
+}));
+router.delete('/users/:id', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await adminController.deleteUser(req, res);
+}));
+// System settings
+router.get('/settings', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await adminController.getSettings(req, res);
+}));
+router.put('/settings', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await adminController.updateSettings(req, res);
+}));
+// System logs
+router.get('/logs', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await adminController.getLogs(req, res);
+}));
+router.get('/logs/:id', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await adminController.getLogById(req, res);
+}));
 exports.default = router;
 //# sourceMappingURL=admin.js.map

@@ -36,3 +36,4 @@ export declare class ServiceError extends Error {
     statusCode: number;
     constructor(message?: string);
 }
+//# sourceMappingURL=errors.d.ts.map

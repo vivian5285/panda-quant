@@ -1,6 +1,7 @@
 import { Strategy } from '../models/Strategy';
 import { logger } from '../utils/logger';
-import { IStrategy } from '../types/Strategy';
+import type { IStrategy, IStrategyDocument, StrategyCreateInput } from '../types/Strategy';
+import { Types } from 'mongoose';
 
 export enum StrategyStatus {
   ACTIVE = 'active',
@@ -20,26 +21,16 @@ export class StrategyService {
     return StrategyService.instance;
   }
 
-  async createStrategy(strategy: Partial<IStrategy>): Promise<IStrategy> {
-    try {
-      const newStrategy = new Strategy(strategy);
-      return await newStrategy.save();
-    } catch (error) {
-      logger.error('Error creating strategy:', error);
-      throw error;
-    }
+  public async createStrategy(data: StrategyCreateInput): Promise<IStrategyDocument> {
+    const strategy = new Strategy(data);
+    return await strategy.save();
   }
 
-  async getStrategies(userId: string): Promise<IStrategy[]> {
-    try {
-      return await Strategy.find({ userId });
-    } catch (error) {
-      logger.error('Error getting strategies:', error);
-      throw error;
-    }
+  public async getStrategies(): Promise<IStrategyDocument[]> {
+    return await Strategy.find();
   }
 
-  async getStrategy(id: string): Promise<IStrategy | null> {
+  async getStrategy(id: string): Promise<IStrategyDocument | null> {
     try {
       return await Strategy.findById(id);
     } catch (error) {
@@ -48,7 +39,7 @@ export class StrategyService {
     }
   }
 
-  async updateStrategy(id: string, updates: Partial<IStrategy>): Promise<IStrategy | null> {
+  async updateStrategy(id: string, updates: Partial<IStrategy>): Promise<IStrategyDocument | null> {
     try {
       return await Strategy.findByIdAndUpdate(id, updates, { new: true });
     } catch (error) {
@@ -57,7 +48,7 @@ export class StrategyService {
     }
   }
 
-  async deleteStrategy(id: string): Promise<IStrategy | null> {
+  async deleteStrategy(id: string): Promise<IStrategyDocument | null> {
     try {
       return await Strategy.findByIdAndUpdate(id, { status: StrategyStatus.INACTIVE }, { new: true });
     } catch (error) {
@@ -85,7 +76,7 @@ export class StrategyService {
     }
   }
 
-  async getAllStrategies(): Promise<IStrategy[]> {
+  async getAllStrategies(): Promise<IStrategyDocument[]> {
     try {
       return await Strategy.find();
     } catch (error) {
@@ -94,7 +85,7 @@ export class StrategyService {
     }
   }
 
-  async getStrategiesByUser(userId: string): Promise<IStrategy[]> {
+  async getStrategiesByUser(userId: string): Promise<IStrategyDocument[]> {
     try {
       return await Strategy.find({ userId });
     } catch (error) {
@@ -103,7 +94,7 @@ export class StrategyService {
     }
   }
 
-  async getActiveStrategies(): Promise<IStrategy[]> {
+  async getActiveStrategies(): Promise<IStrategyDocument[]> {
     try {
       return await Strategy.find({ status: StrategyStatus.ACTIVE });
     } catch (error) {
@@ -112,7 +103,7 @@ export class StrategyService {
     }
   }
 
-  async getPopularStrategies(limit: number = 10): Promise<IStrategy[]> {
+  async getPopularStrategies(limit: number = 10): Promise<IStrategyDocument[]> {
     try {
       return await Strategy.find()
         .sort({ followers: -1 })

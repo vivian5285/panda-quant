@@ -22,8 +22,8 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
-import { Document, Types } from 'mongoose';
+import type { Document, Types } from 'mongoose';
+import type { TradeType } from './Enums';
 export declare enum OrderType {
     MARKET = "market",
     LIMIT = "limit",
@@ -37,21 +37,16 @@ export declare enum OrderStatus {
     CANCELLED = "cancelled",
     FAILED = "failed"
 }
-export declare enum TradeType {
-    SPOT = "spot",
-    FUTURES = "futures",
-    MT4 = "mt4"
-}
 export declare enum TradeStatus {
     OPEN = "open",
     CLOSED = "closed",
     CANCELLED = "cancelled"
 }
-export type IOrder = Document & {
-    _id: string;
-    userId: string;
-    strategyId: string;
-    positionId?: string;
+export interface IOrder extends Document {
+    _id: Types.ObjectId;
+    userId: Types.ObjectId;
+    strategyId: Types.ObjectId;
+    positionId?: Types.ObjectId;
     exchange: string;
     symbol: string;
     orderId: string;
@@ -71,8 +66,8 @@ export type IOrder = Document & {
     closedAt?: Date;
     error?: string;
     metadata?: Record<string, any>;
-};
-export type ITrade = Document & {
+}
+export interface ITrade extends Document {
     _id: Types.ObjectId;
     userId: Types.ObjectId;
     strategyId: Types.ObjectId;
@@ -88,8 +83,8 @@ export type ITrade = Document & {
     metadata?: Record<string, any>;
     createdAt: Date;
     updatedAt: Date;
-};
-export type IOrderBook = Document & {
+}
+export interface IOrderBook extends Document {
     _id: Types.ObjectId;
     symbol: string;
     bids: {
@@ -103,8 +98,8 @@ export type IOrderBook = Document & {
     timestamp: Date;
     createdAt: Date;
     updatedAt: Date;
-};
-export type IOrderHistory = Document & {
+}
+export interface IOrderHistory extends Document {
     _id: Types.ObjectId;
     userId: Types.ObjectId;
     strategyId: Types.ObjectId;
@@ -138,10 +133,11 @@ export type IOrderHistory = Document & {
     };
     createdAt: Date;
     updatedAt: Date;
-};
+}
 export type Order = IOrder;
 export type Trade = ITrade;
 export type OrderCreateInput = Omit<IOrder, '_id' | 'createdAt' | 'updatedAt'>;
 export type OrderUpdateInput = Partial<OrderCreateInput>;
 export type TradeCreateInput = Omit<ITrade, '_id' | 'createdAt' | 'updatedAt'>;
 export type TradeUpdateInput = Partial<TradeCreateInput>;
+//# sourceMappingURL=Trading.d.ts.map

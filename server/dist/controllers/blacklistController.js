@@ -72,7 +72,7 @@ exports.blacklistController = {
                 res.status(404).json({ error: 'Entry not found' });
                 return;
             }
-            res.status(204).send();
+            res.status(204).send({});
         }
         catch (error) {
             (0, errorHandler_1.handleError)(res, error);
@@ -169,4 +169,4 @@ exports.blacklistController = {
         }
     }
 };
-//# sourceMappingURL=blacklistController.js.map
+//# sourceMappingURL=BlacklistController.js.map

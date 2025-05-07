@@ -5,6 +5,7 @@ export declare enum StrategyType {
     MT4 = "mt4"
 }
 export declare enum StrategyStatus {
+    PENDING = "pending",
     ACTIVE = "active",
     INACTIVE = "inactive",
     PAUSED = "paused",
@@ -75,3 +76,4 @@ export declare enum TradeType {
     SHORT = "short"
 }
 export { OrderType, OrderStatus, TradeStatus };
+//# sourceMappingURL=Enums.d.ts.map

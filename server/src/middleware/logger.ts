@@ -1,16 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import morgan from 'morgan';
 import { stream } from '../utils/logger';
+import { IncomingMessage, ServerResponse } from 'http';
 
 // 自定义日志格式
-const logFormat = ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :response-time ms';
+const logFormat = ':method :url :status :res[content-length] - :response-time ms';
 
 // 创建 Morgan 中间件
-export const requestLogger = morgan(logFormat, {
+export const requestLogger = morgan('combined', {
   stream,
-  skip: (req: Request) => {
+  skip: (req: IncomingMessage) => {
     // 跳过健康检查请求的日志
-    return req.path === '/health';
+    return req.url === '/health';
   }
 });
 

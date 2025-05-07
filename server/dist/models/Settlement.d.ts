@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 import { ISettlement } from '../types/Settlement';
 export interface ISettlementDocument extends Omit<ISettlement, '_id'>, Document {
@@ -32,3 +31,4 @@ declare const Settlement: import("mongoose").Model<ISettlementDocument, {}, {}, 
     _id: Types.ObjectId;
 }>, any>;
 export default Settlement;
+//# sourceMappingURL=Settlement.d.ts.map

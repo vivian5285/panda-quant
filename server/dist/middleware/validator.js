@@ -1,53 +1,47 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.commonValidators = exports.validateParams = exports.validateQuery = exports.validate = void 0;
-const express_validator_1 = require("express-validator");
-const errors_1 = require("../utils/errors");
-const validate = (validations) => {
+exports.commonValidators = exports.validateQuery = exports.validateParams = exports.validate = void 0;
+const AppError_1 = require("../utils/AppError");
+const logger_1 = require("../utils/logger");
+const validate = (schema) => {
     return async (req, res, next) => {
-        await Promise.all(validations.map(validation => validation.run(req)));
-        const errors = (0, express_validator_1.validationResult)(req);
-        if (errors.isEmpty()) {
-            return next();
+        try {
+            await schema.validateAsync(req.body, { abortEarly: false });
+            next();
         }
-        const extractedErrors = errors.array().map(err => ({
-            field: err.type === 'field' ? err.path : err.type,
-            message: err.msg
-        }));
-        throw new errors_1.ValidationError(extractedErrors);
+        catch (error) {
+            logger_1.logger.error('Validation error:', error);
+            next(new AppError_1.ValidationError(error.message));
+        }
     };
 };
 exports.validate = validate;
-const validateQuery = (validations) => {
+const validateParams = (schema) => {
     return async (req, res, next) => {
-        await Promise.all(validations.map(validation => validation.run(req)));
-        const errors = (0, express_validator_1.validationResult)(req);
-        if (errors.isEmpty()) {
-            return next();
+        try {
+            await schema.validateAsync(req.params, { abortEarly: false });
+            next();
         }
-        const extractedErrors = errors.array().map(err => ({
-            field: err.type === 'field' ? err.path : err.type,
-            message: err.msg
-        }));
-        throw new errors_1.ValidationError(extractedErrors);
-    };
-};
-exports.validateQuery = validateQuery;
-const validateParams = (validations) => {
-    return async (req, res, next) => {
-        await Promise.all(validations.map(validation => validation.run(req)));
-        const errors = (0, express_validator_1.validationResult)(req);
-        if (errors.isEmpty()) {
-            return next();
+        catch (error) {
+            logger_1.logger.error('Params validation error:', error);
+            next(new AppError_1.ValidationError(error.message));
         }
-        const extractedErrors = errors.array().map(err => ({
-            field: err.type === 'field' ? err.path : err.type,
-            message: err.msg
-        }));
-        throw new errors_1.ValidationError(extractedErrors);
     };
 };
 exports.validateParams = validateParams;
+const validateQuery = (schema) => {
+    return async (req, res, next) => {
+        try {
+            await schema.validateAsync(req.query, { abortEarly: false });
+            next();
+        }
+        catch (error) {
+            logger_1.logger.error('Query validation error:', error);
+            next(new AppError_1.ValidationError(error.message));
+        }
+    };
+};
+exports.validateQuery = validateQuery;
 exports.commonValidators = {
     email: (field = 'email') => {
         return {

@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Types } from 'mongoose';
 export interface IBlacklistEntry {
     _id: Types.ObjectId;
@@ -33,3 +32,4 @@ export interface IBlacklistEntry {
     createdAt: Date;
     updatedAt: Date;
 }
+//# sourceMappingURL=IBlacklistEntry.d.ts.map

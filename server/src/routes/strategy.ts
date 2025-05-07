@@ -1,56 +1,40 @@
-import { Router, Response, NextFunction } from 'express';
-import { strategyController } from '../controllers/StrategyController';
-import { AuthenticatedRequest } from '../types/Auth';
-import { authenticateToken } from '../middleware/auth.middleware';
+import express from 'express';
+import type { Router } from 'express';
+import type { Response } from 'express';
+import { handleRequest } from '../utils/requestHandler';
+import { ensureAuthenticated } from '../middleware/auth';
+import type { AuthenticatedRequest } from '../types/express';
+import { StrategyController } from '../controllers/StrategyController';
 
-const router = Router();
+const router: Router = express.Router();
+const strategyController = new StrategyController();
 
-// 所有路由都需要认证
-router.use(authenticateToken);
+// Protected routes
+router.use(ensureAuthenticated);
 
-// 获取策略列表
-router.get('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await strategyController.getAllStrategies(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Get all strategies
+router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await strategyController.getAllStrategies(req, res);
+}));
 
-// 创建策略
-router.post('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await strategyController.createStrategy(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Get single strategy
+router.get('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await strategyController.getStrategyById(req, res);
+}));
 
-// 获取单个策略
-router.get('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await strategyController.getStrategyById(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Create strategy
+router.post('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await strategyController.createStrategy(req, res);
+}));
 
-// 更新策略
-router.put('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await strategyController.updateStrategy(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Update strategy
+router.put('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await strategyController.updateStrategy(req, res);
+}));
 
-// 删除策略
-router.delete('/:id', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await strategyController.deleteStrategy(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Delete strategy
+router.delete('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await strategyController.deleteStrategy(req, res);
+}));
 
 export default router; 

@@ -22,10 +22,10 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import mongoose from 'mongoose';
 import { IStrategyDocument } from '../types/Strategy';
 export declare const Strategy: mongoose.Model<IStrategyDocument, {}, {}, {}, mongoose.Document<unknown, {}, IStrategyDocument> & IStrategyDocument & {
     _id: mongoose.Types.ObjectId;
 }, any>;
 export default Strategy;
+//# sourceMappingURL=strategy.model.d.ts.map

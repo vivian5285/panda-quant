@@ -3,23 +3,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.disconnectRedis = exports.connectRedis = exports.redis = exports.disconnectMongoDB = exports.connectMongoDB = void 0;
+exports.disconnectRedis = exports.connectRedis = exports.redis = exports.disconnectMongoDB = exports.connectDB = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const redis_1 = require("redis");
 const logger_1 = require("../utils/logger");
 const config_1 = require("../config");
 // MongoDB 连接
-const connectMongoDB = async () => {
+const connectDB = async () => {
     try {
-        await mongoose_1.default.connect(config_1.config.mongodb.uri);
-        logger_1.logger.info('MongoDB connected successfully');
+        await mongoose_1.default.connect(config_1.config.mongoUri);
+        console.log('MongoDB connected successfully');
     }
     catch (error) {
-        logger_1.logger.error('MongoDB connection error:', error);
+        console.error('MongoDB connection error:', error);
         process.exit(1);
     }
 };
-exports.connectMongoDB = connectMongoDB;
+exports.connectDB = connectDB;
 const disconnectMongoDB = async () => {
     try {
         await mongoose_1.default.disconnect();

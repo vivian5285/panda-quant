@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export interface ITrade {
     userId: Types.ObjectId;
@@ -46,3 +45,4 @@ export interface TradeCreateInput extends Omit<ITrade, '_id' | 'createdAt' | 'up
 }
 export interface TradeUpdateInput extends Partial<TradeCreateInput> {
 }
+//# sourceMappingURL=Trade.d.ts.map

@@ -8,3 +8,4 @@ export declare class StrategyRatingController {
     updateRating(req: AuthenticatedRequest, res: Response): Promise<void>;
     deleteRating(req: AuthenticatedRequest, res: Response): Promise<void>;
 }
+//# sourceMappingURL=StrategyRatingController.d.ts.map

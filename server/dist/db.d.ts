@@ -288,3 +288,5 @@ export declare const redis: import("@redis/client").RedisClientType<{
         reserve: typeof import("@redis/bloom/dist/commands/top-k/RESERVE");
     };
 } & import("redis").RedisModules, import("redis").RedisFunctions, import("redis").RedisScripts>;
+export declare const connectDB: () => Promise<void>;
+//# sourceMappingURL=db.d.ts.map

@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document } from 'mongoose';
 export interface IHealth extends Document {
     status: 'healthy' | 'unhealthy';
@@ -34,3 +33,4 @@ export declare const Health: import("mongoose").Model<IHealth, {}, {}, {}, Docum
     _id: import("mongoose").Types.ObjectId;
 }, any>;
 export default Health;
+//# sourceMappingURL=health.d.ts.map

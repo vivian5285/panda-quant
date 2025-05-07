@@ -16,3 +16,4 @@ export declare class UserService {
     getUserByUsername(username: string): Promise<IUser | null>;
     getUsers(): Promise<IUser[]>;
 }
+//# sourceMappingURL=UserService.d.ts.map

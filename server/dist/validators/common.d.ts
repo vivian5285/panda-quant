@@ -9,6 +9,7 @@ export declare const commonValidators: {
     };
     requiredString: (field: string) => {
         field: string;
-        validators: ((value: string) => boolean | "")[];
+        validators: ((value: string) => boolean)[];
     };
 };
+//# sourceMappingURL=common.d.ts.map

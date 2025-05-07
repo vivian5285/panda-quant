@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommissionController = void 0;
 const CommissionService_1 = require("../services/CommissionService");
 const logger_1 = require("../utils/logger");
-const mongoose_1 = require("mongoose");
 class CommissionController {
     constructor() {
         this.getCommissionById = async (req, res) => {
@@ -105,10 +104,7 @@ class CommissionController {
         this.updateCommissionRule = async (req, res) => {
             try {
                 const { id } = req.params;
-                const rule = await this.commissionService.updateCommissionRule({
-                    _id: new mongoose_1.Types.ObjectId(id),
-                    ...req.body
-                });
+                const rule = await this.commissionService.updateCommissionRule(id, req.body);
                 if (!rule) {
                     res.status(404).json({ message: 'Commission rule not found' });
                     return;
@@ -123,7 +119,7 @@ class CommissionController {
         this.deleteCommissionRule = async (req, res) => {
             try {
                 const { id } = req.params;
-                const success = await this.commissionService.deleteCommissionRule(new mongoose_1.Types.ObjectId(id));
+                const success = await this.commissionService.deleteCommissionRule(id);
                 if (!success) {
                     res.status(404).json({ message: 'Commission rule not found' });
                     return;
@@ -194,4 +190,4 @@ class CommissionController {
     }
 }
 exports.CommissionController = CommissionController;
-//# sourceMappingURL=commissionController.js.map
+//# sourceMappingURL=CommissionController.js.map

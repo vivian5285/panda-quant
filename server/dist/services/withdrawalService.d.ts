@@ -9,3 +9,4 @@ export declare class WithdrawalService {
     deleteWithdrawal(id: string): Promise<boolean>;
     getWithdrawalsByUserId(userId: string): Promise<IWithdrawal[]>;
 }
+//# sourceMappingURL=WithdrawalService.d.ts.map

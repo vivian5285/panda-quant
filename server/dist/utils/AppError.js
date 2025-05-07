@@ -1,60 +1,55 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RateLimitError = exports.ValidationError = exports.ConflictError = exports.NotFoundError = exports.ForbiddenError = exports.UnauthorizedError = exports.BadRequestError = exports.AppError = void 0;
+exports.ServiceError = exports.DatabaseError = exports.ConflictError = exports.NotFoundError = exports.AuthorizationError = exports.AuthenticationError = exports.ValidationError = exports.AppError = void 0;
 class AppError extends Error {
-    constructor(message, statusCode = 500, code = 'INTERNAL_SERVER_ERROR', isOperational = true) {
+    constructor(message, statusCode) {
         super(message);
         this.statusCode = statusCode;
-        this.code = code;
-        this.isOperational = isOperational;
-        // 确保错误名称正确
-        this.name = this.constructor.name;
-        // 捕获堆栈跟踪
+        this.isOperational = true;
         Error.captureStackTrace(this, this.constructor);
     }
 }
 exports.AppError = AppError;
-// 常用的错误类型
-class BadRequestError extends AppError {
+class ValidationError extends AppError {
     constructor(message) {
-        super(message, 400, 'BAD_REQUEST');
+        super(message, 400);
     }
 }
-exports.BadRequestError = BadRequestError;
-class UnauthorizedError extends AppError {
-    constructor(message) {
-        super(message, 401, 'UNAUTHORIZED');
+exports.ValidationError = ValidationError;
+class AuthenticationError extends AppError {
+    constructor(message = 'Authentication failed') {
+        super(message, 401);
     }
 }
-exports.UnauthorizedError = UnauthorizedError;
-class ForbiddenError extends AppError {
-    constructor(message) {
-        super(message, 403, 'FORBIDDEN');
+exports.AuthenticationError = AuthenticationError;
+class AuthorizationError extends AppError {
+    constructor(message = 'Not authorized') {
+        super(message, 403);
     }
 }
-exports.ForbiddenError = ForbiddenError;
+exports.AuthorizationError = AuthorizationError;
 class NotFoundError extends AppError {
-    constructor(message) {
-        super(message, 404, 'NOT_FOUND');
+    constructor(message = 'Resource not found') {
+        super(message, 404);
     }
 }
 exports.NotFoundError = NotFoundError;
 class ConflictError extends AppError {
-    constructor(message) {
-        super(message, 409, 'CONFLICT');
+    constructor(message = 'Resource already exists') {
+        super(message, 409);
     }
 }
 exports.ConflictError = ConflictError;
-class ValidationError extends AppError {
-    constructor(message) {
-        super(message, 422, 'VALIDATION_ERROR');
+class DatabaseError extends AppError {
+    constructor(message = 'Database operation failed') {
+        super(message, 500);
     }
 }
-exports.ValidationError = ValidationError;
-class RateLimitError extends AppError {
-    constructor(message) {
-        super(message, 429, 'RATE_LIMIT_EXCEEDED');
+exports.DatabaseError = DatabaseError;
+class ServiceError extends AppError {
+    constructor(message = 'Service operation failed') {
+        super(message, 500);
     }
 }
-exports.RateLimitError = RateLimitError;
+exports.ServiceError = ServiceError;
 //# sourceMappingURL=AppError.js.map

@@ -25,3 +25,4 @@ export declare class BinanceClient extends BaseExchangeClient {
     private parseTrade;
     private parseMarketData;
 }
+//# sourceMappingURL=BinanceClient.d.ts.map

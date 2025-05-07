@@ -22,8 +22,8 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
+import { UserLevel } from '../types/Enums';
 export interface IUser {
     username: string;
     email: string;
@@ -31,7 +31,7 @@ export interface IUser {
     name: string;
     role: 'user' | 'admin';
     status: 'active' | 'inactive' | 'suspended';
-    level: number;
+    level: UserLevel;
     permissions: string[];
     referrerId?: Types.ObjectId;
     referrer?: string;
@@ -47,7 +47,7 @@ export interface IUserDocument extends Document {
     name: string;
     role: 'user' | 'admin';
     status: 'active' | 'inactive' | 'suspended';
-    level: number;
+    level: UserLevel;
     permissions: string[];
     referrerId?: Types.ObjectId;
     referrer?: string;
@@ -63,3 +63,4 @@ export declare const User: import("mongoose").Model<IUserDocument, {}, {}, {}, D
     _id: Types.ObjectId;
 }, any>;
 export default User;
+//# sourceMappingURL=User.d.ts.map

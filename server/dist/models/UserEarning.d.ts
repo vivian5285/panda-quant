@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import mongoose, { Document } from 'mongoose';
 export interface IUserEarning extends Document {
     userId: mongoose.Types.ObjectId;
@@ -34,3 +33,4 @@ export interface IUserEarning extends Document {
 export declare const UserEarning: mongoose.Model<IUserEarning, {}, {}, {}, mongoose.Document<unknown, {}, IUserEarning> & IUserEarning & {
     _id: mongoose.Types.ObjectId;
 }, any>;
+//# sourceMappingURL=UserEarning.d.ts.map

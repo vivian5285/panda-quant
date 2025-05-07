@@ -1,55 +1,40 @@
-import { Router, Request, Response, NextFunction, RequestHandler } from 'express';
-import { ParamsDictionary } from 'express-serve-static-core';
-import { ParsedQs } from 'qs';
-import { UserController } from '../controllers/userController';
-import { authenticate, isAdmin } from '../middleware/Auth';
-import { AuthenticatedRequest } from '../types/Auth';
-import { authMiddleware } from '../middleware/authMiddleware';
+import express from 'express';
+import type { Router } from 'express';
+import type { Response } from 'express';
+import { handleRequest } from '../utils/requestHandler';
+import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
+import type { AuthenticatedRequest } from '../types/express';
+import { UserController } from '../controllers/UserController';
 
-const router = Router();
+const router: Router = express.Router();
 const userController = new UserController();
 
-// 包装异步请求处理函数，增加错误处理
-const handleRequest = <
-  P = ParamsDictionary,
-  ResBody = any,
-  ReqBody = any,
-  ReqQuery = ParsedQs
->(
-  handler: (req: AuthenticatedRequest & Request<P, ResBody, ReqBody, ReqQuery>, res: Response<ResBody>) => Promise<void>
-): RequestHandler<P, ResBody, ReqBody, ReqQuery> => {
-  return async (req: Request<P, ResBody, ReqBody, ReqQuery>, res: Response<ResBody>, next: NextFunction) => {
-    try {
-      if (!req.user) {
-        res.status(401).json({ message: 'Unauthorized' } as ResBody);
-        return;
-      }
-      await handler(req as AuthenticatedRequest & Request<P, ResBody, ReqBody, ReqQuery>, res);
-    } catch (error) {
-      next(error);
-    }
-  };
-};
+// Protected routes
+router.use(ensureAuthenticated);
 
-// 应用认证中间件
-router.use(authMiddleware);
-
-// Admin routes
-router.get('/admin/users', authenticate, isAdmin, handleRequest((req, res) => userController.getAllUsers(req, res)));
-router.get('/admin/users/:id', authenticate, isAdmin, handleRequest((req, res) => userController.getUserById(req, res)));
-router.post('/admin/users', authenticate, isAdmin, handleRequest((req, res) => userController.register(req, res)));
-router.put('/admin/users/:id', authenticate, isAdmin, handleRequest((req, res) => userController.updateUser(req, res)));
-router.delete('/admin/users/:id', authenticate, isAdmin, handleRequest((req, res) => userController.deleteUser(req, res)));
-
-// User routes
-router.get('/profile', handleRequest(async (req, res) => {
-  await userController.getProfile(req, res);
+// Get all users
+router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userController.getAllUsers(req, res);
 }));
 
-router.put('/profile', handleRequest(async (req, res) => {
-  await userController.updateProfile(req, res);
+// Get single user
+router.get('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userController.getUserById(req, res);
 }));
 
-router.delete('/me', handleRequest((req, res) => userController.deleteUser(req, res)));
+// Create user
+router.post('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userController.register(req, res);
+}));
+
+// Update user
+router.put('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userController.updateUser(req, res);
+}));
+
+// Delete user
+router.delete('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userController.deleteUser(req, res);
+}));
 
 export default router;

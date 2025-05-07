@@ -22,33 +22,9 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document } from 'mongoose';
-import { IOrder, OrderType, OrderStatus } from '../types/Trading';
-export declare const Order: import("mongoose").Model<IOrder, {}, {}, {}, Document<unknown, {}, IOrder> & Document<any, any, any> & {
-    _id: string;
-    userId: string;
-    strategyId: string;
-    positionId?: string | undefined;
-    exchange: string;
-    symbol: string;
-    orderId: string;
-    clientOrderId: string;
-    type: OrderType;
-    side: "buy" | "sell";
-    amount: number;
-    price?: number | undefined;
-    stopPrice?: number | undefined;
-    status: OrderStatus;
-    filledAmount: number;
-    averageFillPrice?: number | undefined;
-    fee: number;
-    feeCurrency: string;
-    createdAt: Date;
-    updatedAt: Date;
-    closedAt?: Date | undefined;
-    error?: string | undefined;
-    metadata?: Record<string, any> | undefined;
-} & {
+import { IOrder } from '../types/Trading';
+export declare const Order: import("mongoose").Model<IOrder, {}, {}, {}, Document<unknown, {}, IOrder> & IOrder & Required<{
     _id: import("mongoose").Types.ObjectId;
-}, any>;
+}>, any>;
+//# sourceMappingURL=Order.d.ts.map

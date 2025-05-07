@@ -1,132 +1,55 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { authenticate, isAdmin } from '../middleware/Auth';
-import { SettlementController } from '../controllers/settlement.controller';
-import { AuthenticatedRequest } from '../types/Auth';
-import { authenticateToken } from '../middleware/auth.middleware';
+import express from 'express';
+import type { Router } from 'express';
+import { Response } from 'express';
+import { handleRequest } from '../utils/requestHandler';
+import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
+import { AuthenticatedRequest } from '../types/express';
+import { SettlementController } from '../controllers/SettlementController';
 
-const router = Router();
+const router = express.Router();
 const settlementController = new SettlementController();
 
-// Admin routes
-router.get('/admin/settlements', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.getSettlements(req as AuthenticatedRequest, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
+// Protected routes
+router.use(ensureAuthenticated);
 
-router.post('/admin/settlements', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.createSettlement(req as AuthenticatedRequest, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
+// Get all settlements
+router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await settlementController.getSettlements(req, res);
+}));
 
-router.put('/admin/settlements/:id/status', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.updateSettlementStatus(req as AuthenticatedRequest, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
+// Get single settlement
+router.get('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await settlementController.getSettlementDetails(req, res);
+}));
 
-router.get('/admin/settlements/:id', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.getSettlements(req as AuthenticatedRequest, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
+// Create settlement
+router.post('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await settlementController.createSettlement(req, res);
+}));
 
-router.get('/admin/settlements/export', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.exportSettlements(req as AuthenticatedRequest, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
+// Update settlement status
+router.put('/:id/status', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await settlementController.updateSettlementStatus(req, res);
+}));
 
-router.post('/admin/settlements/generate', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.generateSettlements(req as AuthenticatedRequest, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
+// Delete settlement
+router.delete('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await settlementController.updateSettlement(req, res);
+}));
 
-router.post('/admin/settlements/:id/process', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.updateSettlementStatus(req as AuthenticatedRequest, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
+// Export settlements
+router.get('/export', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await settlementController.exportSettlements(req, res);
+}));
 
-// User routes
-router.get('/', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.getSettlements(req, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
+// Generate settlements
+router.post('/generate', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await settlementController.generateSettlements(req, res);
+}));
 
-router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.getSettlements(req, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.createSettlement(req, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.put('/:id/status', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.updateSettlementStatus(req, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.delete('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.processPayment(req, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get('/export', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.exportSettlements(req, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post('/generate', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.generateSettlements(req, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post('/:id/process', authenticateToken, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await settlementController.processPayment(req, res, next);
-  } catch (error) {
-    next(error);
-  }
-});
+// Process payment
+router.post('/:id/process', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await settlementController.processPayment(req, res);
+}));
 
 export default router; 

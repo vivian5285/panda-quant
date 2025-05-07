@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export interface IUserLevel {
     name: string;
@@ -51,3 +50,4 @@ export interface IUserLevelService {
     getAllUserLevels(): Promise<IUserLevelDocument[]>;
     getUserLevelByExperience(experience: number): Promise<IUserLevelDocument | null>;
 }
+//# sourceMappingURL=UserLevel.d.ts.map

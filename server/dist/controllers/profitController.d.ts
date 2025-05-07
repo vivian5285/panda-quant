@@ -1,12 +1,9 @@
-import { Response } from 'express';
-import { AuthenticatedRequest } from '../types/Auth';
+import type { Request, Response } from 'express';
 export declare class ProfitController {
-    private commissionService;
-    private profitService;
-    constructor();
-    getProfitSummary: (_req: AuthenticatedRequest, res: Response) => Promise<void>;
-    updateCommission: (req: AuthenticatedRequest, res: Response) => Promise<void>;
-    deleteCommission: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+    getProfits(req: Request, res: Response): Promise<void>;
+    getProfitById(req: Request, res: Response): Promise<void>;
+    createProfit(req: Request, res: Response): Promise<void>;
+    updateProfit(req: Request, res: Response): Promise<void>;
+    deleteProfit(req: Request, res: Response): Promise<void>;
 }
-declare const _default: ProfitController;
-export default _default;
+//# sourceMappingURL=ProfitController.d.ts.map

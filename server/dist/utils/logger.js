@@ -15,23 +15,22 @@ const logFormat = printf(({ level, message, timestamp, ...metadata }) => {
     }
     return msg;
 });
-exports.logger = winston_1.default.createLogger({
-    level: 'info',
+const logger = winston_1.default.createLogger({
+    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
     format: winston_1.default.format.combine(winston_1.default.format.timestamp(), winston_1.default.format.json()),
     transports: [
+        new winston_1.default.transports.Console({
+            format: winston_1.default.format.combine(winston_1.default.format.colorize(), winston_1.default.format.simple())
+        }),
         new winston_1.default.transports.File({ filename: 'error.log', level: 'error' }),
         new winston_1.default.transports.File({ filename: 'combined.log' })
     ]
 });
-if (process.env.NODE_ENV !== 'production') {
-    exports.logger.add(new winston_1.default.transports.Console({
-        format: winston_1.default.format.simple()
-    }));
-}
+exports.logger = logger;
 // Create a stream object for Morgan
 exports.stream = {
     write: (message) => {
-        exports.logger.info(message.trim());
+        logger.info(message.trim());
     }
 };
 const createLogger = (module) => {

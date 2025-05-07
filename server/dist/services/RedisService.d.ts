@@ -12,3 +12,4 @@ export declare class RedisService {
     del(key: string): Promise<number>;
     expire(key: string, seconds: number): Promise<boolean>;
 }
+//# sourceMappingURL=RedisService.d.ts.map

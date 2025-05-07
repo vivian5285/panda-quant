@@ -6,3 +6,4 @@ export declare const commonValidators: {
     requiredString: (field: string) => (req: Request, res: Response, next: NextFunction) => void;
     optionalString: (field: string) => (req: Request, res: Response, next: NextFunction) => void;
 };
+//# sourceMappingURL=validation.d.ts.map

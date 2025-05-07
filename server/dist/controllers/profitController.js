@@ -1,48 +1,72 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProfitController = void 0;
+const Profit_1 = require("../models/Profit");
 const logger_1 = require("../utils/logger");
-const CommissionService_1 = require("../services/CommissionService");
-const ProfitService_1 = require("../services/ProfitService");
 class ProfitController {
-    constructor() {
-        this.getProfitSummary = async (_req, res) => {
-            try {
-                const summary = await this.profitService.getProfitSummary();
-                res.json(summary);
+    async getProfits(req, res) {
+        try {
+            const profits = await Profit_1.Profit.find();
+            res.json(profits);
+        }
+        catch (error) {
+            logger_1.logger.error('Error in getProfits:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+    async getProfitById(req, res) {
+        try {
+            const profit = await Profit_1.Profit.findById(req.params.id);
+            if (!profit) {
+                res.status(404).json({ error: 'Profit not found' });
+                return;
             }
-            catch (error) {
-                logger_1.logger.error('Error getting profit summary:', error);
-                res.status(500).json({ message: 'Error getting profit summary', error: error.message });
+            res.json(profit);
+        }
+        catch (error) {
+            logger_1.logger.error('Error in getProfitById:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+    async createProfit(req, res) {
+        try {
+            const profit = new Profit_1.Profit(req.body);
+            await profit.save();
+            res.status(201).json(profit);
+        }
+        catch (error) {
+            logger_1.logger.error('Error in createProfit:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+    async updateProfit(req, res) {
+        try {
+            const profit = await Profit_1.Profit.findByIdAndUpdate(req.params.id, req.body, { new: true });
+            if (!profit) {
+                res.status(404).json({ error: 'Profit not found' });
+                return;
             }
-        };
-        this.updateCommission = async (req, res) => {
-            try {
-                const { id } = req.params;
-                const updates = req.body;
-                const commission = await this.commissionService.updateCommission(id.toString(), updates);
-                res.status(200).json(commission);
+            res.json(profit);
+        }
+        catch (error) {
+            logger_1.logger.error('Error in updateProfit:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+    async deleteProfit(req, res) {
+        try {
+            const profit = await Profit_1.Profit.findByIdAndDelete(req.params.id);
+            if (!profit) {
+                res.status(404).json({ error: 'Profit not found' });
+                return;
             }
-            catch (error) {
-                logger_1.logger.error('Error updating commission:', error);
-                res.status(500).json({ message: 'Error updating commission', error });
-            }
-        };
-        this.deleteCommission = async (req, res) => {
-            try {
-                const { id } = req.params;
-                await this.commissionService.deleteCommission(id.toString());
-                res.status(204).send();
-            }
-            catch (error) {
-                logger_1.logger.error('Error deleting commission:', error);
-                res.status(500).json({ message: 'Error deleting commission', error });
-            }
-        };
-        this.commissionService = CommissionService_1.CommissionService.getInstance();
-        this.profitService = ProfitService_1.ProfitService.getInstance();
+            res.json({ message: 'Profit deleted successfully' });
+        }
+        catch (error) {
+            logger_1.logger.error('Error in deleteProfit:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
     }
 }
 exports.ProfitController = ProfitController;
-exports.default = new ProfitController();
-//# sourceMappingURL=profitController.js.map
+//# sourceMappingURL=ProfitController.js.map

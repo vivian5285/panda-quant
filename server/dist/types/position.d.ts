@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document } from 'mongoose';
 export interface IPosition extends Document {
     _id: string;
@@ -110,3 +109,4 @@ export interface PositionCreateInput extends Omit<IPosition, '_id' | 'createdAt'
 }
 export interface PositionUpdateInput extends Partial<PositionCreateInput> {
 }
+//# sourceMappingURL=Position.d.ts.map

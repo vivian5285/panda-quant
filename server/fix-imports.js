@@ -155,4 +155,35 @@ async function main() {
   }
 }
 
-main().catch(console.error); 
+main().catch(console.error);
+
+function fixExpressImports(filePath) {
+  const content = fs.readFileSync(filePath, 'utf8');
+  
+  // 检查是否已经包含正确的导入
+  if (content.includes("import type { Router } from 'express';")) {
+    return;
+  }
+
+  // 替换导入语句
+  const newContent = content.replace(
+    /import express from 'express';/g,
+    `import express from 'express';\nimport type { Router } from 'express';`
+  );
+
+  // 替换 Router 类型声明
+  const finalContent = newContent.replace(
+    /const router = express\.Router\(\);?/g,
+    'const router: Router = express.Router();'
+  );
+
+  fs.writeFileSync(filePath, finalContent);
+  console.log(`Fixed imports in ${filePath}`);
+}
+
+// 遍历 routes 目录下的所有 .ts 文件
+fs.readdirSync(routesDir).forEach(file => {
+  if (file.endsWith('.ts')) {
+    fixExpressImports(path.join(routesDir, file));
+  }
+}); 

@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export interface ITransaction {
     userId: Types.ObjectId;
@@ -45,3 +44,4 @@ export interface TransactionCreateInput extends Omit<ITransaction, '_id' | 'crea
 }
 export interface TransactionUpdateInput extends Partial<TransactionCreateInput> {
 }
+//# sourceMappingURL=Transaction.d.ts.map

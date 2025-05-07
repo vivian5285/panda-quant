@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document } from 'mongoose';
 export declare enum NotificationType {
     SYSTEM = "system",
@@ -43,3 +42,4 @@ export interface INotification {
 }
 export interface INotificationDocument extends INotification, Document {
 }
+//# sourceMappingURL=INotification.d.ts.map

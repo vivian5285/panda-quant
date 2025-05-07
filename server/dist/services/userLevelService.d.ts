@@ -6,3 +6,4 @@ export declare class UserLevelService {
     createUserLevel(data: Partial<IUserLevel>): Promise<IUserLevel>;
     deleteUserLevel(id: string): Promise<boolean>;
 }
+//# sourceMappingURL=UserLevelService.d.ts.map

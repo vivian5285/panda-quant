@@ -1,59 +1,40 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { UserLevelController } from '../controllers/userLevelController';
-import { authenticate, isAdmin } from '../middleware/Auth';
-import { AuthenticatedRequest } from '../types/Auth';
+import express from 'express';
+import type { Router } from 'express';
+import { Response } from 'express';
+import { handleRequest } from '../utils/requestHandler';
+import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
+import { AuthenticatedRequest } from '../types/express';
+import { UserLevelController } from '../controllers/UserLevelController';
 
-const router = Router();
+const router = express.Router();
 const userLevelController = new UserLevelController();
 
-// Admin routes
-router.get('/admin/user-levels', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await userLevelController.getAllLevels(req as AuthenticatedRequest, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Protected routes
+router.use(ensureAuthenticated);
 
-router.post('/admin/user-levels', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await userLevelController.createLevel(req as AuthenticatedRequest, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Get all user levels
+router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userLevelController.getAllLevels(req, res);
+}));
 
-router.put('/admin/user-levels/:id', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await userLevelController.updateLevel(req as AuthenticatedRequest, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Get single user level
+router.get('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userLevelController.getUserLevel(req, res);
+}));
 
-router.delete('/admin/user-levels/:id', authenticate, isAdmin, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await userLevelController.deleteLevel(req as AuthenticatedRequest, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Create user level
+router.post('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userLevelController.createLevel(req, res);
+}));
 
-// User routes
-router.get('/user-levels', authenticate, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await userLevelController.getUserLevel(req as AuthenticatedRequest, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Update user level
+router.put('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userLevelController.updateLevel(req, res);
+}));
 
-router.get('/user-levels/:id', authenticate, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await userLevelController.getUserLevel(req as AuthenticatedRequest, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Delete user level
+router.delete('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userLevelController.deleteLevel(req, res);
+}));
 
 export default router; 

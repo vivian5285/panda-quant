@@ -8,4 +8,4 @@ var Network;
     Network["BITCOIN"] = "BITCOIN";
     Network["BINANCE"] = "BINANCE";
 })(Network || (exports.Network = Network = {}));
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=Index.js.map

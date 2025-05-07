@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document } from 'mongoose';
 export interface ICommissionRecordDocument extends Document {
     userId: string;
@@ -36,3 +35,4 @@ export declare const CommissionRecord: import("mongoose").Model<ICommissionRecor
     _id: import("mongoose").Types.ObjectId;
 }, any>;
 export default CommissionRecord;
+//# sourceMappingURL=CommissionRecord.d.ts.map

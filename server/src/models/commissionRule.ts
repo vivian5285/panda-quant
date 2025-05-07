@@ -1,5 +1,6 @@
 import mongoose, { Schema, model, Document, Types } from 'mongoose';
 import { ICommissionRule } from '../types/Commission';
+import { CommissionType, CommissionStatus } from '../types/Enums';
 
 export interface ICommissionRuleDocument extends Omit<ICommissionRule, '_id'>, Document {
   _id: Types.ObjectId;
@@ -8,7 +9,7 @@ export interface ICommissionRuleDocument extends Omit<ICommissionRule, '_id'>, D
 const CommissionRuleSchema = new Schema<ICommissionRuleDocument>({
   name: { type: String, required: true },
   description: { type: String, required: true },
-  type: { type: String, required: true, enum: ['percentage', 'fixed'] },
+  type: { type: String, required: true, enum: Object.values(CommissionType) },
   value: { type: Number, required: true },
   conditions: {
     minVolume: { type: Number },
@@ -20,6 +21,7 @@ const CommissionRuleSchema = new Schema<ICommissionRuleDocument>({
     pairs: [{ type: String }]
   },
   isActive: { type: Boolean, default: true },
+  status: { type: String, enum: Object.values(CommissionStatus), default: CommissionStatus.PENDING },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

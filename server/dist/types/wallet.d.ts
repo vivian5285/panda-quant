@@ -41,3 +41,4 @@ export interface Transfer {
     updatedAt: Date;
 }
 export type { ITransaction };
+//# sourceMappingURL=Wallet.d.ts.map

@@ -1,5 +1,6 @@
 import { Schema, model, Document, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { UserLevel } from '../types/Enums';
 
 export interface IUser {
   username: string;
@@ -8,7 +9,7 @@ export interface IUser {
   name: string;
   role: 'user' | 'admin';
   status: 'active' | 'inactive' | 'suspended';
-  level: number;
+  level: UserLevel;
   permissions: string[];
   referrerId?: Types.ObjectId;
   referrer?: string;
@@ -25,7 +26,7 @@ export interface IUserDocument extends Document {
   name: string;
   role: 'user' | 'admin';
   status: 'active' | 'inactive' | 'suspended';
-  level: number;
+  level: UserLevel;
   permissions: string[];
   referrerId?: Types.ObjectId;
   referrer?: string;
@@ -68,15 +69,17 @@ const userSchema = new Schema<IUserDocument>({
     default: 'active'
   },
   level: {
-    type: Number,
-    default: 1
+    type: String,
+    enum: Object.values(UserLevel),
+    default: UserLevel.BASIC
   },
   permissions: [{
     type: String
   }],
   referrerId: {
-    type: Types.ObjectId,
-    ref: 'User'
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: false
   },
   referrer: {
     type: String

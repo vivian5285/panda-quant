@@ -17,24 +17,12 @@ class StrategyService {
         }
         return StrategyService.instance;
     }
-    async createStrategy(strategy) {
-        try {
-            const newStrategy = new Strategy_1.Strategy(strategy);
-            return await newStrategy.save();
-        }
-        catch (error) {
-            logger_1.logger.error('Error creating strategy:', error);
-            throw error;
-        }
+    async createStrategy(data) {
+        const strategy = new Strategy_1.Strategy(data);
+        return await strategy.save();
     }
-    async getStrategies(userId) {
-        try {
-            return await Strategy_1.Strategy.find({ userId });
-        }
-        catch (error) {
-            logger_1.logger.error('Error getting strategies:', error);
-            throw error;
-        }
+    async getStrategies() {
+        return await Strategy_1.Strategy.find();
     }
     async getStrategy(id) {
         try {

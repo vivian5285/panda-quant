@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Types } from 'mongoose';
 import { IStrategy } from '../../types/Strategy';
 export declare class StrategyService {
@@ -36,3 +35,4 @@ export declare class StrategyService {
     deleteStrategy(id: Types.ObjectId): Promise<boolean>;
     getStrategiesByUserId(userId: Types.ObjectId): Promise<IStrategy[]>;
 }
+//# sourceMappingURL=strategy.service.d.ts.map

@@ -1,98 +1,40 @@
-import { Router } from 'express';
-import { authenticate, authorize } from '../middleware/Auth';
-import { validate } from '../middleware/validator';
-import { body } from 'express-validator';
-import { UserController } from '../controllers/User';
+import express from 'express';
+import type { Router } from 'express';
+import type { Response } from 'express';
+import { handleRequest } from '../utils/requestHandler';
+import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
+import type { AuthenticatedRequest } from '../types/express';
+import { UserController } from '../controllers/UserController';
 
-const router = Router();
+const router: Router = express.Router();
 const userController = new UserController();
 
-// 用户注册
-router.post(
-  '/register',
-  validate([
-    body('email').isEmail().withMessage('Please provide a valid email'),
-    body('password')
-      .isLength({ min: 6 })
-      .withMessage('Password must be at least 6 characters long'),
-    body('name').notEmpty().withMessage('Name is required')
-  ]),
-  userController.register
-);
+// Protected routes
+router.use(ensureAuthenticated);
 
-// 用户登录
-router.post(
-  '/login',
-  validate([
-    body('email').isEmail().withMessage('Please provide a valid email'),
-    body('password').notEmpty().withMessage('Password is required')
-  ]),
-  userController.login
-);
+// Get all users
+router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userController.getAllUsers(req, res);
+}));
 
-// 获取当前用户信息
-router.get(
-  '/me',
-  authenticate,
-  userController.getCurrentUser
-);
+// Get single user
+router.get('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userController.getUserById(req, res);
+}));
 
-// 更新用户信息
-router.put(
-  '/me',
-  authenticate,
-  validate([
-    body('name').optional().notEmpty().withMessage('Name cannot be empty'),
-    body('email').optional().isEmail().withMessage('Please provide a valid email')
-  ]),
-  userController.updateUser
-);
+// Create user
+router.post('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userController.register(req, res);
+}));
 
-// 更改密码
-router.put(
-  '/me/password',
-  authenticate,
-  validate([
-    body('currentPassword').notEmpty().withMessage('Current password is required'),
-    body('newPassword')
-      .isLength({ min: 6 })
-      .withMessage('New password must be at least 6 characters long')
-  ]),
-  userController.changePassword
-);
+// Update user
+router.put('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userController.updateUser(req, res);
+}));
 
-// 管理员路由
-router.get(
-  '/',
-  authenticate,
-  authorize('admin'),
-  userController.getAllUsers
-);
-
-router.get(
-  '/:id',
-  authenticate,
-  authorize('admin'),
-  userController.getUserById
-);
-
-router.put(
-  '/:id',
-  authenticate,
-  authorize('admin'),
-  validate([
-    body('name').optional().notEmpty().withMessage('Name cannot be empty'),
-    body('email').optional().isEmail().withMessage('Please provide a valid email'),
-    body('role').optional().isIn(['user', 'admin']).withMessage('Invalid role')
-  ]),
-  userController.updateUserById
-);
-
-router.delete(
-  '/:id',
-  authenticate,
-  authorize('admin'),
-  userController.deleteUser
-);
+// Delete user
+router.delete('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await userController.deleteUser(req, res);
+}));
 
 export default router; 

@@ -7,3 +7,4 @@ export declare class OrderQueueService {
     clearQueue(): Promise<void>;
     getQueue(): Promise<IOrder[]>;
 }
+//# sourceMappingURL=orderQueueService.d.ts.map

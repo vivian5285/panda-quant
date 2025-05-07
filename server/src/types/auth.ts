@@ -1,13 +1,12 @@
 import type { Request } from 'express-serve-static-core';
-import { IUser } from './User';
-import { UserRole } from './Enums';
+import type { IUserDocument } from '../models/User';
+import type { UserRole } from './Enums';
+import type { AuthenticatedRequest } from './express';
 
-export interface AuthenticatedRequest extends Request {
-  user?: IUser;
-}
+export type { AuthenticatedRequest };
 
 export interface AuthRequest extends Request {
-  user?: IUser;
+  user?: IUserDocument;
 }
 
 export interface IAuthToken {

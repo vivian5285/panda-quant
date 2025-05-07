@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export interface IAlert extends Document {
     _id: Types.ObjectId;
@@ -80,3 +79,4 @@ export interface AlertCreateInput extends Omit<IAlert, '_id' | 'createdAt' | 'up
 }
 export interface AlertUpdateInput extends Partial<AlertCreateInput> {
 }
+//# sourceMappingURL=Alert.d.ts.map

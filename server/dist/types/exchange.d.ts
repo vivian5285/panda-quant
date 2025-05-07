@@ -76,3 +76,4 @@ export interface IExchangeMarketData {
     ask: number;
     last: number;
 }
+//# sourceMappingURL=Exchange.d.ts.map

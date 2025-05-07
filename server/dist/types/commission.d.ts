@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 import { CommissionType, CommissionStatus } from './Enums';
 export interface ICommissionBase {
@@ -38,12 +37,13 @@ export interface ICommissionBase {
     updatedAt?: Date;
 }
 export interface ICommission extends ICommissionBase, Document {
+    _id: Types.ObjectId;
 }
 export interface ICommissionRule {
     _id: Types.ObjectId;
     name: string;
     description: string;
-    type: 'percentage' | 'fixed';
+    type: CommissionType;
     value: number;
     conditions: {
         minVolume?: number;
@@ -55,6 +55,7 @@ export interface ICommissionRule {
         pairs?: string[];
     };
     isActive: boolean;
+    status: CommissionStatus;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -62,7 +63,7 @@ export interface ICommissionWithdrawal {
     _id: Types.ObjectId;
     userId: Types.ObjectId;
     amount: number;
-    status: 'pending' | 'approved' | 'rejected' | 'completed';
+    status: CommissionStatus;
     walletAddress: string;
     paymentMethod: 'crypto' | 'bank' | 'paypal';
     paymentDetails: Record<string, any>;
@@ -107,3 +108,4 @@ export interface CommissionCreateInput extends Omit<ICommissionBase, 'createdAt'
 }
 export interface CommissionUpdateInput extends Partial<CommissionCreateInput> {
 }
+//# sourceMappingURL=Commission.d.ts.map

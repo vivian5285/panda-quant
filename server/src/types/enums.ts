@@ -7,6 +7,7 @@ export enum StrategyType {
 }
 
 export enum StrategyStatus {
+  PENDING = 'pending',
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   PAUSED = 'paused',

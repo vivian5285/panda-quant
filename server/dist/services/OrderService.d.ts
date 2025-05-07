@@ -9,3 +9,4 @@ export declare class OrderService {
     getOrdersByUser(userId: string): Promise<IOrder[]>;
     getOrdersByStatus(status: OrderStatus): Promise<IOrder[]>;
 }
+//# sourceMappingURL=OrderService.d.ts.map

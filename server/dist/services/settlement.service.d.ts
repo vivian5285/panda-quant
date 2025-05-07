@@ -7,3 +7,4 @@ export declare class SettlementService {
     updateSettlementStatus(id: string, status: SettlementStatus): Promise<ISettlementDocument | null>;
     getSettlementById(id: string): Promise<ISettlementDocument | null>;
 }
+//# sourceMappingURL=settlement.service.d.ts.map

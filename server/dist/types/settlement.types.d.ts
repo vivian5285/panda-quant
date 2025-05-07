@@ -20,3 +20,4 @@ export interface Settlement {
     createdAt: Date;
     updatedAt: Date;
 }
+//# sourceMappingURL=Settlement.types.d.ts.map

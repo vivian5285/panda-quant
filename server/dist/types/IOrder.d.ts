@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Types } from 'mongoose';
 export interface IOrder {
     _id: Types.ObjectId;
@@ -36,3 +35,4 @@ export interface IOrder {
     updatedAt: Date;
     metadata?: Record<string, any>;
 }
+//# sourceMappingURL=IOrder.d.ts.map

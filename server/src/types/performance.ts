@@ -1,4 +1,4 @@
-import { Document, Types } from 'mongoose';
+import type { Document, Types } from 'mongoose';
 
 export interface IPerformanceMetrics {
   totalTrades: number;
@@ -39,9 +39,8 @@ export interface IPerformancePeriod {
 }
 
 export interface IStrategyPerformance extends Document {
-  _id: Types.ObjectId;
   strategyId: Types.ObjectId;
-  userId: string;
+  userId: Types.ObjectId;
   period: IPerformancePeriod;
   metrics: IPerformanceMetrics;
   trades: IPerformanceTrade[];
@@ -57,54 +56,21 @@ export interface IStrategyPerformanceMetrics {
   averageLoss: number;
 }
 
-export interface PerformanceMetrics {
-  userId: string;
-  totalProfit: number;
-  monthlyReturn: number;
-  annualReturn: number;
-  maxDrawdown: number;
-  sharpeRatio: number;
-  sortinoRatio: number;
-  winRate: number;
-  profitFactor: number;
-  averageTrade: number;
-  totalTrades: number;
-  startDate: Date;
-  endDate: Date;
-}
-
-export interface PerformanceReport {
-  userId: string;
+export interface IPerformanceReport {
+  userId: Types.ObjectId;
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
   startDate: Date;
   endDate: Date;
-  metrics: PerformanceMetrics;
-  trades: PerformanceTrade[];
+  metrics: IPerformanceMetrics;
+  trades: IPerformanceTrade[];
   deposits: number;
   withdrawals: number;
   netDeposits: number;
   roi: number;
 }
 
-export interface PerformanceTrade {
-  id: string;
-  userId: string;
-  strategyId: string;
-  symbol: string;
-  type: 'spot' | 'futures' | 'mt4';
-  side: 'buy' | 'sell';
-  entryPrice: number;
-  exitPrice: number;
-  amount: number;
-  profit: number;
-  fee: number;
-  entryTime: Date;
-  exitTime: Date;
-  duration: number;
-}
-
-export interface PerformanceChart {
-  userId: string;
+export interface IPerformanceChart {
+  userId: Types.ObjectId;
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
   data: {
     date: Date;
@@ -115,14 +81,18 @@ export interface PerformanceChart {
   }[];
 }
 
-export interface PerformanceComparison {
-  userId: string;
+export interface IPerformanceComparison {
+  userId: Types.ObjectId;
   period: 'daily' | 'weekly' | 'monthly' | 'yearly';
   startDate: Date;
   endDate: Date;
   strategies: {
-    strategyId: string;
+    strategyId: Types.ObjectId;
     name: string;
-    metrics: PerformanceMetrics;
+    metrics: IPerformanceMetrics;
   }[];
-} 
+}
+
+export type PerformanceReport = IPerformanceReport;
+export type PerformanceChart = IPerformanceChart;
+export type PerformanceComparison = IPerformanceComparison; 

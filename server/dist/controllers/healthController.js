@@ -20,4 +20,4 @@ exports.healthController = {
         }
     }
 };
-//# sourceMappingURL=healthController.js.map
+//# sourceMappingURL=HealthController.js.map

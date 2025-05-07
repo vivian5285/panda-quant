@@ -19,3 +19,4 @@ export declare class StrategyRatingService {
     deleteRating(id: string, userId: string): Promise<boolean>;
     getRatings(strategyId?: string): Promise<IStrategyRating[]>;
 }
+//# sourceMappingURL=StrategyRatingService.d.ts.map

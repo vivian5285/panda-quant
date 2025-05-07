@@ -12,3 +12,4 @@ export declare const blacklistController: {
     getBlacklistEntryById(req: Request, res: Response): Promise<void>;
     deleteBlacklistEntryById(req: Request, res: Response): Promise<void>;
 };
+//# sourceMappingURL=BlacklistController.d.ts.map

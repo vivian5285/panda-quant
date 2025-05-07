@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
-import { ValidationChain } from 'express-validator';
-export declare const validate: (validations: ValidationChain[]) => (req: Request, res: Response, next: NextFunction) => Promise<void>;
-export declare const validateQuery: (validations: ValidationChain[]) => (req: Request, res: Response, next: NextFunction) => Promise<void>;
-export declare const validateParams: (validations: ValidationChain[]) => (req: Request, res: Response, next: NextFunction) => Promise<void>;
+import { RequestHandler } from '../types/express';
+import type { Schema } from 'joi';
+export declare const validate: (schema: Schema) => RequestHandler;
+export declare const validateParams: (schema: Schema) => RequestHandler;
+export declare const validateQuery: (schema: Schema) => RequestHandler;
 export declare const commonValidators: {
     email: (field?: string) => {
         field: string;
@@ -17,3 +17,4 @@ export declare const commonValidators: {
         validators: ((value: string) => boolean)[];
     };
 };
+//# sourceMappingURL=validator.d.ts.map

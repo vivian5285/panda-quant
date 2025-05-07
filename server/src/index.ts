@@ -1,31 +1,18 @@
-import express from 'express';
-import { connectMongoDB, connectRedis } from './database';
-import router from './routes/index';
+import express, { Application } from 'express';
+import app from './app';
 import { logger } from './utils/logger';
-import { config } from './config';
+import { connectDB } from './db';
 
-const app = express();
-const PORT = config.port;
+const port = process.env.PORT || 3005;
 
-// 设置中间件
-app.use(express.json());
-
-// 设置路由
-app.use(router);
-
-// 启动服务器
 const startServer = async () => {
   try {
-    // 连接数据库
-    await connectMongoDB();
-    await connectRedis();
-
-    // 启动服务器
-    app.listen(PORT, () => {
-      logger.info(`Server is running on port ${PORT}`);
+    await connectDB();
+    app.listen(port, () => {
+      logger.info(`Server is running on port ${port}`);
     });
   } catch (error) {
-    logger.error('Failed to start server:', error);
+    logger.error('Error starting server:', error);
     process.exit(1);
   }
 };

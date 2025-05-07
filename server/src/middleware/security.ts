@@ -1,10 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction, Application } from 'express';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { config } from '../config';
-import { Express } from 'express';
 import { HelmetOptions } from 'helmet';
+import compression from 'compression';
 
 // 创建速率限制器
 const limiter = rateLimit({
@@ -21,7 +21,7 @@ const limiter = rateLimit({
 
 // CORS 配置
 const corsOptions = {
-  origin: config.corsOrigins,
+  origin: config.corsOrigin,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -60,9 +60,12 @@ const helmetConfig: HelmetOptions = {
 
 // 导出中间件
 export const securityMiddleware = [
-  helmet(helmetConfig),
-  cors(corsOptions),
-  limiter
+  helmet(),
+  cors(),
+  rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+  })
 ];
 
 // 请求大小限制中间件
@@ -80,6 +83,29 @@ export const requestSizeLimit = (req: Request, res: Response, next: NextFunction
   next();
 };
 
-export const configureSecurity = (app: Express): void => {
+export const configureSecurity = (app: Application): void => {
   app.use(helmet(helmetConfig));
+};
+
+export const setupSecurity = (app: Application): void => {
+  // CORS configuration
+  app.use(cors({
+    origin: config.corsOrigin,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  }));
+
+  // Security headers
+  app.use(helmet());
+
+  // Rate limiting
+  app.use(rateLimit({
+    windowMs: config.rateLimitWindowMs,
+    max: config.rateLimitMax,
+    message: 'Too many requests from this IP, please try again later'
+  }));
+
+  // Compression
+  app.use(compression());
 }; 

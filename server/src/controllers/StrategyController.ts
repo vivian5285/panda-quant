@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { Strategy } from '../models/Strategy';
 import { logger } from '../utils/logger';
 
-export const strategyController = {
+export class StrategyController {
   async getAllStrategies(_req: Request, res: Response): Promise<void> {
     try {
       const strategies = await Strategy.find();
@@ -11,7 +11,7 @@ export const strategyController = {
       logger.error('Error getting strategies:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
-  },
+  }
 
   async getStrategyById(req: Request, res: Response): Promise<void> {
     try {
@@ -26,7 +26,7 @@ export const strategyController = {
       logger.error('Error getting strategy:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
-  },
+  }
 
   async createStrategy(req: Request, res: Response): Promise<void> {
     try {
@@ -37,7 +37,7 @@ export const strategyController = {
       logger.error('Error creating strategy:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
-  },
+  }
 
   async updateStrategy(req: Request, res: Response): Promise<void> {
     try {
@@ -52,20 +52,20 @@ export const strategyController = {
       logger.error('Error updating strategy:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
-  },
+  }
 
   async deleteStrategy(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const strategy = await Strategy.findByIdAndDelete(id);
-      if (!strategy) {
-        res.status(404).json({ error: 'Strategy not found' });
+      const success = await Strategy.findByIdAndDelete(id);
+      if (!success) {
+        res.status(404).json({ message: 'Strategy not found' });
         return;
       }
-      res.status(204).send();
+      res.status(204).send({});
     } catch (error) {
       logger.error('Error deleting strategy:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
-}; 
+} 

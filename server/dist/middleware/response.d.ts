@@ -8,3 +8,4 @@ declare global {
     }
 }
 export declare const responseHandler: (_req: Request, res: Response, next: NextFunction) => void;
+//# sourceMappingURL=response.d.ts.map

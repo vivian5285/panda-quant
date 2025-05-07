@@ -1,10 +1,10 @@
-import { Request } from 'express';
-import { IUser } from './User';
-export interface AuthenticatedRequest extends Request {
-    user?: IUser;
-}
+import type { Request } from 'express-serve-static-core';
+import type { IUserDocument } from '../models/User';
+import type { UserRole } from './Enums';
+import type { AuthenticatedRequest } from './express';
+export type { AuthenticatedRequest };
 export interface AuthRequest extends Request {
-    user?: IUser;
+    user?: IUserDocument;
 }
 export interface IAuthToken {
     token: string;
@@ -34,7 +34,7 @@ export interface IRegisterCredentials {
 export interface ITokenPayload {
     userId: string;
     email: string;
-    role: string;
+    role: UserRole;
     permissions: string[];
     exp: number;
 }
@@ -53,3 +53,4 @@ export interface ITwoFactorAuth {
     code: string;
     secret?: string;
 }
+//# sourceMappingURL=Auth.d.ts.map

@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document } from 'mongoose';
 export interface IStrategyPerformance {
     strategyId: string;
@@ -66,3 +65,4 @@ export declare const StrategyPerformance: import("mongoose").Model<IStrategyPerf
     _id: import("mongoose").Types.ObjectId;
 }, any>;
 export default StrategyPerformance;
+//# sourceMappingURL=StrategyPerformance.d.ts.map

@@ -1,5 +1,5 @@
-import { Request } from 'express';
-import { Document } from 'mongoose';
+import type { Request } from 'express';
+import type { Document } from 'mongoose';
 import type {
   StrategyType,
   StrategyStatus,
@@ -9,13 +9,13 @@ import type {
   CommissionStatus,
   WithdrawalStatus
 } from './Enums';
-import type { IUser } from './User';
-import type { IStrategy } from './Strategy';
-import type { ICommission } from './Commission';
+import type { User } from './User';
+import type { Strategy } from './Strategy';
+import type { Commission } from './Commission';
 import type { ICommissionWithdrawal } from './CommissionWithdrawal';
-import type { IAlert } from './Alert';
-import type { IDeposit } from './Deposit';
-import type { IPosition } from './Position';
+import type { Alert } from './Alert';
+import type { Deposit } from './Deposit';
+import type { Position } from './Position';
 import type { IStrategyRating } from './StrategyRating';
 import type { IBlacklistEntry } from './Blacklist';
 import type { IUserLevel } from './UserLevel';
@@ -27,7 +27,6 @@ import type {
   ITrade,
   IOrderBook,
   IOrderHistory,
-  Trade,
   OrderCreateInput,
   OrderUpdateInput,
   TradeCreateInput,
@@ -39,11 +38,9 @@ import type {
   IPerformanceTrade,
   IPerformancePeriod,
   IStrategyPerformanceMetrics,
-  PerformanceMetrics,
-  PerformanceReport,
-  PerformanceTrade,
-  PerformanceChart,
-  PerformanceComparison
+  IPerformanceReport,
+  IPerformanceChart,
+  IPerformanceComparison
 } from './Performance';
 import type { 
   IExchangeCredentials, 
@@ -61,49 +58,47 @@ import type {
   IMT4MarketData 
 } from './Mt4';
 
-// Export all interface types
+// Export all types
 export type {
-  IUser,
-  IStrategy,
-  ICommission,
-  ICommissionWithdrawal,
-  IAlert,
-  IDeposit,
-  IPosition,
-  IStrategyRating,
-  IBlacklistEntry,
-  IUserLevel,
+  User,
+  Strategy,
+  Commission,
+  ICommissionWithdrawal as CommissionWithdrawal,
+  Alert,
+  Deposit,
+  Position,
+  IStrategyRating as StrategyRating,
+  IBlacklistEntry as BlacklistEntry,
+  IUserLevel as UserLevel,
   AuthRequest,
-  IOrder,
-  IStrategyPerformance,
-  IPerformanceMetrics,
-  IPerformanceTrade,
-  IPerformancePeriod,
-  IStrategyPerformanceMetrics,
-  PerformanceMetrics,
-  PerformanceReport,
-  PerformanceTrade,
-  PerformanceChart,
-  PerformanceComparison,
+  IOrder as Order,
+  IStrategyPerformance as StrategyPerformance,
+  IPerformanceMetrics as PerformanceMetrics,
+  IPerformanceTrade as PerformanceTrade,
+  IPerformancePeriod as PerformancePeriod,
+  IStrategyPerformanceMetrics as StrategyPerformanceMetrics,
+  IPerformanceReport as PerformanceReport,
+  IPerformanceChart as PerformanceChart,
+  IPerformanceComparison as PerformanceComparison,
+  ITrade as Trade,
+  IOrderBook as OrderBook,
+  IOrderHistory as OrderHistory,
   ITrade,
-  IOrderBook,
-  IOrderHistory,
-  Trade,
   OrderCreateInput,
   OrderUpdateInput,
   TradeCreateInput,
   TradeUpdateInput,
-  IExchangeCredentials,
-  IExchangeBalance,
-  IExchangeOrder,
-  IExchangePosition,
-  IExchangeTrade,
-  IExchangeMarketData,
-  IMT4Account,
-  IMT4Position,
-  IMT4Order,
-  IMT4Balance,
-  IMT4MarketData,
+  IExchangeCredentials as ExchangeCredentials,
+  IExchangeBalance as ExchangeBalance,
+  IExchangeOrder as ExchangeOrder,
+  IExchangePosition as ExchangePosition,
+  IExchangeTrade as ExchangeTrade,
+  IExchangeMarketData as ExchangeMarketData,
+  IMT4Account as MT4Account,
+  IMT4Position as MT4Position,
+  IMT4Order as MT4Order,
+  IMT4Balance as MT4Balance,
+  IMT4MarketData as MT4MarketData,
   OrderType,
   OrderStatus,
   AuthenticatedRequest,
@@ -117,13 +112,13 @@ export type {
 };
 
 // Base types
-export type User = IUser & Document;
-export type Strategy = IStrategy & Document;
-export type Order = IOrder & Document;
-export type Commission = ICommission & Document;
-export type StrategyRating = IStrategyRating & Document;
-export type UserLevel = IUserLevel & Document;
-export type CommissionWithdrawal = ICommissionWithdrawal & Document;
+export type UserDocument = User & Document;
+export type StrategyDocument = Strategy & Document;
+export type OrderDocument = IOrder & Document;
+export type CommissionDocument = Commission & Document;
+export type StrategyRatingDocument = IStrategyRating & Document;
+export type UserLevelDocument = IUserLevel & Document;
+export type CommissionWithdrawalDocument = ICommissionWithdrawal & Document;
 
 // Enums
 export enum Network {
@@ -133,19 +128,19 @@ export enum Network {
 }
 
 // Interfaces
-export interface INetworkStatus {
+export interface NetworkStatus {
   network: Network;
   isHealthy: boolean;
   lastChecked: Date;
   error?: string;
 }
 
-export interface IOrderWithRetry extends IOrder {
+export interface OrderWithRetry extends IOrder {
   retryCount: number;
 }
 
-export interface IOrderQueue {
-  orders: IOrderWithRetry[];
+export interface OrderQueue {
+  orders: OrderWithRetry[];
   isProcessing: boolean;
 }
 

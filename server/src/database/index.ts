@@ -4,12 +4,12 @@ import { logger } from '../utils/logger';
 import { config } from '../config';
 
 // MongoDB 连接
-export const connectMongoDB = async (): Promise<void> => {
+export const connectDB = async () => {
   try {
-    await mongoose.connect(config.mongodb.uri);
-    logger.info('MongoDB connected successfully');
+    await mongoose.connect(config.mongoUri);
+    console.log('MongoDB connected successfully');
   } catch (error) {
-    logger.error('MongoDB connection error:', error);
+    console.error('MongoDB connection error:', error);
     process.exit(1);
   }
 };

@@ -71,4 +71,4 @@ class StrategyRatingController {
     }
 }
 exports.StrategyRatingController = StrategyRatingController;
-//# sourceMappingURL=strategyRatingController.js.map
+//# sourceMappingURL=StrategyRatingController.js.map

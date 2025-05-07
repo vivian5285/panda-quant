@@ -1,66 +1,54 @@
 export class AppError extends Error {
   public readonly statusCode: number;
-  public readonly code: string;
   public readonly isOperational: boolean;
 
-  constructor(
-    message: string,
-    statusCode: number = 500,
-    code: string = 'INTERNAL_SERVER_ERROR',
-    isOperational: boolean = true
-  ) {
+  constructor(message: string, statusCode: number) {
     super(message);
     this.statusCode = statusCode;
-    this.code = code;
-    this.isOperational = isOperational;
+    this.isOperational = true;
 
-    // 确保错误名称正确
-    this.name = this.constructor.name;
-
-    // 捕获堆栈跟踪
     Error.captureStackTrace(this, this.constructor);
-  }
-}
-
-// 常用的错误类型
-export class BadRequestError extends AppError {
-  constructor(message: string) {
-    super(message, 400, 'BAD_REQUEST');
-  }
-}
-
-export class UnauthorizedError extends AppError {
-  constructor(message: string) {
-    super(message, 401, 'UNAUTHORIZED');
-  }
-}
-
-export class ForbiddenError extends AppError {
-  constructor(message: string) {
-    super(message, 403, 'FORBIDDEN');
-  }
-}
-
-export class NotFoundError extends AppError {
-  constructor(message: string) {
-    super(message, 404, 'NOT_FOUND');
-  }
-}
-
-export class ConflictError extends AppError {
-  constructor(message: string) {
-    super(message, 409, 'CONFLICT');
   }
 }
 
 export class ValidationError extends AppError {
   constructor(message: string) {
-    super(message, 422, 'VALIDATION_ERROR');
+    super(message, 400);
   }
 }
 
-export class RateLimitError extends AppError {
-  constructor(message: string) {
-    super(message, 429, 'RATE_LIMIT_EXCEEDED');
+export class AuthenticationError extends AppError {
+  constructor(message: string = 'Authentication failed') {
+    super(message, 401);
+  }
+}
+
+export class AuthorizationError extends AppError {
+  constructor(message: string = 'Not authorized') {
+    super(message, 403);
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(message: string = 'Resource not found') {
+    super(message, 404);
+  }
+}
+
+export class ConflictError extends AppError {
+  constructor(message: string = 'Resource already exists') {
+    super(message, 409);
+  }
+}
+
+export class DatabaseError extends AppError {
+  constructor(message: string = 'Database operation failed') {
+    super(message, 500);
+  }
+}
+
+export class ServiceError extends AppError {
+  constructor(message: string = 'Service operation failed') {
+    super(message, 500);
   }
 } 

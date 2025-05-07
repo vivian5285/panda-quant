@@ -1,12 +1,18 @@
-import { Request, Response, NextFunction } from 'express';
-import { AuthenticatedRequest } from '../types/Auth';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
+import type { AuthenticatedRequest } from '../types/express';
+
+type RequestHandlerFunction = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next?: NextFunction
+) => Promise<void>;
 
 export const handleRequest = (
-  handler: (req: AuthenticatedRequest, res: Response) => Promise<void>
-) => {
+  handler: RequestHandlerFunction
+): RequestHandler => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await handler(req as AuthenticatedRequest, res);
+      await handler(req as unknown as AuthenticatedRequest, res, next);
     } catch (error) {
       next(error);
     }

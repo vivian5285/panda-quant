@@ -56,3 +56,4 @@ export interface IMT4MarketData {
     volume: number;
     spread: number;
 }
+//# sourceMappingURL=Mt4.d.ts.map

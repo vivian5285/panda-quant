@@ -1,132 +1,47 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const Auth_1 = require("../middleware/Auth");
-const settlement_controller_1 = require("../controllers/settlement.controller");
-const auth_middleware_1 = require("../middleware/auth.middleware");
-const router = (0, express_1.Router)();
-const settlementController = new settlement_controller_1.SettlementController();
-// Admin routes
-router.get('/admin/settlements', Auth_1.authenticate, Auth_1.isAdmin, async (req, res, next) => {
-    try {
-        await settlementController.getSettlements(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.post('/admin/settlements', Auth_1.authenticate, Auth_1.isAdmin, async (req, res, next) => {
-    try {
-        await settlementController.createSettlement(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.put('/admin/settlements/:id/status', Auth_1.authenticate, Auth_1.isAdmin, async (req, res, next) => {
-    try {
-        await settlementController.updateSettlementStatus(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.get('/admin/settlements/:id', Auth_1.authenticate, Auth_1.isAdmin, async (req, res, next) => {
-    try {
-        await settlementController.getSettlements(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.get('/admin/settlements/export', Auth_1.authenticate, Auth_1.isAdmin, async (req, res, next) => {
-    try {
-        await settlementController.exportSettlements(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.post('/admin/settlements/generate', Auth_1.authenticate, Auth_1.isAdmin, async (req, res, next) => {
-    try {
-        await settlementController.generateSettlements(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.post('/admin/settlements/:id/process', Auth_1.authenticate, Auth_1.isAdmin, async (req, res, next) => {
-    try {
-        await settlementController.updateSettlementStatus(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-// User routes
-router.get('/', auth_middleware_1.authenticateToken, async (req, res, next) => {
-    try {
-        await settlementController.getSettlements(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.get('/:id', auth_middleware_1.authenticateToken, async (req, res, next) => {
-    try {
-        await settlementController.getSettlements(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.post('/', auth_middleware_1.authenticateToken, async (req, res, next) => {
-    try {
-        await settlementController.createSettlement(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.put('/:id/status', auth_middleware_1.authenticateToken, async (req, res, next) => {
-    try {
-        await settlementController.updateSettlementStatus(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.delete('/:id', auth_middleware_1.authenticateToken, async (req, res, next) => {
-    try {
-        await settlementController.processPayment(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.get('/export', auth_middleware_1.authenticateToken, async (req, res, next) => {
-    try {
-        await settlementController.exportSettlements(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.post('/generate', auth_middleware_1.authenticateToken, async (req, res, next) => {
-    try {
-        await settlementController.generateSettlements(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-router.post('/:id/process', auth_middleware_1.authenticateToken, async (req, res, next) => {
-    try {
-        await settlementController.processPayment(req, res, next);
-    }
-    catch (error) {
-        next(error);
-    }
-});
+const express_1 = __importDefault(require("express"));
+const requestHandler_1 = require("../utils/requestHandler");
+const ensureAuthenticated_1 = require("../middleware/ensureAuthenticated");
+const SettlementController_1 = require("../controllers/SettlementController");
+const router = express_1.default.Router();
+const settlementController = new SettlementController_1.SettlementController();
+// Protected routes
+router.use(ensureAuthenticated_1.ensureAuthenticated);
+// Get all settlements
+router.get('/', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await settlementController.getSettlements(req, res);
+}));
+// Get single settlement
+router.get('/:id', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await settlementController.getSettlementDetails(req, res);
+}));
+// Create settlement
+router.post('/', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await settlementController.createSettlement(req, res);
+}));
+// Update settlement status
+router.put('/:id/status', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await settlementController.updateSettlementStatus(req, res);
+}));
+// Delete settlement
+router.delete('/:id', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await settlementController.updateSettlement(req, res);
+}));
+// Export settlements
+router.get('/export', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await settlementController.exportSettlements(req, res);
+}));
+// Generate settlements
+router.post('/generate', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await settlementController.generateSettlements(req, res);
+}));
+// Process payment
+router.post('/:id/process', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await settlementController.processPayment(req, res);
+}));
 exports.default = router;
 //# sourceMappingURL=Settlement.js.map

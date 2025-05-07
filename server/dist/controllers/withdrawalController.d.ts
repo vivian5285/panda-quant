@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { AuthenticatedRequest } from '../types/Auth';
+import { AuthenticatedRequest } from '../types/express';
 export declare class WithdrawalController {
     createWithdrawal(req: AuthenticatedRequest, res: Response): Promise<void>;
     getWithdrawals(req: AuthenticatedRequest, res: Response): Promise<void>;
@@ -7,3 +7,4 @@ export declare class WithdrawalController {
     updateWithdrawal(req: AuthenticatedRequest, res: Response): Promise<void>;
     deleteWithdrawal(req: AuthenticatedRequest, res: Response): Promise<void>;
 }
+//# sourceMappingURL=WithdrawalController.d.ts.map

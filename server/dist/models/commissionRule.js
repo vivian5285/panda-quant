@@ -1,10 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
+const Enums_1 = require("../types/Enums");
 const CommissionRuleSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
     description: { type: String, required: true },
-    type: { type: String, required: true, enum: ['percentage', 'fixed'] },
+    type: { type: String, required: true, enum: Object.values(Enums_1.CommissionType) },
     value: { type: Number, required: true },
     conditions: {
         minVolume: { type: Number },
@@ -16,6 +17,7 @@ const CommissionRuleSchema = new mongoose_1.Schema({
         pairs: [{ type: String }]
     },
     isActive: { type: Boolean, default: true },
+    status: { type: String, enum: Object.values(Enums_1.CommissionStatus), default: Enums_1.CommissionStatus.PENDING },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });

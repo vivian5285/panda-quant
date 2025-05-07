@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Types } from 'mongoose';
 import { IPlatformEarning } from '../models/PlatformEarning';
 import { SettlementFilter, SettlementResponse, SettlementSummary } from '../types/Settlement';
@@ -77,3 +76,4 @@ export declare class SettlementService {
     completeSettlement(id: string): Promise<ISettlement | null>;
     failSettlement(id: string): Promise<ISettlement | null>;
 }
+//# sourceMappingURL=SettlementService.d.ts.map

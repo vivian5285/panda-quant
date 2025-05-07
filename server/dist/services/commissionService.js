@@ -492,9 +492,9 @@ class CommissionService {
             throw error;
         }
     }
-    async updateCommissionRule(rule) {
+    async updateCommissionRule(id, updateData) {
         try {
-            const updatedRule = await CommissionRule_1.default.findByIdAndUpdate(rule._id, { $set: rule }, { new: true });
+            const updatedRule = await CommissionRule_1.default.findByIdAndUpdate(id, { $set: updateData }, { new: true });
             return updatedRule ? this.convertToICommissionRule(updatedRule) : null;
         }
         catch (error) {

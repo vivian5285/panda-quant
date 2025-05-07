@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export interface IStrategyRating {
     strategyId: Types.ObjectId;
@@ -43,3 +42,4 @@ export interface IStrategyRatingService {
     deleteRating(id: string): Promise<boolean>;
     getAverageRating(strategyId: string): Promise<number>;
 }
+//# sourceMappingURL=StrategyRating.d.ts.map

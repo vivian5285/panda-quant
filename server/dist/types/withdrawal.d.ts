@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export interface IWithdrawal {
     userId: Types.ObjectId;
@@ -52,3 +51,4 @@ export interface WithdrawalNotification {
     transactionId: string;
     status: 'pending' | 'completed' | 'failed';
 }
+//# sourceMappingURL=Withdrawal.d.ts.map

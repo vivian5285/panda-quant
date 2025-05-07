@@ -22,10 +22,10 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import mongoose from 'mongoose';
 import { IUserLevel } from '../types/UserLevel';
 export declare const UserLevel: mongoose.Model<IUserLevel, {}, {}, {}, mongoose.Document<unknown, {}, IUserLevel> & IUserLevel & {
     _id: mongoose.Types.ObjectId;
 }, any>;
 export default UserLevel;
+//# sourceMappingURL=UserLevel.d.ts.map

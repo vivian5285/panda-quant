@@ -22,10 +22,22 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
-import mongoose from 'mongoose';
-import { IStrategyDocument } from '../types/Strategy';
-export declare const Strategy: mongoose.Model<IStrategyDocument, {}, {}, {}, mongoose.Document<unknown, {}, IStrategyDocument> & IStrategyDocument & {
-    _id: mongoose.Types.ObjectId;
+import { Document, Types } from 'mongoose';
+import { StrategyStatus, StrategyType } from '../types/Enums';
+export interface IStrategy {
+    userId: Types.ObjectId;
+    name: string;
+    description: string;
+    type: StrategyType;
+    status: StrategyStatus;
+    parameters: Record<string, any>;
+    createdAt: Date;
+    updatedAt: Date;
+}
+export interface IStrategyDocument extends IStrategy, Document {
+}
+export declare const Strategy: import("mongoose").Model<IStrategyDocument, {}, {}, {}, Document<unknown, {}, IStrategyDocument> & IStrategyDocument & {
+    _id: Types.ObjectId;
 }, any>;
 export default Strategy;
+//# sourceMappingURL=Strategy.d.ts.map

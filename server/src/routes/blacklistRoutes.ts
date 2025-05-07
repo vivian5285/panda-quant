@@ -1,48 +1,39 @@
-import { Router } from 'express';
-import { authenticate, hasPermission } from '../middleware/Auth';
-import { blacklistController } from '../controllers/blacklistController';
+import express from 'express';
+import type { Router } from 'express';
+import { Response } from 'express';
+import { handleRequest } from '../utils/requestHandler';
+import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
+import { AuthenticatedRequest } from '../types/express';
+import { blacklistController } from '../controllers/BlacklistController';
 
-const router = Router();
+const router = express.Router();
 
-// 所有路由都需要认证
-router.use(authenticate);
+// Protected routes
+router.use(ensureAuthenticated);
 
-// 获取所有黑名单条目
-router.get('/', hasPermission('blacklist:read'), blacklistController.getAllEntries);
+// Get all blacklist entries
+router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await blacklistController.getAllEntries(req, res);
+}));
 
-// 获取单个黑名单条目
-router.get('/:id', hasPermission('blacklist:read'), blacklistController.getEntryById);
+// Get single blacklist entry
+router.get('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await blacklistController.getEntryById(req, res);
+}));
 
-// 创建黑名单条目
-router.post('/', hasPermission('blacklist:write'), blacklistController.createEntry);
+// Create blacklist entry
+router.post('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await blacklistController.createEntry(req, res);
+}));
 
-// 更新黑名单条目
-router.put('/:id', hasPermission('blacklist:write'), blacklistController.updateEntry);
+// Update blacklist entry
+router.put('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await blacklistController.updateEntry(req, res);
+}));
 
-// 删除黑名单条目
-router.delete('/:id', hasPermission('blacklist:write'), blacklistController.deleteEntry);
-
-// 搜索黑名单条目
-router.get('/search', hasPermission('blacklist:read'), blacklistController.searchEntries);
-
-export const setupBlacklistRoutes = (router: Router) => {
-  // 获取所有黑名单条目
-  router.get('/blacklist', hasPermission('blacklist:read'), blacklistController.getAllEntries);
-  
-  // 获取单个黑名单条目
-  router.get('/blacklist/:id', hasPermission('blacklist:read'), blacklistController.getEntryById);
-  
-  // 创建黑名单条目
-  router.post('/blacklist', hasPermission('blacklist:write'), blacklistController.createEntry);
-  
-  // 更新黑名单条目
-  router.put('/blacklist/:id', hasPermission('blacklist:write'), blacklistController.updateEntry);
-  
-  // 删除黑名单条目
-  router.delete('/blacklist/:id', hasPermission('blacklist:write'), blacklistController.deleteEntry);
-  
-  // 搜索黑名单条目
-  router.get('/blacklist/search', hasPermission('blacklist:read'), blacklistController.searchEntries);
-};
+// Delete blacklist entry
+router.delete('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await blacklistController.deleteEntry(req, res);
+}));
 
 export default router; 

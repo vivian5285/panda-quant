@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export interface IBacktest {
     userId: Types.ObjectId;
@@ -58,3 +57,4 @@ export interface BacktestCreateInput extends Omit<IBacktest, '_id' | 'createdAt'
 }
 export interface BacktestUpdateInput extends Partial<BacktestCreateInput> {
 }
+//# sourceMappingURL=Backtest.d.ts.map

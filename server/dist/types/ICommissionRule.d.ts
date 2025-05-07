@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document } from 'mongoose';
 export interface ICommissionRule {
     name: string;
@@ -36,3 +35,4 @@ export interface ICommissionRule {
 }
 export interface ICommissionRuleDocument extends ICommissionRule, Document {
 }
+//# sourceMappingURL=ICommissionRule.d.ts.map

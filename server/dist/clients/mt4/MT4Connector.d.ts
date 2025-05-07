@@ -29,3 +29,4 @@ export declare class MT4Connector extends EventEmitter {
     closePosition(ticket: number): Promise<void>;
     modifyOrder(ticket: number, changes: Partial<IMT4Order>): Promise<void>;
 }
+//# sourceMappingURL=MT4Connector.d.ts.map

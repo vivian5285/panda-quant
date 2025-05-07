@@ -52,3 +52,4 @@ export interface HealthCheckResponse {
         strategyEngine: boolean;
     };
 }
+//# sourceMappingURL=Api.d.ts.map

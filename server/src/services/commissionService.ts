@@ -624,11 +624,11 @@ export class CommissionService {
     }
   }
 
-  public async updateCommissionRule(rule: ICommissionRule): Promise<ICommissionRule | null> {
+  public async updateCommissionRule(id: string, updateData: Partial<ICommissionRule>): Promise<ICommissionRule | null> {
     try {
       const updatedRule = await CommissionRule.findByIdAndUpdate(
-        rule._id,
-        { $set: rule },
+        id,
+        { $set: updateData },
         { new: true }
       );
       return updatedRule ? this.convertToICommissionRule(updatedRule) : null;
@@ -638,7 +638,7 @@ export class CommissionService {
     }
   }
 
-  public async deleteCommissionRule(id: Types.ObjectId): Promise<boolean> {
+  public async deleteCommissionRule(id: string): Promise<boolean> {
     try {
       const result = await CommissionRule.findByIdAndDelete(id);
       return !!result;

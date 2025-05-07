@@ -1,5 +1,5 @@
-import { Document, Types } from 'mongoose';
-import { TradeType } from './Enums';
+import type { Document, Types } from 'mongoose';
+import type { TradeType } from './Enums';
 
 export enum OrderType {
   MARKET = 'market',
@@ -22,11 +22,11 @@ export enum TradeStatus {
   CANCELLED = 'cancelled'
 }
 
-export type IOrder = Document & {
-  _id: string;
-  userId: string;
-  strategyId: string;
-  positionId?: string;
+export interface IOrder extends Document {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  strategyId: Types.ObjectId;
+  positionId?: Types.ObjectId;
   exchange: string;
   symbol: string;
   orderId: string;
@@ -48,7 +48,7 @@ export type IOrder = Document & {
   metadata?: Record<string, any>;
 }
 
-export type ITrade = Document & {
+export interface ITrade extends Document {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
   strategyId: Types.ObjectId;
@@ -66,7 +66,7 @@ export type ITrade = Document & {
   updatedAt: Date;
 }
 
-export type IOrderBook = Document & {
+export interface IOrderBook extends Document {
   _id: Types.ObjectId;
   symbol: string;
   bids: {
@@ -82,7 +82,7 @@ export type IOrderBook = Document & {
   updatedAt: Date;
 }
 
-export type IOrderHistory = Document & {
+export interface IOrderHistory extends Document {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
   strategyId: Types.ObjectId;

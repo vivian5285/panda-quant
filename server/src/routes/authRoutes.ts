@@ -1,16 +1,15 @@
-import { Router } from 'express';
-import { authenticateToken } from '../middleware/auth.middleware';
-import authController from '../controllers/authController';
+import express, { Router } from 'express';
+import authController from '../controllers/AuthController';
+import { authenticate } from '../middleware/authMiddleware';
 
-const router = Router();
+const router: Router = express.Router();
 
-// 注册
+// Public routes
+router.post('/login', authController.login);
 router.post('/register', authController.register);
 
-// 登录
-router.post('/login', authController.login);
-
-// 获取当前用户信息
-router.get('/me', authenticateToken, authController.getCurrentUser);
+// Protected routes
+router.get('/profile', authenticate, authController.getCurrentUser);
+router.put('/profile', authenticate, authController.updateUser);
 
 export default router; 

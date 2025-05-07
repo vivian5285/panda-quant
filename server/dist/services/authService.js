@@ -103,6 +103,46 @@ class AuthService {
             throw new Error('Invalid refresh token');
         }
     }
+    async updateUser(userId, updateData) {
+        try {
+            const user = await User_1.User.findById(userId);
+            if (!user) {
+                throw new Error('User not found');
+            }
+            // Update only allowed fields
+            if (updateData.name) {
+                user.name = updateData.name;
+            }
+            if (updateData.email) {
+                user.email = updateData.email;
+            }
+            await user.save();
+            return this.convertToIUser(user);
+        }
+        catch (error) {
+            logger_1.logger.error('Update user error:', error);
+            throw error;
+        }
+    }
+    async changePassword(userId, currentPassword, newPassword) {
+        try {
+            const user = await User_1.User.findById(userId);
+            if (!user) {
+                throw new Error('User not found');
+            }
+            const isPasswordValid = await bcryptjs_1.default.compare(currentPassword, user.password);
+            if (!isPasswordValid) {
+                throw new Error('Current password is incorrect');
+            }
+            const hashedPassword = await bcryptjs_1.default.hash(newPassword, 10);
+            user.password = hashedPassword;
+            await user.save();
+        }
+        catch (error) {
+            logger_1.logger.error('Change password error:', error);
+            throw error;
+        }
+    }
 }
 exports.AuthService = AuthService;
 //# sourceMappingURL=AuthService.js.map

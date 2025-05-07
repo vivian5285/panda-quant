@@ -1,4 +1,4 @@
-export declare const connectMongoDB: () => Promise<void>;
+export declare const connectDB: () => Promise<void>;
 export declare const disconnectMongoDB: () => Promise<void>;
 export declare const redis: import("@redis/client").RedisClientType<{
     graph: {
@@ -292,3 +292,4 @@ export declare const redis: import("@redis/client").RedisClientType<{
 } & import("redis").RedisModules, import("redis").RedisFunctions, import("redis").RedisScripts>;
 export declare const connectRedis: () => Promise<void>;
 export declare const disconnectRedis: () => Promise<void>;
+//# sourceMappingURL=index.d.ts.map

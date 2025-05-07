@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const mongoose_1 = require("mongoose");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const Enums_1 = require("../types/Enums");
 const userSchema = new mongoose_1.Schema({
     username: {
         type: String,
@@ -36,15 +37,17 @@ const userSchema = new mongoose_1.Schema({
         default: 'active'
     },
     level: {
-        type: Number,
-        default: 1
+        type: String,
+        enum: Object.values(Enums_1.UserLevel),
+        default: Enums_1.UserLevel.BASIC
     },
     permissions: [{
             type: String
         }],
     referrerId: {
-        type: mongoose_1.Types.ObjectId,
-        ref: 'User'
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
     },
     referrer: {
         type: String

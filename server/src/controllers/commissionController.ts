@@ -110,10 +110,7 @@ export class CommissionController {
   public updateCommissionRule = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const rule = await this.commissionService.updateCommissionRule({
-        _id: new Types.ObjectId(id),
-        ...req.body
-      });
+      const rule = await this.commissionService.updateCommissionRule(id, req.body);
       if (!rule) {
         res.status(404).json({ message: 'Commission rule not found' });
         return;
@@ -128,7 +125,7 @@ export class CommissionController {
   public deleteCommissionRule = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const success = await this.commissionService.deleteCommissionRule(new Types.ObjectId(id));
+      const success = await this.commissionService.deleteCommissionRule(id);
       if (!success) {
         res.status(404).json({ message: 'Commission rule not found' });
         return;

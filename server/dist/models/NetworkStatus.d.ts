@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 import { INetworkStatus } from '../types/Network';
 export interface INetworkStatusDocument extends Omit<INetworkStatus, '_id'>, Document {
@@ -32,3 +31,4 @@ declare const _default: import("mongoose").Model<INetworkStatusDocument, {}, {},
     _id: Types.ObjectId;
 }>, any>;
 export default _default;
+//# sourceMappingURL=NetworkStatus.d.ts.map

@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export interface IDeposit {
     userId: Types.ObjectId;
@@ -70,3 +69,4 @@ export interface LargeDepositAlert {
     message: string;
     data: Deposit;
 }
+//# sourceMappingURL=Deposit.d.ts.map

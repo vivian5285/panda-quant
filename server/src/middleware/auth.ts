@@ -1,11 +1,13 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { UnauthorizedError, ForbiddenError } from '../utils/errors';
-import { User } from '../models/User';
-import { IUser } from '../types/User';
+import { User, IUserDocument } from '../models/User';
 import { logger } from '../utils/logger';
-import { Types } from 'mongoose';
+
+interface AuthenticatedRequest extends Request {
+  user?: IUserDocument;
+}
 
 const JWT_SECRET = process.env['JWT_SECRET'] || 'your-secret-key';
 
@@ -17,52 +19,58 @@ interface JwtPayload {
 declare global {
   namespace Express {
     interface Request {
-      user?: IUser;
+      user?: IUserDocument;
     }
   }
 }
 
-export interface AuthenticatedRequest extends Request {
-  user?: IUser;
-}
-
-export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+export const ensureAuthenticated = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-
+    const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
-      throw new UnauthorizedError('No authentication token provided');
+      res.status(401).json({ error: 'No token provided' });
+      return;
     }
 
-    const decoded = jwt.verify(token, config.jwtSecret as jwt.Secret) as JwtPayload;
-
-    // 从数据库获取完整的用户信息
-    const user = await User.findById(decoded.userId);
-    if (!user) {
-      throw new UnauthorizedError('User not found');
+    const decoded = jwt.verify(token, config.jwtSecret) as { id: string };
+    if (!decoded) {
+      res.status(401).json({ error: 'Invalid token' });
+      return;
     }
 
-    // 将完整的用户信息添加到请求对象中
-    req.user = user;
-
+    req.user = { _id: decoded.id } as any;
     next();
   } catch (error) {
-    next(new UnauthorizedError('Invalid authentication token'));
+    logger.error('Authentication error:', error);
+    res.status(401).json({ error: 'Authentication failed' });
   }
 };
 
-export const authorize = (...roles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+export const authorize = (role: string) => async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
     if (!req.user) {
-      throw new UnauthorizedError('User not authenticated');
+      res.status(401).json({ error: 'Authentication required' });
+      return;
     }
 
-    if (!roles.includes(req.user.role)) {
-      throw new ForbiddenError('Insufficient permissions');
+    if (req.user.role !== role) {
+      res.status(403).json({ error: 'Insufficient permissions' });
+      return;
     }
 
     next();
-  };
+  } catch (error) {
+    logger.error('Authorization error:', error);
+    res.status(403).json({ error: 'Authorization failed' });
+  }
 };
 
 export const isAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {

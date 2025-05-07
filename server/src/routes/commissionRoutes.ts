@@ -1,91 +1,94 @@
-import { Router } from 'express';
-import { CommissionController } from '../controllers/commissionController';
-import { AuthenticatedRequest, AuthenticatedAsyncRequestHandler } from '../types/express';
-import { Response, NextFunction } from 'express';
-import { authMiddleware } from '../middleware/authMiddleware';
+import express from 'express';
+import type { Router } from 'express';
+import type { Response } from 'express';
+import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
+import type { AuthenticatedRequest } from '../types/express';
+import { CommissionController } from '../controllers/CommissionController';
 
-const router = Router();
+const router: Router = express.Router();
 const commissionController = new CommissionController();
 
-// 所有路由都需要认证
-router.use(authMiddleware);
+// Protected routes
+router.use(ensureAuthenticated);
 
-// 获取所有用户的佣金
-router.get('/all', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await commissionController.getCommissionByUserId(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Get all user commissions
+router.get('/all', handleRequest((req: AuthenticatedRequest, res: Response) => 
+  commissionController.getCommissionByUserId(req, res)
+));
 
-// 获取当前用户的佣金
-router.get('/my', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    await commissionController.getCommissionByUserId(req, res);
-  } catch (error) {
-    next(error);
-  }
-});
+// Get current user's commissions
+router.get('/my', handleRequest((req: AuthenticatedRequest, res: Response) => 
+  commissionController.getCommissionByUserId(req, res)
+));
 
-const handleRequest = (handler: (req: AuthenticatedRequest, res: Response) => Promise<void>): AuthenticatedAsyncRequestHandler => {
-  return async (req: AuthenticatedRequest, res, next) => {
-    try {
-      await handler(req, res);
-    } catch (error) {
-      next(error);
-    }
-  };
-};
+// Get commission list
+router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await commissionController.getCommissionById(req, res);
+}));
 
-// 获取佣金列表
-router.get('/', ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionById(req, res)));
+// Get commission record
+router.get('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await commissionController.getCommissionById(req, res);
+}));
 
-// 获取佣金记录
-router.get('/:id', ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionById(req, res)));
+// Create commission record
+router.post('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await commissionController.createCommission(req, res);
+}));
 
-// 创建佣金记录
-router.post('/', ensureAuthenticated, handleRequest((req, res) => commissionController.createCommission(req, res)));
+// Update commission record
+router.put('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await commissionController.updateCommission(req, res);
+}));
 
-// 更新佣金记录
-router.put('/:id', ensureAuthenticated, handleRequest((req, res) => commissionController.updateCommission(req, res)));
+// Delete commission record
+router.delete('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await commissionController.deleteCommission(req, res);
+}));
 
-// 删除佣金记录
-router.delete('/:id', ensureAuthenticated, handleRequest((req, res) => commissionController.deleteCommission(req, res)));
+// Get commission rules
+router.get('/rules', handleRequest((req: AuthenticatedRequest, res: Response) => 
+  commissionController.getCommissionRules(req, res)
+));
 
-// 获取佣金规则
-router.get('/rules', ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionRules(req, res)));
+// Create commission rule
+router.post('/rules', handleRequest((req: AuthenticatedRequest, res: Response) => 
+  commissionController.createCommissionRule(req, res)
+));
 
-// 创建佣金规则
-router.post('/rules', ensureAuthenticated, handleRequest((req, res) => commissionController.createCommissionRule(req, res)));
+// Update commission rule
+router.put('/rules/:id', handleRequest((req: AuthenticatedRequest, res: Response) => 
+  commissionController.updateCommissionRule(req, res)
+));
 
-// 更新佣金规则
-router.put('/rules/:id', ensureAuthenticated, handleRequest((req, res) => commissionController.updateCommissionRule(req, res)));
+// Delete commission rule
+router.delete('/rules/:id', handleRequest((req: AuthenticatedRequest, res: Response) => 
+  commissionController.deleteCommissionRule(req, res)
+));
 
-// 删除佣金规则
-router.delete('/rules/:id', ensureAuthenticated, handleRequest((req, res) => commissionController.deleteCommissionRule(req, res)));
+// Get commissions by type
+router.get('/type/:type', handleRequest((req: AuthenticatedRequest, res: Response) => 
+  commissionController.getCommissionsByType(req, res)
+));
 
-// 按类型获取佣金
-router.get('/type/:type', ensureAuthenticated, handleRequest((req, res) => commissionController.getCommissionsByType(req, res)));
-
-// 按状态、类型和金额获取佣金
-router.get('/filter/status-type-amount', ensureAuthenticated, handleRequest((req, res) => 
+// Get commissions by status, type and amount
+router.get('/filter/status-type-amount', handleRequest((req: AuthenticatedRequest, res: Response) => 
   commissionController.getCommissionsByStatusAndTypeAndAmount(req, res)
 ));
 
-// 按状态、类型、金额和货币获取佣金
-router.get('/filter/status-type-amount-currency', ensureAuthenticated, handleRequest((req, res) => 
+// Get commissions by status, type, amount and currency
+router.get('/filter/status-type-amount-currency', handleRequest((req: AuthenticatedRequest, res: Response) => 
   commissionController.getCommissionsByStatusAndTypeAndAmountAndCurrency(req, res)
 ));
 
-// 按用户、状态、类型、金额和货币获取佣金
-router.get('/filter/user-status-type-amount-currency', ensureAuthenticated, handleRequest((req, res) => 
+// Get commissions by user, status, type, amount and currency
+router.get('/filter/user-status-type-amount-currency', handleRequest((req: AuthenticatedRequest, res: Response) => 
   commissionController.getCommissionsByUserAndStatusAndTypeAndAmountAndCurrency(req, res)
 ));
 
-// 按状态、类型、金额、货币和描述获取佣金
-router.get('/filter/status-type-amount-currency-description', ensureAuthenticated, handleRequest((req, res) => 
+// Get commissions by status, type, amount, currency and description
+router.get('/filter/status-type-amount-currency-description', handleRequest((req: AuthenticatedRequest, res: Response) => 
   commissionController.getCommissionsByStatusAndTypeAndAmountAndCurrencyAndDescription(req, res)
 ));
 

@@ -9,23 +9,19 @@
     "install:strategy-engine": "cd strategy-engine && npm install --registry=https://registry.npmmirror.com",
     "install:admin-ui": "cd admin-ui && npm install --registry=https://registry.npmmirror.com",
     "install:user-ui": "cd user-ui && npm install --registry=https://registry.npmmirror.com",
-    
     "build:all": "npm run build:admin-api && npm run build:user-api && npm run build:strategy-engine && npm run build:admin-ui && npm run build:user-ui",
     "build:admin-api": "cd admin-api && npm run build",
     "build:user-api": "cd user-api && npm run build",
     "build:strategy-engine": "cd strategy-engine && npm run build",
     "build:admin-ui": "cd admin-ui && npm run build",
     "build:user-ui": "cd user-ui && npm run build",
-    
     "start:all": "pm2 start ecosystem.config.js",
     "stop:all": "pm2 stop all",
     "restart:all": "pm2 restart all",
     "delete:all": "pm2 delete all",
     "logs": "pm2 logs",
     "status": "pm2 status",
-    
     "setup": "npm run install:all && npm run build:all && npm run start:all",
-    
     "clean:all": "npm run clean:admin-api && npm run clean:user-api && npm run clean:strategy-engine && npm run clean:admin-ui && npm run clean:user-ui",
     "clean:admin-api": "cd admin-api && rm -rf node_modules dist package-lock.json yarn.lock",
     "clean:user-api": "cd user-api && rm -rf node_modules dist package-lock.json yarn.lock",
@@ -34,6 +30,7 @@
     "clean:user-ui": "cd user-ui && rm -rf node_modules dist package-lock.json yarn.lock"
   },
   "devDependencies": {
+    "@types/express": "^5.0.1",
     "pm2": "^5.3.1"
   }
-} 
+}

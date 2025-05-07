@@ -76,7 +76,7 @@ export const blacklistController = {
         res.status(404).json({ error: 'Entry not found' });
         return;
       }
-      res.status(204).send();
+      res.status(204).send({});
     } catch (error) {
       handleError(res, error);
     }

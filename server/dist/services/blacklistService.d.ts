@@ -20,3 +20,4 @@ export declare class BlacklistService {
     deleteBlacklist(id: string): Promise<boolean>;
 }
 export declare const blacklistService: BlacklistService;
+//# sourceMappingURL=BlacklistService.d.ts.map

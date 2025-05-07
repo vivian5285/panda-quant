@@ -1,38 +1,34 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.setupBlacklistRoutes = void 0;
-const express_1 = require("express");
-const Auth_1 = require("../middleware/Auth");
-const blacklistController_1 = require("../controllers/blacklistController");
-const router = (0, express_1.Router)();
-// 所有路由都需要认证
-router.use(Auth_1.authenticate);
-// 获取所有黑名单条目
-router.get('/', (0, Auth_1.hasPermission)('blacklist:read'), blacklistController_1.blacklistController.getAllEntries);
-// 获取单个黑名单条目
-router.get('/:id', (0, Auth_1.hasPermission)('blacklist:read'), blacklistController_1.blacklistController.getEntryById);
-// 创建黑名单条目
-router.post('/', (0, Auth_1.hasPermission)('blacklist:write'), blacklistController_1.blacklistController.createEntry);
-// 更新黑名单条目
-router.put('/:id', (0, Auth_1.hasPermission)('blacklist:write'), blacklistController_1.blacklistController.updateEntry);
-// 删除黑名单条目
-router.delete('/:id', (0, Auth_1.hasPermission)('blacklist:write'), blacklistController_1.blacklistController.deleteEntry);
-// 搜索黑名单条目
-router.get('/search', (0, Auth_1.hasPermission)('blacklist:read'), blacklistController_1.blacklistController.searchEntries);
-const setupBlacklistRoutes = (router) => {
-    // 获取所有黑名单条目
-    router.get('/blacklist', (0, Auth_1.hasPermission)('blacklist:read'), blacklistController_1.blacklistController.getAllEntries);
-    // 获取单个黑名单条目
-    router.get('/blacklist/:id', (0, Auth_1.hasPermission)('blacklist:read'), blacklistController_1.blacklistController.getEntryById);
-    // 创建黑名单条目
-    router.post('/blacklist', (0, Auth_1.hasPermission)('blacklist:write'), blacklistController_1.blacklistController.createEntry);
-    // 更新黑名单条目
-    router.put('/blacklist/:id', (0, Auth_1.hasPermission)('blacklist:write'), blacklistController_1.blacklistController.updateEntry);
-    // 删除黑名单条目
-    router.delete('/blacklist/:id', (0, Auth_1.hasPermission)('blacklist:write'), blacklistController_1.blacklistController.deleteEntry);
-    // 搜索黑名单条目
-    router.get('/blacklist/search', (0, Auth_1.hasPermission)('blacklist:read'), blacklistController_1.blacklistController.searchEntries);
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.setupBlacklistRoutes = setupBlacklistRoutes;
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const requestHandler_1 = require("../utils/requestHandler");
+const ensureAuthenticated_1 = require("../middleware/ensureAuthenticated");
+const BlacklistController_1 = require("../controllers/BlacklistController");
+const router = express_1.default.Router();
+// Protected routes
+router.use(ensureAuthenticated_1.ensureAuthenticated);
+// Get all blacklist entries
+router.get('/', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await BlacklistController_1.blacklistController.getAllEntries(req, res);
+}));
+// Get single blacklist entry
+router.get('/:id', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await BlacklistController_1.blacklistController.getEntryById(req, res);
+}));
+// Create blacklist entry
+router.post('/', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await BlacklistController_1.blacklistController.createEntry(req, res);
+}));
+// Update blacklist entry
+router.put('/:id', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await BlacklistController_1.blacklistController.updateEntry(req, res);
+}));
+// Delete blacklist entry
+router.delete('/:id', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await BlacklistController_1.blacklistController.deleteEntry(req, res);
+}));
 exports.default = router;
 //# sourceMappingURL=blacklistRoutes.js.map

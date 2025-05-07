@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document } from 'mongoose';
 export interface ICommissionWithdrawal extends Document {
     userId: string;
@@ -35,3 +34,4 @@ export interface ICommissionWithdrawal extends Document {
     createdAt?: Date;
     updatedAt?: Date;
 }
+//# sourceMappingURL=CommissionWithdrawal.d.ts.map

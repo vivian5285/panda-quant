@@ -3,43 +3,48 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hasPermission = exports.isAdmin = exports.authorize = exports.authenticate = void 0;
+exports.hasPermission = exports.isAdmin = exports.authorize = exports.ensureAuthenticated = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = require("../config");
-const errors_1 = require("../utils/errors");
-const User_1 = require("../models/User");
+const logger_1 = require("../utils/logger");
 const JWT_SECRET = process.env['JWT_SECRET'] || 'your-secret-key';
-const authenticate = async (req, res, next) => {
+const ensureAuthenticated = async (req, res, next) => {
     try {
-        const token = req.header('Authorization')?.replace('Bearer ', '');
+        const token = req.headers.authorization?.replace('Bearer ', '');
         if (!token) {
-            throw new errors_1.UnauthorizedError('No authentication token provided');
+            res.status(401).json({ error: 'No token provided' });
+            return;
         }
         const decoded = jsonwebtoken_1.default.verify(token, config_1.config.jwtSecret);
-        // 从数据库获取完整的用户信息
-        const user = await User_1.User.findById(decoded.userId);
-        if (!user) {
-            throw new errors_1.UnauthorizedError('User not found');
+        if (!decoded) {
+            res.status(401).json({ error: 'Invalid token' });
+            return;
         }
-        // 将完整的用户信息添加到请求对象中
-        req.user = user;
+        req.user = { _id: decoded.id };
         next();
     }
     catch (error) {
-        next(new errors_1.UnauthorizedError('Invalid authentication token'));
+        logger_1.logger.error('Authentication error:', error);
+        res.status(401).json({ error: 'Authentication failed' });
     }
 };
-exports.authenticate = authenticate;
-const authorize = (...roles) => {
-    return (req, res, next) => {
+exports.ensureAuthenticated = ensureAuthenticated;
+const authorize = (role) => async (req, res, next) => {
+    try {
         if (!req.user) {
-            throw new errors_1.UnauthorizedError('User not authenticated');
+            res.status(401).json({ error: 'Authentication required' });
+            return;
         }
-        if (!roles.includes(req.user.role)) {
-            throw new errors_1.ForbiddenError('Insufficient permissions');
+        if (req.user.role !== role) {
+            res.status(403).json({ error: 'Insufficient permissions' });
+            return;
         }
         next();
-    };
+    }
+    catch (error) {
+        logger_1.logger.error('Authorization error:', error);
+        res.status(403).json({ error: 'Authorization failed' });
+    }
 };
 exports.authorize = authorize;
 const isAdmin = (req, res, next) => {
@@ -64,4 +69,4 @@ const hasPermission = (permission) => {
     };
 };
 exports.hasPermission = hasPermission;
-//# sourceMappingURL=Auth.js.map
+//# sourceMappingURL=auth.js.map

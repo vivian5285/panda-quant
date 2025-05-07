@@ -6,3 +6,4 @@ export declare class BacktestService {
     updateBacktest(id: string, data: Partial<IBacktest>): Promise<IBacktest | null>;
     deleteBacktest(id: string): Promise<boolean>;
 }
+//# sourceMappingURL=BacktestService.d.ts.map

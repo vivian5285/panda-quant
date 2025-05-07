@@ -25,12 +25,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Strategy = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+const Enums_1 = require("../types/Enums");
 const strategySchema = new mongoose_1.Schema({
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
     type: { type: String, required: true },
-    status: { type: String, enum: ['active', 'inactive', 'pending'], default: 'pending' },
+    status: { type: String, enum: Object.values(Enums_1.StrategyStatus), default: Enums_1.StrategyStatus.ACTIVE },
     parameters: { type: mongoose_1.Schema.Types.Mixed, required: true },
     createdAt: { type: Date, default: Date.now }
 }, {

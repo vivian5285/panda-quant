@@ -1,63 +1,41 @@
-import { Request, Response, NextFunction } from 'express';
-import { validationResult, ValidationChain } from 'express-validator';
-import { ValidationError } from '../utils/errors';
+import { Request, Response, NextFunction, RequestHandler } from '../types/express';
+import { ValidationError } from '../utils/AppError';
+import { logger } from '../utils/logger';
+import type { Schema } from 'joi';
 
-interface ValidationErrorItem {
-  field: string;
-  message: string;
-}
-
-export const validate = (validations: ValidationChain[]) => {
+export const validate = (schema: Schema): RequestHandler => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    await Promise.all(validations.map(validation => validation.run(req)));
-
-    const errors = validationResult(req);
-    if (errors.isEmpty()) {
-      return next();
+    try {
+      await schema.validateAsync(req.body, { abortEarly: false });
+      next();
+    } catch (error: any) {
+      logger.error('Validation error:', error);
+      next(new ValidationError(error.message));
     }
-
-    const extractedErrors: ValidationErrorItem[] = errors.array().map(err => ({
-      field: err.type === 'field' ? err.path : err.type,
-      message: err.msg
-    }));
-
-    throw new ValidationError(extractedErrors);
   };
 };
 
-export const validateQuery = (validations: ValidationChain[]) => {
+export const validateParams = (schema: Schema): RequestHandler => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    await Promise.all(validations.map(validation => validation.run(req)));
-
-    const errors = validationResult(req);
-    if (errors.isEmpty()) {
-      return next();
+    try {
+      await schema.validateAsync(req.params, { abortEarly: false });
+      next();
+    } catch (error: any) {
+      logger.error('Params validation error:', error);
+      next(new ValidationError(error.message));
     }
-
-    const extractedErrors: ValidationErrorItem[] = errors.array().map(err => ({
-      field: err.type === 'field' ? err.path : err.type,
-      message: err.msg
-    }));
-
-    throw new ValidationError(extractedErrors);
   };
 };
 
-export const validateParams = (validations: ValidationChain[]) => {
+export const validateQuery = (schema: Schema): RequestHandler => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    await Promise.all(validations.map(validation => validation.run(req)));
-
-    const errors = validationResult(req);
-    if (errors.isEmpty()) {
-      return next();
+    try {
+      await schema.validateAsync(req.query, { abortEarly: false });
+      next();
+    } catch (error: any) {
+      logger.error('Query validation error:', error);
+      next(new ValidationError(error.message));
     }
-
-    const extractedErrors: ValidationErrorItem[] = errors.array().map(err => ({
-      field: err.type === 'field' ? err.path : err.type,
-      message: err.msg
-    }));
-
-    throw new ValidationError(extractedErrors);
   };
 };
 

@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { WithdrawalService } from '../services/WithdrawalService';
 import { handleError } from '../utils/errorHandler';
-import { AuthenticatedRequest } from '../types/Auth';
+import { AuthenticatedRequest } from '../types/express';
 import { IWithdrawal } from '../types/Withdrawal';
 
 const withdrawalService = WithdrawalService.getInstance();

@@ -22,10 +22,10 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import mongoose from 'mongoose';
 import { IBacktestDocument } from '../types/Backtest';
 export declare const Backtest: mongoose.Model<IBacktestDocument, {}, {}, {}, mongoose.Document<unknown, {}, IBacktestDocument> & IBacktestDocument & Required<{
     _id: mongoose.Types.ObjectId;
 }>, any>;
 export default Backtest;
+//# sourceMappingURL=Backtest.d.ts.map

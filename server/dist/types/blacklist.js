@@ -14,5 +14,6 @@ var BlacklistType;
     BlacklistType["ADDRESS"] = "address";
     BlacklistType["IP"] = "ip";
     BlacklistType["EMAIL"] = "email";
+    BlacklistType["SPAM"] = "spam";
 })(BlacklistType || (exports.BlacklistType = BlacklistType = {}));
 //# sourceMappingURL=Blacklist.js.map

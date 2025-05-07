@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
-export declare const strategyController: {
+import type { Request, Response } from 'express';
+export declare class StrategyController {
     getAllStrategies(_req: Request, res: Response): Promise<void>;
     getStrategyById(req: Request, res: Response): Promise<void>;
     createStrategy(req: Request, res: Response): Promise<void>;
     updateStrategy(req: Request, res: Response): Promise<void>;
     deleteStrategy(req: Request, res: Response): Promise<void>;
-};
+}
+//# sourceMappingURL=StrategyController.d.ts.map

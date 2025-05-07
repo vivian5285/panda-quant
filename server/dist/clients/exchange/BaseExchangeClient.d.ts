@@ -19,3 +19,4 @@ export declare abstract class BaseExchangeClient {
     abstract setLeverage(symbol: string, leverage: number): Promise<void>;
     abstract getFeeRate(symbol: string): Promise<number>;
 }
+//# sourceMappingURL=BaseExchangeClient.d.ts.map

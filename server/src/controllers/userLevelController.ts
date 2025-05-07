@@ -69,10 +69,10 @@ export class UserLevelController {
       const { id } = req.params;
       const success = await this.userLevelService.deleteUserLevel(id);
       if (!success) {
-        res.status(404).json({ error: 'Level not found' });
+        res.status(404).json({ message: 'User level not found' });
         return;
       }
-      res.status(204).send();
+      res.status(204).send({});
     } catch (error) {
       logger.error('Error deleting level:', error);
       res.status(500).json({ error: 'Internal server error' });

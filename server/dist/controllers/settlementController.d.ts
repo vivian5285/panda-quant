@@ -13,3 +13,4 @@ export declare class SettlementController {
     processPayment: (req: AuthenticatedRequest, res: Response) => Promise<void>;
     updateSettlement: (req: AuthenticatedRequest, res: Response) => Promise<void>;
 }
+//# sourceMappingURL=SettlementController.d.ts.map

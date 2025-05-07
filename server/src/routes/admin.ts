@@ -1,60 +1,50 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { UserController } from '../controllers/userController';
-import strategyController from '../controllers/Strategy';
-import { AuthenticatedRequest, AuthRequest } from '../types/Auth';
-import { authenticate, isAdmin } from '../middleware/Auth';
+import express from 'express';
+import type { Request, Response } from 'express';
+import { handleRequest } from '../utils/requestHandler';
+import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
+import { adminMiddleware } from '../middleware/adminMiddleware';
+import { AdminController } from '../controllers/AdminController';
 
-const router = Router();
-const userController = new UserController();
+const router = express.Router();
+const adminController = new AdminController();
 
-// 所有路由都需要认证和管理员权限
-router.use(authenticate);
-router.use(isAdmin);
+// All admin routes require authentication and admin privileges
+router.use(ensureAuthenticated);
+router.use(adminMiddleware);
 
-// 用户管理路由
-router.get('/users', async (req: Request, res: Response) => {
-  await userController.getAllUsers(req as AuthenticatedRequest, res);
-});
+// User management
+router.get('/users', handleRequest(async (req: Request, res: Response) => {
+  await adminController.getAllUsers(req, res);
+}));
 
-router.post('/users', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await userController.register(req as AuthenticatedRequest, res);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get('/users/:id', handleRequest(async (req: Request, res: Response) => {
+  await adminController.getUserById(req, res);
+}));
 
-router.put('/users/:id', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await userController.updateUser(req as AuthenticatedRequest, res);
-  } catch (error) {
-    next(error);
-  }
-});
+router.put('/users/:id', handleRequest(async (req: Request, res: Response) => {
+  await adminController.updateUser(req, res);
+}));
 
-router.delete('/users/:id', async (req: Request, res: Response) => {
-  await userController.deleteUser(req as AuthenticatedRequest, res);
-});
+router.delete('/users/:id', handleRequest(async (req: Request, res: Response) => {
+  await adminController.deleteUser(req, res);
+}));
 
-// 策略管理路由
-router.get('/strategies', async (req: AuthRequest, res) => {
-  await strategyController.getStrategies(req, res);
-});
+// System settings
+router.get('/settings', handleRequest(async (req: Request, res: Response) => {
+  await adminController.getSettings(req, res);
+}));
 
-router.get('/strategies/:id', async (req: AuthRequest, res) => {
-  await strategyController.getStrategy(req, res);
-});
+router.put('/settings', handleRequest(async (req: Request, res: Response) => {
+  await adminController.updateSettings(req, res);
+}));
 
-router.post('/strategies', async (req: Request, res: Response) => {
-  await strategyController.createStrategy(req as AuthRequest, res);
-});
+// System logs
+router.get('/logs', handleRequest(async (req: Request, res: Response) => {
+  await adminController.getLogs(req, res);
+}));
 
-router.put('/strategies/:id', async (req: AuthRequest, res) => {
-  await strategyController.updateStrategy(req, res);
-});
-
-router.delete('/strategies/:id', async (req: AuthRequest, res) => {
-  await strategyController.deleteStrategy(req, res);
-});
+router.get('/logs/:id', handleRequest(async (req: Request, res: Response) => {
+  await adminController.getLogById(req, res);
+}));
 
 export default router; 

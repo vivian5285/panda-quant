@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export interface IStrategyReview extends Document {
     _id: Types.ObjectId;
@@ -44,3 +43,4 @@ export interface StrategyReviewUpdateInput {
     rating?: number;
     comment?: string;
 }
+//# sourceMappingURL=StrategyReview.d.ts.map

@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 import { INetworkStatus } from '../types/Network';
 export interface IHealthDocument extends Document {
@@ -35,3 +34,4 @@ export interface IHealthDocument extends Document {
 export declare const Health: import("mongoose").Model<IHealthDocument, {}, {}, {}, Document<unknown, {}, IHealthDocument> & IHealthDocument & Required<{
     _id: Types.ObjectId;
 }>, any>;
+//# sourceMappingURL=health.model.d.ts.map

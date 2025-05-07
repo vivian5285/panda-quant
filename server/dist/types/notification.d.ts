@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export type NotificationType = 'trade' | 'deposit' | 'withdrawal' | 'commission' | 'alert' | 'admin' | 'risk';
 export interface IDepositNotification {
@@ -51,3 +50,4 @@ export interface NotificationCreateInput extends Omit<INotification, '_id' | 'cr
 }
 export interface NotificationUpdateInput extends Partial<NotificationCreateInput> {
 }
+//# sourceMappingURL=Notification.d.ts.map

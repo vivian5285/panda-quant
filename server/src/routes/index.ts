@@ -1,43 +1,24 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
 import authRoutes from './authRoutes';
 import userRoutes from './userRoutes';
-import withdrawalRoutes from './withdrawalRoutes';
-import commissionRoutes from './commissionRoutes';
-import userLevelRoutes from './userLevelRoutes';
-import blacklistRoutes from './blacklistRoutes';
 import adminRoutes from './admin';
+import healthRoutes from './health';
+import profitRoutes from './profitRoutes';
+import settlementRoutes from './settlement.routes';
 import strategyRoutes from './Strategy';
-import settlementRoutes from './Settlement';
-import { authenticate } from '../middleware/Auth';
-import { UserController } from '../controllers/userController';
-import { AuthController } from '../controllers/authController';
-import { handleRequest } from '../utils/requestHandler';
+import { authenticate } from '../middleware/authMiddleware';
 
-const router = Router();
-const userController = new UserController();
-const authController = new AuthController();
+const router: Router = express.Router();
 
-// Public routes (no authentication required)
-router.post('/login', handleRequest((req, res) => authController.login(req, res)));
-router.post('/register', handleRequest((req, res) => authController.register(req, res)));
-
-// Protected routes (require authentication)
-router.use(authenticate);
-
-// 设置路由
+// Public routes
 router.use('/auth', authRoutes);
-router.use('/users', userRoutes);
-router.use('/withdrawals', withdrawalRoutes);
-router.use('/commissions', commissionRoutes);
-router.use('/user-levels', userLevelRoutes);
-router.use('/blacklist', blacklistRoutes);
-router.use('/admin', adminRoutes);
-router.use('/strategies', strategyRoutes);
-router.use('/settlement', settlementRoutes);
+router.use('/health', healthRoutes);
 
-// 用户路由
-router.get('/profile', handleRequest((req, res) => userController.getProfile(req, res)));
-router.put('/profile', handleRequest((req, res) => userController.updateProfile(req, res)));
-router.get('/me', handleRequest((req, res) => authController.getCurrentUser(req, res)));
+// Protected routes
+router.use('/users', authenticate, userRoutes);
+router.use('/admin', authenticate, adminRoutes);
+router.use('/profit', authenticate, profitRoutes);
+router.use('/settlement', authenticate, settlementRoutes);
+router.use('/strategy', authenticate, strategyRoutes);
 
 export default router; 

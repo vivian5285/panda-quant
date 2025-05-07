@@ -13,3 +13,4 @@ export interface IUserLevel {
         specialFeatures?: string[];
     };
 }
+//# sourceMappingURL=IUserLevel.d.ts.map

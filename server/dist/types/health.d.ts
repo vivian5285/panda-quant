@@ -6,3 +6,4 @@ export interface IHealth {
     createdAt: Date;
     updatedAt: Date;
 }
+//# sourceMappingURL=Health.d.ts.map

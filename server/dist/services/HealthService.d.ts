@@ -48,3 +48,4 @@ export declare class HealthService extends EventEmitter {
 }
 export declare const healthService: HealthService;
 export {};
+//# sourceMappingURL=HealthService.d.ts.map

@@ -1,55 +1,35 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
+const express_1 = __importDefault(require("express"));
+const requestHandler_1 = require("../utils/requestHandler");
+const auth_1 = require("../middleware/auth");
 const StrategyController_1 = require("../controllers/StrategyController");
-const auth_middleware_1 = require("../middleware/auth.middleware");
-const router = (0, express_1.Router)();
-// 所有路由都需要认证
-router.use(auth_middleware_1.authenticateToken);
-// 获取策略列表
-router.get('/', async (req, res, next) => {
-    try {
-        await StrategyController_1.strategyController.getAllStrategies(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-// 创建策略
-router.post('/', async (req, res, next) => {
-    try {
-        await StrategyController_1.strategyController.createStrategy(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-// 获取单个策略
-router.get('/:id', async (req, res, next) => {
-    try {
-        await StrategyController_1.strategyController.getStrategyById(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-// 更新策略
-router.put('/:id', async (req, res, next) => {
-    try {
-        await StrategyController_1.strategyController.updateStrategy(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-// 删除策略
-router.delete('/:id', async (req, res, next) => {
-    try {
-        await StrategyController_1.strategyController.deleteStrategy(req, res);
-    }
-    catch (error) {
-        next(error);
-    }
-});
+const router = express_1.default.Router();
+const strategyController = new StrategyController_1.StrategyController();
+// Protected routes
+router.use(auth_1.ensureAuthenticated);
+// Get all strategies
+router.get('/', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await strategyController.getAllStrategies(req, res);
+}));
+// Get single strategy
+router.get('/:id', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await strategyController.getStrategyById(req, res);
+}));
+// Create strategy
+router.post('/', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await strategyController.createStrategy(req, res);
+}));
+// Update strategy
+router.put('/:id', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await strategyController.updateStrategy(req, res);
+}));
+// Delete strategy
+router.delete('/:id', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await strategyController.deleteStrategy(req, res);
+}));
 exports.default = router;
 //# sourceMappingURL=Strategy.js.map

@@ -11,3 +11,4 @@ export declare class UserLevelController {
     addExperience(req: AuthenticatedRequest, res: Response): Promise<void>;
     getUserLevelInfo(req: AuthenticatedRequest, res: Response): Promise<void>;
 }
+//# sourceMappingURL=UserLevelController.d.ts.map

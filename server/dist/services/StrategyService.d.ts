@@ -1,4 +1,4 @@
-import { IStrategy } from '../types/Strategy';
+import type { IStrategy, IStrategyDocument, StrategyCreateInput } from '../types/Strategy';
 export declare enum StrategyStatus {
     ACTIVE = "active",
     INACTIVE = "inactive",
@@ -8,14 +8,15 @@ export declare class StrategyService {
     private static instance;
     private constructor();
     static getInstance(): StrategyService;
-    createStrategy(strategy: Partial<IStrategy>): Promise<IStrategy>;
-    getStrategies(userId: string): Promise<IStrategy[]>;
-    getStrategy(id: string): Promise<IStrategy | null>;
-    updateStrategy(id: string, updates: Partial<IStrategy>): Promise<IStrategy | null>;
-    deleteStrategy(id: string): Promise<IStrategy | null>;
+    createStrategy(data: StrategyCreateInput): Promise<IStrategyDocument>;
+    getStrategies(): Promise<IStrategyDocument[]>;
+    getStrategy(id: string): Promise<IStrategyDocument | null>;
+    updateStrategy(id: string, updates: Partial<IStrategy>): Promise<IStrategyDocument | null>;
+    deleteStrategy(id: string): Promise<IStrategyDocument | null>;
     getStrategyPerformance(strategyId: string): Promise<any>;
-    getAllStrategies(): Promise<IStrategy[]>;
-    getStrategiesByUser(userId: string): Promise<IStrategy[]>;
-    getActiveStrategies(): Promise<IStrategy[]>;
-    getPopularStrategies(limit?: number): Promise<IStrategy[]>;
+    getAllStrategies(): Promise<IStrategyDocument[]>;
+    getStrategiesByUser(userId: string): Promise<IStrategyDocument[]>;
+    getActiveStrategies(): Promise<IStrategyDocument[]>;
+    getPopularStrategies(limit?: number): Promise<IStrategyDocument[]>;
 }
+//# sourceMappingURL=StrategyService.d.ts.map

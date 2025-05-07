@@ -13,6 +13,7 @@ var StrategyType;
 })(StrategyType || (exports.StrategyType = StrategyType = {}));
 var StrategyStatus;
 (function (StrategyStatus) {
+    StrategyStatus["PENDING"] = "pending";
     StrategyStatus["ACTIVE"] = "active";
     StrategyStatus["INACTIVE"] = "inactive";
     StrategyStatus["PAUSED"] = "paused";

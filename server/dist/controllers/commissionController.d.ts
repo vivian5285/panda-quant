@@ -18,3 +18,4 @@ export declare class CommissionController {
     getCommissionsByUserAndStatusAndTypeAndAmountAndCurrency: (req: AuthenticatedRequest, res: Response) => Promise<void>;
     getCommissionsByStatusAndTypeAndAmountAndCurrencyAndDescription: (req: AuthenticatedRequest, res: Response) => Promise<void>;
 }
+//# sourceMappingURL=CommissionController.d.ts.map

@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export declare enum StrategyType {
     MOMENTUM = "momentum",
@@ -48,3 +47,4 @@ export interface IStrategy {
 }
 export interface IStrategyDocument extends IStrategy, Document {
 }
+//# sourceMappingURL=IStrategy.d.ts.map

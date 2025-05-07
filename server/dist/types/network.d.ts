@@ -22,7 +22,6 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-/// <reference types="@/types/mongoose" />
 import { Document, Types } from 'mongoose';
 export interface INetworkStatusBase {
     network: string;
@@ -55,3 +54,4 @@ export interface NetworkStatusCreateInput extends Omit<INetworkStatus, '_id' | '
 }
 export interface NetworkStatusUpdateInput extends Partial<NetworkStatusCreateInput> {
 }
+//# sourceMappingURL=Network.d.ts.map
