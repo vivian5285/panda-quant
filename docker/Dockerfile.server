@@ -20,7 +20,7 @@ COPY server/package.json server/tsconfig.json server/tsconfig.node.json ./
 
 # 安装依赖
 RUN npm install --legacy-peer-deps && \
-    npm install --save-dev @types/express @types/node @types/express-serve-static-core @types/serve-static
+    npm install --save-dev @types/express @types/node @types/express-serve-static-core @types/serve-static @types/mongoose
 
 # 复制源代码
 COPY server/src ./src
@@ -32,9 +32,6 @@ COPY server/knexfile.ts ./knexfile.ts
 
 # 设置目录权限
 RUN chmod -R 755 src locales mt4
-
-# 生成类型定义文件
-RUN npm run build:types
 
 # 构建应用
 RUN npm run build || (cat /app/npm-debug.log && exit 1)

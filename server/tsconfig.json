@@ -20,7 +20,7 @@
       "types/*": ["src/types/*"]
     },
     "typeRoots": ["./node_modules/@types", "./src/types"],
-    "types": ["node", "express", "express-serve-static-core", "serve-static"],
+    "types": ["node", "express", "express-serve-static-core", "serve-static", "mongoose"],
     "allowJs": true,
     "checkJs": true,
     "experimentalDecorators": true,
@@ -38,7 +38,9 @@
     "noUnusedParameters": false,
     "moduleDetection": "force",
     "declarationMap": true,
-    "composite": true
+    "composite": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
