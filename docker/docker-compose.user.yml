@@ -34,33 +34,13 @@ services:
       - 223.5.5.5
     environment:
       - NODE_ENV=production
-      - PORT=3000
+      - PORT=80
       - API_URL=https://api.pandatrade.space
       - NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=e14194185b098392e41c394ac25a74a6
     ports:
-      - "3000:3000"
-    depends_on:
-      - api
-    networks:
-      - user-network
-
-  nginx-user:
-    image: nginx:latest
-    container_name: panda-quant-user-nginx
-    restart: unless-stopped
-    dns:
-      - 8.8.8.8
-      - 223.5.5.5
-    ports:
       - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/user.conf:/etc/nginx/conf.d/user.conf
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/log/nginx:/var/log/nginx
     depends_on:
       - api
-      - ui
     networks:
       - user-network
 

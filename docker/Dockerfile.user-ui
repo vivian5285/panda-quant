@@ -50,7 +50,7 @@ RUN update-ca-certificates
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # 复制 nginx 配置
-COPY docker/nginx/user.conf /etc/nginx/conf.d/default.conf
+COPY docker/nginx/user-ui.conf /etc/nginx/conf.d/default.conf
 
 # 暴露端口
 EXPOSE 80 443
