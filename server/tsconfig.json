@@ -16,11 +16,19 @@
     "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*"],
-      "@/*": ["src/*"],
-      "types/*": ["src/types/*"]
+      "@/*": ["src/*"]
     },
-    "typeRoots": ["./node_modules/@types", "./src/types"],
-    "types": ["node", "express", "express-serve-static-core", "serve-static"],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
+    "types": [
+      "node",
+      "express",
+      "express-serve-static-core",
+      "serve-static",
+      "jest"
+    ],
     "allowJs": true,
     "checkJs": true,
     "experimentalDecorators": true,
@@ -42,6 +50,12 @@
     "incremental": true,
     "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*",
+    "src/types/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 } 

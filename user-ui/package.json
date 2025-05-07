@@ -65,12 +65,6 @@
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-svgr": "^4.2.0"
   },
-  "resolutions": {
-    "typescript": "^5.3.3",
-    "viem": "^1.21.4",
-    "wagmi": "^1.4.13",
-    "vite": "^5.1.4"
-  },
   "overrides": {
     "typescript": "^5.3.3",
     "viem": "^1.21.4",

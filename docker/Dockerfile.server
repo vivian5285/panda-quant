@@ -12,16 +12,17 @@ RUN apk add --no-cache \
     git
 
 # 配置 npm
-RUN npm config set fetch-retries 5 && \
-    npm config set registry https://registry.npmmirror.com
+RUN npm config set registry https://registry.npmmirror.com/ && \
+    npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000
 
 # 复制 package.json 和 tsconfig 文件
-COPY server/package.json server/tsconfig.json server/tsconfig.node.json ./
+COPY server/package*.json server/tsconfig*.json ./
 
 # 安装依赖
 RUN npm install --legacy-peer-deps && \
-    npm install --save-dev @types/express@4.17.21 @types/node@20.11.19 @types/express-serve-static-core@4.17.43 @types/serve-static@1.15.5 @types/mongoose@5.11.97 && \
-    npm rebuild
+    npm cache clean --force
 
 # 复制源代码
 COPY server/src ./src
@@ -35,7 +36,7 @@ COPY server/knexfile.ts ./knexfile.ts
 RUN chmod -R 755 src locales mt4
 
 # 构建应用
-RUN npm run build || (cat /app/npm-debug.log && exit 1)
+RUN npm run build
 
 # 生产阶段
 FROM node:20-alpine
@@ -69,11 +70,11 @@ RUN chown -R node:node /app && \
     chmod -R 755 /app
 
 # 暴露端口
-EXPOSE 3000
+EXPOSE 4000
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD curl -f http://localhost:3000/health || exit 1
+  CMD curl -f http://localhost:4000/health || exit 1
 
 # 启动应用
 CMD ["npm", "start"] 

@@ -35,7 +35,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=80
-      - API_URL=https://api.pandatrade.space
+      - API_URL=http://api.pandatrade.space
       - NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=e14194185b098392e41c394ac25a74a6
     ports:
       - "80:80"
