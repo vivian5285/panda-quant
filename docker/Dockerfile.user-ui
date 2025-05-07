@@ -29,7 +29,7 @@ RUN npm config set registry https://registry.npmmirror.com/ && \
 COPY user-ui/package*.json ./
 
 # 安装依赖
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # 复制源代码
 COPY user-ui/ ./
