@@ -9,7 +9,8 @@ RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    git
+    git \
+    bash
 
 # 配置 npm
 RUN npm config set registry https://registry.npmmirror.com/ && \
@@ -41,7 +42,8 @@ FROM nginx:alpine
 RUN apk add --no-cache \
     curl \
     ca-certificates \
-    openssl
+    openssl \
+    bash
 
 # 更新证书
 RUN update-ca-certificates
