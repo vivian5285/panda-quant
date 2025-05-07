@@ -22,7 +22,8 @@ COPY user-ui/package*.json ./
 
 # 安装依赖
 RUN npm install --legacy-peer-deps && \
-    npm cache clean --force
+    npm cache clean --force && \
+    npm rebuild
 
 # 复制源代码
 COPY user-ui/ ./
