@@ -82,11 +82,21 @@ export default defineConfig({
             if (id.includes('@mui') || id.includes('@emotion')) {
               return 'mui-vendor';
             }
+            if (id.includes('chart.js') || id.includes('recharts')) {
+              return 'chart-vendor';
+            }
+            if (id.includes('web3') || id.includes('ethers') || id.includes('viem') || id.includes('wagmi')) {
+              return 'web3-vendor';
+            }
             return 'vendor';
           }
         },
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
+    chunkSizeWarningLimit: 1000,
   },
   optimizeDeps: {
     include: [
@@ -116,7 +126,7 @@ export default defineConfig({
       v7_relativeSplatPath: true,
     })
   },
-  mode: 'development',
+  mode: 'production',
   ssr: {
     noExternal: ['@vitejs/plugin-react']
   }
