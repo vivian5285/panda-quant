@@ -123,15 +123,12 @@ export enum OrderType {
 export enum OrderStatus {
   PENDING = 'pending',
   OPEN = 'open',
-  FILLED = 'filled',
-  PARTIALLY_FILLED = 'partially_filled',
+  CLOSED = 'closed',
   CANCELLED = 'cancelled',
-  REJECTED = 'rejected',
-  EXPIRED = 'expired'
+  FAILED = 'failed'
 }
 
 export enum TradeStatus {
-  OPEN = 'open',
-  CLOSED = 'closed',
-  CANCELLED = 'cancelled'
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED'
 } 

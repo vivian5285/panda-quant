@@ -1,4 +1,5 @@
-import { IOrder, OrderStatus } from '../types/Trading';
+import { IOrder } from '../types/Trading';
+import { OrderStatus } from '../types/Enums';
 export declare class OrderService {
     private static instance;
     private constructor();

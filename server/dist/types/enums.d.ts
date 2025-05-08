@@ -1,4 +1,3 @@
-import { OrderType, OrderStatus } from './Trading';
 export declare enum StrategyType {
     TREND_FOLLOWING = "trend_following",
     MEAN_REVERSION = "mean_reversion",
@@ -99,5 +98,21 @@ export declare enum ReportPeriod {
     YEARLY = "yearly",
     CUSTOM = "custom"
 }
-export { OrderType, OrderStatus };
+export declare enum OrderType {
+    MARKET = "market",
+    LIMIT = "limit",
+    STOP = "stop",
+    STOP_LIMIT = "stop_limit"
+}
+export declare enum OrderStatus {
+    PENDING = "pending",
+    OPEN = "open",
+    CLOSED = "closed",
+    CANCELLED = "cancelled",
+    FAILED = "failed"
+}
+export declare enum TradeStatus {
+    OPEN = "OPEN",
+    CLOSED = "CLOSED"
+}
 //# sourceMappingURL=Enums.d.ts.map

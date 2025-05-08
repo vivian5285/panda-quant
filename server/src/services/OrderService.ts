@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
-import { IOrder, OrderStatus } from '../types/Trading';
+import { IOrder } from '../types/Trading';
+import { OrderStatus } from '../types/Enums';
 import { Order } from '../models/Order';
 import { logger } from '../utils/logger';
 import { Document } from 'mongoose';

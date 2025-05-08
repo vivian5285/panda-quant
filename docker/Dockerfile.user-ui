@@ -44,9 +44,6 @@ RUN apk add --no-cache \
 # 更新证书
 RUN update-ca-certificates
 
-# 创建非 root 用户
-RUN adduser -D -H -u 101 -s /sbin/nologin nginx
-
 # 复制构建产物
 COPY --from=builder /app/dist /usr/share/nginx/html
 

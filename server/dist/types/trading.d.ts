@@ -24,23 +24,7 @@
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
 import type { Document, Types } from 'mongoose';
-export declare enum OrderType {
-    MARKET = "market",
-    LIMIT = "limit",
-    STOP = "stop",
-    STOP_LIMIT = "stop_limit"
-}
-export declare enum OrderStatus {
-    PENDING = "pending",
-    OPEN = "open",
-    CLOSED = "closed",
-    CANCELLED = "cancelled",
-    FAILED = "failed"
-}
-export declare enum TradeStatus {
-    OPEN = "OPEN",
-    CLOSED = "CLOSED"
-}
+import { OrderType, OrderStatus } from './Enums';
 export interface IOrderBase {
     userId: Types.ObjectId;
     strategyId: Types.ObjectId;

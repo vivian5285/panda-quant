@@ -24,7 +24,7 @@
 /// <reference types="mongoose/types/inferschematype" />
 /// <reference types="mongoose/types/inferrawdoctype" />
 import type { Document } from 'mongoose';
-import type { StrategyType, StrategyStatus, AlertType, RiskLevel, CommissionType, CommissionStatus, WithdrawalStatus } from './Enums';
+import type { StrategyType, StrategyStatus, AlertType, RiskLevel, CommissionType, CommissionStatus, WithdrawalStatus, OrderType, OrderStatus, TradeStatus } from './Enums';
 import type { User } from './User';
 import type { Strategy } from './Strategy';
 import type { Commission } from './Commission';
@@ -36,18 +36,25 @@ import type { IStrategyRating } from './StrategyRating';
 import type { IBlacklistEntry } from './Blacklist';
 import type { IUserLevel } from './UserLevel';
 import type { AuthRequest, AuthenticatedRequest } from './Auth';
-import type { Order, OrderType, OrderStatus, Trade, OrderBook, OrderHistory, OrderCreateInput, OrderUpdateInput, TradeCreateInput, TradeUpdateInput } from './Trading';
+import type { Order, OrderBook, OrderHistory, OrderCreateInput, OrderUpdateInput, Trade, TradeCreateInput, TradeUpdateInput } from './Trading';
 import type { StrategyPerformance, PerformanceMetrics, PerformanceTrade, PerformancePeriod, PerformanceReport, PerformanceChart, PerformanceComparison } from './Performance';
 import type { IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData } from './Exchange';
 import type { IMT4Account, IMT4Position, IMT4Order, IMT4Balance, IMT4MarketData } from './Mt4';
-export type { User, Strategy, Commission, ICommissionWithdrawal, Alert, Deposit, Position, IStrategyRating, IBlacklistEntry, IUserLevel, AuthRequest, Order, StrategyPerformance, PerformanceMetrics, PerformanceTrade, PerformancePeriod, PerformanceReport, PerformanceChart, PerformanceComparison, Trade, OrderBook, OrderHistory, OrderCreateInput, OrderUpdateInput, TradeCreateInput, TradeUpdateInput, IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData, IMT4Account, IMT4Position, IMT4Order, IMT4Balance, IMT4MarketData, OrderType, OrderStatus, AuthenticatedRequest, StrategyType, StrategyStatus, AlertType, RiskLevel, CommissionType, CommissionStatus, WithdrawalStatus };
-export type UserDocument = User & Document;
-export type StrategyDocument = Strategy & Document;
-export type OrderDocument = Order & Document;
-export type CommissionDocument = Commission & Document;
-export type StrategyRatingDocument = IStrategyRating & Document;
-export type UserLevelDocument = IUserLevel & Document;
-export type CommissionWithdrawalDocument = ICommissionWithdrawal & Document;
+export type { User, Strategy, Commission, ICommissionWithdrawal, Alert, Deposit, Position, IStrategyRating, IBlacklistEntry, IUserLevel, AuthRequest, Order, StrategyPerformance, PerformanceMetrics, PerformanceTrade, PerformancePeriod, PerformanceReport, PerformanceChart, PerformanceComparison, Trade, OrderBook, OrderHistory, OrderCreateInput, OrderUpdateInput, TradeCreateInput, TradeUpdateInput, IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData, IMT4Account, IMT4Position, IMT4Order, IMT4Balance, IMT4MarketData, OrderType, OrderStatus, TradeStatus, AuthenticatedRequest, StrategyType, StrategyStatus, AlertType, RiskLevel, CommissionType, CommissionStatus, WithdrawalStatus };
+export interface UserDocument extends Document {
+}
+export interface StrategyDocument extends Document {
+}
+export interface OrderDocument extends Document {
+}
+export interface CommissionDocument extends Document {
+}
+export interface StrategyRatingDocument extends Document {
+}
+export interface UserLevelDocument extends Document {
+}
+export interface CommissionWithdrawalDocument extends Document {
+}
 export declare enum Network {
     ETHEREUM = "ETHEREUM",
     BITCOIN = "BITCOIN",
@@ -59,7 +66,7 @@ export interface NetworkStatus {
     lastChecked: Date;
     error?: string;
 }
-export interface OrderWithRetry extends Order {
+export interface OrderWithRetry {
     retryCount: number;
 }
 export interface OrderQueue {

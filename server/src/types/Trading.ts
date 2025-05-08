@@ -1,25 +1,5 @@
 import type { Document, Types } from 'mongoose';
-import type { OrderType, OrderStatus, TradeStatus } from './Enums';
-
-export enum OrderType {
-  MARKET = 'market',
-  LIMIT = 'limit',
-  STOP = 'stop',
-  STOP_LIMIT = 'stop_limit'
-}
-
-export enum OrderStatus {
-  PENDING = 'pending',
-  OPEN = 'open',
-  CLOSED = 'closed',
-  CANCELLED = 'cancelled',
-  FAILED = 'failed'
-}
-
-export enum TradeStatus {
-  OPEN = 'OPEN',
-  CLOSED = 'CLOSED'
-}
+import { OrderType, OrderStatus, TradeStatus } from './Enums';
 
 export interface IOrderBase {
   userId: Types.ObjectId;

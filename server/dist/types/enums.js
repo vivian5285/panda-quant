@@ -1,9 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OrderStatus = exports.OrderType = exports.ReportPeriod = exports.TradeType = exports.UserStatus = exports.UserRole = exports.SettlementType = exports.SettlementStatus = exports.WithdrawalStatus = exports.CommissionStatus = exports.CommissionType = exports.RiskLevel = exports.AlertType = exports.NotificationType = exports.UserLevel = exports.StrategyStatus = exports.StrategyType = void 0;
-const Trading_1 = require("./Trading");
-Object.defineProperty(exports, "OrderType", { enumerable: true, get: function () { return Trading_1.OrderType; } });
-Object.defineProperty(exports, "OrderStatus", { enumerable: true, get: function () { return Trading_1.OrderStatus; } });
+exports.TradeStatus = exports.OrderStatus = exports.OrderType = exports.ReportPeriod = exports.TradeType = exports.UserStatus = exports.UserRole = exports.SettlementType = exports.SettlementStatus = exports.WithdrawalStatus = exports.CommissionStatus = exports.CommissionType = exports.RiskLevel = exports.AlertType = exports.NotificationType = exports.UserLevel = exports.StrategyStatus = exports.StrategyType = void 0;
 var StrategyType;
 (function (StrategyType) {
     StrategyType["TREND_FOLLOWING"] = "trend_following";
@@ -119,4 +116,24 @@ var ReportPeriod;
     ReportPeriod["YEARLY"] = "yearly";
     ReportPeriod["CUSTOM"] = "custom";
 })(ReportPeriod || (exports.ReportPeriod = ReportPeriod = {}));
+var OrderType;
+(function (OrderType) {
+    OrderType["MARKET"] = "market";
+    OrderType["LIMIT"] = "limit";
+    OrderType["STOP"] = "stop";
+    OrderType["STOP_LIMIT"] = "stop_limit";
+})(OrderType || (exports.OrderType = OrderType = {}));
+var OrderStatus;
+(function (OrderStatus) {
+    OrderStatus["PENDING"] = "pending";
+    OrderStatus["OPEN"] = "open";
+    OrderStatus["CLOSED"] = "closed";
+    OrderStatus["CANCELLED"] = "cancelled";
+    OrderStatus["FAILED"] = "failed";
+})(OrderStatus || (exports.OrderStatus = OrderStatus = {}));
+var TradeStatus;
+(function (TradeStatus) {
+    TradeStatus["OPEN"] = "OPEN";
+    TradeStatus["CLOSED"] = "CLOSED";
+})(TradeStatus || (exports.TradeStatus = TradeStatus = {}));
 //# sourceMappingURL=Enums.js.map

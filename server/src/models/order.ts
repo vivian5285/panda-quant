@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { Schema, model, Document } from 'mongoose';
-import { IOrder, OrderType, OrderStatus } from '../types/Trading';
+import { IOrder } from '../types/Trading';
+import { OrderType, OrderStatus } from '../types/Enums';
 
 const orderSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -11,7 +12,7 @@ const orderSchema = new Schema({
   orderId: { type: String, required: true },
   clientOrderId: { type: String, required: true },
   type: { type: String, enum: Object.values(OrderType), required: true },
-  side: { type: String, enum: ['buy', 'sell'], required: true },
+  side: { type: String, enum: ['BUY', 'SELL'], required: true },
   amount: { type: Number, required: true },
   price: { type: Number },
   stopPrice: { type: Number },

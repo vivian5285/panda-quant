@@ -110,23 +110,43 @@ export type {
   WithdrawalStatus
 };
 
-// Base types
-export type UserDocument = User & Document;
-export type StrategyDocument = Strategy & Document;
-export type OrderDocument = Order & Document;
-export type CommissionDocument = Commission & Document;
-export type StrategyRatingDocument = IStrategyRating & Document;
-export type UserLevelDocument = IUserLevel & Document;
-export type CommissionWithdrawalDocument = ICommissionWithdrawal & Document;
+// Export interfaces
+export interface UserDocument extends Document {
+  // ... user document fields
+}
 
-// Enums
+export interface StrategyDocument extends Document {
+  // ... strategy document fields
+}
+
+export interface OrderDocument extends Document {
+  // ... order document fields
+}
+
+export interface CommissionDocument extends Document {
+  // ... commission document fields
+}
+
+export interface StrategyRatingDocument extends Document {
+  // ... strategy rating document fields
+}
+
+export interface UserLevelDocument extends Document {
+  // ... user level document fields
+}
+
+export interface CommissionWithdrawalDocument extends Document {
+  // ... commission withdrawal document fields
+}
+
+// Export enums
 export enum Network {
   ETHEREUM = 'ETHEREUM',
   BITCOIN = 'BITCOIN',
   BINANCE = 'BINANCE'
 }
 
-// Interfaces
+// Export interfaces
 export interface NetworkStatus {
   network: Network;
   isHealthy: boolean;
@@ -134,7 +154,7 @@ export interface NetworkStatus {
   error?: string;
 }
 
-export interface OrderWithRetry extends Order {
+export interface OrderWithRetry {
   retryCount: number;
 }
 

@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Order = void 0;
 const mongoose_1 = require("mongoose");
-const Trading_1 = require("../types/Trading");
+const Enums_1 = require("../types/Enums");
 const orderSchema = new mongoose_1.Schema({
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
     strategyId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Strategy', required: true },
@@ -11,12 +11,12 @@ const orderSchema = new mongoose_1.Schema({
     symbol: { type: String, required: true },
     orderId: { type: String, required: true },
     clientOrderId: { type: String, required: true },
-    type: { type: String, enum: Object.values(Trading_1.OrderType), required: true },
-    side: { type: String, enum: ['buy', 'sell'], required: true },
+    type: { type: String, enum: Object.values(Enums_1.OrderType), required: true },
+    side: { type: String, enum: ['BUY', 'SELL'], required: true },
     amount: { type: Number, required: true },
     price: { type: Number },
     stopPrice: { type: Number },
-    status: { type: String, enum: Object.values(Trading_1.OrderStatus), default: Trading_1.OrderStatus.PENDING },
+    status: { type: String, enum: Object.values(Enums_1.OrderStatus), default: Enums_1.OrderStatus.PENDING },
     filledAmount: { type: Number, default: 0 },
     averageFillPrice: { type: Number },
     fee: { type: Number, default: 0 },
