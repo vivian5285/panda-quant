@@ -67,27 +67,17 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     minify: 'esbuild',
+    target: 'es2020',
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html')
       },
       output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'react-vendor';
-            }
-            if (id.includes('@mui') || id.includes('@emotion')) {
-              return 'mui-vendor';
-            }
-            if (id.includes('chart.js') || id.includes('recharts')) {
-              return 'chart-vendor';
-            }
-            if (id.includes('web3') || id.includes('ethers') || id.includes('viem') || id.includes('wagmi')) {
-              return 'web3-vendor';
-            }
-            return 'vendor';
-          }
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'mui-vendor': ['@mui/material', '@mui/icons-material'],
+          'web3-vendor': ['ethers', 'web3', 'viem', 'wagmi'],
+          'chart-vendor': ['chart.js', 'react-chartjs-2', 'recharts']
         },
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
@@ -109,7 +99,11 @@ export default defineConfig({
       '@mui/icons-material',
       '@emotion/react',
       '@emotion/styled',
+      '@noble/hashes'
     ],
+    esbuildOptions: {
+      target: 'es2020'
+    }
   },
   css: {
     preprocessorOptions: {
