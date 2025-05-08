@@ -22,7 +22,8 @@ RUN npm config set registry https://registry.npmmirror.com/ && \
 COPY user-ui/package*.json ./
 
 # 安装依赖
-RUN npm install --legacy-peer-deps --force && \
+RUN npm install --legacy-peer-deps && \
+    npm install vite@latest --legacy-peer-deps && \
     npm cache clean --force
 
 # 复制源代码
@@ -30,7 +31,6 @@ COPY user-ui/ ./
 
 # 设置权限并构建应用
 RUN chmod -R 755 /app && \
-    npm install vite@latest && \
     npm run build
 
 # 生产阶段
