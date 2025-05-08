@@ -1,5 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
-import { config } from '../../config';
+import { config } from '../config';
 
 export const redis: RedisClientType = createClient({
   url: `redis://${config.redis.host}:${config.redis.port}`,
