@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node dist/index.js",
-    "build": "tsc --skipLibCheck",
+    "build": "tsc --skipLibCheck --skipDefaultLibCheck",
     "dev": "ts-node-dev src/index.ts",
     "test": "jest",
     "type-check": "tsc --noEmit",
