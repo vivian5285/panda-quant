@@ -52,6 +52,7 @@ export default defineConfig({
       '@utils': resolve(__dirname, './src/utils'),
       '@assets': resolve(__dirname, './src/assets'),
       '@services': resolve(__dirname, './src/services'),
+      '@noble/hashes/_sha2': resolve(__dirname, 'node_modules/@noble/hashes/esm/_sha2.js'),
     },
     dedupe: ['react', 'react-dom', '@emotion/react', '@emotion/styled', '@emotion/is-prop-valid'],
   },
@@ -67,6 +68,9 @@ export default defineConfig({
     sourcemap: false,
     minify: 'esbuild',
     rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html')
+      },
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
@@ -91,6 +95,10 @@ export default defineConfig({
       },
     },
     chunkSizeWarningLimit: 1000,
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
+    }
   },
   optimizeDeps: {
     include: [
