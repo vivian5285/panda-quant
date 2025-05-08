@@ -21,10 +21,13 @@ RUN npm config set registry https://registry.npmmirror.com/ && \
 COPY server/package*.json server/tsconfig*.json ./
 
 # 安装依赖
-RUN npm install --legacy-peer-deps && \
+RUN npm install --legacy-peer-deps --force && \
     npm cache clean --force
 
-# 复制所有源代码和配置文件
+# 首先复制类型定义文件
+COPY server/src/types ./src/types
+
+# 然后复制其他源代码和配置文件
 COPY server/src ./src
 COPY server/locales ./locales
 COPY server/mt4 ./mt4
@@ -32,12 +35,8 @@ COPY server/.env ./.env
 COPY server/.eslintrc.json ./.eslintrc.json
 COPY server/knexfile.ts ./knexfile.ts
 
-# 设置最高权限
-RUN chmod -R 777 /app
-
-# 清理并重新构建
-RUN rm -rf dist && \
-    npm run build
+# 构建应用
+RUN npm run build
 
 # 生产阶段
 FROM node:20-alpine
@@ -51,10 +50,8 @@ RUN apk add --no-cache \
     curl \
     musl-dev \
     ca-certificates \
-    openssl
-
-# 更新证书
-RUN update-ca-certificates
+    openssl && \
+    update-ca-certificates
 
 # 设置工作目录
 WORKDIR /app
