@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { IUser } from '../models/User';
+import { IUser } from '../types/user.types';
 import { AuthService } from '../services/auth.service';
 import { ApiResponse } from '../types/api';
 

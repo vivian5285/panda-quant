@@ -10,7 +10,7 @@ import { logger } from '../utils/logger';
 import { ISettlement, ISettlementDocument, SettlementMetadata, SettlementStatus } from '../types/Settlement';
 import SettlementModel from '../models/settlement.model';
 import { CommissionStatus } from '../types/Enums';
-import User from '../models/User';
+import User from '../models/user.model';
 
 export class SettlementService {
   private static instance: SettlementService;

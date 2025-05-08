@@ -1,4 +1,5 @@
-import { IUser, User } from '../models/User';
+import { IUser } from '../types/user.types';
+import { User } from '../models/user.model';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateToken } from '../utils/jwt';
 import { VerificationService } from './verification.service';

@@ -80,7 +80,7 @@ const userSchema = new mongoose_1.Schema({
         default: false
     },
     permissions: {
-        type: mongoose_1.SchemaTypes.Mixed,
+        type: mongoose_1.Schema.Types.Mixed,
         default: {}
     },
     isVerified: {
@@ -102,7 +102,27 @@ const userSchema = new mongoose_1.Schema({
     walletAddress: {
         type: String,
         default: undefined
-    }
+    },
+    totalDeposits: {
+        type: Number,
+        default: 0
+    },
+    accountBalance: {
+        type: Number,
+        default: 0
+    },
+    subscriptionFee: {
+        type: Number,
+        default: 0
+    },
+    depositAddresses: [{
+            chain: String,
+            address: String
+        }],
+    verificationToken: String,
+    verificationTokenExpires: Date,
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
 }, {
     timestamps: true
 });
@@ -147,5 +167,5 @@ userSchema.statics.verifyEmail = async function (userId) {
         throw new errors_1.DatabaseError('Failed to verify email');
     }
 };
-exports.User = mongoose_1.default.model('User', userSchema);
+exports.User = mongoose_1.default.models.User || mongoose_1.default.model('User', userSchema);
 //# sourceMappingURL=user.model.js.map

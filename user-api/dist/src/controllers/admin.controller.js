@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminController = void 0;
-const User_1 = require("../models/User");
+const user_model_1 = require("../models/user.model");
 const errors_1 = require("../utils/errors");
 class AdminController {
     static async getUsers(_req, res) {
         try {
-            const users = await User_1.UserModel.find({}, '-password');
+            const users = await user_model_1.User.find({}, '-password');
             res.json(users);
         }
         catch (error) {
@@ -17,7 +17,7 @@ class AdminController {
         try {
             const { id } = req.params;
             const userData = req.body;
-            const user = await User_1.UserModel.findByIdAndUpdate(id, { $set: userData }, { new: true, runValidators: true }).select('-password');
+            const user = await user_model_1.User.findByIdAndUpdate(id, { $set: userData }, { new: true, runValidators: true }).select('-password');
             if (!user) {
                 throw new errors_1.ValidationError('User not found');
             }
@@ -35,7 +35,7 @@ class AdminController {
     static async deleteUser(req, res) {
         try {
             const { id } = req.params;
-            const user = await User_1.UserModel.findByIdAndDelete(id);
+            const user = await user_model_1.User.findByIdAndDelete(id);
             if (!user) {
                 throw new errors_1.ValidationError('User not found');
             }

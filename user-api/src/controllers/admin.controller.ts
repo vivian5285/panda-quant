@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
-import { UserModel, IUser } from '../models/User';
+import { User } from '../models/user.model';
+import { IUser } from '../types/user.types';
 import { ValidationError } from '../utils/errors';
 
 export class AdminController {
   static async getUsers(_req: Request, res: Response) {
     try {
-      const users = await UserModel.find({}, '-password');
+      const users = await User.find({}, '-password');
       res.json(users);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch users' });
@@ -17,7 +18,7 @@ export class AdminController {
       const { id } = req.params;
       const userData: Partial<IUser> = req.body;
       
-      const user = await UserModel.findByIdAndUpdate(
+      const user = await User.findByIdAndUpdate(
         id,
         { $set: userData },
         { new: true, runValidators: true }
@@ -40,7 +41,7 @@ export class AdminController {
   static async deleteUser(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const user = await UserModel.findByIdAndDelete(id);
+      const user = await User.findByIdAndDelete(id);
 
       if (!user) {
         throw new ValidationError('User not found');

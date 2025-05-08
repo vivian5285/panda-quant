@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { User } from '../models/User';
+import { User } from '../models/user.model';
 import { IUser, IUserBase } from '../types/User';
 import bcrypt from 'bcrypt';
 import { logger } from '../utils/logger';

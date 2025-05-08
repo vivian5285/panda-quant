@@ -1,4 +1,5 @@
-import { User, IUser } from '../models/User';
+import { User } from '../models/user.model';
+import { IUser } from '../types/user.types';
 import bcrypt from 'bcrypt';
 import { DatabaseError } from '../utils/errors';
 

@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../types/Auth';
-import { IUserDocument } from '../models/User';
-import User from '../models/User';
+import { IUserDocument } from '../models/user.model';
+import User from '../models/user.model';
 
 export const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers['authorization'];

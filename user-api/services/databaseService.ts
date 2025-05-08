@@ -25,6 +25,12 @@ export class DatabaseService {
     let retries = 0;
     while (retries < this.maxRetries) {
       try {
+        // 先断开所有现有连接
+        if (mongoose.connection.readyState !== 0) {
+          await mongoose.disconnect();
+          logger.info('Disconnected from previous MongoDB connection');
+        }
+
         const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/panda-quant';
         logger.info(`Connecting to MongoDB at ${uri} (attempt ${retries + 1}/${this.maxRetries})`);
         

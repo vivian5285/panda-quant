@@ -4,7 +4,7 @@ import { VerificationService } from '../services/verification.service';
 import { validateEmail, validatePassword } from '../utils/validation';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { IUser } from '../models/User';
+import { IUser } from '../types/user.types';
 import { ApiResponse } from '../types/api';
 import { AuthUser } from '../types/auth.types';
 import { VerificationUser, VerificationType } from '../types/verification.types';

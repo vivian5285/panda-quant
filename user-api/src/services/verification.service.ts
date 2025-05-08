@@ -2,10 +2,11 @@ import { ValidationError } from '../utils/errors';
 import { generateToken, verifyToken } from '../utils/jwt';
 import { sendEmail } from '../utils/email';
 import { Verification } from '../models/verification.model';
-import { User, IUser } from '../models/User';
+import { User } from '../models/user.model';
 import { VerificationCode } from '../models/verification.model';
 import { VerificationUser, VerificationType } from '../types/verification.types';
 import mongoose from 'mongoose';
+import { IUser } from '../types/user.types';
 
 const VERIFICATION_CODE_LENGTH = 6;
 

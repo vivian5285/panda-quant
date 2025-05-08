@@ -1,7 +1,7 @@
 import { Deposit } from '../models/deposit';
 import axios from 'axios';
 import { Transaction } from '../models/transaction.model';
-import { User } from '../models/User';
+import { User } from '../models/user.model';
 
 export class SyncService {
   private adminApiUrl: string;

@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import type { UserRole } from './Enums';
 import type { User } from './User';
-import { IUserDocument } from '../models/User';
+import { IUserDocument } from '../models/user.model';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import type { ParsedQs } from 'qs';
 

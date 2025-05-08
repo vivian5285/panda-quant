@@ -1,6 +1,6 @@
 import { IUser } from '../types/User';
 import { AuthToken, IAuthResponse, ILoginCredentials, IRegisterData, IResetPasswordData } from '../types/Auth';
-import { User, IUserDocument } from '../models/User';
+import { User, IUserDocument } from '../models/user.model';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { logger } from '../utils/logger';

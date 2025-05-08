@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { UnauthorizedError, ForbiddenError } from '../utils/errors';
-import { User, IUserDocument } from '../models/User';
+import { User, IUserDocument } from '../models/user.model';
 import { logger } from '../utils/logger';
 import { IUser } from '../types/User';
 

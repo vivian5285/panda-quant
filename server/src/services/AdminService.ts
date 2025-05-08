@@ -1,4 +1,4 @@
-import { User } from '../models/User';
+import { User } from '../models/user.model';
 import { logger } from '../utils/logger';
 
 export class AdminService {

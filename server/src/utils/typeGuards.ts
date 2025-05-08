@@ -1,4 +1,4 @@
-import { IUserDocument } from '../models/User';
+import { IUserDocument } from '../models/user.model';
 
 export function isUser(obj: any): obj is IUserDocument {
   return (

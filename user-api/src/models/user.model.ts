@@ -1,28 +1,10 @@
-import mongoose, { Schema, Document, SchemaTypes, CallbackError } from 'mongoose';
+import mongoose, { Schema, CallbackError } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { DatabaseError } from '../utils/errors';
 import { validateEmail, validatePassword } from '../utils/validation';
+import { IUser } from '../types/user.types';
 
-export interface User extends Document {
-  _id: mongoose.Types.ObjectId;
-  email: string;
-  password: string;
-  name: string;
-  role: 'user' | 'admin';
-  status: string;
-  isAdmin: boolean;
-  permissions: Record<string, boolean>;
-  isVerified: boolean;
-  verificationCode?: string;
-  verificationCodeExpires?: Date;
-  isEmailVerified: boolean;
-  walletAddress?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>;
-}
-
-const userSchema = new Schema<User>(
+const userSchema = new Schema<IUser>(
   {
     email: {
       type: String,
@@ -62,7 +44,7 @@ const userSchema = new Schema<User>(
       default: false
     },
     permissions: {
-      type: SchemaTypes.Mixed,
+      type: Schema.Types.Mixed,
       default: {}
     },
     isVerified: {
@@ -84,7 +66,27 @@ const userSchema = new Schema<User>(
     walletAddress: {
       type: String,
       default: undefined
-    }
+    },
+    totalDeposits: {
+      type: Number,
+      default: 0
+    },
+    accountBalance: {
+      type: Number,
+      default: 0
+    },
+    subscriptionFee: {
+      type: Number,
+      default: 0
+    },
+    depositAddresses: [{
+      chain: String,
+      address: String
+    }],
+    verificationToken: String,
+    verificationTokenExpires: Date,
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
   },
   {
     timestamps: true
@@ -137,4 +139,5 @@ userSchema.statics.verifyEmail = async function(userId: string) {
   }
 };
 
-export const User = mongoose.model<User>('User', userSchema); 
+// 检查模型是否已经存在
+export const User = mongoose.models.User || mongoose.model<IUser>('User', userSchema); 

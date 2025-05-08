@@ -1,4 +1,4 @@
-import { User } from '../src/models/User';
+import { User } from '../src/models/user.model';
 import { Fee } from '../src/models/Fee';
 import { logger } from '../src/utils/logger';
 

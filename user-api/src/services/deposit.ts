@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import TronWeb from 'tronweb';
-import { User } from '../models/User';
+import { User } from '../models/user.model';
 import { Deposit } from '../models/deposit';
 import mongoose from 'mongoose';
 import { Transaction } from '../models/transaction.model';

@@ -5,7 +5,7 @@ const errors_1 = require("../utils/errors");
 const jwt_1 = require("../utils/jwt");
 const email_1 = require("../utils/email");
 const verification_model_1 = require("../models/verification.model");
-const User_1 = require("../models/User");
+const user_model_1 = require("../models/user.model");
 const verification_model_2 = require("../models/verification.model");
 const VERIFICATION_CODE_LENGTH = 6;
 class VerificationService {
@@ -59,7 +59,7 @@ class VerificationService {
         if (!verification) {
             throw new Error('Invalid or expired verification code');
         }
-        await User_1.User.findOneAndUpdate({ email: verification.email }, { isVerified: true });
+        await user_model_1.User.findOneAndUpdate({ email: verification.email }, { isVerified: true });
         await verification_model_2.VerificationCode.deleteOne({ _id: verification._id });
     }
     async sendPasswordResetEmail(user) {
@@ -95,7 +95,7 @@ class VerificationService {
         if (!verification) {
             throw new Error('Invalid or expired reset token');
         }
-        await User_1.User.findOneAndUpdate({ email: verification.email }, { password: hashedPassword });
+        await user_model_1.User.findOneAndUpdate({ email: verification.email }, { password: hashedPassword });
         await verification_model_2.VerificationCode.deleteOne({ _id: verification._id });
     }
     async verifyEmailToken(token) {

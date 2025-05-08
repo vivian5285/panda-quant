@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthUser } from '../types/auth.types';
-import { User, IUser } from '../models/User';
+import { User } from '../models/user.model';
+import { IUser } from '../types/user.types';
 import { Types } from 'mongoose';
 
 declare global {
