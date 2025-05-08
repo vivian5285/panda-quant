@@ -22,6 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { Document, Types } from 'mongoose';
 import { INetworkStatus } from '../types/Network';
 export interface IHealthDocument extends Document {
@@ -31,7 +32,9 @@ export interface IHealthDocument extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
-export declare const Health: import("mongoose").Model<IHealthDocument, {}, {}, {}, Document<unknown, {}, IHealthDocument> & IHealthDocument & Required<{
+export declare const Health: import("mongoose").Model<IHealthDocument, {}, {}, {}, Document<unknown, {}, IHealthDocument, {}> & IHealthDocument & Required<{
     _id: Types.ObjectId;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 //# sourceMappingURL=health.model.d.ts.map

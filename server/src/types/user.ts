@@ -7,7 +7,7 @@ export interface UserBase {
   name: string;
   username: string;
   role: UserRole;
-  level: number;
+  level: UserLevel;
   status: UserStatus;
   permissions: string[];
   isAdmin: boolean;
@@ -16,6 +16,8 @@ export interface UserBase {
   balance: number;
   accountBalance: number;
   subscriptionFee: number;
+  referrerId?: Types.ObjectId;
+  referrer?: string;
 }
 
 export interface User extends Document, UserBase {
@@ -26,10 +28,14 @@ export interface User extends Document, UserBase {
 export type UserDocument = User;
 
 export interface UserResponse {
-  id: string;
+  _id: string;
   email: string;
   name: string;
-  role: string;
+  username: string;
+  role: UserRole;
+  level: UserLevel;
+  status: UserStatus;
+  isAdmin: boolean;
 }
 
 export interface LoginRequest {
@@ -41,11 +47,13 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
+  username: string;
 }
 
 export interface UpdateUserRequest {
   name?: string;
   email?: string;
+  username?: string;
 }
 
 export interface ChangePasswordRequest {
@@ -56,16 +64,18 @@ export interface ChangePasswordRequest {
 export interface UpdateUserByIdRequest {
   name?: string;
   email?: string;
-  level: number;
-  role: string;
-  status: string;
-  permissions: string[];
-  isAdmin: boolean;
+  username?: string;
+  level?: UserLevel;
+  role?: UserRole;
+  status?: UserStatus;
+  permissions?: string[];
+  isAdmin?: boolean;
   referrerId?: Types.ObjectId;
   referrer?: string;
   balance?: number;
-  createdAt: Date;
-  updatedAt: Date;
+  accountBalance?: number;
+  subscriptionFee?: number;
+  updatedAt?: Date;
 }
 
 export interface IUser {

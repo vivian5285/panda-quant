@@ -17,13 +17,11 @@ export enum OrderStatus {
 }
 
 export enum TradeStatus {
-  OPEN = 'open',
-  CLOSED = 'closed',
-  CANCELLED = 'cancelled'
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED'
 }
 
-export interface IOrder extends Document {
-  _id: Types.ObjectId;
+export interface IOrderBase {
   userId: Types.ObjectId;
   strategyId: Types.ObjectId;
   positionId?: Types.ObjectId;
@@ -32,7 +30,7 @@ export interface IOrder extends Document {
   orderId: string;
   clientOrderId: string;
   type: OrderType;
-  side: 'buy' | 'sell';
+  side: 'BUY' | 'SELL';
   amount: number;
   price?: number;
   stopPrice?: number;
@@ -48,42 +46,60 @@ export interface IOrder extends Document {
   metadata?: Record<string, any>;
 }
 
-export interface ITrade extends Document {
-  _id: Types.ObjectId;
-  userId: Types.ObjectId;
+export type OrderBase = IOrderBase;
+
+export interface IOrder extends Document, IOrderBase {}
+
+export type Order = IOrder;
+
+export type IOrderDocument = IOrder;
+export type OrderDocument = Order;
+
+export interface ITradeBase {
   strategyId: Types.ObjectId;
   orderId: Types.ObjectId;
   symbol: string;
-  type: TradeType;
-  side: 'buy' | 'sell';
-  amount: number;
-  price: number;
-  status: TradeStatus;
-  fee: number;
-  feeCurrency: string;
+  type: 'LONG' | 'SHORT';
+  entryPrice: number;
+  exitPrice?: number;
+  quantity: number;
+  leverage: number;
+  status: 'OPEN' | 'CLOSED' | 'CANCELLED';
+  pnl?: number;
+  pnlPercentage?: number;
+  entryTime: Date;
+  exitTime?: Date;
+  stopLoss?: number;
+  takeProfit?: number;
   metadata?: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface IOrderBook extends Document {
-  _id: Types.ObjectId;
+export interface ITrade extends ITradeBase, Document {}
+
+export type Trade = ITrade;
+
+export type ITradeDocument = ITrade;
+export type TradeDocument = Trade;
+
+export interface IOrderBookBase {
   symbol: string;
-  bids: {
-    price: number;
-    quantity: number;
-  }[];
-  asks: {
-    price: number;
-    quantity: number;
-  }[];
+  bids: Array<[number, number]>; // [price, quantity]
+  asks: Array<[number, number]>; // [price, quantity]
   timestamp: Date;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-export interface IOrderHistory extends Document {
-  _id: Types.ObjectId;
+export type OrderBookBase = IOrderBookBase;
+
+export interface IOrderBook extends Document, IOrderBookBase {}
+
+export type OrderBook = IOrderBook;
+
+export type IOrderBookDocument = IOrderBook;
+export type OrderBookDocument = OrderBook;
+
+export interface IOrderHistoryBase {
   userId: Types.ObjectId;
   strategyId: Types.ObjectId;
   orders: {
@@ -118,11 +134,23 @@ export interface IOrderHistory extends Document {
   updatedAt: Date;
 }
 
-export type Order = IOrder;
-export type Trade = ITrade;
+export type OrderHistoryBase = IOrderHistoryBase;
 
-export type OrderCreateInput = Omit<IOrder, '_id' | 'createdAt' | 'updatedAt'>;
-export type OrderUpdateInput = Partial<OrderCreateInput>;
+export interface IOrderHistory extends Document, IOrderHistoryBase {}
 
-export type TradeCreateInput = Omit<ITrade, '_id' | 'createdAt' | 'updatedAt'>;
-export type TradeUpdateInput = Partial<TradeCreateInput>; 
+export type OrderHistory = IOrderHistory;
+
+export type IOrderHistoryDocument = IOrderHistory;
+export type OrderHistoryDocument = OrderHistory;
+
+export type IOrderCreateInput = Omit<IOrderBase, 'createdAt' | 'updatedAt'>;
+export type OrderCreateInput = IOrderCreateInput;
+
+export type IOrderUpdateInput = Partial<IOrderCreateInput>;
+export type OrderUpdateInput = IOrderUpdateInput;
+
+export type ITradeCreateInput = Omit<ITradeBase, 'createdAt' | 'updatedAt'>;
+export type TradeCreateInput = ITradeCreateInput;
+
+export type ITradeUpdateInput = Partial<ITradeCreateInput>;
+export type TradeUpdateInput = ITradeUpdateInput; 

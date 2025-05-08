@@ -22,10 +22,13 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import mongoose from 'mongoose';
 import { ITradeDocument } from '../types/Trade';
-export declare const Trade: mongoose.Model<ITradeDocument, {}, {}, {}, mongoose.Document<unknown, {}, ITradeDocument> & ITradeDocument & Required<{
+export declare const Trade: mongoose.Model<ITradeDocument, {}, {}, {}, mongoose.Document<unknown, {}, ITradeDocument, {}> & ITradeDocument & Required<{
     _id: mongoose.Types.ObjectId;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 export default Trade;
 //# sourceMappingURL=Trade.d.ts.map

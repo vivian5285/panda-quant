@@ -14,5 +14,6 @@ export declare const ensureAuthenticated: (req: AuthenticatedRequest, res: Respo
 export declare const authorize: (role: string) => (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
 export declare const isAdmin: (req: AuthenticatedRequest, res: Response, next: NextFunction) => void;
 export declare const hasPermission: (permission: string) => (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
+export declare const authenticateToken: (req: Request, res: Response, next: NextFunction) => Response<any, Record<string, any>>;
 export {};
 //# sourceMappingURL=auth.d.ts.map

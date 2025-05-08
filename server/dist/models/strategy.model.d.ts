@@ -22,10 +22,13 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import mongoose from 'mongoose';
-import { IStrategyDocument } from '../types/Strategy';
-export declare const Strategy: mongoose.Model<IStrategyDocument, {}, {}, {}, mongoose.Document<unknown, {}, IStrategyDocument> & IStrategyDocument & {
-    _id: mongoose.Types.ObjectId;
+import { IStrategy } from '../types/Strategy';
+export declare const Strategy: mongoose.Model<IStrategy, {}, {}, {}, mongoose.Document<unknown, {}, IStrategy, {}> & IStrategy & Required<{
+    _id: unknown;
+}> & {
+    __v: number;
 }, any>;
 export default Strategy;
 //# sourceMappingURL=strategy.model.d.ts.map

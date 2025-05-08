@@ -8,10 +8,22 @@ const AuthController_1 = __importDefault(require("../controllers/AuthController"
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
 // Public routes
-router.post('/login', AuthController_1.default.login);
-router.post('/register', AuthController_1.default.register);
+router.post('/login', (req, res) => {
+    const authReq = req;
+    AuthController_1.default.login(authReq, res);
+});
+router.post('/register', (req, res) => {
+    const authReq = req;
+    AuthController_1.default.register(authReq, res);
+});
 // Protected routes
-router.get('/profile', authMiddleware_1.authenticate, AuthController_1.default.getCurrentUser);
-router.put('/profile', authMiddleware_1.authenticate, AuthController_1.default.updateUser);
+router.get('/profile', authMiddleware_1.authenticate, (req, res) => {
+    const authReq = req;
+    AuthController_1.default.getCurrentUser(authReq, res);
+});
+router.put('/profile', authMiddleware_1.authenticate, (req, res) => {
+    const authReq = req;
+    AuthController_1.default.updateUser(authReq, res);
+});
 exports.default = router;
 //# sourceMappingURL=authRoutes.js.map

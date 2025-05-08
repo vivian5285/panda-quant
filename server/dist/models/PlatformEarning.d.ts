@@ -22,6 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import mongoose, { Document } from 'mongoose';
 export interface IPlatformEarning extends Document {
     userId: string;
@@ -34,7 +35,9 @@ export interface IPlatformEarning extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
-export declare const PlatformEarning: mongoose.Model<IPlatformEarning, {}, {}, {}, mongoose.Document<unknown, {}, IPlatformEarning> & IPlatformEarning & {
-    _id: mongoose.Types.ObjectId;
+export declare const PlatformEarning: mongoose.Model<IPlatformEarning, {}, {}, {}, mongoose.Document<unknown, {}, IPlatformEarning, {}> & IPlatformEarning & Required<{
+    _id: unknown;
+}> & {
+    __v: number;
 }, any>;
 //# sourceMappingURL=PlatformEarning.d.ts.map

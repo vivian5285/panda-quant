@@ -22,10 +22,13 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import mongoose from 'mongoose';
 import { ITransactionDocument } from '../types/Transaction';
-export declare const Transaction: mongoose.Model<ITransactionDocument, {}, {}, {}, mongoose.Document<unknown, {}, ITransactionDocument> & ITransactionDocument & Required<{
+export declare const Transaction: mongoose.Model<ITransactionDocument, {}, {}, {}, mongoose.Document<unknown, {}, ITransactionDocument, {}> & ITransactionDocument & Required<{
     _id: mongoose.Types.ObjectId;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 export default Transaction;
 //# sourceMappingURL=Transaction.d.ts.map

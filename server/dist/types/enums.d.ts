@@ -1,79 +1,103 @@
-import { OrderType, OrderStatus, TradeStatus } from './Trading';
+import { OrderType, OrderStatus } from './Trading';
 export declare enum StrategyType {
-    SPOT = "spot",
-    FUTURES = "futures",
-    MT4 = "mt4"
+    TREND_FOLLOWING = "trend_following",
+    MEAN_REVERSION = "mean_reversion",
+    BREAKOUT = "breakout",
+    SCALPING = "scalping",
+    ARBITRAGE = "arbitrage",
+    GRID = "grid",
+    MARTINGALE = "martingale",
+    CUSTOM = "custom"
 }
 export declare enum StrategyStatus {
-    PENDING = "pending",
     ACTIVE = "active",
-    INACTIVE = "inactive",
     PAUSED = "paused",
-    COMPLETED = "completed"
+    STOPPED = "stopped",
+    ERROR = "error",
+    BACKTESTING = "backtesting",
+    OPTIMIZING = "optimizing",
+    RUNNING = "running",
+    PENDING = "pending"
 }
 export declare enum UserLevel {
     BASIC = "basic",
     PREMIUM = "premium",
-    VIP = "vip"
+    PRO = "pro"
 }
 export declare enum NotificationType {
-    TRADE = "trade",
-    SYSTEM = "system",
-    ALERT = "alert"
+    EMAIL = "email",
+    TELEGRAM = "telegram",
+    WEBHOOK = "webhook",
+    SMS = "sms",
+    PUSH = "push"
 }
 export declare enum AlertType {
-    PRICE = "price",
-    VOLUME = "volume",
-    TECHNICAL = "technical",
-    STRATEGY_LOSS = "strategy_loss",
-    NEWS = "news",
-    SYSTEM = "system"
+    TRADE = "trade",
+    PERFORMANCE = "performance",
+    SYSTEM = "system",
+    RISK = "risk",
+    CUSTOM = "custom"
 }
 export declare enum RiskLevel {
     LOW = "low",
     MEDIUM = "medium",
-    HIGH = "high"
+    HIGH = "high",
+    VERY_HIGH = "very_high"
 }
 export declare enum CommissionType {
     FIXED = "fixed",
-    PERCENTAGE = "percentage"
+    PERCENTAGE = "percentage",
+    TIERED = "tiered"
 }
 export declare enum CommissionStatus {
     PENDING = "pending",
-    COMPLETED = "completed",
-    CANCELLED = "cancelled"
+    PAID = "paid",
+    CANCELLED = "cancelled",
+    REFUNDED = "refunded",
+    COMPLETED = "completed"
 }
 export declare enum WithdrawalStatus {
     PENDING = "pending",
-    APPROVED = "approved",
-    REJECTED = "rejected",
+    PROCESSING = "processing",
     COMPLETED = "completed",
+    FAILED = "failed",
     CANCELLED = "cancelled"
 }
 export declare enum SettlementStatus {
     PENDING = "pending",
+    PROCESSING = "processing",
     COMPLETED = "completed",
-    FAILED = "failed"
+    FAILED = "failed",
+    CANCELLED = "cancelled"
 }
 export declare enum SettlementType {
-    COMMISSION = "commission",
-    PROFIT = "profit",
-    BONUS = "bonus"
+    DAILY = "daily",
+    WEEKLY = "weekly",
+    MONTHLY = "monthly",
+    CUSTOM = "custom"
 }
 export declare enum UserRole {
     USER = "user",
-    ADMIN = "admin"
+    ADMIN = "admin",
+    MANAGER = "manager",
+    SUPPORT = "support"
 }
 export declare enum UserStatus {
     ACTIVE = "active",
     INACTIVE = "inactive",
-    SUSPENDED = "suspended"
+    SUSPENDED = "suspended",
+    BANNED = "banned"
 }
 export declare enum TradeType {
-    BUY = "buy",
-    SELL = "sell",
     LONG = "long",
     SHORT = "short"
 }
-export { OrderType, OrderStatus, TradeStatus };
+export declare enum ReportPeriod {
+    DAILY = "daily",
+    WEEKLY = "weekly",
+    MONTHLY = "monthly",
+    YEARLY = "yearly",
+    CUSTOM = "custom"
+}
+export { OrderType, OrderStatus };
 //# sourceMappingURL=Enums.d.ts.map

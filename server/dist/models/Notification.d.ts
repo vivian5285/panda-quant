@@ -22,10 +22,13 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import mongoose from 'mongoose';
 import { INotificationDocument } from '../types/Notification';
-export declare const Notification: mongoose.Model<INotificationDocument, {}, {}, {}, mongoose.Document<unknown, {}, INotificationDocument> & INotificationDocument & Required<{
+export declare const Notification: mongoose.Model<INotificationDocument, {}, {}, {}, mongoose.Document<unknown, {}, INotificationDocument, {}> & INotificationDocument & Required<{
     _id: mongoose.Types.ObjectId;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 export default Notification;
 //# sourceMappingURL=Notification.d.ts.map

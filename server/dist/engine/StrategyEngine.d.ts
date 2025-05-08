@@ -22,8 +22,9 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { IStrategy } from '../types/Strategy';
-import { IOrder } from '../types/IOrder';
+import { IOrder } from '../types/Trading';
 import { Types } from 'mongoose';
 export declare class StrategyEngine {
     private strategies;

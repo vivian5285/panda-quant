@@ -22,6 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { Document } from 'mongoose';
 export interface IHealth extends Document {
     status: 'healthy' | 'unhealthy';
@@ -29,8 +30,10 @@ export interface IHealth extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
-export declare const Health: import("mongoose").Model<IHealth, {}, {}, {}, Document<unknown, {}, IHealth> & IHealth & {
-    _id: import("mongoose").Types.ObjectId;
+export declare const Health: import("mongoose").Model<IHealth, {}, {}, {}, Document<unknown, {}, IHealth, {}> & IHealth & Required<{
+    _id: unknown;
+}> & {
+    __v: number;
 }, any>;
 export default Health;
 //# sourceMappingURL=health.d.ts.map

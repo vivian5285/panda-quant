@@ -1,27 +1,25 @@
-import { Schema, model } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { IMonitoring } from '../types/IMonitoring';
 
 const monitoringSchema = new Schema<IMonitoring>({
-  name: {
-    type: String,
-    required: true
+  strategyId: { type: Schema.Types.ObjectId, ref: 'Strategy', required: true },
+  status: { type: String, required: true },
+  lastCheck: { type: Date, default: Date.now },
+  metrics: {
+    cpu: { type: Number, default: 0 },
+    memory: { type: Number, default: 0 },
+    latency: { type: Number, default: 0 },
+    errorRate: { type: Number, default: 0 }
   },
-  type: {
-    type: String,
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ['active', 'inactive', 'error'],
-    default: 'active'
-  },
-  lastChecked: {
-    type: Date,
-    default: Date.now
-  }
+  alerts: [{
+    type: { type: String, required: true },
+    message: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    severity: { type: String, enum: ['low', 'medium', 'high'], default: 'low' }
+  }]
 }, {
   timestamps: true
 });
 
-export const Monitoring = model<IMonitoring>('Monitoring', monitoringSchema);
+export const Monitoring = mongoose.model<IMonitoring>('Monitoring', monitoringSchema);
 export default Monitoring; 

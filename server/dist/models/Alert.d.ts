@@ -22,9 +22,12 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import mongoose, { Types } from 'mongoose';
 import { IAlert } from '../types/Alert';
-export declare const Alert: mongoose.Model<IAlert, {}, {}, {}, mongoose.Document<unknown, {}, IAlert> & IAlert & Required<{
+export declare const Alert: mongoose.Model<IAlert, {}, {}, {}, mongoose.Document<unknown, {}, IAlert, {}> & IAlert & Required<{
     _id: Types.ObjectId;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 //# sourceMappingURL=Alert.d.ts.map

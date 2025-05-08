@@ -18,8 +18,7 @@ var OrderStatus;
 })(OrderStatus || (exports.OrderStatus = OrderStatus = {}));
 var TradeStatus;
 (function (TradeStatus) {
-    TradeStatus["OPEN"] = "open";
-    TradeStatus["CLOSED"] = "closed";
-    TradeStatus["CANCELLED"] = "cancelled";
+    TradeStatus["OPEN"] = "OPEN";
+    TradeStatus["CLOSED"] = "CLOSED";
 })(TradeStatus || (exports.TradeStatus = TradeStatus = {}));
 //# sourceMappingURL=Trading.js.map

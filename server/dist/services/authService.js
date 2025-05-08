@@ -9,55 +9,67 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const logger_1 = require("../utils/logger");
 class AuthService {
+    constructor() { }
+    static getInstance() {
+        if (!AuthService.instance) {
+            AuthService.instance = new AuthService();
+        }
+        return AuthService.instance;
+    }
     convertToIUser(user) {
-        const userObj = user.toObject ? user.toObject() : user;
+        const userObj = user.toObject();
         return {
             ...userObj,
             id: userObj._id.toString(),
-            _id: userObj._id
+            _id: userObj._id,
+            isActive: userObj.isActive ?? true
         };
     }
-    async register(userData) {
+    async register(data) {
         try {
-            const existingUser = await User_1.User.findOne({ email: userData.email });
+            const existingUser = await User_1.User.findOne({ email: data.email });
             if (existingUser) {
                 throw new Error('User already exists');
             }
-            const hashedPassword = await bcryptjs_1.default.hash(userData.password, 10);
-            const user = await User_1.User.create({
-                ...userData,
+            const hashedPassword = await bcryptjs_1.default.hash(data.password, 10);
+            const user = new User_1.User({
+                email: data.email,
                 password: hashedPassword,
-                username: userData.email.split('@')[0],
-                level: 1,
-                role: 'user',
-                status: 'active',
-                permissions: []
+                username: data.username,
+                isActive: true
             });
-            return this.convertToIUser(user);
-        }
-        catch (error) {
-            logger_1.logger.error('Registration error:', error);
-            throw error;
-        }
-    }
-    async login(email, password) {
-        try {
-            const user = await User_1.User.findOne({ email });
-            if (!user) {
-                throw new Error('Invalid credentials');
-            }
-            const isPasswordValid = await bcryptjs_1.default.compare(password, user.password);
-            if (!isPasswordValid) {
-                throw new Error('Invalid credentials');
-            }
-            const token = jsonwebtoken_1.default.sign({ id: user._id, email: user.email }, process.env['JWT_SECRET'] || 'your-secret-key', { expiresIn: '24h' });
+            await user.save();
+            const { token } = this.generateToken(user);
             return {
-                token,
-                expiresIn: 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+                user: user,
+                token: token,
+                refreshToken: token
             };
         }
         catch (error) {
-            logger_1.logger.error('Login error:', error);
+            logger_1.logger.error('Error in register:', error);
+            throw error;
+        }
+    }
+    async login(credentials) {
+        try {
+            const user = await User_1.User.findOne({ email: credentials.email });
+            if (!user) {
+                throw new Error('User not found');
+            }
+            const isValidPassword = await bcryptjs_1.default.compare(credentials.password, user.password);
+            if (!isValidPassword) {
+                throw new Error('Invalid password');
+            }
+            const { token } = this.generateToken(user);
+            return {
+                user: user,
+                token: token,
+                refreshToken: token
+            };
+        }
+        catch (error) {
+            logger_1.logger.error('Error in login:', error);
             throw error;
         }
     }
@@ -92,11 +104,8 @@ class AuthService {
             if (!user) {
                 throw new Error('User not found');
             }
-            const newToken = jsonwebtoken_1.default.sign({ id: user._id, email: user.email }, process.env['JWT_SECRET'] || 'your-secret-key', { expiresIn: '24h' });
-            return {
-                token: newToken,
-                expiresIn: 24 * 60 * 60 * 1000 // 24 hours in milliseconds
-            };
+            const newToken = this.generateToken(user);
+            return newToken;
         }
         catch (error) {
             logger_1.logger.error('Refresh token error:', error);
@@ -140,6 +149,29 @@ class AuthService {
         }
         catch (error) {
             logger_1.logger.error('Change password error:', error);
+            throw error;
+        }
+    }
+    generateToken(user) {
+        const token = jsonwebtoken_1.default.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
+        return {
+            token,
+            expiresIn: 24 * 60 * 60 // 24 hours in seconds
+        };
+    }
+    async resetPassword(data) {
+        try {
+            const user = await User_1.User.findOne({ resetToken: data.token });
+            if (!user) {
+                throw new Error('Invalid reset token');
+            }
+            const hashedPassword = await bcryptjs_1.default.hash(data.newPassword, 10);
+            user.password = hashedPassword;
+            user.resetToken = undefined;
+            await user.save();
+        }
+        catch (error) {
+            logger_1.logger.error('Error in resetPassword:', error);
             throw error;
         }
     }

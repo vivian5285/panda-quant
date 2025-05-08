@@ -1,14 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StrategyService = exports.StrategyStatus = void 0;
-const Strategy_1 = require("../models/Strategy");
+exports.StrategyService = void 0;
+const strategy_model_1 = require("../models/strategy.model");
+const trade_model_1 = require("../models/trade.model");
 const logger_1 = require("../utils/logger");
-var StrategyStatus;
-(function (StrategyStatus) {
-    StrategyStatus["ACTIVE"] = "active";
-    StrategyStatus["INACTIVE"] = "inactive";
-    StrategyStatus["PAUSED"] = "paused";
-})(StrategyStatus || (exports.StrategyStatus = StrategyStatus = {}));
+const Enums_1 = require("../types/Enums");
 class StrategyService {
     constructor() { }
     static getInstance() {
@@ -17,70 +13,71 @@ class StrategyService {
         }
         return StrategyService.instance;
     }
-    async createStrategy(data) {
-        const strategy = new Strategy_1.Strategy(data);
-        return await strategy.save();
+    async createStrategy(strategyData) {
+        const strategy = new strategy_model_1.Strategy(strategyData);
+        const savedStrategy = await strategy.save();
+        return savedStrategy.toObject();
     }
-    async getStrategies() {
-        return await Strategy_1.Strategy.find();
-    }
-    async getStrategy(id) {
-        try {
-            return await Strategy_1.Strategy.findById(id);
-        }
-        catch (error) {
-            logger_1.logger.error('Error getting strategy:', error);
-            throw error;
-        }
+    async getStrategyById(id) {
+        const strategy = await strategy_model_1.Strategy.findById(id);
+        return strategy ? strategy.toObject() : null;
     }
     async updateStrategy(id, updates) {
-        try {
-            return await Strategy_1.Strategy.findByIdAndUpdate(id, updates, { new: true });
-        }
-        catch (error) {
-            logger_1.logger.error('Error updating strategy:', error);
-            throw error;
-        }
+        const strategy = await strategy_model_1.Strategy.findByIdAndUpdate(id, updates, { new: true });
+        return strategy ? strategy.toObject() : null;
     }
     async deleteStrategy(id) {
-        try {
-            return await Strategy_1.Strategy.findByIdAndUpdate(id, { status: StrategyStatus.INACTIVE }, { new: true });
-        }
-        catch (error) {
-            logger_1.logger.error('Error deleting strategy:', error);
-            throw error;
-        }
-    }
-    async getStrategyPerformance(strategyId) {
-        try {
-            const strategy = await this.getStrategy(strategyId);
-            if (!strategy) {
-                throw new Error('Strategy not found');
-            }
-            // TODO: 实现实际的性能计算逻辑
-            return {
-                totalProfit: 0,
-                winRate: 0,
-                trades: []
-            };
-        }
-        catch (error) {
-            logger_1.logger.error('Error getting strategy performance:', error);
-            throw error;
-        }
+        const result = await strategy_model_1.Strategy.findByIdAndDelete(id);
+        return !!result;
     }
     async getAllStrategies() {
+        const strategies = await strategy_model_1.Strategy.find();
+        return strategies.map(strategy => strategy.toObject());
+    }
+    async startStrategy(strategy) {
         try {
-            return await Strategy_1.Strategy.find();
+            // 实现启动策略的逻辑
+            logger_1.logger.info(`Strategy ${strategy._id} started`);
         }
         catch (error) {
-            logger_1.logger.error('Error getting all strategies:', error);
+            logger_1.logger.error(`Error starting strategy ${strategy._id}:`, error);
+            throw error;
+        }
+    }
+    async stopStrategy(strategy) {
+        try {
+            // 实现停止策略的逻辑
+            logger_1.logger.info(`Strategy ${strategy._id} stopped`);
+        }
+        catch (error) {
+            logger_1.logger.error(`Error stopping strategy ${strategy._id}:`, error);
+            throw error;
+        }
+    }
+    async pauseStrategy(strategy) {
+        try {
+            // 实现暂停策略的逻辑
+            logger_1.logger.info(`Strategy ${strategy._id} paused`);
+        }
+        catch (error) {
+            logger_1.logger.error(`Error pausing strategy ${strategy._id}:`, error);
+            throw error;
+        }
+    }
+    async resumeStrategy(strategy) {
+        try {
+            // 实现恢复策略的逻辑
+            logger_1.logger.info(`Strategy ${strategy._id} resumed`);
+        }
+        catch (error) {
+            logger_1.logger.error(`Error resuming strategy ${strategy._id}:`, error);
             throw error;
         }
     }
     async getStrategiesByUser(userId) {
         try {
-            return await Strategy_1.Strategy.find({ userId });
+            const strategies = await strategy_model_1.Strategy.find({ userId });
+            return strategies.map(strategy => strategy.toObject());
         }
         catch (error) {
             logger_1.logger.error('Error getting strategies by user:', error);
@@ -89,7 +86,8 @@ class StrategyService {
     }
     async getActiveStrategies() {
         try {
-            return await Strategy_1.Strategy.find({ status: StrategyStatus.ACTIVE });
+            const strategies = await strategy_model_1.Strategy.find({ status: Enums_1.StrategyStatus.ACTIVE });
+            return strategies.map(strategy => strategy.toObject());
         }
         catch (error) {
             logger_1.logger.error('Error getting active strategies:', error);
@@ -98,12 +96,23 @@ class StrategyService {
     }
     async getPopularStrategies(limit = 10) {
         try {
-            return await Strategy_1.Strategy.find()
+            const strategies = await strategy_model_1.Strategy.find()
                 .sort({ followers: -1 })
                 .limit(limit);
+            return strategies.map(strategy => strategy.toObject());
         }
         catch (error) {
             logger_1.logger.error('Error getting popular strategies:', error);
+            throw error;
+        }
+    }
+    async getStrategyTrades(strategyId) {
+        try {
+            const trades = await trade_model_1.Trade.find({ strategyId });
+            return trades.map(trade => trade.toObject());
+        }
+        catch (error) {
+            logger_1.logger.error('Error getting strategy trades:', error);
             throw error;
         }
     }

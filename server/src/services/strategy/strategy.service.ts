@@ -1,15 +1,12 @@
+import { Strategy } from '../../models/strategy.model';
+import { IStrategy, IStrategyCreateInput, IStrategyUpdateInput } from '../../types/Strategy';
 import { Types } from 'mongoose';
 import { logger } from '../../utils/logger';
-import { Strategy } from '../../models/Strategy';
-import { IStrategy } from '../../types/Strategy';
 
 export class StrategyService {
   private static instance: StrategyService;
-  private strategyModel: typeof Strategy;
 
-  private constructor() {
-    this.strategyModel = Strategy;
-  }
+  private constructor() {}
 
   public static getInstance(): StrategyService {
     if (!StrategyService.instance) {
@@ -18,40 +15,54 @@ export class StrategyService {
     return StrategyService.instance;
   }
 
-  public async createStrategy(strategyData: Partial<IStrategy>): Promise<IStrategy> {
+  public async createStrategy(strategyData: IStrategyCreateInput): Promise<IStrategy> {
     try {
-      const strategy = new this.strategyModel(strategyData);
+      const strategy = new Strategy(strategyData);
       const savedStrategy = await strategy.save();
-      return savedStrategy.toObject() as IStrategy;
+      return savedStrategy.toObject() as unknown as IStrategy;
     } catch (error) {
       logger.error('Error creating strategy:', error);
       throw error;
     }
   }
 
-  public async getStrategyById(id: Types.ObjectId): Promise<IStrategy | null> {
+  public async getStrategyById(id: string): Promise<IStrategy | null> {
     try {
-      const strategy = await this.strategyModel.findById(id);
-      return strategy ? strategy.toObject() as IStrategy : null;
+      const strategy = await Strategy.findById(id);
+      return strategy ? strategy.toObject() as unknown as IStrategy : null;
     } catch (error) {
       logger.error('Error getting strategy by ID:', error);
       throw error;
     }
   }
 
-  public async updateStrategy(id: Types.ObjectId, updates: Partial<IStrategy>): Promise<IStrategy | null> {
+  public async getStrategyByUserId(userId: string): Promise<IStrategy | null> {
     try {
-      const strategy = await this.strategyModel.findByIdAndUpdate(id, updates, { new: true });
-      return strategy ? strategy.toObject() as IStrategy : null;
+      const strategy = await Strategy.findOne({ userId: new Types.ObjectId(userId) });
+      return strategy ? strategy.toObject() as unknown as IStrategy : null;
+    } catch (error) {
+      logger.error('Error getting strategy by user ID:', error);
+      throw error;
+    }
+  }
+
+  public async updateStrategy(id: string, strategyData: IStrategyUpdateInput): Promise<IStrategy | null> {
+    try {
+      const strategy = await Strategy.findByIdAndUpdate(
+        id,
+        { $set: strategyData },
+        { new: true }
+      );
+      return strategy ? strategy.toObject() as unknown as IStrategy : null;
     } catch (error) {
       logger.error('Error updating strategy:', error);
       throw error;
     }
   }
 
-  public async deleteStrategy(id: Types.ObjectId): Promise<boolean> {
+  public async deleteStrategy(id: string): Promise<boolean> {
     try {
-      const result = await this.strategyModel.findByIdAndDelete(id);
+      const result = await Strategy.findByIdAndDelete(id);
       return !!result;
     } catch (error) {
       logger.error('Error deleting strategy:', error);
@@ -59,12 +70,12 @@ export class StrategyService {
     }
   }
 
-  public async getStrategiesByUserId(userId: Types.ObjectId): Promise<IStrategy[]> {
+  public async getAllStrategies(): Promise<IStrategy[]> {
     try {
-      const strategies = await this.strategyModel.find({ userId });
-      return strategies.map(strategy => strategy.toObject() as IStrategy);
+      const strategies = await Strategy.find();
+      return strategies.map(strategy => strategy.toObject() as unknown as IStrategy);
     } catch (error) {
-      logger.error('Error getting strategies by user ID:', error);
+      logger.error('Error getting all strategies:', error);
       throw error;
     }
   }

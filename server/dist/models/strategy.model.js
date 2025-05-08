@@ -32,7 +32,34 @@ const strategySchema = new mongoose_1.Schema({
     description: { type: String, required: true },
     type: { type: String, required: true },
     status: { type: String, enum: Object.values(Enums_1.StrategyStatus), default: Enums_1.StrategyStatus.ACTIVE },
-    parameters: { type: mongoose_1.Schema.Types.Mixed, required: true },
+    config: {
+        exchange: { type: String, required: true },
+        symbol: { type: String, required: true },
+        timeframe: { type: String, required: true },
+        parameters: { type: mongoose_1.Schema.Types.Mixed, required: true },
+        riskManagement: {
+            maxPositionSize: { type: Number, required: true },
+            stopLoss: { type: Number, required: true },
+            takeProfit: { type: Number, required: true },
+            trailingStop: { type: Number, required: true },
+            maxDrawdown: { type: Number, required: true },
+            maxOpenTrades: { type: Number, required: true }
+        },
+        filters: {
+            minVolume: { type: Number, required: true },
+            minVolatility: { type: Number, required: true },
+            maxSpread: { type: Number, required: true },
+            allowedSymbols: [{ type: String }],
+            excludedSymbols: [{ type: String }]
+        },
+        notifications: {
+            email: { type: Boolean, default: false },
+            telegram: { type: Boolean, default: false },
+            webhook: { type: Boolean, default: false }
+        }
+    },
+    performance: { type: mongoose_1.Schema.Types.Mixed },
+    metadata: { type: mongoose_1.Schema.Types.Mixed },
     createdAt: { type: Date, default: Date.now }
 }, {
     timestamps: true

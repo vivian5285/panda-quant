@@ -2,8 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../types/Auth';
+import { IUserDocument } from '../models/User';
+import User from '../models/User';
 
-export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
+export const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -14,7 +16,15 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 
   try {
     const decoded = jwt.verify(token, process.env['JWT_SECRET'] || 'your-secret-key') as { id: string; email: string };
-    (req as AuthenticatedRequest).user = { _id: decoded.id, email: decoded.email } as any;
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      res.status(403).json({ message: 'User not found' });
+      return;
+    }
+
+    const authReq = req as unknown as AuthenticatedRequest;
+    authReq.user = user;
     next();
   } catch (error) {
     logger.error('Token verification failed:', error);

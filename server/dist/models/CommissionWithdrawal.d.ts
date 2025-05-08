@@ -23,8 +23,11 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { ICommissionWithdrawal } from '../types/CommissionWithdrawal';
-export declare const CommissionWithdrawal: import("mongoose").Model<ICommissionWithdrawal, {}, {}, {}, import("mongoose").Document<unknown, {}, ICommissionWithdrawal> & ICommissionWithdrawal & {
-    _id: import("mongoose").Types.ObjectId;
+export declare const CommissionWithdrawal: import("mongoose").Model<ICommissionWithdrawal, {}, {}, {}, import("mongoose").Document<unknown, {}, ICommissionWithdrawal, {}> & ICommissionWithdrawal & Required<{
+    _id: unknown;
+}> & {
+    __v: number;
 }, any>;
 //# sourceMappingURL=CommissionWithdrawal.d.ts.map

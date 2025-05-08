@@ -22,10 +22,13 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import mongoose from 'mongoose';
 import { IDepositNotificationDocument } from '../types/DepositNotification';
-export declare const DepositNotification: mongoose.Model<IDepositNotificationDocument, {}, {}, {}, mongoose.Document<unknown, {}, IDepositNotificationDocument> & IDepositNotificationDocument & Required<{
+export declare const DepositNotification: mongoose.Model<IDepositNotificationDocument, {}, {}, {}, mongoose.Document<unknown, {}, IDepositNotificationDocument, {}> & IDepositNotificationDocument & Required<{
     _id: mongoose.Types.ObjectId;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 export default DepositNotification;
 //# sourceMappingURL=DepositNotification.d.ts.map

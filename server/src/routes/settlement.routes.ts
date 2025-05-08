@@ -3,7 +3,7 @@ import type { Router } from 'express';
 import type { Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
-import type { AuthenticatedRequest } from '../types/express';
+import type { AuthenticatedRequest } from '../types/Auth';
 import { SettlementController } from '../controllers/SettlementController';
 
 const router: Router = express.Router();

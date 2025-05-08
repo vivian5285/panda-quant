@@ -22,6 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { Document } from 'mongoose';
 export interface ICommissionWithdrawal extends Document {
     userId: string;

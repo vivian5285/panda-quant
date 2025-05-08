@@ -1,15 +1,16 @@
-import express from 'express';
-import type { Router } from 'express';
-import { Response } from 'express';
+import express, { Router } from 'express';
+import type { Request, Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
-import { AuthenticatedRequest } from '../types/express';
+import { adminMiddleware } from '../middleware/adminMiddleware';
 import { blacklistController } from '../controllers/BlacklistController';
+import type { AuthenticatedRequest } from '../types/express';
 
-const router = express.Router();
+const router: Router = express.Router();
 
-// Protected routes
+// All blacklist routes require authentication and admin privileges
 router.use(ensureAuthenticated);
+router.use(adminMiddleware);
 
 // Get all blacklist entries
 router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
@@ -34,6 +35,11 @@ router.put('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response
 // Delete blacklist entry
 router.delete('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
   await blacklistController.deleteEntry(req, res);
+}));
+
+// Search blacklist entries
+router.get('/search', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await blacklistController.searchEntries(req, res);
 }));
 
 export default router; 

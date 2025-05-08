@@ -22,6 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { Document, Types } from 'mongoose';
 export type NotificationType = 'trade' | 'deposit' | 'withdrawal' | 'commission' | 'alert' | 'admin' | 'risk';
 export interface IDepositNotification {

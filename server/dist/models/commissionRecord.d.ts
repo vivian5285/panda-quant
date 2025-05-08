@@ -22,6 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { Document } from 'mongoose';
 export interface ICommissionRecordDocument extends Document {
     userId: string;
@@ -31,8 +32,10 @@ export interface ICommissionRecordDocument extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
-export declare const CommissionRecord: import("mongoose").Model<ICommissionRecordDocument, {}, {}, {}, Document<unknown, {}, ICommissionRecordDocument> & ICommissionRecordDocument & {
-    _id: import("mongoose").Types.ObjectId;
+export declare const CommissionRecord: import("mongoose").Model<ICommissionRecordDocument, {}, {}, {}, Document<unknown, {}, ICommissionRecordDocument, {}> & ICommissionRecordDocument & Required<{
+    _id: unknown;
+}> & {
+    __v: number;
 }, any>;
 export default CommissionRecord;
 //# sourceMappingURL=CommissionRecord.d.ts.map

@@ -22,6 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { Document } from 'mongoose';
 export interface IStrategyPerformance {
     strategyId: string;
@@ -61,8 +62,10 @@ export interface IStrategyPerformanceDocument extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
-export declare const StrategyPerformance: import("mongoose").Model<IStrategyPerformanceDocument, {}, {}, {}, Document<unknown, {}, IStrategyPerformanceDocument> & IStrategyPerformanceDocument & {
-    _id: import("mongoose").Types.ObjectId;
+export declare const StrategyPerformance: import("mongoose").Model<IStrategyPerformanceDocument, {}, {}, {}, Document<unknown, {}, IStrategyPerformanceDocument, {}> & IStrategyPerformanceDocument & Required<{
+    _id: unknown;
+}> & {
+    __v: number;
 }, any>;
 export default StrategyPerformance;
 //# sourceMappingURL=StrategyPerformance.d.ts.map

@@ -1,19 +1,10 @@
-import type { Request as ExpressRequest, Response, NextFunction, RequestHandler, Router, Application } from 'express-serve-static-core';
+import type { Request as ExpressRequest, Response, NextFunction, RequestHandler, Router, Application } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import type { ParsedQs } from 'qs';
 import type { IUserDocument } from '../models/User';
+import type { AuthenticatedRequest } from './Auth';
 
 export type Request = ExpressRequest;
-
-export interface AuthenticatedRequest extends Request {
-  user?: IUserDocument;
-  body: any;
-  params: ParamsDictionary;
-  query: ParsedQs;
-  headers: {
-    authorization?: string;
-  };
-}
 
 export type MiddlewareHandler = (
   req: AuthenticatedRequest,
@@ -25,11 +16,19 @@ declare global {
   namespace Express {
     interface Request {
       user?: IUserDocument;
+      params: ParamsDictionary;
+      body: any;
+      query: ParsedQs;
+      headers: any;
+      method: string;
+      url: string;
+      originalUrl: string;
+      ip: string;
     }
   }
 }
 
-export type { Response, NextFunction, RequestHandler, Router, Application };
+export type { Response, NextFunction, RequestHandler, Router, Application, AuthenticatedRequest };
 
 interface Express {
   (): Application;

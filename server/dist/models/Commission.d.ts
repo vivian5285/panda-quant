@@ -22,9 +22,12 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import mongoose, { Types } from 'mongoose';
 import { ICommission } from '../types/Commission';
-export declare const Commission: mongoose.Model<ICommission, {}, {}, {}, mongoose.Document<unknown, {}, ICommission> & ICommission & Required<{
+export declare const Commission: mongoose.Model<ICommission, {}, {}, {}, mongoose.Document<unknown, {}, ICommission, {}> & ICommission & Required<{
     _id: Types.ObjectId;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 //# sourceMappingURL=Commission.d.ts.map

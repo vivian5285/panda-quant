@@ -23,8 +23,11 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { IPosition } from '../types/Position';
-export declare const Position: import("mongoose").Model<IPosition, {}, {}, {}, import("mongoose").Document<unknown, {}, IPosition> & IPosition & Required<{
+export declare const Position: import("mongoose").Model<IPosition, {}, {}, {}, import("mongoose").Document<unknown, {}, IPosition, {}> & IPosition & Required<{
     _id: string;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 //# sourceMappingURL=Position.d.ts.map

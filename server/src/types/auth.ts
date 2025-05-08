@@ -1,45 +1,47 @@
-import type { Request } from 'express-serve-static-core';
-import type { IUserDocument } from '../models/User';
+import { Request } from 'express';
 import type { UserRole } from './Enums';
-import type { AuthenticatedRequest } from './express';
-
-export type { AuthenticatedRequest };
+import type { User } from './User';
+import { IUserDocument } from '../models/User';
+import type { ParamsDictionary } from 'express-serve-static-core';
+import type { ParsedQs } from 'qs';
 
 export interface AuthRequest extends Request {
-  user?: IUserDocument;
+  user?: User & {
+    role: 'user' | 'admin' | 'manager' | 'support';
+  };
 }
 
-export interface IAuthToken {
+export interface AuthToken {
   token: string;
   expiresIn: number;
 }
 
-export interface IAuthConfig {
+export interface AuthConfig {
   jwtSecret: string;
   jwtExpiresIn: string;
   maxLoginAttempts: number;
   lockoutDuration: number;
 }
 
-export interface IAuthResponse {
+export interface AuthResponse {
   success: boolean;
   message?: string;
   data?: any;
   error?: string;
 }
 
-export interface ILoginCredentials {
+export interface LoginCredentials {
   email: string;
   password: string;
 }
 
-export interface IRegisterCredentials {
+export interface RegisterCredentials {
   email: string;
   password: string;
   confirmPassword: string;
 }
 
-export interface ITokenPayload {
+export interface TokenPayload {
   userId: string;
   email: string;
   role: UserRole;
@@ -47,20 +49,53 @@ export interface ITokenPayload {
   exp: number;
 }
 
-export interface IResetPasswordData {
+export interface ResetPasswordData {
   token: string;
   password: string;
   confirmPassword: string;
 }
 
-export interface IChangePasswordData {
+export interface ChangePasswordData {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
 }
 
-export interface ITwoFactorAuth {
+export interface TwoFactorAuth {
   enabled: boolean;
   code: string;
   secret?: string;
+}
+
+export interface IAuthResponse {
+  user: IUserDocument;
+  token: string;
+  refreshToken: string;
+}
+
+export interface ILoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface IRegisterData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  username?: string;
+}
+
+export interface ILoginData {
+  email: string;
+  password: string;
+}
+
+export interface IResetPasswordData {
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface AuthenticatedRequest extends Omit<Request, 'user'> {
+  user?: IUserDocument;
 } 

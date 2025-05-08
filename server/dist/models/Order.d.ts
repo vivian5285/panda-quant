@@ -22,9 +22,12 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { Document } from 'mongoose';
+/// <reference types="mongoose/types/inferrawdoctype" />
+import mongoose from 'mongoose';
 import { IOrder } from '../types/Trading';
-export declare const Order: import("mongoose").Model<IOrder, {}, {}, {}, Document<unknown, {}, IOrder> & IOrder & Required<{
-    _id: import("mongoose").Types.ObjectId;
-}>, any>;
+export declare const Order: mongoose.Model<IOrder, {}, {}, {}, mongoose.Document<unknown, {}, IOrder, {}> & IOrder & Required<{
+    _id: unknown;
+}> & {
+    __v: number;
+}, any>;
 //# sourceMappingURL=Order.d.ts.map

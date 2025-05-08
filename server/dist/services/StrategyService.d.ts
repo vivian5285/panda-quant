@@ -1,22 +1,21 @@
-import type { IStrategy, IStrategyDocument, StrategyCreateInput } from '../types/Strategy';
-export declare enum StrategyStatus {
-    ACTIVE = "active",
-    INACTIVE = "inactive",
-    PAUSED = "paused"
-}
+import { IStrategy } from '../types/Strategy';
+import { ITrade } from '../types/Trading';
 export declare class StrategyService {
     private static instance;
     private constructor();
     static getInstance(): StrategyService;
-    createStrategy(data: StrategyCreateInput): Promise<IStrategyDocument>;
-    getStrategies(): Promise<IStrategyDocument[]>;
-    getStrategy(id: string): Promise<IStrategyDocument | null>;
-    updateStrategy(id: string, updates: Partial<IStrategy>): Promise<IStrategyDocument | null>;
-    deleteStrategy(id: string): Promise<IStrategyDocument | null>;
-    getStrategyPerformance(strategyId: string): Promise<any>;
-    getAllStrategies(): Promise<IStrategyDocument[]>;
-    getStrategiesByUser(userId: string): Promise<IStrategyDocument[]>;
-    getActiveStrategies(): Promise<IStrategyDocument[]>;
-    getPopularStrategies(limit?: number): Promise<IStrategyDocument[]>;
+    createStrategy(strategyData: Partial<IStrategy>): Promise<IStrategy>;
+    getStrategyById(id: string): Promise<IStrategy | null>;
+    updateStrategy(id: string, updates: Partial<IStrategy>): Promise<IStrategy | null>;
+    deleteStrategy(id: string): Promise<boolean>;
+    getAllStrategies(): Promise<IStrategy[]>;
+    startStrategy(strategy: IStrategy): Promise<void>;
+    stopStrategy(strategy: IStrategy): Promise<void>;
+    pauseStrategy(strategy: IStrategy): Promise<void>;
+    resumeStrategy(strategy: IStrategy): Promise<void>;
+    getStrategiesByUser(userId: string): Promise<IStrategy[]>;
+    getActiveStrategies(): Promise<IStrategy[]>;
+    getPopularStrategies(limit?: number): Promise<IStrategy[]>;
+    getStrategyTrades(strategyId: string): Promise<ITrade[]>;
 }
 //# sourceMappingURL=StrategyService.d.ts.map

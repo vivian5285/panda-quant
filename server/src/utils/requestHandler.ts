@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
-import type { AuthenticatedRequest } from '../types/express';
+import type { AuthenticatedRequest } from '../types/Auth';
+import { isAuthenticatedRequest } from './typeGuards';
 
 type RequestHandlerFunction = (
   req: AuthenticatedRequest,
@@ -12,7 +13,11 @@ export const handleRequest = (
 ): RequestHandler => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await handler(req as unknown as AuthenticatedRequest, res, next);
+      if (!isAuthenticatedRequest(req)) {
+        throw new Error('Invalid request type');
+      }
+      const authReq = req as AuthenticatedRequest;
+      await handler(authReq, res, next);
     } catch (error) {
       next(error);
     }

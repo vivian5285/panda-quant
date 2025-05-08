@@ -21,26 +21,25 @@ import type { IBlacklistEntry } from './Blacklist';
 import type { IUserLevel } from './UserLevel';
 import type { AuthRequest, AuthenticatedRequest } from './Auth';
 import type { 
-  IOrder, 
+  Order, 
   OrderType, 
   OrderStatus,
-  ITrade,
-  IOrderBook,
-  IOrderHistory,
+  Trade,
+  OrderBook,
+  OrderHistory,
   OrderCreateInput,
   OrderUpdateInput,
   TradeCreateInput,
   TradeUpdateInput
 } from './Trading';
 import type { 
-  IStrategyPerformance, 
-  IPerformanceMetrics, 
-  IPerformanceTrade,
-  IPerformancePeriod,
-  IStrategyPerformanceMetrics,
-  IPerformanceReport,
-  IPerformanceChart,
-  IPerformanceComparison
+  StrategyPerformance, 
+  PerformanceMetrics, 
+  PerformanceTrade,
+  PerformancePeriod,
+  PerformanceReport,
+  PerformanceChart,
+  PerformanceComparison
 } from './Performance';
 import type { 
   IExchangeCredentials, 
@@ -63,42 +62,40 @@ export type {
   User,
   Strategy,
   Commission,
-  ICommissionWithdrawal as CommissionWithdrawal,
+  ICommissionWithdrawal,
   Alert,
   Deposit,
   Position,
-  IStrategyRating as StrategyRating,
-  IBlacklistEntry as BlacklistEntry,
-  IUserLevel as UserLevel,
+  IStrategyRating,
+  IBlacklistEntry,
+  IUserLevel,
   AuthRequest,
-  IOrder as Order,
-  IStrategyPerformance as StrategyPerformance,
-  IPerformanceMetrics as PerformanceMetrics,
-  IPerformanceTrade as PerformanceTrade,
-  IPerformancePeriod as PerformancePeriod,
-  IStrategyPerformanceMetrics as StrategyPerformanceMetrics,
-  IPerformanceReport as PerformanceReport,
-  IPerformanceChart as PerformanceChart,
-  IPerformanceComparison as PerformanceComparison,
-  ITrade as Trade,
-  IOrderBook as OrderBook,
-  IOrderHistory as OrderHistory,
-  ITrade,
+  Order,
+  StrategyPerformance,
+  PerformanceMetrics,
+  PerformanceTrade,
+  PerformancePeriod,
+  PerformanceReport,
+  PerformanceChart,
+  PerformanceComparison,
+  Trade,
+  OrderBook,
+  OrderHistory,
   OrderCreateInput,
   OrderUpdateInput,
   TradeCreateInput,
   TradeUpdateInput,
-  IExchangeCredentials as ExchangeCredentials,
-  IExchangeBalance as ExchangeBalance,
-  IExchangeOrder as ExchangeOrder,
-  IExchangePosition as ExchangePosition,
-  IExchangeTrade as ExchangeTrade,
-  IExchangeMarketData as ExchangeMarketData,
-  IMT4Account as MT4Account,
-  IMT4Position as MT4Position,
-  IMT4Order as MT4Order,
-  IMT4Balance as MT4Balance,
-  IMT4MarketData as MT4MarketData,
+  IExchangeCredentials,
+  IExchangeBalance,
+  IExchangeOrder,
+  IExchangePosition,
+  IExchangeTrade,
+  IExchangeMarketData,
+  IMT4Account,
+  IMT4Position,
+  IMT4Order,
+  IMT4Balance,
+  IMT4MarketData,
   OrderType,
   OrderStatus,
   AuthenticatedRequest,
@@ -114,7 +111,7 @@ export type {
 // Base types
 export type UserDocument = User & Document;
 export type StrategyDocument = Strategy & Document;
-export type OrderDocument = IOrder & Document;
+export type OrderDocument = Order & Document;
 export type CommissionDocument = Commission & Document;
 export type StrategyRatingDocument = IStrategyRating & Document;
 export type UserLevelDocument = IUserLevel & Document;
@@ -135,7 +132,7 @@ export interface NetworkStatus {
   error?: string;
 }
 
-export interface OrderWithRetry extends IOrder {
+export interface OrderWithRetry extends Order {
   retryCount: number;
 }
 

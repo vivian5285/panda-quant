@@ -22,6 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import type { Document } from 'mongoose';
 import type { StrategyType, StrategyStatus, AlertType, RiskLevel, CommissionType, CommissionStatus, WithdrawalStatus } from './Enums';
 import type { User } from './User';
@@ -35,14 +36,14 @@ import type { IStrategyRating } from './StrategyRating';
 import type { IBlacklistEntry } from './Blacklist';
 import type { IUserLevel } from './UserLevel';
 import type { AuthRequest, AuthenticatedRequest } from './Auth';
-import type { IOrder, OrderType, OrderStatus, ITrade, IOrderBook, IOrderHistory, OrderCreateInput, OrderUpdateInput, TradeCreateInput, TradeUpdateInput } from './Trading';
-import type { IStrategyPerformance, IPerformanceMetrics, IPerformanceTrade, IPerformancePeriod, IStrategyPerformanceMetrics, IPerformanceReport, IPerformanceChart, IPerformanceComparison } from './Performance';
+import type { Order, OrderType, OrderStatus, Trade, OrderBook, OrderHistory, OrderCreateInput, OrderUpdateInput, TradeCreateInput, TradeUpdateInput } from './Trading';
+import type { StrategyPerformance, PerformanceMetrics, PerformanceTrade, PerformancePeriod, PerformanceReport, PerformanceChart, PerformanceComparison } from './Performance';
 import type { IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData } from './Exchange';
 import type { IMT4Account, IMT4Position, IMT4Order, IMT4Balance, IMT4MarketData } from './Mt4';
-export type { User, Strategy, Commission, ICommissionWithdrawal as CommissionWithdrawal, Alert, Deposit, Position, IStrategyRating as StrategyRating, IBlacklistEntry as BlacklistEntry, IUserLevel as UserLevel, AuthRequest, IOrder as Order, IStrategyPerformance as StrategyPerformance, IPerformanceMetrics as PerformanceMetrics, IPerformanceTrade as PerformanceTrade, IPerformancePeriod as PerformancePeriod, IStrategyPerformanceMetrics as StrategyPerformanceMetrics, IPerformanceReport as PerformanceReport, IPerformanceChart as PerformanceChart, IPerformanceComparison as PerformanceComparison, ITrade as Trade, IOrderBook as OrderBook, IOrderHistory as OrderHistory, ITrade, OrderCreateInput, OrderUpdateInput, TradeCreateInput, TradeUpdateInput, IExchangeCredentials as ExchangeCredentials, IExchangeBalance as ExchangeBalance, IExchangeOrder as ExchangeOrder, IExchangePosition as ExchangePosition, IExchangeTrade as ExchangeTrade, IExchangeMarketData as ExchangeMarketData, IMT4Account as MT4Account, IMT4Position as MT4Position, IMT4Order as MT4Order, IMT4Balance as MT4Balance, IMT4MarketData as MT4MarketData, OrderType, OrderStatus, AuthenticatedRequest, StrategyType, StrategyStatus, AlertType, RiskLevel, CommissionType, CommissionStatus, WithdrawalStatus };
+export type { User, Strategy, Commission, ICommissionWithdrawal, Alert, Deposit, Position, IStrategyRating, IBlacklistEntry, IUserLevel, AuthRequest, Order, StrategyPerformance, PerformanceMetrics, PerformanceTrade, PerformancePeriod, PerformanceReport, PerformanceChart, PerformanceComparison, Trade, OrderBook, OrderHistory, OrderCreateInput, OrderUpdateInput, TradeCreateInput, TradeUpdateInput, IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData, IMT4Account, IMT4Position, IMT4Order, IMT4Balance, IMT4MarketData, OrderType, OrderStatus, AuthenticatedRequest, StrategyType, StrategyStatus, AlertType, RiskLevel, CommissionType, CommissionStatus, WithdrawalStatus };
 export type UserDocument = User & Document;
 export type StrategyDocument = Strategy & Document;
-export type OrderDocument = IOrder & Document;
+export type OrderDocument = Order & Document;
 export type CommissionDocument = Commission & Document;
 export type StrategyRatingDocument = IStrategyRating & Document;
 export type UserLevelDocument = IUserLevel & Document;
@@ -58,7 +59,7 @@ export interface NetworkStatus {
     lastChecked: Date;
     error?: string;
 }
-export interface OrderWithRetry extends IOrder {
+export interface OrderWithRetry extends Order {
     retryCount: number;
 }
 export interface OrderQueue {
@@ -77,4 +78,4 @@ export interface PaginatedResponse<T> {
     limit: number;
     totalPages: number;
 }
-//# sourceMappingURL=Index.d.ts.map
+//# sourceMappingURL=index.d.ts.map

@@ -1,6 +1,6 @@
 import { IUser } from '../types/User';
-import { IAuthToken } from '../types/Auth';
-import { User } from '../models/User';
+import { AuthToken, IAuthResponse, ILoginCredentials, IRegisterData, IResetPasswordData } from '../types/Auth';
+import { User, IUserDocument } from '../models/User';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { logger } from '../utils/logger';
@@ -8,64 +8,76 @@ import { config } from '../config';
 import { UnauthorizedError, BadRequestError } from '../utils/errors';
 
 export class AuthService {
-  private convertToIUser(user: any): IUser {
-    const userObj = user.toObject ? user.toObject() : user;
+  private static instance: AuthService;
+
+  private constructor() {}
+
+  public static getInstance(): AuthService {
+    if (!AuthService.instance) {
+      AuthService.instance = new AuthService();
+    }
+    return AuthService.instance;
+  }
+
+  private convertToIUser(user: IUserDocument): IUser {
+    const userObj = user.toObject();
     return {
       ...userObj,
       id: userObj._id.toString(),
-      _id: userObj._id
+      _id: userObj._id,
+      isActive: userObj.isActive ?? true
     };
   }
 
-  public async register(userData: IUser): Promise<IUser> {
+  public async register(data: IRegisterData): Promise<IAuthResponse> {
     try {
-      const existingUser = await User.findOne({ email: userData.email });
+      const existingUser = await User.findOne({ email: data.email });
       if (existingUser) {
         throw new Error('User already exists');
       }
 
-      const hashedPassword = await bcrypt.hash(userData.password, 10);
-      const user = await User.create({
-        ...userData,
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+      const user = new User({
+        email: data.email,
         password: hashedPassword,
-        username: userData.email.split('@')[0],
-        level: 1,
-        role: 'user',
-        status: 'active',
-        permissions: []
+        username: data.username,
+        isActive: true
       });
 
-      return this.convertToIUser(user);
+      await user.save();
+      const { token } = this.generateToken(user);
+
+      return {
+        user: user,
+        token: token,
+        refreshToken: token
+      };
     } catch (error) {
-      logger.error('Registration error:', error);
+      logger.error('Error in register:', error);
       throw error;
     }
   }
 
-  public async login(email: string, password: string): Promise<IAuthToken> {
+  public async login(credentials: ILoginCredentials): Promise<IAuthResponse> {
     try {
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email: credentials.email });
       if (!user) {
-        throw new Error('Invalid credentials');
+        throw new Error('User not found');
       }
 
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        throw new Error('Invalid credentials');
+      const isValidPassword = await bcrypt.compare(credentials.password, user.password);
+      if (!isValidPassword) {
+        throw new Error('Invalid password');
       }
 
-      const token = jwt.sign(
-        { id: user._id, email: user.email },
-        process.env['JWT_SECRET'] || 'your-secret-key',
-        { expiresIn: '24h' }
-      );
-
+      const { token } = this.generateToken(user);
       return {
-        token,
-        expiresIn: 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+        user: user,
+        token: token,
+        refreshToken: token
       };
     } catch (error) {
-      logger.error('Login error:', error);
+      logger.error('Error in login:', error);
       throw error;
     }
   }
@@ -94,7 +106,7 @@ export class AuthService {
     }
   }
 
-  public async refreshToken(refreshToken: string): Promise<IAuthToken> {
+  public async refreshToken(refreshToken: string): Promise<AuthToken> {
     try {
       const decoded = jwt.verify(refreshToken, process.env['JWT_SECRET'] || 'your-secret-key') as { id: string; email: string };
       const user = await User.findById(decoded.id);
@@ -102,16 +114,8 @@ export class AuthService {
         throw new Error('User not found');
       }
 
-      const newToken = jwt.sign(
-        { id: user._id, email: user.email },
-        process.env['JWT_SECRET'] || 'your-secret-key',
-        { expiresIn: '24h' }
-      );
-
-      return {
-        token: newToken,
-        expiresIn: 24 * 60 * 60 * 1000 // 24 hours in milliseconds
-      };
+      const newToken = this.generateToken(user);
+      return newToken;
     } catch (error) {
       logger.error('Refresh token error:', error);
       throw new Error('Invalid refresh token');
@@ -158,6 +162,36 @@ export class AuthService {
       await user.save();
     } catch (error) {
       logger.error('Change password error:', error);
+      throw error;
+    }
+  }
+
+  private generateToken(user: IUserDocument): AuthToken {
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    return {
+      token,
+      expiresIn: 24 * 60 * 60 // 24 hours in seconds
+    };
+  }
+
+  async resetPassword(data: IResetPasswordData): Promise<void> {
+    try {
+      const user = await User.findOne({ resetToken: data.token });
+      if (!user) {
+        throw new Error('Invalid reset token');
+      }
+
+      const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+      user.password = hashedPassword;
+      user.resetToken = undefined;
+      await user.save();
+    } catch (error) {
+      logger.error('Error in resetPassword:', error);
       throw error;
     }
   }

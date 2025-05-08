@@ -1,13 +1,18 @@
 import { IUser } from '../types/User';
-import { IAuthToken } from '../types/Auth';
+import { AuthToken, IAuthResponse, ILoginCredentials, IRegisterData, IResetPasswordData } from '../types/Auth';
 export declare class AuthService {
+    private static instance;
+    private constructor();
+    static getInstance(): AuthService;
     private convertToIUser;
-    register(userData: IUser): Promise<IUser>;
-    login(email: string, password: string): Promise<IAuthToken>;
+    register(data: IRegisterData): Promise<IAuthResponse>;
+    login(credentials: ILoginCredentials): Promise<IAuthResponse>;
     logout(userId: string): Promise<void>;
     getCurrentUser(userId: string): Promise<IUser>;
-    refreshToken(refreshToken: string): Promise<IAuthToken>;
+    refreshToken(refreshToken: string): Promise<AuthToken>;
     updateUser(userId: string, updateData: Partial<IUser>): Promise<IUser>;
     changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void>;
+    private generateToken;
+    resetPassword(data: IResetPasswordData): Promise<void>;
 }
 //# sourceMappingURL=AuthService.d.ts.map

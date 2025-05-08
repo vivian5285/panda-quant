@@ -22,12 +22,15 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { Document, Types } from 'mongoose';
 import { IStrategyRating } from '../types/StrategyRating';
 export interface IStrategyRatingDocument extends IStrategyRating, Document {
     _id: Types.ObjectId;
 }
-export declare const StrategyRating: import("mongoose").Model<IStrategyRatingDocument, {}, {}, {}, Document<unknown, {}, IStrategyRatingDocument> & IStrategyRatingDocument & Required<{
+export declare const StrategyRating: import("mongoose").Model<IStrategyRatingDocument, {}, {}, {}, Document<unknown, {}, IStrategyRatingDocument, {}> & IStrategyRatingDocument & Required<{
     _id: Types.ObjectId;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 //# sourceMappingURL=StrategyRating.d.ts.map

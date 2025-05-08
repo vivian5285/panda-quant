@@ -22,9 +22,12 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import mongoose from 'mongoose';
 import { IBlacklistEntry } from '../types/Blacklist';
-export declare const BlacklistEntry: mongoose.Model<IBlacklistEntry, {}, {}, {}, mongoose.Document<unknown, {}, IBlacklistEntry> & IBlacklistEntry & {
+export declare const BlacklistEntry: mongoose.Model<IBlacklistEntry, {}, {}, {}, mongoose.Document<unknown, {}, IBlacklistEntry, {}> & IBlacklistEntry & {
     _id: mongoose.Types.ObjectId;
+} & {
+    __v: number;
 }, any>;
 //# sourceMappingURL=Blacklist.d.ts.map

@@ -1,5 +1,4 @@
-import express from 'express';
-import type { Router } from 'express';
+import express, { Router } from 'express';
 import { Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
@@ -7,7 +6,7 @@ import { adminMiddleware } from '../middleware/adminMiddleware';
 import { AuthenticatedRequest } from '../types/express';
 import { WithdrawalController } from '../controllers/WithdrawalController';
 
-const router = express.Router();
+const router: Router = express.Router();
 const withdrawalController = new WithdrawalController();
 
 // Admin routes

@@ -21,11 +21,14 @@
 /// <reference types="mongoose/types/utility" />
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
-/// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
+import mongoose from 'mongoose';
 import { IMonitoring } from '../types/IMonitoring';
-export declare const Monitoring: import("mongoose").Model<IMonitoring, {}, {}, {}, import("mongoose").Document<unknown, {}, IMonitoring> & IMonitoring & Required<{
-    _id: import("mongoose").Types.ObjectId;
-}>, any>;
+export declare const Monitoring: mongoose.Model<IMonitoring, {}, {}, {}, mongoose.Document<unknown, {}, IMonitoring, {}> & IMonitoring & Required<{
+    _id: unknown;
+}> & {
+    __v: number;
+}, any>;
 export default Monitoring;
 //# sourceMappingURL=Monitoring.d.ts.map

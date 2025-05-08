@@ -1,12 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StrategyService = void 0;
+const strategy_model_1 = require("../../models/strategy.model");
+const mongoose_1 = require("mongoose");
 const logger_1 = require("../../utils/logger");
-const Strategy_1 = require("../../models/Strategy");
 class StrategyService {
-    constructor() {
-        this.strategyModel = Strategy_1.Strategy;
-    }
+    constructor() { }
     static getInstance() {
         if (!StrategyService.instance) {
             StrategyService.instance = new StrategyService();
@@ -15,7 +14,7 @@ class StrategyService {
     }
     async createStrategy(strategyData) {
         try {
-            const strategy = new this.strategyModel(strategyData);
+            const strategy = new strategy_model_1.Strategy(strategyData);
             const savedStrategy = await strategy.save();
             return savedStrategy.toObject();
         }
@@ -26,7 +25,7 @@ class StrategyService {
     }
     async getStrategyById(id) {
         try {
-            const strategy = await this.strategyModel.findById(id);
+            const strategy = await strategy_model_1.Strategy.findById(id);
             return strategy ? strategy.toObject() : null;
         }
         catch (error) {
@@ -34,9 +33,19 @@ class StrategyService {
             throw error;
         }
     }
-    async updateStrategy(id, updates) {
+    async getStrategyByUserId(userId) {
         try {
-            const strategy = await this.strategyModel.findByIdAndUpdate(id, updates, { new: true });
+            const strategy = await strategy_model_1.Strategy.findOne({ userId: new mongoose_1.Types.ObjectId(userId) });
+            return strategy ? strategy.toObject() : null;
+        }
+        catch (error) {
+            logger_1.logger.error('Error getting strategy by user ID:', error);
+            throw error;
+        }
+    }
+    async updateStrategy(id, strategyData) {
+        try {
+            const strategy = await strategy_model_1.Strategy.findByIdAndUpdate(id, { $set: strategyData }, { new: true });
             return strategy ? strategy.toObject() : null;
         }
         catch (error) {
@@ -46,7 +55,7 @@ class StrategyService {
     }
     async deleteStrategy(id) {
         try {
-            const result = await this.strategyModel.findByIdAndDelete(id);
+            const result = await strategy_model_1.Strategy.findByIdAndDelete(id);
             return !!result;
         }
         catch (error) {
@@ -54,13 +63,13 @@ class StrategyService {
             throw error;
         }
     }
-    async getStrategiesByUserId(userId) {
+    async getAllStrategies() {
         try {
-            const strategies = await this.strategyModel.find({ userId });
+            const strategies = await strategy_model_1.Strategy.find();
             return strategies.map(strategy => strategy.toObject());
         }
         catch (error) {
-            logger_1.logger.error('Error getting strategies by user ID:', error);
+            logger_1.logger.error('Error getting all strategies:', error);
             throw error;
         }
     }

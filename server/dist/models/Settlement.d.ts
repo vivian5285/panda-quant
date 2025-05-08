@@ -22,13 +22,16 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { Document, Types } from 'mongoose';
 import { ISettlement } from '../types/Settlement';
 export interface ISettlementDocument extends Omit<ISettlement, '_id'>, Document {
     _id: Types.ObjectId;
 }
-declare const Settlement: import("mongoose").Model<ISettlementDocument, {}, {}, {}, Document<unknown, {}, ISettlementDocument> & ISettlementDocument & Required<{
+declare const Settlement: import("mongoose").Model<ISettlementDocument, {}, {}, {}, Document<unknown, {}, ISettlementDocument, {}> & ISettlementDocument & Required<{
     _id: Types.ObjectId;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 export default Settlement;
 //# sourceMappingURL=Settlement.d.ts.map

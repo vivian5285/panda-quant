@@ -22,6 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { Document, Types } from 'mongoose';
 import { UserLevel } from '../types/Enums';
 export interface IUser {
@@ -39,6 +40,8 @@ export interface IUser {
     balance: number;
     accountBalance: number;
     subscriptionFee: number;
+    resetToken?: string;
+    resetTokenExpires?: Date;
 }
 export interface IUserDocument extends Document {
     username: string;
@@ -55,12 +58,16 @@ export interface IUserDocument extends Document {
     balance: number;
     accountBalance: number;
     subscriptionFee: number;
+    resetToken?: string;
+    resetTokenExpires?: Date;
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
 }
-export declare const User: import("mongoose").Model<IUserDocument, {}, {}, {}, Document<unknown, {}, IUserDocument> & IUserDocument & {
-    _id: Types.ObjectId;
+export declare const User: import("mongoose").Model<IUserDocument, {}, {}, {}, Document<unknown, {}, IUserDocument, {}> & IUserDocument & Required<{
+    _id: unknown;
+}> & {
+    __v: number;
 }, any>;
 export default User;
 //# sourceMappingURL=User.d.ts.map

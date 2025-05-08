@@ -1,38 +1,13 @@
-/// <reference types="mongoose/types/aggregate" />
-/// <reference types="mongoose/types/callback" />
-/// <reference types="mongoose/types/collection" />
-/// <reference types="mongoose/types/connection" />
-/// <reference types="mongoose/types/cursor" />
-/// <reference types="mongoose/types/document" />
-/// <reference types="mongoose/types/error" />
-/// <reference types="mongoose/types/expressions" />
-/// <reference types="mongoose/types/helpers" />
-/// <reference types="mongoose/types/middlewares" />
-/// <reference types="mongoose/types/indexes" />
-/// <reference types="mongoose/types/models" />
-/// <reference types="mongoose/types/mongooseoptions" />
-/// <reference types="mongoose/types/pipelinestage" />
-/// <reference types="mongoose/types/populate" />
-/// <reference types="mongoose/types/query" />
-/// <reference types="mongoose/types/schemaoptions" />
-/// <reference types="mongoose/types/schematypes" />
-/// <reference types="mongoose/types/session" />
-/// <reference types="mongoose/types/types" />
-/// <reference types="mongoose/types/utility" />
-/// <reference types="mongoose/types/validation" />
-/// <reference types="mongoose/types/virtuals" />
-/// <reference types="mongoose/types/inferschematype" />
-import { Types } from 'mongoose';
-import { IStrategy } from '../../types/Strategy';
+import { IStrategy, IStrategyCreateInput, IStrategyUpdateInput } from '../../types/Strategy';
 export declare class StrategyService {
     private static instance;
-    private strategyModel;
     private constructor();
     static getInstance(): StrategyService;
-    createStrategy(strategyData: Partial<IStrategy>): Promise<IStrategy>;
-    getStrategyById(id: Types.ObjectId): Promise<IStrategy | null>;
-    updateStrategy(id: Types.ObjectId, updates: Partial<IStrategy>): Promise<IStrategy | null>;
-    deleteStrategy(id: Types.ObjectId): Promise<boolean>;
-    getStrategiesByUserId(userId: Types.ObjectId): Promise<IStrategy[]>;
+    createStrategy(strategyData: IStrategyCreateInput): Promise<IStrategy>;
+    getStrategyById(id: string): Promise<IStrategy | null>;
+    getStrategyByUserId(userId: string): Promise<IStrategy | null>;
+    updateStrategy(id: string, strategyData: IStrategyUpdateInput): Promise<IStrategy | null>;
+    deleteStrategy(id: string): Promise<boolean>;
+    getAllStrategies(): Promise<IStrategy[]>;
 }
 //# sourceMappingURL=strategy.service.d.ts.map

@@ -22,10 +22,13 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import mongoose from 'mongoose';
 import { IWithdrawalDocument } from '../types/Withdrawal';
-export declare const Withdrawal: mongoose.Model<IWithdrawalDocument, {}, {}, {}, mongoose.Document<unknown, {}, IWithdrawalDocument> & IWithdrawalDocument & Required<{
+export declare const Withdrawal: mongoose.Model<IWithdrawalDocument, {}, {}, {}, mongoose.Document<unknown, {}, IWithdrawalDocument, {}> & IWithdrawalDocument & Required<{
     _id: mongoose.Types.ObjectId;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 export default Withdrawal;
 //# sourceMappingURL=Withdrawal.d.ts.map

@@ -1,23 +1,24 @@
-import express from 'express';
-import type { Router } from 'express';
-import { Response } from 'express';
+import express, { Router } from 'express';
+import type { Request, Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
-import { AuthenticatedRequest } from '../types/express';
+import { adminMiddleware } from '../middleware/adminMiddleware';
 import { SettlementController } from '../controllers/SettlementController';
+import type { AuthenticatedRequest } from '../types/express';
 
-const router = express.Router();
+const router: Router = express.Router();
 const settlementController = new SettlementController();
 
-// Protected routes
+// All settlement routes require authentication and admin privileges
 router.use(ensureAuthenticated);
+router.use(adminMiddleware);
 
 // Get all settlements
 router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
   await settlementController.getSettlements(req, res);
 }));
 
-// Get single settlement
+// Get settlement details
 router.get('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
   await settlementController.getSettlementDetails(req, res);
 }));
@@ -32,9 +33,14 @@ router.put('/:id/status', handleRequest(async (req: AuthenticatedRequest, res: R
   await settlementController.updateSettlementStatus(req, res);
 }));
 
-// Delete settlement
-router.delete('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+// Update settlement
+router.put('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
   await settlementController.updateSettlement(req, res);
+}));
+
+// Get settlement summary
+router.get('/summary', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await settlementController.getSettlementSummary(req, res);
 }));
 
 // Export settlements

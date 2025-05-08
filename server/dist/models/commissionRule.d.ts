@@ -22,13 +22,16 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import mongoose, { Document, Types } from 'mongoose';
 import { ICommissionRule } from '../types/Commission';
 export interface ICommissionRuleDocument extends Omit<ICommissionRule, '_id'>, Document {
     _id: Types.ObjectId;
 }
-declare const _default: mongoose.Model<ICommissionRuleDocument, {}, {}, {}, mongoose.Document<unknown, {}, ICommissionRuleDocument> & ICommissionRuleDocument & Required<{
+declare const _default: mongoose.Model<ICommissionRuleDocument, {}, {}, {}, mongoose.Document<unknown, {}, ICommissionRuleDocument, {}> & ICommissionRuleDocument & Required<{
     _id: Types.ObjectId;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 export default _default;
 //# sourceMappingURL=CommissionRule.d.ts.map

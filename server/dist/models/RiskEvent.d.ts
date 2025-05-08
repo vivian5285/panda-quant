@@ -22,12 +22,15 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { Document, Types } from 'mongoose';
 import { IRiskEvent } from '../types/Risk';
 export interface IRiskEventDocument extends IRiskEvent, Document {
     _id: Types.ObjectId;
 }
-export declare const RiskEvent: import("mongoose").Model<IRiskEventDocument, {}, {}, {}, Document<unknown, {}, IRiskEventDocument> & IRiskEventDocument & Required<{
+export declare const RiskEvent: import("mongoose").Model<IRiskEventDocument, {}, {}, {}, Document<unknown, {}, IRiskEventDocument, {}> & IRiskEventDocument & Required<{
     _id: Types.ObjectId;
-}>, any>;
+}> & {
+    __v: number;
+}, any>;
 //# sourceMappingURL=RiskEvent.d.ts.map

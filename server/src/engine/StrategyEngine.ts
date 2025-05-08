@@ -1,5 +1,5 @@
 import { IStrategy } from '../types/Strategy';
-import { IOrder } from '../types/IOrder';
+import { IOrder } from '../types/Trading';
 import { logger } from '../utils/logger';
 import { Types } from 'mongoose';
 

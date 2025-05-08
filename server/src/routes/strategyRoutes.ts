@@ -1,40 +1,44 @@
-import express from 'express';
-import type { Router } from 'express';
-import type { Response } from 'express';
-import { handleRequest } from '../utils/requestHandler';
-import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
-import type { AuthenticatedRequest } from '../types/express';
+import { Router } from 'express';
 import { StrategyController } from '../controllers/StrategyController';
+import { authenticateToken } from '../middleware/auth';
 
-const router = express.Router();
+const router = Router();
 const strategyController = new StrategyController();
 
-// Protected routes
-router.use(ensureAuthenticated);
+// 创建策略
+router.post('/', authenticateToken, strategyController.createStrategy.bind(strategyController));
 
-// Get all strategies
-router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
-  await strategyController.getAllStrategies(req, res);
-}));
+// 获取单个策略
+router.get('/:id', authenticateToken, strategyController.getStrategy.bind(strategyController));
 
-// Get single strategy
-router.get('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
-  await strategyController.getStrategyById(req, res);
-}));
+// 更新策略
+router.put('/:id', authenticateToken, strategyController.updateStrategy.bind(strategyController));
 
-// Create strategy
-router.post('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
-  await strategyController.createStrategy(req, res);
-}));
+// 删除策略
+router.delete('/:id', authenticateToken, strategyController.deleteStrategy.bind(strategyController));
 
-// Update strategy
-router.put('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
-  await strategyController.updateStrategy(req, res);
-}));
+// 获取所有策略
+router.get('/', authenticateToken, strategyController.getAllStrategies.bind(strategyController));
 
-// Delete strategy
-router.delete('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
-  await strategyController.deleteStrategy(req, res);
-}));
+// 启动策略
+router.post('/:id/start', authenticateToken, strategyController.startStrategy.bind(strategyController));
+
+// 停止策略
+router.post('/:id/stop', authenticateToken, strategyController.stopStrategy.bind(strategyController));
+
+// 暂停策略
+router.post('/:id/pause', authenticateToken, strategyController.pauseStrategy.bind(strategyController));
+
+// 恢复策略
+router.post('/:id/resume', authenticateToken, strategyController.resumeStrategy.bind(strategyController));
+
+// 获取用户的策略
+router.get('/user/:userId', authenticateToken, strategyController.getStrategiesByUser.bind(strategyController));
+
+// 获取活跃策略
+router.get('/active/all', authenticateToken, strategyController.getActiveStrategies.bind(strategyController));
+
+// 获取热门策略
+router.get('/popular', authenticateToken, strategyController.getPopularStrategies.bind(strategyController));
 
 export default router; 

@@ -6,7 +6,7 @@ export const adminMiddleware = (
   res: Response,
   next: NextFunction
 ): void => {
-  const authReq = req as AuthenticatedRequest;
+  const authReq = req as unknown as AuthenticatedRequest;
   if (!authReq.user || !authReq.user.isAdmin) {
     res.status(403).json({ message: 'Forbidden' });
     return;

@@ -1,12 +1,11 @@
-import express from 'express';
-import type { Router } from 'express';
+import express, { Router } from 'express';
 import { Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
 import { AuthenticatedRequest } from '../types/express';
 import { UserLevelController } from '../controllers/UserLevelController';
 
-const router = express.Router();
+const router: Router = express.Router();
 const userLevelController = new UserLevelController();
 
 // Protected routes

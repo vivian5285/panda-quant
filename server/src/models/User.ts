@@ -17,6 +17,8 @@ export interface IUser {
   balance: number;
   accountBalance: number;
   subscriptionFee: number;
+  resetToken?: string;
+  resetTokenExpires?: Date;
 }
 
 export interface IUserDocument extends Document {
@@ -34,6 +36,8 @@ export interface IUserDocument extends Document {
   balance: number;
   accountBalance: number;
   subscriptionFee: number;
+  resetToken?: string;
+  resetTokenExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -99,6 +103,12 @@ const userSchema = new Schema<IUserDocument>({
   subscriptionFee: {
     type: Number,
     default: 0
+  },
+  resetToken: {
+    type: String
+  },
+  resetTokenExpires: {
+    type: Date
   }
 }, {
   timestamps: true

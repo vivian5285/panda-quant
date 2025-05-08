@@ -67,6 +67,12 @@ const userSchema = new mongoose_1.Schema({
     subscriptionFee: {
         type: Number,
         default: 0
+    },
+    resetToken: {
+        type: String
+    },
+    resetTokenExpires: {
+        type: Date
     }
 }, {
     timestamps: true

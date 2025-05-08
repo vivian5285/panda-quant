@@ -22,6 +22,7 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
+/// <reference types="mongoose/types/inferrawdoctype" />
 import { Document, Types } from 'mongoose';
 import { StrategyStatus, StrategyType } from '../types/Enums';
 export interface IStrategy {
@@ -36,8 +37,10 @@ export interface IStrategy {
 }
 export interface IStrategyDocument extends IStrategy, Document {
 }
-export declare const Strategy: import("mongoose").Model<IStrategyDocument, {}, {}, {}, Document<unknown, {}, IStrategyDocument> & IStrategyDocument & {
-    _id: Types.ObjectId;
+export declare const Strategy: import("mongoose").Model<IStrategyDocument, {}, {}, {}, Document<unknown, {}, IStrategyDocument, {}> & IStrategyDocument & Required<{
+    _id: unknown;
+}> & {
+    __v: number;
 }, any>;
 export default Strategy;
 //# sourceMappingURL=Strategy.d.ts.map

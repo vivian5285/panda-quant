@@ -13,6 +13,10 @@ const adminController = new AdminController_1.AdminController();
 // All admin routes require authentication and admin privileges
 router.use(ensureAuthenticated_1.ensureAuthenticated);
 router.use(adminMiddleware_1.adminMiddleware);
+// Dashboard
+router.get('/dashboard', (0, requestHandler_1.handleRequest)(async (req, res) => {
+    await adminController.getAdminDashboard(req, res);
+}));
 // User management
 router.get('/users', (0, requestHandler_1.handleRequest)(async (req, res) => {
     await adminController.getAllUsers(req, res);

@@ -1,15 +1,14 @@
-import express from 'express';
-import { handleRequest } from '../middleware/errorHandler';
+import express, { Router } from 'express';
 import type { Request, Response } from 'express';
+import { handleRequest } from '../utils/requestHandler';
+import { healthController } from '../controllers/HealthController';
+import type { AuthenticatedRequest } from '../types/express';
 
-const router = express.Router();
+const router: Router = express.Router();
 
-router.get('/', handleRequest(async (_req: Request, res: Response) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
+// Health check endpoint
+router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  await healthController.checkHealth(req, res);
 }));
 
 export default router; 

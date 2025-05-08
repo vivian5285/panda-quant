@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Schema, model, Document } from 'mongoose';
 import { IOrder, OrderType, OrderStatus } from '../types/Trading';
 
