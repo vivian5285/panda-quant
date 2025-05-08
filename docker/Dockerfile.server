@@ -36,7 +36,7 @@ COPY server/knexfile.ts ./knexfile.ts
 RUN chmod -R 777 /app
 
 # 生成类型声明文件
-RUN npx tsc --declaration --emitDeclarationOnly --project tsconfig.json
+RUN npx tsc --declaration --emitDeclarationOnly --project tsconfig.json --skipLibCheck
 
 # 清理并重新构建
 RUN rm -rf dist && \
