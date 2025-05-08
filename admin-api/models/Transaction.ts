@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document, models } from 'mongoose';
 
 export interface ITransaction extends Document {
   _id: string;
@@ -19,4 +19,15 @@ const transactionSchema = new Schema<ITransaction>({
   updatedAt: { type: Date, default: Date.now }
 });
 
-export const Transaction = model<ITransaction>('Transaction', transactionSchema); 
+// 使用单例模式，确保模型只被定义一次
+let TransactionModel: any;
+
+try {
+  // 尝试获取已存在的模型
+  TransactionModel = models.Transaction;
+} catch {
+  // 如果模型不存在，则创建新模型
+  TransactionModel = model<ITransaction>('Transaction', transactionSchema);
+}
+
+export const Transaction = TransactionModel; 
