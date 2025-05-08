@@ -23,6 +23,7 @@ COPY user-ui/package*.json ./
 
 # 安装依赖
 RUN npm install --legacy-peer-deps && \
+    npm install vite@latest && \
     npm cache clean --force
 
 # 复制源代码
@@ -30,6 +31,9 @@ COPY user-ui/ ./
 
 # 设置最高权限
 RUN chmod -R 777 /app
+
+# 生成类型声明文件
+RUN npx tsc --declaration --emitDeclarationOnly
 
 # 构建应用
 RUN npm run build
