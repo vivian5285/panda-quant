@@ -66,6 +66,19 @@ module.exports = {
       exp_backoff_restart_delay: 100,
       instances: 1,
       exec_mode: 'fork'
+    },
+    {
+      name: 'server',
+      cwd: './server',
+      script: 'dist/index.js',
+      env: {
+        NODE_ENV: 'production'
+      },
+      watch: false,
+      max_memory_restart: '1G',
+      exp_backoff_restart_delay: 100,
+      instances: 1,
+      exec_mode: 'fork'
     }
   ]
 }; 
