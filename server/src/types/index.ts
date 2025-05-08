@@ -12,35 +12,35 @@ import type {
   OrderStatus,
   TradeStatus
 } from './Enums';
-import type { User } from './User';
-import type { Strategy } from './Strategy';
-import type { Commission } from './Commission';
+import type { IUser } from './User';
+import type { IStrategy } from './Strategy';
+import type { ICommission } from './Commission';
 import type { ICommissionWithdrawal } from './CommissionWithdrawal';
-import type { Alert } from './Alert';
-import type { Deposit } from './Deposit';
-import type { Position } from './Position';
+import type { IAlert } from './Alert';
+import type { IDeposit } from './Deposit';
+import type { IPosition } from './Position';
 import type { IStrategyRating } from './StrategyRating';
 import type { IBlacklistEntry } from './Blacklist';
 import type { IUserLevel } from './UserLevel';
 import type { AuthRequest, AuthenticatedRequest } from './Auth';
 import type { 
-  Order, 
-  OrderBook,
-  OrderHistory,
-  OrderCreateInput,
-  OrderUpdateInput,
-  Trade,
-  TradeCreateInput,
-  TradeUpdateInput
+  IOrder, 
+  IOrderBook,
+  IOrderHistory,
+  IOrderCreateInput,
+  IOrderUpdateInput,
+  ITrade,
+  ITradeCreateInput,
+  ITradeUpdateInput
 } from './Trading';
 import type { 
-  StrategyPerformance, 
-  PerformanceMetrics, 
-  PerformanceTrade,
-  PerformancePeriod,
-  PerformanceReport,
-  PerformanceChart,
-  PerformanceComparison
+  IStrategyPerformance, 
+  IPerformanceMetrics, 
+  IPerformanceTrade,
+  IPerformancePeriod,
+  IPerformanceReport,
+  IPerformanceChart,
+  IPerformanceComparison
 } from './Performance';
 import type { 
   IExchangeCredentials, 
@@ -60,32 +60,32 @@ import type {
 
 // Export all types
 export type {
-  User,
-  Strategy,
-  Commission,
+  IUser,
+  IStrategy,
+  ICommission,
   ICommissionWithdrawal,
-  Alert,
-  Deposit,
-  Position,
+  IAlert,
+  IDeposit,
+  IPosition,
   IStrategyRating,
   IBlacklistEntry,
   IUserLevel,
   AuthRequest,
-  Order,
-  StrategyPerformance,
-  PerformanceMetrics,
-  PerformanceTrade,
-  PerformancePeriod,
-  PerformanceReport,
-  PerformanceChart,
-  PerformanceComparison,
-  Trade,
-  OrderBook,
-  OrderHistory,
-  OrderCreateInput,
-  OrderUpdateInput,
-  TradeCreateInput,
-  TradeUpdateInput,
+  IOrder,
+  IStrategyPerformance,
+  IPerformanceMetrics,
+  IPerformanceTrade,
+  IPerformancePeriod,
+  IPerformanceReport,
+  IPerformanceChart,
+  IPerformanceComparison,
+  ITrade,
+  IOrderBook,
+  IOrderHistory,
+  IOrderCreateInput,
+  IOrderUpdateInput,
+  ITradeCreateInput,
+  ITradeUpdateInput,
   IExchangeCredentials,
   IExchangeBalance,
   IExchangeOrder,
@@ -111,31 +111,31 @@ export type {
 };
 
 // Export interfaces
-export interface UserDocument extends Document {
+export interface IUserDocument extends Document {
   // ... user document fields
 }
 
-export interface StrategyDocument extends Document {
+export interface IStrategyDocument extends Document {
   // ... strategy document fields
 }
 
-export interface OrderDocument extends Document {
+export interface IOrderDocument extends Document {
   // ... order document fields
 }
 
-export interface CommissionDocument extends Document {
+export interface ICommissionDocument extends Document {
   // ... commission document fields
 }
 
-export interface StrategyRatingDocument extends Document {
+export interface IStrategyRatingDocument extends Document {
   // ... strategy rating document fields
 }
 
-export interface UserLevelDocument extends Document {
+export interface IUserLevelDocument extends Document {
   // ... user level document fields
 }
 
-export interface CommissionWithdrawalDocument extends Document {
+export interface ICommissionWithdrawalDocument extends Document {
   // ... commission withdrawal document fields
 }
 
@@ -147,29 +147,29 @@ export enum Network {
 }
 
 // Export interfaces
-export interface NetworkStatus {
+export interface INetworkStatus {
   network: Network;
   isHealthy: boolean;
   lastChecked: Date;
   error?: string;
 }
 
-export interface OrderWithRetry {
+export interface IOrderWithRetry {
   retryCount: number;
 }
 
-export interface OrderQueue {
-  orders: OrderWithRetry[];
+export interface IOrderQueue {
+  orders: IOrderWithRetry[];
   isProcessing: boolean;
 }
 
-export interface StrategyExecutionResult {
+export interface IStrategyExecutionResult {
   success: boolean;
   message: string;
   data?: any;
 }
 
-export interface PaginatedResponse<T> {
+export interface IPaginatedResponse<T> {
   data: T[];
   total: number;
   page: number;
