@@ -1,5 +1,5 @@
 import type { Document, Types } from 'mongoose';
-import type { TradeType } from './Enums';
+import type { OrderType, OrderStatus, TradeStatus } from './Enums';
 
 export enum OrderType {
   MARKET = 'market',

@@ -1,5 +1,3 @@
-import { OrderType, OrderStatus, TradeStatus } from './Trading';
-
 export enum StrategyType {
   TREND_FOLLOWING = 'trend_following',
   MEAN_REVERSION = 'mean_reversion',
@@ -115,4 +113,25 @@ export enum ReportPeriod {
   CUSTOM = 'custom'
 }
 
-export { OrderType, OrderStatus }; 
+export enum OrderType {
+  MARKET = 'market',
+  LIMIT = 'limit',
+  STOP = 'stop',
+  STOP_LIMIT = 'stop_limit'
+}
+
+export enum OrderStatus {
+  PENDING = 'pending',
+  OPEN = 'open',
+  FILLED = 'filled',
+  PARTIALLY_FILLED = 'partially_filled',
+  CANCELLED = 'cancelled',
+  REJECTED = 'rejected',
+  EXPIRED = 'expired'
+}
+
+export enum TradeStatus {
+  OPEN = 'open',
+  CLOSED = 'closed',
+  CANCELLED = 'cancelled'
+} 

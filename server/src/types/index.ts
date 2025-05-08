@@ -7,7 +7,10 @@ import type {
   RiskLevel,
   CommissionType,
   CommissionStatus,
-  WithdrawalStatus
+  WithdrawalStatus,
+  OrderType,
+  OrderStatus,
+  TradeStatus
 } from './Enums';
 import type { User } from './User';
 import type { Strategy } from './Strategy';
@@ -22,13 +25,11 @@ import type { IUserLevel } from './UserLevel';
 import type { AuthRequest, AuthenticatedRequest } from './Auth';
 import type { 
   Order, 
-  OrderType, 
-  OrderStatus,
-  Trade,
   OrderBook,
   OrderHistory,
   OrderCreateInput,
   OrderUpdateInput,
+  Trade,
   TradeCreateInput,
   TradeUpdateInput
 } from './Trading';
@@ -98,6 +99,7 @@ export type {
   IMT4MarketData,
   OrderType,
   OrderStatus,
+  TradeStatus,
   AuthenticatedRequest,
   StrategyType,
   StrategyStatus,
