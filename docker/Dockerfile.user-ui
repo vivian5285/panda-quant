@@ -23,7 +23,7 @@ COPY user-ui/package*.json ./
 
 # 安装依赖
 RUN npm install --legacy-peer-deps && \
-    npm install vite@latest --legacy-peer-deps && \
+    npm install vite@4.5.2 --legacy-peer-deps && \
     npm cache clean --force
 
 # 复制源代码
