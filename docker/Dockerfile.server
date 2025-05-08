@@ -24,16 +24,17 @@ COPY server/package*.json server/tsconfig*.json ./
 RUN npm install --legacy-peer-deps --force && \
     npm cache clean --force
 
-# 首先复制类型定义文件
-COPY server/src/types ./src/types
-
-# 然后复制其他源代码和配置文件
+# 复制所有源代码和配置文件
 COPY server/src ./src
 COPY server/locales ./locales
 COPY server/mt4 ./mt4
 COPY server/.env ./.env
 COPY server/.eslintrc.json ./.eslintrc.json
 COPY server/knexfile.ts ./knexfile.ts
+
+# 创建类型声明文件
+RUN mkdir -p dist/types && \
+    cp -r src/types/* dist/types/
 
 # 构建应用
 RUN npm run build

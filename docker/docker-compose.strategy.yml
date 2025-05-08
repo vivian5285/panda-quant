@@ -16,10 +16,18 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - mongo
-      - redis
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - strategy-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   strategy-engine:
     build:
@@ -38,11 +46,20 @@ services:
     ports:
       - "3003:3003"
     depends_on:
-      - server
-      - mongo
-      - redis
+      server:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - strategy-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   nginx-strategy:
     image: nginx:latest
@@ -60,10 +77,17 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/log/nginx:/var/log/nginx
     depends_on:
-      - server
-      - strategy-engine
+      server:
+        condition: service_healthy
+      strategy-engine:
+        condition: service_healthy
     networks:
       - strategy-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   mongo:
     image: mongo:latest
@@ -79,6 +103,12 @@ services:
     command: mongod --bind_ip_all
     networks:
       - strategy-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
   redis:
     image: redis:latest
@@ -93,6 +123,12 @@ services:
       - redis_data:/data
     networks:
       - strategy-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   mongo_data:

@@ -30,6 +30,7 @@ COPY user-ui/ ./
 
 # 设置权限并构建应用
 RUN chmod -R 755 /app && \
+    npm install vite@latest && \
     npm run build
 
 # 生产阶段
