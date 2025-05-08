@@ -20,6 +20,11 @@ services:
       - redis
     networks:
       - user-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   ui:
     build:
@@ -38,7 +43,8 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - user-network
 
@@ -56,6 +62,11 @@ services:
     command: mongod --bind_ip_all
     networks:
       - user-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   redis:
     image: redis:latest
@@ -70,6 +81,11 @@ services:
       - redis_data:/data
     networks:
       - user-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   mongo_data:

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateUserLevel = exports.userLevelValidator = void 0;
+exports.userLevelValidator = void 0;
+exports.validateUserLevel = validateUserLevel;
 const express_validator_1 = require("express-validator");
 exports.userLevelValidator = [
     (0, express_validator_1.body)('name').isString().notEmpty().withMessage('Name is required'),
@@ -43,5 +44,4 @@ function validateUserLevel(levelData) {
         throw new Error('Invalid metadata');
     }
 }
-exports.validateUserLevel = validateUserLevel;
 //# sourceMappingURL=userLevelValidator.js.map
