@@ -57,7 +57,7 @@ module.exports = {
       name: 'user-ui',
       cwd: './user-ui',
       script: 'serve',
-      args: 'dist -s -l 3004',
+      args: '--single --listen 3004 dist',
       env: {
         NODE_ENV: 'production'
       },
