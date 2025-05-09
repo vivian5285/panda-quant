@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettlementController = void 0;
 const SettlementService_1 = require("../services/SettlementService");
 const Enums_1 = require("../types/Enums");
-const Settlement_1 = __importDefault(require("../models/Settlement"));
+const settlement_model_1 = __importDefault(require("../models/settlement.model"));
 const logger_1 = require("../utils/logger");
 const mongoose_1 = require("mongoose");
 class SettlementController {
@@ -17,7 +17,7 @@ class SettlementController {
                     res.status(401).json({ message: 'Unauthorized' });
                     return;
                 }
-                const settlements = await Settlement_1.default.find({ userId: new mongoose_1.Types.ObjectId(req.user['id']) });
+                const settlements = await settlement_model_1.default.find({ userId: new mongoose_1.Types.ObjectId(req.user['id']) });
                 res.json(settlements);
             }
             catch (error) {
@@ -48,7 +48,7 @@ class SettlementController {
                     res.status(401).json({ message: 'Unauthorized' });
                     return;
                 }
-                const settlement = new Settlement_1.default({
+                const settlement = new settlement_model_1.default({
                     ...req.body,
                     userId: new mongoose_1.Types.ObjectId(req.user['id'])
                 });
@@ -72,7 +72,7 @@ class SettlementController {
                     res.status(400).json({ error: 'Invalid status' });
                     return;
                 }
-                const settlement = await Settlement_1.default.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), { status }, { new: true });
+                const settlement = await settlement_model_1.default.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), { status }, { new: true });
                 if (!settlement) {
                     res.status(404).json({ error: 'Settlement not found' });
                     return;
@@ -108,7 +108,7 @@ class SettlementController {
                     res.status(401).json({ message: 'Unauthorized' });
                     return;
                 }
-                const settlements = await Settlement_1.default.find({ userId: new mongoose_1.Types.ObjectId(req.user['id']) });
+                const settlements = await settlement_model_1.default.find({ userId: new mongoose_1.Types.ObjectId(req.user['id']) });
                 res.json(settlements);
             }
             catch (error) {
@@ -137,7 +137,7 @@ class SettlementController {
                     return;
                 }
                 const { id } = req.params;
-                const settlement = await Settlement_1.default.findById(new mongoose_1.Types.ObjectId(id));
+                const settlement = await settlement_model_1.default.findById(new mongoose_1.Types.ObjectId(id));
                 if (!settlement) {
                     res.status(404).json({ message: 'Settlement not found' });
                     return;
@@ -157,7 +157,7 @@ class SettlementController {
                     return;
                 }
                 const { id } = req.params;
-                const settlement = await Settlement_1.default.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), req.body, { new: true });
+                const settlement = await settlement_model_1.default.findByIdAndUpdate(new mongoose_1.Types.ObjectId(id), req.body, { new: true });
                 if (!settlement) {
                     res.status(404).json({ message: 'Settlement not found' });
                     return;

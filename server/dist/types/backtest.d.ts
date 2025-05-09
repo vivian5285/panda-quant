@@ -1,27 +1,31 @@
 import { Document, Types } from 'mongoose';
 export interface IBacktest {
+    _id: Types.ObjectId;
     userId: Types.ObjectId;
     strategyId: Types.ObjectId;
     name: string;
-    description?: string;
-    startDate: Date;
-    endDate: Date;
-    initialBalance: number;
-    finalBalance: number;
-    totalReturn: number;
-    annualizedReturn: number;
-    averageTrade: number;
-    trades: Array<{
-        symbol: string;
-        type: 'long' | 'short';
-        entryPrice: number;
-        exitPrice: number;
-        quantity: number;
-        profit: number;
-        timestamp: Date;
-    }>;
+    description: string;
+    period: {
+        start: Date;
+        end: Date;
+    };
     parameters: Record<string, any>;
+    results: {
+        totalReturn: number;
+        annualizedReturn: number;
+        sharpeRatio: number;
+        sortinoRatio: number;
+        maxDrawdown: number;
+        winRate: number;
+        profitFactor: number;
+        averageTrade: number;
+        totalTrades: number;
+        winningTrades: number;
+        losingTrades: number;
+    };
     status: 'running' | 'completed' | 'failed';
+    error: string;
+    metadata: Record<string, any>;
     createdAt: Date;
     updatedAt: Date;
 }

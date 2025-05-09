@@ -34,13 +34,13 @@ import type {
   ITradeUpdateInput
 } from './Trading';
 import type { 
-  IStrategyPerformance, 
-  IPerformanceMetrics, 
-  IPerformanceTrade,
-  IPerformancePeriod,
-  IPerformanceReport,
-  IPerformanceChart,
-  IPerformanceComparison
+  StrategyPerformance as IStrategyPerformance,
+  PerformanceMetrics as IPerformanceMetrics,
+  PerformanceTrade as IPerformanceTrade,
+  PerformancePeriod as IPerformancePeriod,
+  PerformanceReport as IPerformanceReport,
+  PerformanceChart as IPerformanceChart,
+  PerformanceComparison as IPerformanceComparison
 } from './Performance';
 import type { 
   IExchangeCredentials, 
@@ -175,4 +175,14 @@ export interface IPaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages: number;
-} 
+}
+
+export type {
+  StrategyPerformance,
+  PerformanceMetrics,
+  PerformanceTrade,
+  PerformancePeriod,
+  PerformanceReport,
+  PerformanceChart,
+  PerformanceComparison
+} from './Performance'; 

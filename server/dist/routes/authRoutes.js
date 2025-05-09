@@ -6,13 +6,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const AuthController_1 = __importDefault(require("../controllers/AuthController"));
 const authMiddleware_1 = require("../middleware/authMiddleware");
+const common_1 = require("../validations/common");
+const auth_1 = require("../validations/common/auth");
 const router = express_1.default.Router();
 // Public routes
-router.post('/login', (req, res) => {
+router.post('/login', (0, common_1.validateRequest)(auth_1.loginSchema), (req, res) => {
     const authReq = req;
     AuthController_1.default.login(authReq, res);
 });
-router.post('/register', (req, res) => {
+router.post('/register', (0, common_1.validateRequest)(auth_1.registerSchema), (req, res) => {
     const authReq = req;
     AuthController_1.default.register(authReq, res);
 });

@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
-import { Commission } from '../models/Commission';
-import CommissionRule from '../models/CommissionRule';
-import { ICommission, ICommissionRule } from '../types/Commission';
+import { Commission } from '../models/commission.model';
+import { CommissionRule } from '../models/commission-rule.model';
+import { ICommission, ICommissionRule, ICommissionDocument, CommissionCreateInput, CommissionUpdateInput } from '../types/Commission';
 import { CommissionType, CommissionStatus } from '../types/Enums';
 import { logger } from '../utils/logger';
 
@@ -17,7 +17,7 @@ export class CommissionService {
     return CommissionService.instance;
   }
 
-  private convertToICommission(commission: any): ICommission {
+  private convertToICommission(commission: ICommissionDocument): ICommission {
     const commissionObject = commission.toObject();
     return {
       ...commissionObject,
@@ -36,16 +36,17 @@ export class CommissionService {
       _id: ruleObject._id.toString(),
       name: ruleObject.name || '',
       description: ruleObject.description || '',
-      type: ruleObject.type as 'percentage' | 'fixed',
+      type: ruleObject.type as CommissionType,
       value: ruleObject.value || 0,
       conditions: ruleObject.conditions || {},
       isActive: ruleObject.isActive ?? true,
+      status: ruleObject.status as CommissionStatus,
       createdAt: ruleObject.createdAt || new Date(),
       updatedAt: ruleObject.updatedAt || new Date()
     } as ICommissionRule;
   }
 
-  public async createCommission(commissionData: Partial<ICommission>): Promise<ICommission> {
+  public async createCommission(commissionData: CommissionCreateInput): Promise<ICommission> {
     try {
       const commission = new Commission(commissionData);
       const savedCommission = await commission.save();
@@ -76,7 +77,7 @@ export class CommissionService {
     }
   }
 
-  public async updateCommission(id: string, updateData: Partial<ICommission>): Promise<ICommission | null> {
+  public async updateCommission(id: string, updateData: CommissionUpdateInput): Promise<ICommission | null> {
     try {
       const commission = await Commission.findByIdAndUpdate(
         id,
@@ -110,7 +111,7 @@ export class CommissionService {
     }
   }
 
-  public async getCommissionsByStatus(status: string): Promise<ICommission[]> {
+  public async getCommissionsByStatus(status: CommissionStatus): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({ status });
       return commissions.map(commission => this.convertToICommission(commission));
@@ -135,7 +136,7 @@ export class CommissionService {
     }
   }
 
-  public async getCommissionsByType(type: string): Promise<ICommission[]> {
+  public async getCommissionsByType(type: CommissionType): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({ type });
       return commissions.map(commission => this.convertToICommission(commission));
@@ -167,7 +168,7 @@ export class CommissionService {
 
   public async getCommissionsByUserAndStatus(
     userId: string,
-    status: string
+    status: CommissionStatus
   ): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({ userId, status });
@@ -180,7 +181,7 @@ export class CommissionService {
 
   public async getCommissionsByUserAndType(
     userId: string,
-    type: string
+    type: CommissionType
   ): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({ userId, type });
@@ -195,7 +196,7 @@ export class CommissionService {
     userId: string,
     startDate: Date,
     endDate: Date,
-    status: string
+    status: CommissionStatus
   ): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({
@@ -208,7 +209,7 @@ export class CommissionService {
       });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by user, date range and status:', error);
+      logger.error('Error getting commissions by user and date range and status:', error);
       throw error;
     }
   }
@@ -217,7 +218,7 @@ export class CommissionService {
     userId: string,
     startDate: Date,
     endDate: Date,
-    type: string
+    type: CommissionType
   ): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({
@@ -230,7 +231,7 @@ export class CommissionService {
       });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by user, date range and type:', error);
+      logger.error('Error getting commissions by user and date range and type:', error);
       throw error;
     }
   }
@@ -239,8 +240,8 @@ export class CommissionService {
     userId: string,
     startDate: Date,
     endDate: Date,
-    status: string,
-    type: string
+    status: CommissionStatus,
+    type: CommissionType
   ): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({
@@ -254,7 +255,7 @@ export class CommissionService {
       });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by user, date range, status and type:', error);
+      logger.error('Error getting commissions by user and date range and status and type:', error);
       throw error;
     }
   }
@@ -262,7 +263,7 @@ export class CommissionService {
   public async getCommissionsByDateRangeAndStatus(
     startDate: Date,
     endDate: Date,
-    status: string
+    status: CommissionStatus
   ): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({
@@ -282,7 +283,7 @@ export class CommissionService {
   public async getCommissionsByDateRangeAndType(
     startDate: Date,
     endDate: Date,
-    type: string
+    type: CommissionType
   ): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({
@@ -302,8 +303,8 @@ export class CommissionService {
   public async getCommissionsByDateRangeAndStatusAndType(
     startDate: Date,
     endDate: Date,
-    status: string,
-    type: string
+    status: CommissionStatus,
+    type: CommissionType
   ): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({
@@ -316,14 +317,14 @@ export class CommissionService {
       });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by date range, status and type:', error);
+      logger.error('Error getting commissions by date range and status and type:', error);
       throw error;
     }
   }
 
   public async getCommissionsByStatusAndType(
-    status: string,
-    type: string
+    status: CommissionStatus,
+    type: CommissionType
   ): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({ status, type });
@@ -336,14 +337,14 @@ export class CommissionService {
 
   public async getCommissionsByUserAndStatusAndType(
     userId: string,
-    status: string,
-    type: string
+    status: CommissionStatus,
+    type: CommissionType
   ): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({ userId, status, type });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by user, status and type:', error);
+      logger.error('Error getting commissions by user and status and type:', error);
       throw error;
     }
   }
@@ -352,8 +353,8 @@ export class CommissionService {
     userId: string,
     startDate: Date,
     endDate: Date,
-    status: string,
-    type: string,
+    status: CommissionStatus,
+    type: CommissionType,
     amount: number
   ): Promise<ICommission[]> {
     try {
@@ -369,7 +370,7 @@ export class CommissionService {
       });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by user, date range, status, type and amount:', error);
+      logger.error('Error getting commissions by user and date range and status and type and amount:', error);
       throw error;
     }
   }
@@ -377,8 +378,8 @@ export class CommissionService {
   public async getCommissionsByDateRangeAndStatusAndTypeAndAmount(
     startDate: Date,
     endDate: Date,
-    status: string,
-    type: string,
+    status: CommissionStatus,
+    type: CommissionType,
     amount: number
   ): Promise<ICommission[]> {
     try {
@@ -393,36 +394,36 @@ export class CommissionService {
       });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by date range, status, type and amount:', error);
+      logger.error('Error getting commissions by date range and status and type and amount:', error);
       throw error;
     }
   }
 
   public async getCommissionsByStatusAndTypeAndAmount(
-    status: string,
-    type: string,
+    status: CommissionStatus,
+    type: CommissionType,
     amount: number
   ): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({ status, type, amount });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by status, type and amount:', error);
+      logger.error('Error getting commissions by status and type and amount:', error);
       throw error;
     }
   }
 
   public async getCommissionsByUserAndStatusAndTypeAndAmount(
     userId: string,
-    status: string,
-    type: string,
+    status: CommissionStatus,
+    type: CommissionType,
     amount: number
   ): Promise<ICommission[]> {
     try {
       const commissions = await Commission.find({ userId, status, type, amount });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by user, status, type and amount:', error);
+      logger.error('Error getting commissions by user and status and type and amount:', error);
       throw error;
     }
   }
@@ -431,8 +432,8 @@ export class CommissionService {
     userId: string,
     startDate: Date,
     endDate: Date,
-    status: string,
-    type: string,
+    status: CommissionStatus,
+    type: CommissionType,
     amount: number,
     currency: string
   ): Promise<ICommission[]> {
@@ -450,7 +451,7 @@ export class CommissionService {
       });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by user, date range, status, type, amount and currency:', error);
+      logger.error('Error getting commissions by user and date range and status and type and amount and currency:', error);
       throw error;
     }
   }
@@ -458,8 +459,8 @@ export class CommissionService {
   public async getCommissionsByDateRangeAndStatusAndTypeAndAmountAndCurrency(
     startDate: Date,
     endDate: Date,
-    status: string,
-    type: string,
+    status: CommissionStatus,
+    type: CommissionType,
     amount: number,
     currency: string
   ): Promise<ICommission[]> {
@@ -476,14 +477,14 @@ export class CommissionService {
       });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by date range, status, type, amount and currency:', error);
+      logger.error('Error getting commissions by date range and status and type and amount and currency:', error);
       throw error;
     }
   }
 
   public async getCommissionsByStatusAndTypeAndAmountAndCurrency(
-    status: string,
-    type: string,
+    status: CommissionStatus,
+    type: CommissionType,
     amount: number,
     currency: string
   ): Promise<ICommission[]> {
@@ -491,15 +492,15 @@ export class CommissionService {
       const commissions = await Commission.find({ status, type, amount, currency });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by status, type, amount and currency:', error);
+      logger.error('Error getting commissions by status and type and amount and currency:', error);
       throw error;
     }
   }
 
   public async getCommissionsByUserAndStatusAndTypeAndAmountAndCurrency(
     userId: string,
-    status: string,
-    type: string,
+    status: CommissionStatus,
+    type: CommissionType,
     amount: number,
     currency: string
   ): Promise<ICommission[]> {
@@ -507,7 +508,7 @@ export class CommissionService {
       const commissions = await Commission.find({ userId, status, type, amount, currency });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by user, status, type, amount and currency:', error);
+      logger.error('Error getting commissions by user and status and type and amount and currency:', error);
       throw error;
     }
   }
@@ -516,8 +517,8 @@ export class CommissionService {
     userId: string,
     startDate: Date,
     endDate: Date,
-    status: string,
-    type: string,
+    status: CommissionStatus,
+    type: CommissionType,
     amount: number,
     currency: string,
     description: string
@@ -537,7 +538,7 @@ export class CommissionService {
       });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by user, date range, status, type, amount, currency and description:', error);
+      logger.error('Error getting commissions by user and date range and status and type and amount and currency and description:', error);
       throw error;
     }
   }
@@ -545,8 +546,8 @@ export class CommissionService {
   public async getCommissionsByDateRangeAndStatusAndTypeAndAmountAndCurrencyAndDescription(
     startDate: Date,
     endDate: Date,
-    status: string,
-    type: string,
+    status: CommissionStatus,
+    type: CommissionType,
     amount: number,
     currency: string,
     description: string
@@ -565,14 +566,14 @@ export class CommissionService {
       });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by date range, status, type, amount, currency and description:', error);
+      logger.error('Error getting commissions by date range and status and type and amount and currency and description:', error);
       throw error;
     }
   }
 
   public async getCommissionsByStatusAndTypeAndAmountAndCurrencyAndDescription(
-    status: string,
-    type: string,
+    status: CommissionStatus,
+    type: CommissionType,
     amount: number,
     currency: string,
     description: string
@@ -581,15 +582,15 @@ export class CommissionService {
       const commissions = await Commission.find({ status, type, amount, currency, description });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by status, type, amount, currency and description:', error);
+      logger.error('Error getting commissions by status and type and amount and currency and description:', error);
       throw error;
     }
   }
 
   public async getCommissionsByUserAndStatusAndTypeAndAmountAndCurrencyAndDescription(
     userId: string,
-    status: string,
-    type: string,
+    status: CommissionStatus,
+    type: CommissionType,
     amount: number,
     currency: string,
     description: string
@@ -598,14 +599,14 @@ export class CommissionService {
       const commissions = await Commission.find({ userId, status, type, amount, currency, description });
       return commissions.map(commission => this.convertToICommission(commission));
     } catch (error) {
-      logger.error('Error getting commissions by user, status, type, amount, currency and description:', error);
+      logger.error('Error getting commissions by user and status and type and amount and currency and description:', error);
       throw error;
     }
   }
 
   public async getCommissionRules(): Promise<ICommissionRule[]> {
     try {
-      const rules = await CommissionRule.find().sort({ createdAt: -1 });
+      const rules = await CommissionRule.find();
       return rules.map(rule => this.convertToICommissionRule(rule));
     } catch (error) {
       logger.error('Error getting commission rules:', error);
@@ -613,7 +614,7 @@ export class CommissionService {
     }
   }
 
-  public async createCommissionRule(data: Partial<ICommissionRule>): Promise<ICommissionRule> {
+  public async createCommissionRule(data: Omit<ICommissionRule, '_id' | 'createdAt' | 'updatedAt'>): Promise<ICommissionRule> {
     try {
       const rule = new CommissionRule(data);
       const savedRule = await rule.save();
@@ -626,12 +627,12 @@ export class CommissionService {
 
   public async updateCommissionRule(id: string, updateData: Partial<ICommissionRule>): Promise<ICommissionRule | null> {
     try {
-      const updatedRule = await CommissionRule.findByIdAndUpdate(
+      const rule = await CommissionRule.findByIdAndUpdate(
         id,
         { $set: updateData },
         { new: true }
       );
-      return updatedRule ? this.convertToICommissionRule(updatedRule) : null;
+      return rule ? this.convertToICommissionRule(rule) : null;
     } catch (error) {
       logger.error('Error updating commission rule:', error);
       throw error;
@@ -647,4 +648,6 @@ export class CommissionService {
       throw error;
     }
   }
-} 
+}
+
+export const commissionService = CommissionService.getInstance(); 

@@ -8,8 +8,7 @@ const handleRequest = (handler) => {
             if (!(0, typeGuards_1.isAuthenticatedRequest)(req)) {
                 throw new Error('Invalid request type');
             }
-            const authReq = req;
-            await handler(authReq, res, next);
+            await handler(req, res, next);
         }
         catch (error) {
             next(error);

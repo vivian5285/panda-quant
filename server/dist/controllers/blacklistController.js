@@ -1,16 +1,19 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.blacklistController = void 0;
 const BlacklistService_1 = require("../services/BlacklistService");
 const errorHandler_1 = require("../utils/errorHandler");
-const Blacklist_1 = require("../models/Blacklist");
+const blacklist_model_1 = __importDefault(require("../models/blacklist.model"));
 const logger_1 = require("../utils/logger");
 const blacklistService = BlacklistService_1.BlacklistService.getInstance();
 exports.blacklistController = {
     // 获取所有黑名单条目
     async getAllEntries(_req, res) {
         try {
-            const entries = await Blacklist_1.BlacklistEntry.find();
+            const entries = await blacklist_model_1.default.find();
             res.json(entries);
         }
         catch (error) {
@@ -37,7 +40,7 @@ exports.blacklistController = {
     async createEntry(req, res) {
         try {
             const { address, reason } = req.body;
-            const entry = new Blacklist_1.BlacklistEntry({ address, reason });
+            const entry = new blacklist_model_1.default({ address, reason });
             await entry.save();
             res.status(201).json(entry);
         }
@@ -51,7 +54,7 @@ exports.blacklistController = {
         try {
             const { id } = req.params;
             const { reason } = req.body;
-            const entry = await Blacklist_1.BlacklistEntry.findByIdAndUpdate(id, { reason }, { new: true });
+            const entry = await blacklist_model_1.default.findByIdAndUpdate(id, { reason }, { new: true });
             if (!entry) {
                 res.status(404).json({ error: 'Entry not found' });
                 return;
@@ -82,7 +85,7 @@ exports.blacklistController = {
     async searchEntries(req, res) {
         try {
             const { query } = req.query;
-            const entries = await Blacklist_1.BlacklistEntry.find({
+            const entries = await blacklist_model_1.default.find({
                 $or: [
                     { address: { $regex: query, $options: 'i' } },
                     { reason: { $regex: query, $options: 'i' } }

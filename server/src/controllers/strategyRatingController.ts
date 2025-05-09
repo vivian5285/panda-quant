@@ -1,13 +1,14 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { StrategyRatingService } from '../services/StrategyRatingService';
 import { AuthenticatedRequest } from '../types/express';
 import { logger } from '../utils/logger';
+import { AppError } from '../utils/AppError';
 
 export class StrategyRatingController {
   private strategyRatingService: StrategyRatingService;
 
   constructor() {
-    this.strategyRatingService = new StrategyRatingService();
+    this.strategyRatingService = StrategyRatingService.getInstance();
   }
 
   public async createRating(req: AuthenticatedRequest, res: Response): Promise<void> {

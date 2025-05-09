@@ -5,7 +5,7 @@ import adminRoutes from './admin';
 import healthRoutes from './health';
 import profitRoutes from './profitRoutes';
 import settlementRoutes from './settlement.routes';
-import strategyRoutes from './Strategy';
+import strategyRoutes from './strategyRoutes';
 import { authenticate } from '../middleware/authMiddleware';
 
 const router: Router = express.Router();

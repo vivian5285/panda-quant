@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WithdrawalService = void 0;
-const Withdrawal_1 = require("../models/Withdrawal");
+const withdrawal_model_1 = require("../models/withdrawal.model");
 const logger_1 = require("../utils/logger");
 class WithdrawalService {
     constructor() { }
@@ -11,11 +11,20 @@ class WithdrawalService {
         }
         return WithdrawalService.instance;
     }
-    async createWithdrawal(data) {
+    convertToIWithdrawal(withdrawal) {
+        const withdrawalObject = withdrawal.toObject();
+        return {
+            ...withdrawalObject,
+            _id: withdrawalObject._id.toString(),
+            userId: withdrawalObject.userId.toString(),
+            status: withdrawalObject.status
+        };
+    }
+    async createWithdrawal(withdrawalData) {
         try {
-            const withdrawal = new Withdrawal_1.Withdrawal(data);
+            const withdrawal = new withdrawal_model_1.Withdrawal(withdrawalData);
             const savedWithdrawal = await withdrawal.save();
-            return savedWithdrawal.toObject();
+            return this.convertToIWithdrawal(savedWithdrawal);
         }
         catch (error) {
             logger_1.logger.error('Error creating withdrawal:', error);
@@ -24,18 +33,38 @@ class WithdrawalService {
     }
     async getWithdrawalById(id) {
         try {
-            const withdrawal = await Withdrawal_1.Withdrawal.findById(id);
-            return withdrawal ? withdrawal.toObject() : null;
+            const withdrawal = await withdrawal_model_1.Withdrawal.findById(id);
+            return withdrawal ? this.convertToIWithdrawal(withdrawal) : null;
         }
         catch (error) {
             logger_1.logger.error('Error getting withdrawal:', error);
             throw error;
         }
     }
+    async getWithdrawalByUserId(userId) {
+        try {
+            const withdrawal = await withdrawal_model_1.Withdrawal.findOne({ userId });
+            return withdrawal ? this.convertToIWithdrawal(withdrawal) : null;
+        }
+        catch (error) {
+            logger_1.logger.error('Error getting withdrawal by user id:', error);
+            throw error;
+        }
+    }
+    async getWithdrawalsByUserId(userId) {
+        try {
+            const withdrawals = await withdrawal_model_1.Withdrawal.find({ userId });
+            return withdrawals.map(withdrawal => this.convertToIWithdrawal(withdrawal));
+        }
+        catch (error) {
+            logger_1.logger.error('Error getting withdrawals by user id:', error);
+            throw error;
+        }
+    }
     async updateWithdrawal(id, data) {
         try {
-            const withdrawal = await Withdrawal_1.Withdrawal.findByIdAndUpdate(id, data, { new: true });
-            return withdrawal ? withdrawal.toObject() : null;
+            const withdrawal = await withdrawal_model_1.Withdrawal.findByIdAndUpdate(id, data, { new: true });
+            return withdrawal ? this.convertToIWithdrawal(withdrawal) : null;
         }
         catch (error) {
             logger_1.logger.error('Error updating withdrawal:', error);
@@ -44,21 +73,11 @@ class WithdrawalService {
     }
     async deleteWithdrawal(id) {
         try {
-            const result = await Withdrawal_1.Withdrawal.findByIdAndDelete(id);
+            const result = await withdrawal_model_1.Withdrawal.findByIdAndDelete(id);
             return result !== null;
         }
         catch (error) {
             logger_1.logger.error('Error deleting withdrawal:', error);
-            throw error;
-        }
-    }
-    async getWithdrawalsByUserId(userId) {
-        try {
-            const withdrawals = await Withdrawal_1.Withdrawal.find({ userId });
-            return withdrawals.map(withdrawal => withdrawal.toObject());
-        }
-        catch (error) {
-            logger_1.logger.error('Error getting withdrawals by user:', error);
             throw error;
         }
     }

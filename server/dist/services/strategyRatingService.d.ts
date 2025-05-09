@@ -1,5 +1,9 @@
 import { IStrategyRating } from '../types/StrategyRating';
 export declare class StrategyRatingService {
+    private static instance;
+    private constructor();
+    static getInstance(): StrategyRatingService;
+    private convertToIStrategyRating;
     createRating(data: {
         userId: string;
         strategyId: string;

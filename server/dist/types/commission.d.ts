@@ -12,7 +12,10 @@ export interface ICommissionBase {
     createdAt?: Date;
     updatedAt?: Date;
 }
-export interface ICommission extends ICommissionBase, Document {
+export interface ICommission extends ICommissionBase {
+    _id: Types.ObjectId;
+}
+export interface ICommissionDocument extends Omit<ICommission, '_id'>, Document {
     _id: Types.ObjectId;
 }
 export interface ICommissionRule {
@@ -79,7 +82,7 @@ export interface ICommissionPerformance {
     totalProfit: number;
     commissionAmount: number;
 }
-export type Commission = ICommission;
+export type Commission = ICommissionDocument;
 export interface CommissionCreateInput extends Omit<ICommissionBase, 'createdAt' | 'updatedAt'> {
 }
 export interface CommissionUpdateInput extends Partial<CommissionCreateInput> {

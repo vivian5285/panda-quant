@@ -1,10 +1,31 @@
 import { Types } from 'mongoose';
-import { StrategyRating } from '../models/StrategyRating';
-import { IStrategyRating } from '../types/StrategyRating';
+import StrategyRating from '../models/strategy-rating.model';
+import { IStrategyRating, IStrategyRatingDocument } from '../types/StrategyRating';
 import { AppError } from '../utils/AppError';
 import { logger } from '../utils/logger';
 
 export class StrategyRatingService {
+  private static instance: StrategyRatingService;
+
+  private constructor() {}
+
+  public static getInstance(): StrategyRatingService {
+    if (!StrategyRatingService.instance) {
+      StrategyRatingService.instance = new StrategyRatingService();
+    }
+    return StrategyRatingService.instance;
+  }
+
+  private convertToIStrategyRating(rating: IStrategyRatingDocument): IStrategyRating {
+    const ratingObject = rating.toObject();
+    return {
+      ...ratingObject,
+      _id: ratingObject._id.toString(),
+      userId: ratingObject.userId.toString(),
+      strategyId: ratingObject.strategyId.toString()
+    } as IStrategyRating;
+  }
+
   async createRating(data: {
     userId: string;
     strategyId: string;
@@ -18,7 +39,7 @@ export class StrategyRatingService {
         strategyId: new Types.ObjectId(data.strategyId)
       });
       await ratingDoc.save();
-      return ratingDoc;
+      return this.convertToIStrategyRating(ratingDoc);
     } catch (error) {
       logger.error('Error creating rating:', error);
       throw new AppError('Failed to create rating', 500);
@@ -27,7 +48,8 @@ export class StrategyRatingService {
 
   async getStrategyRatings(strategyId: string): Promise<IStrategyRating[]> {
     try {
-      return await StrategyRating.find({ strategyId: new Types.ObjectId(strategyId) });
+      const ratings = await StrategyRating.find({ strategyId: new Types.ObjectId(strategyId) });
+      return ratings.map(this.convertToIStrategyRating);
     } catch (error) {
       logger.error('Error getting strategy ratings:', error);
       throw new AppError('Failed to get strategy ratings', 500);
@@ -36,7 +58,8 @@ export class StrategyRatingService {
 
   async getUserRatings(userId: string): Promise<IStrategyRating[]> {
     try {
-      return await StrategyRating.find({ userId: new Types.ObjectId(userId) });
+      const ratings = await StrategyRating.find({ userId: new Types.ObjectId(userId) });
+      return ratings.map(this.convertToIStrategyRating);
     } catch (error) {
       logger.error('Error getting user ratings:', error);
       throw new AppError('Failed to get user ratings', 500);
@@ -68,11 +91,12 @@ export class StrategyRatingService {
     data: { rating?: number; comment?: string }
   ): Promise<IStrategyRating | null> {
     try {
-      return await StrategyRating.findOneAndUpdate(
+      const updatedRating = await StrategyRating.findOneAndUpdate(
         { _id: new Types.ObjectId(id), userId: new Types.ObjectId(userId) },
         { $set: { ...data, updatedAt: new Date() } },
         { new: true }
       );
+      return updatedRating ? this.convertToIStrategyRating(updatedRating) : null;
     } catch (error) {
       logger.error('Error updating rating:', error);
       throw new AppError('Failed to update rating', 500);
@@ -95,7 +119,8 @@ export class StrategyRatingService {
   async getRatings(strategyId?: string): Promise<IStrategyRating[]> {
     try {
       const query = strategyId ? { strategyId: new Types.ObjectId(strategyId) } : {};
-      return await StrategyRating.find(query);
+      const ratings = await StrategyRating.find(query);
+      return ratings.map(this.convertToIStrategyRating);
     } catch (error) {
       logger.error('Error getting ratings:', error);
       throw new AppError('Failed to get ratings', 500);

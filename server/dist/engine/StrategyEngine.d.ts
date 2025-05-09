@@ -1,5 +1,5 @@
 import { IStrategy } from '../types/Strategy';
-import { IOrder } from '../types/Trading';
+import { IOrder, IOrderBase } from '../types/Trading';
 import { Types } from 'mongoose';
 export declare class StrategyEngine {
     private strategies;
@@ -11,6 +11,6 @@ export declare class StrategyEngine {
     stopStrategy(strategy: IStrategy & {
         _id: Types.ObjectId;
     }): Promise<void>;
-    createOrder(order: Omit<IOrder, '_id' | 'createdAt' | 'updatedAt'>): IOrder;
+    createOrder(order: Omit<IOrderBase, 'createdAt' | 'updatedAt'>): IOrder;
 }
 //# sourceMappingURL=StrategyEngine.d.ts.map

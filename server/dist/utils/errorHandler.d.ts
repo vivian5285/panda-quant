@@ -5,6 +5,6 @@ interface CustomError extends Error {
     errors?: ValidationError[];
 }
 export declare function handleError(res: Response, error: any): void;
-export declare const errorHandlerMiddleware: (err: CustomError, req: Request, res: Response, next: NextFunction) => Response<any, Record<string, any>>;
+export declare const errorHandlerMiddleware: (err: CustomError, req: Request, res: Response, next: NextFunction) => any;
 export {};
 //# sourceMappingURL=errorHandler.d.ts.map

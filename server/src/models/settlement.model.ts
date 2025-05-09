@@ -1,27 +1,48 @@
-import { Schema, model, Document, Types } from 'mongoose';
-import { ISettlement, SettlementStatus } from '../types/Settlement';
-import { SettlementType } from '../types/Enums';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
-export interface ISettlementDocument extends Omit<ISettlement, '_id'>, Document {
+export interface ISettlement {
   _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  amount: number;
+  currency: string;
+  type: 'profit' | 'commission' | 'referral';
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  description: string;
+  metadata: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const SettlementSchema = new Schema({
+export interface ISettlementDocument extends Document {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  amount: number;
+  currency: string;
+  type: 'profit' | 'commission' | 'referral';
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  description: string;
+  metadata: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const settlementSchema = new Schema<ISettlementDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   amount: { type: Number, required: true },
-  type: { type: String, required: true, enum: Object.values(SettlementType) },
-  status: { type: String, required: true, enum: Object.values(SettlementStatus) },
-  referenceId: { type: Schema.Types.ObjectId, ref: 'Commission', required: true },
-  referenceType: { type: String, required: true },
-  description: { type: String },
-  metadata: { type: Schema.Types.Mixed },
-  completedAt: { type: Date },
+  currency: { type: String, required: true },
+  type: { type: String, enum: ['profit', 'commission', 'referral'], required: true },
+  status: { type: String, enum: ['pending', 'processing', 'completed', 'failed'], required: true },
+  description: { type: String, required: true },
+  metadata: { type: Schema.Types.Mixed, default: {} },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
-}, {
-  timestamps: true
 });
 
-// 使用类型断言来解决类型不匹配问题
-const SettlementModel = model<ISettlementDocument>('Settlement', SettlementSchema as any);
-export default SettlementModel; 
+settlementSchema.index({ userId: 1 });
+settlementSchema.index({ type: 1 });
+settlementSchema.index({ status: 1 });
+settlementSchema.index({ currency: 1 });
+settlementSchema.index({ createdAt: -1 });
+
+export const Settlement = mongoose.model<ISettlementDocument>('Settlement', settlementSchema);
+export default Settlement; 

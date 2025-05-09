@@ -35,45 +35,32 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Strategy = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const Enums_1 = require("../types/Enums");
 const strategySchema = new mongoose_1.Schema({
     userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
-    type: { type: String, required: true },
-    status: { type: String, enum: Object.values(Enums_1.StrategyStatus), default: Enums_1.StrategyStatus.ACTIVE },
+    type: { type: String, enum: ['manual', 'automated'], required: true },
+    status: { type: String, enum: ['active', 'inactive', 'deleted'], required: true },
     config: {
-        exchange: { type: String, required: true },
-        symbol: { type: String, required: true },
+        tradingPairs: [{ type: String, required: true }],
         timeframe: { type: String, required: true },
-        parameters: { type: mongoose_1.Schema.Types.Mixed, required: true },
-        riskManagement: {
-            maxPositionSize: { type: Number, required: true },
-            stopLoss: { type: Number, required: true },
-            takeProfit: { type: Number, required: true },
-            trailingStop: { type: Number, required: true },
-            maxDrawdown: { type: Number, required: true },
-            maxOpenTrades: { type: Number, required: true }
-        },
-        filters: {
-            minVolume: { type: Number, required: true },
-            minVolatility: { type: Number, required: true },
-            maxSpread: { type: Number, required: true },
-            allowedSymbols: [{ type: String }],
-            excludedSymbols: [{ type: String }]
-        },
-        notifications: {
-            email: { type: Boolean, default: false },
-            telegram: { type: Boolean, default: false },
-            webhook: { type: Boolean, default: false }
-        }
+        riskLevel: { type: String, enum: ['low', 'medium', 'high'], required: true },
+        maxPositions: { type: Number, required: true },
+        maxDrawdown: { type: Number, required: true },
+        stopLoss: { type: Number, required: true },
+        takeProfit: { type: Number, required: true }
     },
-    performance: { type: mongoose_1.Schema.Types.Mixed },
-    metadata: { type: mongoose_1.Schema.Types.Mixed },
-    createdAt: { type: Date, default: Date.now }
-}, {
-    timestamps: true
+    metadata: { type: mongoose_1.Schema.Types.Mixed, default: {} },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 });
+strategySchema.index({ userId: 1 });
+strategySchema.index({ name: 1 });
+strategySchema.index({ type: 1 });
+strategySchema.index({ status: 1 });
+strategySchema.index({ 'config.tradingPairs': 1 });
+strategySchema.index({ 'config.timeframe': 1 });
+strategySchema.index({ createdAt: -1 });
 exports.Strategy = mongoose_1.default.model('Strategy', strategySchema);
 exports.default = exports.Strategy;
 //# sourceMappingURL=strategy.model.js.map

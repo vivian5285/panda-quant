@@ -2,8 +2,8 @@ import mongoose from 'mongoose';
 import { createClient } from 'redis';
 import axios from 'axios';
 import { config } from '../config';
-import { INetworkStatus } from '../types/Network';
-import NetworkStatus from '../models/NetworkStatus';
+import { INetworkStatus, NetworkStatusCreateInput } from '../types/Network';
+import { NetworkStatus } from '../models/network-status.model';
 import { logger } from '../utils/logger';
 import { EventEmitter } from 'events';
 import { Health, IHealthDocument } from '../models/health.model';
@@ -16,6 +16,7 @@ export interface HealthCheckResult {
 }
 
 type NetworkComponent = 'database' | 'api' | 'redis' | 'websocket' | 'userApi' | 'adminApi' | 'strategyEngine';
+type NetworkType = 'database' | 'api' | 'redis' | 'websocket';
 
 export class HealthService extends EventEmitter {
   private networkStatusModel = NetworkStatus;
@@ -185,15 +186,16 @@ export class HealthService extends EventEmitter {
 
   async updateNetworkComponentStatus(type: NetworkComponent, status: 'online' | 'offline', error?: string, responseTime?: number): Promise<void> {
     try {
-      await this.networkStatusModel.create({
+      const networkStatusData: Omit<INetworkStatus, '_id' | 'createdAt' | 'updatedAt'> = {
         network: type,
-        status,
+        status: status === 'online' ? 'online' : 'offline',
         lastChecked: new Date(),
         latency: responseTime || 0,
-        type,
+        type: type as NetworkType,
         responseTime: responseTime || 0,
         error
-      });
+      };
+      await this.networkStatusModel.create(networkStatusData);
     } catch (error) {
       logger.error('Error updating network status:', error);
     }
@@ -201,16 +203,16 @@ export class HealthService extends EventEmitter {
 
   async getNetworkStatus(): Promise<INetworkStatus[]> {
     try {
-      const statuses = await this.networkStatusModel.find().sort({ updatedAt: -1 });
+      const statuses = await this.networkStatusModel.find().sort({ lastChecked: -1 });
       return statuses.map(status => ({
-        _id: status._id as unknown as Types.ObjectId,
+        _id: status._id,
         network: status.network,
-        type: status.type,
-        status: status.status,
+        status: status.status as 'online' | 'offline' | 'error' | 'checking',
         lastChecked: status.lastChecked,
         latency: status.latency,
+        type: status.type,
         responseTime: status.responseTime,
-        error: status.error || undefined,
+        error: status.error,
         createdAt: status.createdAt,
         updatedAt: status.updatedAt
       }));
@@ -222,9 +224,13 @@ export class HealthService extends EventEmitter {
 
   async createHealth(data: Omit<IHealth, '_id' | 'createdAt' | 'updatedAt'>): Promise<IHealth> {
     try {
-      const health = new Health(data);
-      await health.save();
-      return this.mapToIHealth(health);
+      const health = new Health({
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      const savedHealth = await health.save();
+      return this.mapToIHealth(savedHealth);
     } catch (error) {
       logger.error('Error creating health record:', error);
       throw error;
@@ -234,19 +240,25 @@ export class HealthService extends EventEmitter {
   async getHealthById(id: string): Promise<IHealth | null> {
     try {
       const health = await Health.findById(id);
-      return health ? this.mapToIHealth(health) : null;
+      if (!health) return null;
+      return this.mapToIHealth(health);
     } catch (error) {
-      logger.error('Error getting health by ID:', error);
+      logger.error('Error getting health record:', error);
       throw error;
     }
   }
 
   async updateHealth(id: string, data: Partial<IHealth>): Promise<IHealth | null> {
     try {
-      const health = await Health.findByIdAndUpdate(id, data, { new: true });
-      return health ? this.mapToIHealth(health) : null;
+      const health = await Health.findByIdAndUpdate(
+        id,
+        { ...data, updatedAt: new Date() },
+        { new: true }
+      );
+      if (!health) return null;
+      return this.mapToIHealth(health);
     } catch (error) {
-      logger.error('Error updating health:', error);
+      logger.error('Error updating health record:', error);
       throw error;
     }
   }
@@ -256,13 +268,16 @@ export class HealthService extends EventEmitter {
       const result = await Health.findByIdAndDelete(id);
       return !!result;
     } catch (error) {
-      logger.error('Error deleting health:', error);
+      logger.error('Error deleting health record:', error);
       throw error;
     }
   }
 
   async checkDatabaseConnection(): Promise<boolean> {
     try {
+      if (!mongoose.connection.readyState) {
+        return false;
+      }
       if (!mongoose.connection.db) {
         return false;
       }
@@ -278,18 +293,35 @@ export class HealthService extends EventEmitter {
     try {
       const health = await Health.findOne().sort({ createdAt: -1 });
       if (!health) {
-        throw new Error('No health record found');
+        return this.createHealth({
+          networkStatus: {
+            _id: new Types.ObjectId(),
+            network: 'system',
+            status: 'online',
+            lastChecked: new Date(),
+            latency: 0,
+            type: 'database',
+            responseTime: 0,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          lastChecked: new Date()
+        });
       }
       return this.mapToIHealth(health);
     } catch (error) {
-      logger.error('Error getting health:', error);
+      logger.error('Error getting health status:', error);
       throw error;
     }
   }
 
   public async updateHealthStatus(data: Partial<IHealth>): Promise<IHealth> {
     try {
-      const health = await Health.findOneAndUpdate({}, data, { new: true, upsert: true });
+      const health = await Health.findOneAndUpdate(
+        {},
+        { ...data, updatedAt: new Date() },
+        { new: true, upsert: true }
+      );
       return this.mapToIHealth(health);
     } catch (error) {
       logger.error('Error updating health status:', error);
@@ -310,28 +342,47 @@ export class HealthService extends EventEmitter {
       );
       return this.mapToIHealth(health);
     } catch (error) {
-      logger.error('Error updating network status:', error);
+      logger.error('Error updating health with network status:', error);
       throw error;
     }
   }
 
   private mapToIHealth(doc: IHealthDocument): IHealth {
+    const networkStatus: INetworkStatus = {
+      _id: doc.networkStatus._id,
+      network: doc.networkStatus.network,
+      status: doc.networkStatus.status,
+      lastChecked: doc.networkStatus.lastChecked,
+      latency: doc.networkStatus.latency,
+      type: doc.networkStatus.type,
+      responseTime: doc.networkStatus.responseTime,
+      error: doc.networkStatus.error,
+      createdAt: doc.networkStatus.createdAt,
+      updatedAt: doc.networkStatus.updatedAt
+    };
+
     return {
       _id: doc._id.toString(),
-      networkStatus: {
-        _id: doc._id as unknown as Types.ObjectId,
-        network: 'api',
-        type: 'api',
-        status: 'online',
-        lastChecked: doc.lastChecked,
-        latency: 0,
-        responseTime: 0,
-        createdAt: doc.createdAt,
-        updatedAt: doc.updatedAt
-      },
+      networkStatus,
       lastChecked: doc.lastChecked,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt
+    };
+  }
+
+  private convertNetworkStatus(status: INetworkStatus) {
+    return {
+      _id: status._id,
+      network: status.network,
+      status: status.status,
+      lastChecked: status.lastChecked,
+      blockHeight: status.blockHeight,
+      latency: status.latency,
+      type: status.type,
+      responseTime: status.responseTime,
+      error: status.error,
+      createdAt: status.createdAt,
+      updatedAt: status.updatedAt
     };
   }
 }

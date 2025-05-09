@@ -1,8 +1,29 @@
 import { Types } from 'mongoose';
-import { UserLevel } from '../models/UserLevel';
-import { IUserLevel } from '../types/UserLevel';
+import { UserLevel } from '../models/user-level.model';
+import { IUserLevel, IUserLevelDocument } from '../types/UserLevel';
+import { logger } from '../utils/logger';
 
 export class UserLevelService {
+  private static instance: UserLevelService;
+
+  private constructor() {}
+
+  public static getInstance(): UserLevelService {
+    if (!UserLevelService.instance) {
+      UserLevelService.instance = new UserLevelService();
+    }
+    return UserLevelService.instance;
+  }
+
+  private convertToIUserLevel(userLevel: IUserLevelDocument): IUserLevel {
+    const userLevelObject = userLevel.toObject();
+    return {
+      ...userLevelObject,
+      _id: userLevelObject._id.toString(),
+      userId: userLevelObject.userId.toString()
+    } as IUserLevel;
+  }
+
   async getUserLevelById(id: string): Promise<IUserLevel | null> {
     return await UserLevel.findById(id);
   }
@@ -18,9 +39,12 @@ export class UserLevelService {
   async createUserLevel(data: Partial<IUserLevel>): Promise<IUserLevel> {
     const userLevel = new UserLevel({
       ...data,
-      _id: new Types.ObjectId()
+      _id: new Types.ObjectId(),
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
-    return await userLevel.save();
+    const savedUserLevel = await userLevel.save();
+    return this.convertToIUserLevel(savedUserLevel);
   }
 
   async deleteUserLevel(id: string): Promise<boolean> {

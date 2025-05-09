@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { IPlatformEarning } from '../models/PlatformEarning';
+import { IPlatformEarning } from '../models/platformEarning.model';
 import { SettlementFilter, SettlementResponse, SettlementSummary } from '../types/Settlement';
 import { ISettlement, ISettlementDocument, SettlementMetadata, SettlementStatus } from '../types/Settlement';
 export declare class SettlementService {

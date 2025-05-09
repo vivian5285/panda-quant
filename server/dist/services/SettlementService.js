@@ -5,22 +5,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettlementService = void 0;
 const mongoose_1 = require("mongoose");
-const Settlement_1 = __importDefault(require("../models/Settlement"));
-const PlatformEarning_1 = require("../models/PlatformEarning");
+const settlement_model_1 = require("../models/settlement.model");
+const platformEarning_model_1 = require("../models/platformEarning.model");
 const errors_1 = require("../utils/errors");
-const Commission_1 = require("../models/Commission");
+const commission_model_1 = require("../models/commission.model");
 const date_fns_1 = require("date-fns");
 const logger_1 = require("../utils/logger");
-const Settlement_2 = require("../types/Settlement");
-const settlement_model_1 = __importDefault(require("../models/settlement.model"));
+const Settlement_1 = require("../types/Settlement");
+const settlement_model_2 = __importDefault(require("../models/settlement.model"));
 const Enums_1 = require("../types/Enums");
-const User_1 = __importDefault(require("../models/User"));
+const user_model_1 = __importDefault(require("../models/user.model"));
 class SettlementService {
     constructor() {
-        this.model = settlement_model_1.default;
-        this.commissionModel = Commission_1.Commission;
-        this.platformEarningModel = PlatformEarning_1.PlatformEarning;
-        this.userModel = User_1.default;
+        this.model = settlement_model_2.default;
+        this.commissionModel = commission_model_1.Commission;
+        this.platformEarningModel = platformEarning_model_1.PlatformEarning;
+        this.userModel = user_model_1.default;
     }
     static getInstance() {
         if (!SettlementService.instance) {
@@ -90,7 +90,7 @@ class SettlementService {
     }
     async updateSettlementStatus(id, status) {
         try {
-            const updatedSettlement = await settlement_model_1.default.findByIdAndUpdate(id, { status }, { new: true });
+            const updatedSettlement = await settlement_model_2.default.findByIdAndUpdate(id, { status }, { new: true });
             if (!updatedSettlement) {
                 return null;
             }
@@ -152,7 +152,7 @@ class SettlementService {
                 }
             }
             // 创建结算记录
-            const settlement = new Settlement_1.default({
+            const settlement = new settlement_model_1.Settlement({
                 userId: new mongoose_1.Types.ObjectId(userId),
                 amount: userShare,
                 type: 'deposit',
@@ -171,15 +171,16 @@ class SettlementService {
     }
     async processPayment(id) {
         try {
-            const settlement = await settlement_model_1.default.findById(id);
+            const settlement = await settlement_model_2.default.findById(id);
             if (!settlement) {
                 return null;
             }
-            settlement.status = Settlement_2.SettlementStatus.COMPLETED;
-            settlement.completedAt = new Date();
-            settlement.updatedAt = new Date();
-            const updatedSettlement = await settlement.save();
-            return this.convertToISettlement(updatedSettlement);
+            const updatedSettlement = await settlement_model_2.default.findByIdAndUpdate(id, {
+                status: Settlement_1.SettlementStatus.COMPLETED,
+                completedAt: new Date(),
+                updatedAt: new Date()
+            }, { new: true });
+            return updatedSettlement ? this.convertToISettlement(updatedSettlement) : null;
         }
         catch (error) {
             logger_1.logger.error('Error processing payment:', error);
@@ -191,7 +192,7 @@ class SettlementService {
             userId,
             amount,
             type,
-            status: Settlement_2.SettlementStatus.PENDING,
+            status: Settlement_1.SettlementStatus.PENDING,
             metadata,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -204,7 +205,7 @@ class SettlementService {
     }
     async getSettlementById(id) {
         try {
-            const settlement = await settlement_model_1.default.findById(id);
+            const settlement = await settlement_model_2.default.findById(id);
             if (!settlement) {
                 return null;
             }
@@ -217,7 +218,7 @@ class SettlementService {
     }
     async updateSettlement(id, settlement) {
         try {
-            const updatedSettlement = await Settlement_1.default.findByIdAndUpdate(id, settlement, { new: true });
+            const updatedSettlement = await settlement_model_1.Settlement.findByIdAndUpdate(id, settlement, { new: true });
             if (!updatedSettlement) {
                 return null;
             }
@@ -230,7 +231,7 @@ class SettlementService {
     }
     async deleteSettlement(id) {
         try {
-            const result = await Settlement_1.default.findByIdAndDelete(id);
+            const result = await settlement_model_1.Settlement.findByIdAndDelete(id);
             return !!result;
         }
         catch (error) {
@@ -239,7 +240,7 @@ class SettlementService {
         }
     }
     async createPlatformEarning(earningData) {
-        const earning = new PlatformEarning_1.PlatformEarning(earningData);
+        const earning = new platformEarning_model_1.PlatformEarning(earningData);
         return await earning.save();
     }
     async getAllPlatformEarnings() {
@@ -303,7 +304,7 @@ class SettlementService {
             session.startTransaction();
             try {
                 // 更新结算状态
-                settlement.status = Settlement_2.SettlementStatus.COMPLETED;
+                settlement.status = Settlement_1.SettlementStatus.COMPLETED;
                 settlement.completedAt = new Date();
                 await settlement.save({ session });
                 // 更新相关佣金记录
@@ -395,7 +396,7 @@ class SettlementService {
                 level2Share: amount * 0.1
             };
             await this.createSettlement(new mongoose_1.Types.ObjectId(userId), amount, 'deposit', metadata);
-            commission.status = Settlement_2.SettlementStatus.COMPLETED;
+            commission.status = Settlement_1.SettlementStatus.COMPLETED;
             await commission.save();
         }
     }
@@ -427,8 +428,8 @@ class SettlementService {
             amount: settlement.amount,
             type: settlement.type,
             status: settlement.status,
-            referenceId: settlement.referenceId,
-            referenceType: settlement.referenceType,
+            referenceId: settlement._id,
+            referenceType: 'settlement',
             description: settlement.description,
             metadata: settlement.metadata,
             completedAt: settlement.completedAt,
@@ -438,13 +439,14 @@ class SettlementService {
     }
     async completeSettlement(id) {
         try {
-            const settlement = await this.model.findByIdAndUpdate(id, {
-                $set: {
-                    status: Settlement_2.SettlementStatus.COMPLETED,
-                    completedAt: new Date()
-                }
-            }, { new: true });
-            return settlement ? this.convertToISettlement(settlement) : null;
+            const settlement = await this.model.findById(id);
+            if (!settlement) {
+                return null;
+            }
+            settlement.status = Settlement_1.SettlementStatus.COMPLETED;
+            settlement.completedAt = new Date();
+            const updatedSettlement = await settlement.save();
+            return this.convertToISettlement(updatedSettlement);
         }
         catch (error) {
             logger_1.logger.error('Error completing settlement:', error);
@@ -455,7 +457,7 @@ class SettlementService {
         try {
             const settlement = await this.model.findByIdAndUpdate(id, {
                 $set: {
-                    status: Settlement_2.SettlementStatus.FAILED,
+                    status: Settlement_1.SettlementStatus.FAILED,
                     completedAt: new Date()
                 }
             }, { new: true });

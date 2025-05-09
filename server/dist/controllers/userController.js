@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
-const User_1 = require("../models/User");
+const user_model_1 = require("../models/user.model");
 const logger_1 = require("../utils/logger");
 class UserController {
     async getAllUsers(_req, res) {
         try {
-            const users = await User_1.User.find();
+            const users = await user_model_1.User.find();
             res.json(users);
         }
         catch (error) {
@@ -17,7 +17,7 @@ class UserController {
     async getUserById(req, res) {
         try {
             const { id } = req.params;
-            const user = await User_1.User.findById(id);
+            const user = await user_model_1.User.findById(id);
             if (!user) {
                 res.status(404).json({ error: 'User not found' });
                 return;
@@ -31,7 +31,7 @@ class UserController {
     }
     async register(req, res) {
         try {
-            const user = new User_1.User(req.body);
+            const user = new user_model_1.User(req.body);
             await user.save();
             res.status(201).json(user);
         }
@@ -43,7 +43,7 @@ class UserController {
     async updateUser(req, res) {
         try {
             const { id } = req.params;
-            const user = await User_1.User.findByIdAndUpdate(id, req.body, { new: true });
+            const user = await user_model_1.User.findByIdAndUpdate(id, req.body, { new: true });
             if (!user) {
                 res.status(404).json({ error: 'User not found' });
                 return;
@@ -58,7 +58,7 @@ class UserController {
     async deleteUser(req, res) {
         try {
             const { id } = req.params;
-            const success = await User_1.User.findByIdAndDelete(id);
+            const success = await user_model_1.User.findByIdAndDelete(id);
             if (!success) {
                 res.status(404).json({ message: 'User not found' });
                 return;

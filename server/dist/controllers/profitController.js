@@ -1,12 +1,15 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProfitController = void 0;
-const Profit_1 = require("../models/Profit");
+const profit_model_1 = __importDefault(require("../models/profit.model"));
 const logger_1 = require("../utils/logger");
 class ProfitController {
     async getProfits(req, res) {
         try {
-            const profits = await Profit_1.Profit.find();
+            const profits = await profit_model_1.default.find();
             res.json(profits);
         }
         catch (error) {
@@ -16,7 +19,7 @@ class ProfitController {
     }
     async getProfitById(req, res) {
         try {
-            const profit = await Profit_1.Profit.findById(req.params.id);
+            const profit = await profit_model_1.default.findById(req.params.id);
             if (!profit) {
                 res.status(404).json({ error: 'Profit not found' });
                 return;
@@ -30,7 +33,7 @@ class ProfitController {
     }
     async createProfit(req, res) {
         try {
-            const profit = new Profit_1.Profit(req.body);
+            const profit = new profit_model_1.default(req.body);
             await profit.save();
             res.status(201).json(profit);
         }
@@ -41,7 +44,7 @@ class ProfitController {
     }
     async updateProfit(req, res) {
         try {
-            const profit = await Profit_1.Profit.findByIdAndUpdate(req.params.id, req.body, { new: true });
+            const profit = await profit_model_1.default.findByIdAndUpdate(req.params.id, req.body, { new: true });
             if (!profit) {
                 res.status(404).json({ error: 'Profit not found' });
                 return;
@@ -55,7 +58,7 @@ class ProfitController {
     }
     async deleteProfit(req, res) {
         try {
-            const profit = await Profit_1.Profit.findByIdAndDelete(req.params.id);
+            const profit = await profit_model_1.default.findByIdAndDelete(req.params.id);
             if (!profit) {
                 res.status(404).json({ error: 'Profit not found' });
                 return;

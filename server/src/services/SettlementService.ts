@@ -1,9 +1,9 @@
 import { Types } from 'mongoose';
-import Settlement from '../models/Settlement';
-import { PlatformEarning, IPlatformEarning } from '../models/PlatformEarning';
+import { Settlement } from '../models/settlement.model';
+import { PlatformEarning, IPlatformEarning } from '../models/platformEarning.model';
 import { NotFoundError } from '../utils/errors';
 import { SettlementFilter, SettlementResponse, SettlementSummary } from '../types/Settlement';
-import { Commission } from '../models/Commission';
+import { Commission } from '../models/commission.model';
 import { format } from 'date-fns';
 import { Model } from 'mongoose';
 import { logger } from '../utils/logger';
@@ -207,11 +207,16 @@ export class SettlementService {
         return null;
       }
 
-      settlement.status = SettlementStatus.COMPLETED;
-      settlement.completedAt = new Date();
-      settlement.updatedAt = new Date();
-      const updatedSettlement = await settlement.save();
-      return this.convertToISettlement(updatedSettlement);
+      const updatedSettlement = await SettlementModel.findByIdAndUpdate(
+        id,
+        {
+          status: SettlementStatus.COMPLETED,
+          completedAt: new Date(),
+          updatedAt: new Date()
+        },
+        { new: true }
+      );
+      return updatedSettlement ? this.convertToISettlement(updatedSettlement) : null;
     } catch (error) {
       logger.error('Error processing payment:', error);
       throw error;
@@ -513,8 +518,8 @@ export class SettlementService {
       amount: settlement.amount,
       type: settlement.type,
       status: settlement.status,
-      referenceId: settlement.referenceId,
-      referenceType: settlement.referenceType,
+      referenceId: settlement._id,
+      referenceType: 'settlement',
       description: settlement.description,
       metadata: settlement.metadata,
       completedAt: settlement.completedAt,
@@ -525,17 +530,15 @@ export class SettlementService {
 
   public async completeSettlement(id: string): Promise<ISettlement | null> {
     try {
-      const settlement = await this.model.findByIdAndUpdate(
-        id,
-        { 
-          $set: { 
-            status: SettlementStatus.COMPLETED,
-            completedAt: new Date()
-          }
-        },
-        { new: true }
-      );
-      return settlement ? this.convertToISettlement(settlement) : null;
+      const settlement = await this.model.findById(id);
+      if (!settlement) {
+        return null;
+      }
+
+      settlement.status = SettlementStatus.COMPLETED;
+      settlement.completedAt = new Date();
+      const updatedSettlement = await settlement.save();
+      return this.convertToISettlement(updatedSettlement);
     } catch (error) {
       logger.error('Error completing settlement:', error);
       throw error;

@@ -2,12 +2,13 @@ import { Request, Response } from 'express';
 import { UserLevelService } from '../services/UserLevelService';
 import { logger } from '../utils/logger';
 import { AuthenticatedRequest } from '../types/express';
+import { AppError } from '../utils/AppError';
 
 export class UserLevelController {
   private userLevelService: UserLevelService;
 
   constructor() {
-    this.userLevelService = new UserLevelService();
+    this.userLevelService = UserLevelService.getInstance();
   }
 
   // 获取所有用户等级

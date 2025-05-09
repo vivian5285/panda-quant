@@ -1,2 +1,2 @@
-export declare const rateLimiter: import("express-rate-limit").RateLimitRequestHandler;
+export declare const rateLimiter: any;
 //# sourceMappingURL=rateLimiter.d.ts.map

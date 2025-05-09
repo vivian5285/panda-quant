@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const mongoose_1 = require("mongoose");
-const User_1 = require("../models/User");
+const user_model_1 = require("../models/user.model");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const logger_1 = require("../utils/logger");
 class UserService {
@@ -26,7 +26,7 @@ class UserService {
     }
     async authenticate(email, password) {
         try {
-            const user = await User_1.User.findOne({ email });
+            const user = await user_model_1.User.findOne({ email });
             if (!user) {
                 throw new Error('User not found');
             }
@@ -48,7 +48,7 @@ class UserService {
         }
     }
     async createUser(data) {
-        const user = new User_1.User({
+        const user = new user_model_1.User({
             ...data,
             _id: new mongoose_1.Types.ObjectId(),
             name: data.name || '',
@@ -65,27 +65,27 @@ class UserService {
         return convertedUser;
     }
     async getUserById(id) {
-        const user = await User_1.User.findById(id);
+        const user = await user_model_1.User.findById(id);
         return this.convertToIUser(user);
     }
     async updateUser(id, data) {
-        const user = await User_1.User.findByIdAndUpdate(id, data, { new: true });
+        const user = await user_model_1.User.findByIdAndUpdate(id, data, { new: true });
         return this.convertToIUser(user);
     }
     async deleteUser(id) {
-        const result = await User_1.User.findByIdAndDelete(id);
+        const result = await user_model_1.User.findByIdAndDelete(id);
         return result !== null;
     }
     async getUserByEmail(email) {
-        const user = await User_1.User.findOne({ email });
+        const user = await user_model_1.User.findOne({ email });
         return this.convertToIUser(user);
     }
     async getUserByUsername(username) {
-        const user = await User_1.User.findOne({ username });
+        const user = await user_model_1.User.findOne({ username });
         return this.convertToIUser(user);
     }
     async getUsers() {
-        const users = await User_1.User.find();
+        const users = await user_model_1.User.find();
         return users.map(user => this.convertToIUser(user)).filter((user) => user !== null);
     }
 }

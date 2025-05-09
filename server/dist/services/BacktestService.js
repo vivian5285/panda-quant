@@ -1,62 +1,79 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BacktestService = void 0;
-const Backtest_1 = require("../models/Backtest");
+const mongoose_1 = require("mongoose");
+const backtest_model_1 = require("../models/backtest.model");
 const logger_1 = require("../utils/logger");
+const AppError_1 = require("../utils/AppError");
 class BacktestService {
-    async createBacktest(data) {
+    constructor() { }
+    static getInstance() {
+        if (!BacktestService.instance) {
+            BacktestService.instance = new BacktestService();
+        }
+        return BacktestService.instance;
+    }
+    convertToIBacktest(doc) {
+        const obj = doc.toObject();
+        return {
+            _id: obj._id,
+            userId: obj.userId,
+            strategyId: obj.strategyId,
+            name: obj.name,
+            description: obj.description,
+            period: obj.period,
+            parameters: obj.parameters,
+            results: obj.results,
+            status: obj.status,
+            error: obj.error,
+            metadata: obj.metadata,
+            createdAt: obj.createdAt,
+            updatedAt: obj.updatedAt
+        };
+    }
+    async createBacktest(backtestData) {
         try {
-            const backtest = new Backtest_1.Backtest(data);
+            const backtest = new backtest_model_1.Backtest(backtestData);
             const savedBacktest = await backtest.save();
-            return savedBacktest.toObject();
+            return this.convertToIBacktest(savedBacktest);
         }
         catch (error) {
             logger_1.logger.error('Error creating backtest:', error);
-            throw error;
+            throw new AppError_1.AppError('Failed to create backtest', 500);
         }
     }
     async getBacktestById(id) {
         try {
-            const backtest = await Backtest_1.Backtest.findById(id);
+            const backtest = await backtest_model_1.Backtest.findById(id);
             if (!backtest)
                 return null;
-            return backtest.toObject();
+            return this.convertToIBacktest(backtest);
         }
         catch (error) {
             logger_1.logger.error('Error getting backtest:', error);
-            throw error;
+            throw new AppError_1.AppError('Failed to get backtest', 500);
         }
     }
-    async getBacktestsByStrategyId(strategyId) {
+    async getBacktestsByUserId(userId) {
         try {
-            const backtests = await Backtest_1.Backtest.find({ strategyId });
-            return backtests.map(backtest => backtest.toObject());
+            const backtests = await backtest_model_1.Backtest.find({ userId: new mongoose_1.Types.ObjectId(userId) });
+            return backtests.map(backtest => this.convertToIBacktest(backtest));
         }
         catch (error) {
             logger_1.logger.error('Error getting backtests:', error);
-            throw error;
+            throw new AppError_1.AppError('Failed to get backtests', 500);
         }
     }
-    async updateBacktest(id, data) {
+    async getBacktestByStrategyId(strategyId) {
         try {
-            const backtest = await Backtest_1.Backtest.findByIdAndUpdate(id, data, { new: true });
+            const backtest = await backtest_model_1.Backtest.findOne({ strategyId: new mongoose_1.Types.ObjectId(strategyId) });
             if (!backtest)
                 return null;
-            return backtest.toObject();
+            return this.convertToIBacktest(backtest);
         }
         catch (error) {
-            logger_1.logger.error('Error updating backtest:', error);
-            throw error;
-        }
-    }
-    async deleteBacktest(id) {
-        try {
-            const result = await Backtest_1.Backtest.findByIdAndDelete(id);
-            return result !== null;
-        }
-        catch (error) {
-            logger_1.logger.error('Error deleting backtest:', error);
-            throw error;
+            logger_1.logger.error('Error getting backtest:', error);
+            throw new AppError_1.AppError('Failed to get backtest', 500);
         }
     }
 }

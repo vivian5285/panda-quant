@@ -1,8 +1,11 @@
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { CommissionService } from '../services/CommissionService';
 import { AuthenticatedRequest } from '../types/Auth';
 import { logger } from '../utils/logger';
 import { Types } from 'mongoose';
+import { CommissionStatus, CommissionType } from '../types/Enums';
+import { CommissionCreateInput, CommissionUpdateInput } from '../types/Commission';
+import { AppError } from '../utils/AppError';
 
 export class CommissionController {
   private commissionService: CommissionService;
@@ -41,19 +44,24 @@ export class CommissionController {
     }
   };
 
-  public createCommission = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  public createCommission = async (req: Request, res: Response) => {
     try {
       const { userId, amount, type, metadata } = req.body;
+      
       const commission = await this.commissionService.createCommission({
         userId: userId.toString(),
         amount,
         type,
+        status: CommissionStatus.PENDING,
+        referenceId: req.body.referenceId || '',
+        referenceType: req.body.referenceType || 'MANUAL',
         metadata
       });
+
       res.status(201).json(commission);
     } catch (error) {
       logger.error('Error creating commission:', error);
-      res.status(500).json({ message: 'Error creating commission', error });
+      throw new AppError('Failed to create commission', 500);
     }
   };
 
@@ -155,8 +163,8 @@ export class CommissionController {
     try {
       const { status, type, amount } = req.query;
       const commissions = await this.commissionService.getCommissionsByStatusAndTypeAndAmount(
-        status as string,
-        type as string,
+        status as CommissionStatus,
+        type as CommissionType,
         Number(amount)
       );
       res.json(commissions);
@@ -173,8 +181,8 @@ export class CommissionController {
     try {
       const { status, type, amount, currency } = req.query;
       const commissions = await this.commissionService.getCommissionsByStatusAndTypeAndAmountAndCurrency(
-        status as string,
-        type as string,
+        status as CommissionStatus,
+        type as CommissionType,
         Number(amount),
         currency as string
       );
@@ -193,8 +201,8 @@ export class CommissionController {
       const { userId, status, type, amount, currency } = req.query;
       const commissions = await this.commissionService.getCommissionsByUserAndStatusAndTypeAndAmountAndCurrency(
         userId as string,
-        status as string,
-        type as string,
+        status as CommissionStatus,
+        type as CommissionType,
         Number(amount),
         currency as string
       );
@@ -212,8 +220,8 @@ export class CommissionController {
     try {
       const { status, type, amount, currency, description } = req.query;
       const commissions = await this.commissionService.getCommissionsByStatusAndTypeAndAmountAndCurrencyAndDescription(
-        status as string,
-        type as string,
+        status as CommissionStatus,
+        type as CommissionType,
         Number(amount),
         currency as string,
         description as string
@@ -222,6 +230,81 @@ export class CommissionController {
     } catch (error) {
       logger.error('Error getting commissions by status, type, amount, currency and description:', error);
       res.status(500).json({ message: 'Error getting commissions by status, type, amount, currency and description', error });
+    }
+  };
+
+  public getCommissionsByStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { status } = req.query;
+      const commissions = await this.commissionService.getCommissionsByStatus(
+        status as unknown as CommissionStatus
+      );
+      res.json(commissions);
+    } catch (error) {
+      logger.error('Error getting commissions by status:', error);
+      res.status(500).json({ message: 'Error getting commissions by status', error });
+    }
+  };
+
+  public getCommissionsByUserAndStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { userId, status } = req.query;
+      const commissions = await this.commissionService.getCommissionsByUserAndStatus(
+        userId as string,
+        status as unknown as CommissionStatus
+      );
+      res.json(commissions);
+    } catch (error) {
+      logger.error('Error getting commissions by user and status:', error);
+      res.status(500).json({ message: 'Error getting commissions by user and status', error });
+    }
+  };
+
+  public getCommissionsByDateRangeAndStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { startDate, endDate, status } = req.query;
+      const commissions = await this.commissionService.getCommissionsByDateRangeAndStatus(
+        new Date(startDate as string),
+        new Date(endDate as string),
+        status as unknown as CommissionStatus
+      );
+      res.json(commissions);
+    } catch (error) {
+      logger.error('Error getting commissions by date range and status:', error);
+      res.status(500).json({ message: 'Error getting commissions by date range and status', error });
+    }
+  };
+
+  public getCommissionsByUserAndDateRangeAndStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { userId, startDate, endDate, status } = req.query;
+      const commissions = await this.commissionService.getCommissionsByUserAndDateRangeAndStatus(
+        userId as string,
+        new Date(startDate as string),
+        new Date(endDate as string),
+        status as unknown as CommissionStatus
+      );
+      res.json(commissions);
+    } catch (error) {
+      logger.error('Error getting commissions by user and date range and status:', error);
+      res.status(500).json({ message: 'Error getting commissions by user and date range and status', error });
+    }
+  };
+
+  public updateCommissionStatus = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const commission = await this.commissionService.updateCommission(
+        id,
+        { status: status as CommissionStatus }
+      );
+
+      res.json(commission);
+    } catch (error) {
+      logger.error('Error updating commission status:', error);
+      throw new AppError('Failed to update commission status', 500);
     }
   };
 } 

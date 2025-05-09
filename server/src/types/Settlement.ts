@@ -12,22 +12,22 @@ export enum SettlementStatus {
 export interface ISettlementBase {
   userId: Types.ObjectId;
   amount: number;
-  type: SettlementType;
-  status: SettlementStatus;
+  type: string;
+  status: 'pending' | 'completed' | 'failed';
   referenceId: Types.ObjectId;
   referenceType: string;
   description?: string;
   metadata?: Record<string, any>;
   completedAt?: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ISettlement extends ISettlementBase {
   _id: Types.ObjectId;
 }
 
-export interface ISettlementDocument extends ISettlement, Document {
+export interface ISettlementDocument extends ISettlementBase, Document {
   _id: Types.ObjectId;
 }
 
@@ -42,7 +42,7 @@ export interface SettlementMetadata {
 export interface SettlementFilter {
   startDate?: Date;
   endDate?: Date;
-  userId?: Types.ObjectId;
+  userId?: string;
   status?: SettlementStatus | 'all';
 }
 

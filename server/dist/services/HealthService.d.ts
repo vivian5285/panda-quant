@@ -44,6 +44,7 @@ export declare class HealthService extends EventEmitter {
     updateHealthStatus(data: Partial<IHealth>): Promise<IHealth>;
     updateHealthWithNetworkStatus(networkStatus: INetworkStatus): Promise<IHealth>;
     private mapToIHealth;
+    private convertNetworkStatus;
 }
 export declare const healthService: HealthService;
 export {};

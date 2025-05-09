@@ -5,20 +5,18 @@ import { UnauthorizedError } from '../utils/errors';
 import { User, IUserDocument } from '../models/user.model';
 import { logger } from '../utils/logger';
 
-interface AuthenticatedRequest extends Request {
+export interface AuthRequest extends Request {
   user?: IUserDocument;
-  headers: {
-    authorization?: string;
-  };
+  header(name: string): string | undefined;
 }
 
 export const authenticate = async (
-  req: AuthenticatedRequest,
+  req: AuthRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
+    const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
       throw new UnauthorizedError('No token provided');
     }

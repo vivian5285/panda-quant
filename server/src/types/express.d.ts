@@ -2,7 +2,6 @@ import type { Request as ExpressRequest, Response, NextFunction, RequestHandler,
 import type { ParamsDictionary } from 'express-serve-static-core';
 import type { ParsedQs } from 'qs';
 import type { IUserDocument } from '../models/user.model';
-import type { AuthenticatedRequest } from './Auth';
 
 export type Request = ExpressRequest;
 
@@ -26,6 +25,18 @@ declare global {
       ip: string;
     }
   }
+}
+
+export interface AuthenticatedRequest extends Express.Request {
+  user: IUserDocument;
+  params: ParamsDictionary;
+  body: any;
+  query: ParsedQs;
+  headers: any;
+  method: string;
+  url: string;
+  originalUrl: string;
+  ip: string;
 }
 
 export type { Response, NextFunction, RequestHandler, Router, Application, AuthenticatedRequest };

@@ -1,12 +1,14 @@
-import { IStrategy } from '../types/Strategy';
-import { ITrade } from '../types/Trading';
+import { IStrategy, IStrategyCreateInput, IStrategyUpdateInput } from '../types/Strategy';
+import { ITrade } from '../types/Trade';
 export declare class StrategyService {
     private static instance;
     private constructor();
     static getInstance(): StrategyService;
-    createStrategy(strategyData: Partial<IStrategy>): Promise<IStrategy>;
+    private convertToITrade;
+    private convertToIStrategy;
+    createStrategy(strategyData: IStrategyCreateInput): Promise<IStrategy>;
     getStrategyById(id: string): Promise<IStrategy | null>;
-    updateStrategy(id: string, updates: Partial<IStrategy>): Promise<IStrategy | null>;
+    updateStrategy(id: string, updates: IStrategyUpdateInput): Promise<IStrategy | null>;
     deleteStrategy(id: string): Promise<boolean>;
     getAllStrategies(): Promise<IStrategy[]>;
     startStrategy(strategy: IStrategy): Promise<void>;
@@ -16,6 +18,6 @@ export declare class StrategyService {
     getStrategiesByUser(userId: string): Promise<IStrategy[]>;
     getActiveStrategies(): Promise<IStrategy[]>;
     getPopularStrategies(limit?: number): Promise<IStrategy[]>;
-    getStrategyTrades(strategyId: string): Promise<ITrade[]>;
+    getTradesByStrategyId(strategyId: string): Promise<ITrade[]>;
 }
 //# sourceMappingURL=StrategyService.d.ts.map

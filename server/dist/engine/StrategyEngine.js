@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StrategyEngine = void 0;
 const logger_1 = require("../utils/logger");
-const mongoose_1 = require("mongoose");
 class StrategyEngine {
     constructor() {
         this.strategies = new Map();
@@ -31,12 +30,11 @@ class StrategyEngine {
     }
     createOrder(order) {
         const newOrder = {
-            _id: new mongoose_1.Types.ObjectId(),
             ...order,
             createdAt: new Date(),
             updatedAt: new Date()
         };
-        this.orders.set(newOrder._id.toString(), newOrder);
+        this.orders.set(newOrder.orderId, newOrder);
         return newOrder;
     }
 }

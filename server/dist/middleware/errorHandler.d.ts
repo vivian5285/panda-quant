@@ -5,6 +5,6 @@ export declare class AppError extends Error {
     isOperational: boolean;
     constructor(message: string, statusCode: number);
 }
-export declare const errorHandler: (err: Error | AppError, req: Request, res: Response, next: NextFunction) => Response<any, Record<string, any>>;
+export declare function errorHandler(error: any, req: Request, res: Response, next: NextFunction): any;
 export declare const handleRequest: (fn: Function) => (req: Request, res: Response, next: NextFunction) => Promise<void>;
 //# sourceMappingURL=errorHandler.d.ts.map

@@ -5,6 +5,8 @@ import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
 import type { AuthenticatedRequest } from '../types/express';
 import { UserController } from '../controllers/UserController';
+import { validateRequest, validateParams } from '../validations/common';
+import { createUserSchema, updateUserSchema, userIdSchema } from '../validations/schemas/user';
 
 const router: Router = express.Router();
 const userController = new UserController();
@@ -18,23 +20,36 @@ router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) =
 }));
 
 // Get single user
-router.get('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
-  await userController.getUserById(req, res);
-}));
+router.get('/:id', 
+  validateParams(userIdSchema),
+  handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+    await userController.getUserById(req, res);
+  })
+);
 
 // Create user
-router.post('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
-  await userController.register(req, res);
-}));
+router.post('/', 
+  validateRequest(createUserSchema),
+  handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+    await userController.register(req, res);
+  })
+);
 
 // Update user
-router.put('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
-  await userController.updateUser(req, res);
-}));
+router.put('/:id', 
+  validateParams(userIdSchema),
+  validateRequest(updateUserSchema),
+  handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+    await userController.updateUser(req, res);
+  })
+);
 
 // Delete user
-router.delete('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
-  await userController.deleteUser(req, res);
-}));
+router.delete('/:id', 
+  validateParams(userIdSchema),
+  handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+    await userController.deleteUser(req, res);
+  })
+);
 
 export default router;

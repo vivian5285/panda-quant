@@ -1,9 +1,12 @@
-import { IBacktest } from '../types/Backtest';
+import { IBacktest, BacktestCreateInput } from '../types/Backtest';
 export declare class BacktestService {
-    createBacktest(data: Omit<IBacktest, '_id' | 'createdAt' | 'updatedAt'>): Promise<IBacktest>;
+    private static instance;
+    private constructor();
+    static getInstance(): BacktestService;
+    private convertToIBacktest;
+    createBacktest(backtestData: BacktestCreateInput): Promise<IBacktest>;
     getBacktestById(id: string): Promise<IBacktest | null>;
-    getBacktestsByStrategyId(strategyId: string): Promise<IBacktest[]>;
-    updateBacktest(id: string, data: Partial<IBacktest>): Promise<IBacktest | null>;
-    deleteBacktest(id: string): Promise<boolean>;
+    getBacktestsByUserId(userId: string): Promise<IBacktest[]>;
+    getBacktestByStrategyId(strategyId: string): Promise<IBacktest | null>;
 }
 //# sourceMappingURL=BacktestService.d.ts.map

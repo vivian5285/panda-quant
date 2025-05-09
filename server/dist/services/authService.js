@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
-const User_1 = require("../models/User");
+const user_model_1 = require("../models/user.model");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const logger_1 = require("../utils/logger");
@@ -27,12 +27,12 @@ class AuthService {
     }
     async register(data) {
         try {
-            const existingUser = await User_1.User.findOne({ email: data.email });
+            const existingUser = await user_model_1.User.findOne({ email: data.email });
             if (existingUser) {
                 throw new Error('User already exists');
             }
             const hashedPassword = await bcryptjs_1.default.hash(data.password, 10);
-            const user = new User_1.User({
+            const user = new user_model_1.User({
                 email: data.email,
                 password: hashedPassword,
                 username: data.username,
@@ -53,7 +53,7 @@ class AuthService {
     }
     async login(credentials) {
         try {
-            const user = await User_1.User.findOne({ email: credentials.email });
+            const user = await user_model_1.User.findOne({ email: credentials.email });
             if (!user) {
                 throw new Error('User not found');
             }
@@ -86,7 +86,7 @@ class AuthService {
     }
     async getCurrentUser(userId) {
         try {
-            const user = await User_1.User.findById(userId);
+            const user = await user_model_1.User.findById(userId);
             if (!user) {
                 throw new Error('User not found');
             }
@@ -100,7 +100,7 @@ class AuthService {
     async refreshToken(refreshToken) {
         try {
             const decoded = jsonwebtoken_1.default.verify(refreshToken, process.env['JWT_SECRET'] || 'your-secret-key');
-            const user = await User_1.User.findById(decoded.id);
+            const user = await user_model_1.User.findById(decoded.id);
             if (!user) {
                 throw new Error('User not found');
             }
@@ -114,7 +114,7 @@ class AuthService {
     }
     async updateUser(userId, updateData) {
         try {
-            const user = await User_1.User.findById(userId);
+            const user = await user_model_1.User.findById(userId);
             if (!user) {
                 throw new Error('User not found');
             }
@@ -135,7 +135,7 @@ class AuthService {
     }
     async changePassword(userId, currentPassword, newPassword) {
         try {
-            const user = await User_1.User.findById(userId);
+            const user = await user_model_1.User.findById(userId);
             if (!user) {
                 throw new Error('User not found');
             }
@@ -161,7 +161,7 @@ class AuthService {
     }
     async resetPassword(data) {
         try {
-            const user = await User_1.User.findOne({ resetToken: data.token });
+            const user = await user_model_1.User.findOne({ resetToken: data.token });
             if (!user) {
                 throw new Error('Invalid reset token');
             }

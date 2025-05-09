@@ -10,7 +10,7 @@ const admin_1 = __importDefault(require("./admin"));
 const health_1 = __importDefault(require("./health"));
 const profitRoutes_1 = __importDefault(require("./profitRoutes"));
 const settlement_routes_1 = __importDefault(require("./settlement.routes"));
-const Strategy_1 = __importDefault(require("./Strategy"));
+const strategyRoutes_1 = __importDefault(require("./strategyRoutes"));
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
 // Public routes
@@ -21,6 +21,6 @@ router.use('/users', authMiddleware_1.authenticate, userRoutes_1.default);
 router.use('/admin', authMiddleware_1.authenticate, admin_1.default);
 router.use('/profit', authMiddleware_1.authenticate, profitRoutes_1.default);
 router.use('/settlement', authMiddleware_1.authenticate, settlement_routes_1.default);
-router.use('/strategy', authMiddleware_1.authenticate, Strategy_1.default);
+router.use('/strategy', authMiddleware_1.authenticate, strategyRoutes_1.default);
 exports.default = router;
 //# sourceMappingURL=Index.js.map

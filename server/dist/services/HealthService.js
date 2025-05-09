@@ -8,14 +8,15 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const redis_1 = require("redis");
 const axios_1 = __importDefault(require("axios"));
 const config_1 = require("../config");
-const NetworkStatus_1 = __importDefault(require("../models/NetworkStatus"));
+const network_status_model_1 = require("../models/network-status.model");
 const logger_1 = require("../utils/logger");
 const events_1 = require("events");
 const health_model_1 = require("../models/health.model");
+const mongoose_2 = require("mongoose");
 class HealthService extends events_1.EventEmitter {
     constructor() {
         super();
-        this.networkStatusModel = NetworkStatus_1.default;
+        this.networkStatusModel = network_status_model_1.NetworkStatus;
         this.status = new Map();
         this.initializeStatus();
     }
@@ -157,15 +158,16 @@ class HealthService extends events_1.EventEmitter {
     }
     async updateNetworkComponentStatus(type, status, error, responseTime) {
         try {
-            await this.networkStatusModel.create({
+            const networkStatusData = {
                 network: type,
-                status,
+                status: status === 'online' ? 'online' : 'offline',
                 lastChecked: new Date(),
                 latency: responseTime || 0,
-                type,
+                type: type,
                 responseTime: responseTime || 0,
                 error
-            });
+            };
+            await this.networkStatusModel.create(networkStatusData);
         }
         catch (error) {
             logger_1.logger.error('Error updating network status:', error);
@@ -173,16 +175,16 @@ class HealthService extends events_1.EventEmitter {
     }
     async getNetworkStatus() {
         try {
-            const statuses = await this.networkStatusModel.find().sort({ updatedAt: -1 });
+            const statuses = await this.networkStatusModel.find().sort({ lastChecked: -1 });
             return statuses.map(status => ({
                 _id: status._id,
                 network: status.network,
-                type: status.type,
                 status: status.status,
                 lastChecked: status.lastChecked,
                 latency: status.latency,
+                type: status.type,
                 responseTime: status.responseTime,
-                error: status.error || undefined,
+                error: status.error,
                 createdAt: status.createdAt,
                 updatedAt: status.updatedAt
             }));
@@ -194,9 +196,13 @@ class HealthService extends events_1.EventEmitter {
     }
     async createHealth(data) {
         try {
-            const health = new health_model_1.Health(data);
-            await health.save();
-            return this.mapToIHealth(health);
+            const health = new health_model_1.Health({
+                ...data,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            });
+            const savedHealth = await health.save();
+            return this.mapToIHealth(savedHealth);
         }
         catch (error) {
             logger_1.logger.error('Error creating health record:', error);
@@ -206,20 +212,24 @@ class HealthService extends events_1.EventEmitter {
     async getHealthById(id) {
         try {
             const health = await health_model_1.Health.findById(id);
-            return health ? this.mapToIHealth(health) : null;
+            if (!health)
+                return null;
+            return this.mapToIHealth(health);
         }
         catch (error) {
-            logger_1.logger.error('Error getting health by ID:', error);
+            logger_1.logger.error('Error getting health record:', error);
             throw error;
         }
     }
     async updateHealth(id, data) {
         try {
-            const health = await health_model_1.Health.findByIdAndUpdate(id, data, { new: true });
-            return health ? this.mapToIHealth(health) : null;
+            const health = await health_model_1.Health.findByIdAndUpdate(id, { ...data, updatedAt: new Date() }, { new: true });
+            if (!health)
+                return null;
+            return this.mapToIHealth(health);
         }
         catch (error) {
-            logger_1.logger.error('Error updating health:', error);
+            logger_1.logger.error('Error updating health record:', error);
             throw error;
         }
     }
@@ -229,12 +239,15 @@ class HealthService extends events_1.EventEmitter {
             return !!result;
         }
         catch (error) {
-            logger_1.logger.error('Error deleting health:', error);
+            logger_1.logger.error('Error deleting health record:', error);
             throw error;
         }
     }
     async checkDatabaseConnection() {
         try {
+            if (!mongoose_1.default.connection.readyState) {
+                return false;
+            }
             if (!mongoose_1.default.connection.db) {
                 return false;
             }
@@ -250,18 +263,31 @@ class HealthService extends events_1.EventEmitter {
         try {
             const health = await health_model_1.Health.findOne().sort({ createdAt: -1 });
             if (!health) {
-                throw new Error('No health record found');
+                return this.createHealth({
+                    networkStatus: {
+                        _id: new mongoose_2.Types.ObjectId(),
+                        network: 'system',
+                        status: 'online',
+                        lastChecked: new Date(),
+                        latency: 0,
+                        type: 'database',
+                        responseTime: 0,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    },
+                    lastChecked: new Date()
+                });
             }
             return this.mapToIHealth(health);
         }
         catch (error) {
-            logger_1.logger.error('Error getting health:', error);
+            logger_1.logger.error('Error getting health status:', error);
             throw error;
         }
     }
     async updateHealthStatus(data) {
         try {
-            const health = await health_model_1.Health.findOneAndUpdate({}, data, { new: true, upsert: true });
+            const health = await health_model_1.Health.findOneAndUpdate({}, { ...data, updatedAt: new Date() }, { new: true, upsert: true });
             return this.mapToIHealth(health);
         }
         catch (error) {
@@ -279,27 +305,44 @@ class HealthService extends events_1.EventEmitter {
             return this.mapToIHealth(health);
         }
         catch (error) {
-            logger_1.logger.error('Error updating network status:', error);
+            logger_1.logger.error('Error updating health with network status:', error);
             throw error;
         }
     }
     mapToIHealth(doc) {
+        const networkStatus = {
+            _id: doc.networkStatus._id,
+            network: doc.networkStatus.network,
+            status: doc.networkStatus.status,
+            lastChecked: doc.networkStatus.lastChecked,
+            latency: doc.networkStatus.latency,
+            type: doc.networkStatus.type,
+            responseTime: doc.networkStatus.responseTime,
+            error: doc.networkStatus.error,
+            createdAt: doc.networkStatus.createdAt,
+            updatedAt: doc.networkStatus.updatedAt
+        };
         return {
             _id: doc._id.toString(),
-            networkStatus: {
-                _id: doc._id,
-                network: 'api',
-                type: 'api',
-                status: 'online',
-                lastChecked: doc.lastChecked,
-                latency: 0,
-                responseTime: 0,
-                createdAt: doc.createdAt,
-                updatedAt: doc.updatedAt
-            },
+            networkStatus,
             lastChecked: doc.lastChecked,
             createdAt: doc.createdAt,
             updatedAt: doc.updatedAt
+        };
+    }
+    convertNetworkStatus(status) {
+        return {
+            _id: status._id,
+            network: status.network,
+            status: status.status,
+            lastChecked: status.lastChecked,
+            blockHeight: status.blockHeight,
+            latency: status.latency,
+            type: status.type,
+            responseTime: status.responseTime,
+            error: status.error,
+            createdAt: status.createdAt,
+            updatedAt: status.updatedAt
         };
     }
 }

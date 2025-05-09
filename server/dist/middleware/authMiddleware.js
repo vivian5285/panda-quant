@@ -7,16 +7,16 @@ exports.authenticate = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = require("../config");
 const errors_1 = require("../utils/errors");
-const User_1 = require("../models/User");
+const user_model_1 = require("../models/user.model");
 const logger_1 = require("../utils/logger");
 const authenticate = async (req, res, next) => {
     try {
-        const token = req.headers.authorization?.replace('Bearer ', '');
+        const token = req.header('Authorization')?.replace('Bearer ', '');
         if (!token) {
             throw new errors_1.UnauthorizedError('No token provided');
         }
         const decoded = jsonwebtoken_1.default.verify(token, config_1.config.jwtSecret);
-        const user = await User_1.User.findById(decoded.id);
+        const user = await user_model_1.User.findById(decoded.id);
         if (!user) {
             throw new errors_1.UnauthorizedError('User not found');
         }

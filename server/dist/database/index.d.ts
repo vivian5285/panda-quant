@@ -1,6 +1,6 @@
 export declare const connectDB: () => Promise<void>;
 export declare const disconnectMongoDB: () => Promise<void>;
-export declare const redis: import("@redis/client").RedisClientType<{
+export declare const redis: import("@redis/client/dist").RedisClientType<{
     graph: {
         CONFIG_GET: typeof import("@redis/graph/dist/commands/CONFIG_GET");
         configGet: typeof import("@redis/graph/dist/commands/CONFIG_GET");

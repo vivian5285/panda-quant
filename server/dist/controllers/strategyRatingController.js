@@ -5,7 +5,7 @@ const StrategyRatingService_1 = require("../services/StrategyRatingService");
 const logger_1 = require("../utils/logger");
 class StrategyRatingController {
     constructor() {
-        this.strategyRatingService = new StrategyRatingService_1.StrategyRatingService();
+        this.strategyRatingService = StrategyRatingService_1.StrategyRatingService.getInstance();
     }
     async createRating(req, res) {
         try {

@@ -10,6 +10,10 @@ class StrategyController {
     async createStrategy(req, res) {
         try {
             const strategyData = req.body;
+            if (!strategyData.name) {
+                res.status(400).json({ message: 'Strategy name is required' });
+                return;
+            }
             const strategy = await this.strategyService.createStrategy(strategyData);
             res.status(201).json(strategy);
         }

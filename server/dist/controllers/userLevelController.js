@@ -5,7 +5,7 @@ const UserLevelService_1 = require("../services/UserLevelService");
 const logger_1 = require("../utils/logger");
 class UserLevelController {
     constructor() {
-        this.userLevelService = new UserLevelService_1.UserLevelService();
+        this.userLevelService = UserLevelService_1.UserLevelService.getInstance();
     }
     // 获取所有用户等级
     async getAllLevels(_req, res) {

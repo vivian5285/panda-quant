@@ -1,11 +1,11 @@
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { AuthenticatedRequest } from '../types/Auth';
 export declare class CommissionController {
     private commissionService;
     constructor();
     getCommissionById: (req: AuthenticatedRequest, res: Response) => Promise<void>;
     getCommissionByUserId: (req: AuthenticatedRequest, res: Response) => Promise<void>;
-    createCommission: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+    createCommission: (req: Request, res: Response) => Promise<void>;
     updateCommission: (req: AuthenticatedRequest, res: Response) => Promise<void>;
     deleteCommission: (req: AuthenticatedRequest, res: Response) => Promise<void>;
     getCommissionRules: (_req: AuthenticatedRequest, res: Response) => Promise<void>;
@@ -17,5 +17,10 @@ export declare class CommissionController {
     getCommissionsByStatusAndTypeAndAmountAndCurrency: (req: AuthenticatedRequest, res: Response) => Promise<void>;
     getCommissionsByUserAndStatusAndTypeAndAmountAndCurrency: (req: AuthenticatedRequest, res: Response) => Promise<void>;
     getCommissionsByStatusAndTypeAndAmountAndCurrencyAndDescription: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+    getCommissionsByStatus: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+    getCommissionsByUserAndStatus: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+    getCommissionsByDateRangeAndStatus: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+    getCommissionsByUserAndDateRangeAndStatus: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+    updateCommissionStatus: (req: Request, res: Response) => Promise<void>;
 }
 //# sourceMappingURL=CommissionController.d.ts.map

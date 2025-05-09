@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import type { UserRole } from './Enums';
 import type { User } from './User';
-import { IUserDocument } from '../models/User';
+import { IUserDocument } from '../models/user.model';
 export interface AuthRequest extends Request {
     user?: User & {
         role: 'user' | 'admin' | 'manager' | 'support';

@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
-import { Profit } from '../models/Profit';
+import ProfitModel from '../models/profit.model';
 import { logger } from '../utils/logger';
 
 export class ProfitController {
   public async getProfits(req: Request, res: Response): Promise<void> {
     try {
-      const profits = await Profit.find();
+      const profits = await ProfitModel.find();
       res.json(profits);
     } catch (error) {
       logger.error('Error in getProfits:', error);
@@ -15,7 +15,7 @@ export class ProfitController {
 
   public async getProfitById(req: Request, res: Response): Promise<void> {
     try {
-      const profit = await Profit.findById(req.params.id);
+      const profit = await ProfitModel.findById(req.params.id);
       if (!profit) {
         res.status(404).json({ error: 'Profit not found' });
         return;
@@ -29,7 +29,7 @@ export class ProfitController {
 
   public async createProfit(req: Request, res: Response): Promise<void> {
     try {
-      const profit = new Profit(req.body);
+      const profit = new ProfitModel(req.body);
       await profit.save();
       res.status(201).json(profit);
     } catch (error) {
@@ -40,7 +40,7 @@ export class ProfitController {
 
   public async updateProfit(req: Request, res: Response): Promise<void> {
     try {
-      const profit = await Profit.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      const profit = await ProfitModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
       if (!profit) {
         res.status(404).json({ error: 'Profit not found' });
         return;
@@ -54,7 +54,7 @@ export class ProfitController {
 
   public async deleteProfit(req: Request, res: Response): Promise<void> {
     try {
-      const profit = await Profit.findByIdAndDelete(req.params.id);
+      const profit = await ProfitModel.findByIdAndDelete(req.params.id);
       if (!profit) {
         res.status(404).json({ error: 'Profit not found' });
         return;

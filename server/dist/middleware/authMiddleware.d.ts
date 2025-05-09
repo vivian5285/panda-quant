@@ -1,11 +1,8 @@
 import type { Request, Response, NextFunction } from 'express';
-import { IUserDocument } from '../models/User';
-interface AuthenticatedRequest extends Request {
+import { IUserDocument } from '../models/user.model';
+export interface AuthRequest extends Request {
     user?: IUserDocument;
-    headers: {
-        authorization?: string;
-    };
+    header(name: string): string | undefined;
 }
-export declare const authenticate: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
-export {};
+export declare const authenticate: (req: AuthRequest, res: Response, next: NextFunction) => Promise<void>;
 //# sourceMappingURL=authMiddleware.d.ts.map

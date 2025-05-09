@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { SettlementService } from '../services/SettlementService';
 import { AuthenticatedRequest } from '../types/Auth';
 import { SettlementStatus } from '../types/Enums';
-import Settlement from '../models/Settlement';
+import SettlementModel from '../models/settlement.model';
 import { logger } from '../utils/logger';
 import { Types } from 'mongoose';
 
@@ -19,7 +19,7 @@ export class SettlementController {
         res.status(401).json({ message: 'Unauthorized' });
         return;
       }
-      const settlements = await Settlement.find({ userId: new Types.ObjectId(req.user['id']) });
+      const settlements = await SettlementModel.find({ userId: new Types.ObjectId(req.user['id']) });
       res.json(settlements);
     } catch (error) {
       logger.error('Error getting settlements:', error);
@@ -50,7 +50,7 @@ export class SettlementController {
         res.status(401).json({ message: 'Unauthorized' });
         return;
       }
-      const settlement = new Settlement({
+      const settlement = new SettlementModel({
         ...req.body,
         userId: new Types.ObjectId(req.user['id'])
       });
@@ -76,7 +76,7 @@ export class SettlementController {
         return;
       }
       
-      const settlement = await Settlement.findByIdAndUpdate(
+      const settlement = await SettlementModel.findByIdAndUpdate(
         new Types.ObjectId(id),
         { status },
         { new: true }
@@ -121,7 +121,7 @@ export class SettlementController {
         res.status(401).json({ message: 'Unauthorized' });
         return;
       }
-      const settlements = await Settlement.find({ userId: new Types.ObjectId(req.user['id']) });
+      const settlements = await SettlementModel.find({ userId: new Types.ObjectId(req.user['id']) });
       res.json(settlements);
     } catch (error) {
       logger.error('Error exporting settlements:', error);
@@ -150,7 +150,7 @@ export class SettlementController {
         return;
       }
       const { id } = req.params;
-      const settlement = await Settlement.findById(new Types.ObjectId(id));
+      const settlement = await SettlementModel.findById(new Types.ObjectId(id));
       if (!settlement) {
         res.status(404).json({ message: 'Settlement not found' });
         return;
@@ -170,7 +170,7 @@ export class SettlementController {
         return;
       }
       const { id } = req.params;
-      const settlement = await Settlement.findByIdAndUpdate(
+      const settlement = await SettlementModel.findByIdAndUpdate(
         new Types.ObjectId(id),
         req.body,
         { new: true }

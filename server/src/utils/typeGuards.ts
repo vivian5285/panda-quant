@@ -1,4 +1,6 @@
+import { Request } from 'express';
 import { IUserDocument } from '../models/user.model';
+import { AuthenticatedRequest } from '../types/express';
 
 export function isUser(obj: any): obj is IUserDocument {
   return (
@@ -26,10 +28,12 @@ export function isUser(obj: any): obj is IUserDocument {
   );
 }
 
-export function isAuthenticatedRequest(obj: any): obj is { user?: IUserDocument } {
+export function isAuthenticatedRequest(req: Request): req is AuthenticatedRequest {
   return (
-    obj &&
-    typeof obj === 'object' &&
-    (!obj.user || isUser(obj.user))
+    req &&
+    typeof req === 'object' &&
+    'user' in req &&
+    req.user !== undefined &&
+    isUser(req.user)
   );
 } 

@@ -5,9 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettlementService = void 0;
 const mongoose_1 = require("mongoose");
-const Settlement_1 = __importDefault(require("../models/Settlement"));
+const settlement_model_1 = __importDefault(require("../models/settlement.model"));
 const logger_1 = require("../utils/logger");
-const Settlement_2 = require("../types/Settlement");
+const Settlement_1 = require("../types/Settlement");
 class SettlementService {
     constructor() { }
     static getInstance() {
@@ -18,11 +18,11 @@ class SettlementService {
     }
     async createSettlement(userId, amount, type, metadata) {
         try {
-            const settlement = new Settlement_1.default({
+            const settlement = new settlement_model_1.default({
                 userId: new mongoose_1.Types.ObjectId(userId),
                 amount,
                 type,
-                status: Settlement_2.SettlementStatus.PENDING,
+                status: Settlement_1.SettlementStatus.PENDING,
                 metadata
             });
             const savedSettlement = await settlement.save();
@@ -35,7 +35,7 @@ class SettlementService {
     }
     async updateSettlementStatus(id, status) {
         try {
-            const settlement = await Settlement_1.default.findByIdAndUpdate(id, { $set: { status } }, { new: true });
+            const settlement = await settlement_model_1.default.findByIdAndUpdate(id, { $set: { status } }, { new: true });
             return settlement;
         }
         catch (error) {
@@ -45,7 +45,7 @@ class SettlementService {
     }
     async getSettlementById(id) {
         try {
-            const settlement = await Settlement_1.default.findById(id);
+            const settlement = await settlement_model_1.default.findById(id);
             return settlement;
         }
         catch (error) {

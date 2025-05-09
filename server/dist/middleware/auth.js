@@ -6,83 +6,109 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authenticateToken = exports.hasPermission = exports.isAdmin = exports.authorize = exports.ensureAuthenticated = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = require("../config");
+const errors_1 = require("../utils/errors");
+const user_model_1 = require("../models/user.model");
 const logger_1 = require("../utils/logger");
 const JWT_SECRET = process.env['JWT_SECRET'] || 'your-secret-key';
+// 通用的错误处理函数
+const handleAuthError = (error, res) => {
+    logger_1.logger.error('Authentication error:', error);
+    if (error instanceof errors_1.UnauthorizedError) {
+        res.status(401).json({ error: error.message });
+    }
+    else if (error instanceof errors_1.ForbiddenError) {
+        res.status(403).json({ error: error.message });
+    }
+    else {
+        res.status(403).json({ error: 'Authorization failed' });
+    }
+};
 const ensureAuthenticated = async (req, res, next) => {
     try {
         const token = req.headers.authorization?.replace('Bearer ', '');
         if (!token) {
-            res.status(401).json({ error: 'No token provided' });
-            return;
+            throw new errors_1.UnauthorizedError('No token provided');
         }
         const decoded = jsonwebtoken_1.default.verify(token, config_1.config.jwtSecret);
         if (!decoded) {
-            res.status(401).json({ error: 'Invalid token' });
-            return;
+            throw new errors_1.UnauthorizedError('Invalid token');
         }
-        req.user = { _id: decoded.id };
+        const user = await user_model_1.User.findById(decoded.id);
+        if (!user) {
+            throw new errors_1.UnauthorizedError('User not found');
+        }
+        req.user = user;
         next();
     }
     catch (error) {
-        logger_1.logger.error('Authentication error:', error);
-        res.status(401).json({ error: 'Authentication failed' });
+        handleAuthError(error, res);
     }
 };
 exports.ensureAuthenticated = ensureAuthenticated;
 const authorize = (role) => async (req, res, next) => {
     try {
         if (!req.user) {
-            res.status(401).json({ error: 'Authentication required' });
-            return;
+            throw new errors_1.UnauthorizedError('Authentication required');
         }
         if (req.user.role !== role) {
-            res.status(403).json({ error: 'Insufficient permissions' });
-            return;
+            throw new errors_1.ForbiddenError('Insufficient permissions');
         }
         next();
     }
     catch (error) {
-        logger_1.logger.error('Authorization error:', error);
-        res.status(403).json({ error: 'Authorization failed' });
+        handleAuthError(error, res);
     }
 };
 exports.authorize = authorize;
-const isAdmin = (req, res, next) => {
-    if (!req.user) {
-        res.status(401).json({ message: 'Not authenticated' });
-        return;
+const isAdmin = async (req, res, next) => {
+    try {
+        if (!req.user) {
+            throw new errors_1.UnauthorizedError('Not authenticated');
+        }
+        if (req.user.role !== 'admin') {
+            throw new errors_1.ForbiddenError('Not authorized');
+        }
+        next();
     }
-    if (req.user.role !== 'admin') {
-        res.status(403).json({ message: 'Not authorized' });
-        return;
+    catch (error) {
+        handleAuthError(error, res);
     }
-    next();
 };
 exports.isAdmin = isAdmin;
 const hasPermission = (permission) => {
     return async (req, res, next) => {
-        if (!req.user || !req.user.permissions?.includes(permission)) {
-            res.status(403).json({ message: 'Access denied' });
-            return;
+        try {
+            if (!req.user) {
+                throw new errors_1.UnauthorizedError('Not authenticated');
+            }
+            if (!req.user.permissions?.includes(permission)) {
+                throw new errors_1.ForbiddenError('Access denied');
+            }
+            next();
         }
-        next();
+        catch (error) {
+            handleAuthError(error, res);
+        }
     };
 };
 exports.hasPermission = hasPermission;
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (!token) {
-        return res.status(401).json({ message: 'Authentication token is required' });
-    }
+const authenticateToken = async (req, res, next) => {
     try {
-        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-        req.user = decoded;
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+        if (!token) {
+            throw new errors_1.UnauthorizedError('Authentication token is required');
+        }
+        const decoded = jsonwebtoken_1.default.verify(token, JWT_SECRET);
+        const user = await user_model_1.User.findById(decoded.id);
+        if (!user) {
+            throw new errors_1.UnauthorizedError('User not found');
+        }
+        req.user = user;
         next();
     }
     catch (error) {
-        logger_1.logger.error('Error authenticating token:', error);
-        return res.status(403).json({ message: 'Invalid or expired token' });
+        handleAuthError(error, res);
     }
 };
 exports.authenticateToken = authenticateToken;

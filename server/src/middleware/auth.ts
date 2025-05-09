@@ -6,8 +6,12 @@ import { User, IUserDocument } from '../models/user.model';
 import { logger } from '../utils/logger';
 import { IUser } from '../types/User';
 
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   user?: IUserDocument;
+  headers: {
+    authorization?: string;
+    [key: string]: string | string[] | undefined;
+  };
 }
 
 const JWT_SECRET = process.env['JWT_SECRET'] || 'your-secret-key';
@@ -25,6 +29,18 @@ declare global {
   }
 }
 
+// 通用的错误处理函数
+const handleAuthError = (error: Error, res: Response): void => {
+  logger.error('Authentication error:', error);
+  if (error instanceof UnauthorizedError) {
+    res.status(401).json({ error: error.message });
+  } else if (error instanceof ForbiddenError) {
+    res.status(403).json({ error: error.message });
+  } else {
+    res.status(403).json({ error: 'Authorization failed' });
+  }
+};
+
 export const ensureAuthenticated = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -33,21 +49,23 @@ export const ensureAuthenticated = async (
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
-      res.status(401).json({ error: 'No token provided' });
-      return;
+      throw new UnauthorizedError('No token provided');
     }
 
     const decoded = jwt.verify(token, config.jwtSecret) as { id: string };
     if (!decoded) {
-      res.status(401).json({ error: 'Invalid token' });
-      return;
+      throw new UnauthorizedError('Invalid token');
     }
 
-    req.user = { _id: decoded.id } as any;
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      throw new UnauthorizedError('User not found');
+    }
+
+    req.user = user;
     next();
   } catch (error) {
-    logger.error('Authentication error:', error);
-    res.status(401).json({ error: 'Authentication failed' });
+    handleAuthError(error as Error, res);
   }
 };
 
@@ -58,60 +76,72 @@ export const authorize = (role: string) => async (
 ): Promise<void> => {
   try {
     if (!req.user) {
-      res.status(401).json({ error: 'Authentication required' });
-      return;
+      throw new UnauthorizedError('Authentication required');
     }
 
     if (req.user.role !== role) {
-      res.status(403).json({ error: 'Insufficient permissions' });
-      return;
+      throw new ForbiddenError('Insufficient permissions');
     }
 
     next();
   } catch (error) {
-    logger.error('Authorization error:', error);
-    res.status(403).json({ error: 'Authorization failed' });
+    handleAuthError(error as Error, res);
   }
 };
 
-export const isAdmin = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-  if (!req.user) {
-    res.status(401).json({ message: 'Not authenticated' });
-    return;
-  }
+export const isAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (!req.user) {
+      throw new UnauthorizedError('Not authenticated');
+    }
 
-  if (req.user.role !== 'admin') {
-    res.status(403).json({ message: 'Not authorized' });
-    return;
-  }
+    if (req.user.role !== 'admin') {
+      throw new ForbiddenError('Not authorized');
+    }
 
-  next();
+    next();
+  } catch (error) {
+    handleAuthError(error as Error, res);
+  }
 };
 
 export const hasPermission = (permission: string) => {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-    if (!req.user || !req.user.permissions?.includes(permission)) {
-      res.status(403).json({ message: 'Access denied' });
-      return;
+    try {
+      if (!req.user) {
+        throw new UnauthorizedError('Not authenticated');
+      }
+
+      if (!req.user.permissions?.includes(permission)) {
+        throw new ForbiddenError('Access denied');
+      }
+
+      next();
+    } catch (error) {
+      handleAuthError(error as Error, res);
     }
-    next();
   };
 };
 
-export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ message: 'Authentication token is required' });
-  }
-
+export const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as IUserDocument;
-    req.user = decoded;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+      throw new UnauthorizedError('Authentication token is required');
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      throw new UnauthorizedError('User not found');
+    }
+
+    req.user = user;
     next();
   } catch (error) {
-    logger.error('Error authenticating token:', error);
-    return res.status(403).json({ message: 'Invalid or expired token' });
+    handleAuthError(error as Error, res);
   }
 }; 

@@ -1,59 +1,80 @@
 import { Types } from 'mongoose';
-import { Backtest } from '../models/Backtest';
+import { IBacktest, IBacktestDocument, BacktestCreateInput } from '../types/Backtest';
+import { Backtest } from '../models/backtest.model';
 import { logger } from '../utils/logger';
-import { IBacktest, IBacktestDocument } from '../types/Backtest';
+import { AppError } from '../utils/AppError';
 
 export class BacktestService {
-  async createBacktest(data: Omit<IBacktest, '_id' | 'createdAt' | 'updatedAt'>): Promise<IBacktest> {
+  private static instance: BacktestService;
+
+  private constructor() {}
+
+  public static getInstance(): BacktestService {
+    if (!BacktestService.instance) {
+      BacktestService.instance = new BacktestService();
+    }
+    return BacktestService.instance;
+  }
+
+  private convertToIBacktest(doc: IBacktestDocument): IBacktest {
+    const obj = doc.toObject();
+    return {
+      _id: obj._id,
+      userId: obj.userId,
+      strategyId: obj.strategyId,
+      name: obj.name,
+      description: obj.description,
+      period: obj.period,
+      parameters: obj.parameters,
+      results: obj.results,
+      status: obj.status,
+      error: obj.error,
+      metadata: obj.metadata,
+      createdAt: obj.createdAt,
+      updatedAt: obj.updatedAt
+    };
+  }
+
+  public async createBacktest(backtestData: BacktestCreateInput): Promise<IBacktest> {
     try {
-      const backtest = new Backtest(data);
+      const backtest = new Backtest(backtestData);
       const savedBacktest = await backtest.save();
-      return savedBacktest.toObject();
+      return this.convertToIBacktest(savedBacktest);
     } catch (error) {
       logger.error('Error creating backtest:', error);
-      throw error;
+      throw new AppError('Failed to create backtest', 500);
     }
   }
 
-  async getBacktestById(id: string): Promise<IBacktest | null> {
+  public async getBacktestById(id: string): Promise<IBacktest | null> {
     try {
       const backtest = await Backtest.findById(id);
       if (!backtest) return null;
-      return backtest.toObject();
+      return this.convertToIBacktest(backtest);
     } catch (error) {
       logger.error('Error getting backtest:', error);
-      throw error;
+      throw new AppError('Failed to get backtest', 500);
     }
   }
 
-  async getBacktestsByStrategyId(strategyId: string): Promise<IBacktest[]> {
+  public async getBacktestsByUserId(userId: string): Promise<IBacktest[]> {
     try {
-      const backtests = await Backtest.find({ strategyId });
-      return backtests.map(backtest => backtest.toObject());
+      const backtests = await Backtest.find({ userId: new Types.ObjectId(userId) });
+      return backtests.map(backtest => this.convertToIBacktest(backtest));
     } catch (error) {
       logger.error('Error getting backtests:', error);
-      throw error;
+      throw new AppError('Failed to get backtests', 500);
     }
   }
 
-  async updateBacktest(id: string, data: Partial<IBacktest>): Promise<IBacktest | null> {
+  public async getBacktestByStrategyId(strategyId: string): Promise<IBacktest | null> {
     try {
-      const backtest = await Backtest.findByIdAndUpdate(id, data, { new: true });
+      const backtest = await Backtest.findOne({ strategyId: new Types.ObjectId(strategyId) });
       if (!backtest) return null;
-      return backtest.toObject();
+      return this.convertToIBacktest(backtest);
     } catch (error) {
-      logger.error('Error updating backtest:', error);
-      throw error;
-    }
-  }
-
-  async deleteBacktest(id: string): Promise<boolean> {
-    try {
-      const result = await Backtest.findByIdAndDelete(id);
-      return result !== null;
-    } catch (error) {
-      logger.error('Error deleting backtest:', error);
-      throw error;
+      logger.error('Error getting backtest:', error);
+      throw new AppError('Failed to get backtest', 500);
     }
   }
 } 

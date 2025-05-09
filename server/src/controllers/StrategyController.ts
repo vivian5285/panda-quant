@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { StrategyService } from '../services/StrategyService';
-import { IStrategy } from '../types/Strategy';
+import { IStrategy, IStrategyCreateInput } from '../types/Strategy';
 import { logger } from '../utils/logger';
 
 export class StrategyController {
@@ -12,7 +12,11 @@ export class StrategyController {
 
   async createStrategy(req: Request, res: Response): Promise<void> {
     try {
-      const strategyData = req.body as Partial<IStrategy>;
+      const strategyData = req.body as IStrategyCreateInput;
+      if (!strategyData.name) {
+        res.status(400).json({ message: 'Strategy name is required' });
+        return;
+      }
       const strategy = await this.strategyService.createStrategy(strategyData);
       res.status(201).json(strategy);
     } catch (error) {

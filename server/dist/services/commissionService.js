@@ -1,11 +1,8 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommissionService = void 0;
-const Commission_1 = require("../models/Commission");
-const CommissionRule_1 = __importDefault(require("../models/CommissionRule"));
+exports.commissionService = exports.CommissionService = void 0;
+const commission_model_1 = require("../models/commission.model");
+const commission_rule_model_1 = require("../models/commission-rule.model");
 const logger_1 = require("../utils/logger");
 class CommissionService {
     constructor() { }
@@ -37,13 +34,14 @@ class CommissionService {
             value: ruleObject.value || 0,
             conditions: ruleObject.conditions || {},
             isActive: ruleObject.isActive ?? true,
+            status: ruleObject.status,
             createdAt: ruleObject.createdAt || new Date(),
             updatedAt: ruleObject.updatedAt || new Date()
         };
     }
     async createCommission(commissionData) {
         try {
-            const commission = new Commission_1.Commission(commissionData);
+            const commission = new commission_model_1.Commission(commissionData);
             const savedCommission = await commission.save();
             return this.convertToICommission(savedCommission);
         }
@@ -54,7 +52,7 @@ class CommissionService {
     }
     async getCommissionById(id) {
         try {
-            const commission = await Commission_1.Commission.findById(id);
+            const commission = await commission_model_1.Commission.findById(id);
             return commission ? this.convertToICommission(commission) : null;
         }
         catch (error) {
@@ -64,7 +62,7 @@ class CommissionService {
     }
     async getCommissionByUserId(userId) {
         try {
-            const commission = await Commission_1.Commission.findOne({ userId });
+            const commission = await commission_model_1.Commission.findOne({ userId });
             return commission ? this.convertToICommission(commission) : null;
         }
         catch (error) {
@@ -74,7 +72,7 @@ class CommissionService {
     }
     async updateCommission(id, updateData) {
         try {
-            const commission = await Commission_1.Commission.findByIdAndUpdate(id, { $set: updateData }, { new: true });
+            const commission = await commission_model_1.Commission.findByIdAndUpdate(id, { $set: updateData }, { new: true });
             return commission ? this.convertToICommission(commission) : null;
         }
         catch (error) {
@@ -84,7 +82,7 @@ class CommissionService {
     }
     async deleteCommission(id) {
         try {
-            const result = await Commission_1.Commission.findByIdAndDelete(id);
+            const result = await commission_model_1.Commission.findByIdAndDelete(id);
             return !!result;
         }
         catch (error) {
@@ -94,7 +92,7 @@ class CommissionService {
     }
     async getCommissionsByUserId(userId) {
         try {
-            const commissions = await Commission_1.Commission.find({ userId });
+            const commissions = await commission_model_1.Commission.find({ userId });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
@@ -104,7 +102,7 @@ class CommissionService {
     }
     async getCommissionsByStatus(status) {
         try {
-            const commissions = await Commission_1.Commission.find({ status });
+            const commissions = await commission_model_1.Commission.find({ status });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
@@ -114,7 +112,7 @@ class CommissionService {
     }
     async getCommissionsByDateRange(startDate, endDate) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 createdAt: {
                     $gte: startDate,
                     $lte: endDate
@@ -129,7 +127,7 @@ class CommissionService {
     }
     async getCommissionsByType(type) {
         try {
-            const commissions = await Commission_1.Commission.find({ type });
+            const commissions = await commission_model_1.Commission.find({ type });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
@@ -139,7 +137,7 @@ class CommissionService {
     }
     async getCommissionsByUserAndDateRange(userId, startDate, endDate) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 userId,
                 createdAt: {
                     $gte: startDate,
@@ -155,7 +153,7 @@ class CommissionService {
     }
     async getCommissionsByUserAndStatus(userId, status) {
         try {
-            const commissions = await Commission_1.Commission.find({ userId, status });
+            const commissions = await commission_model_1.Commission.find({ userId, status });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
@@ -165,7 +163,7 @@ class CommissionService {
     }
     async getCommissionsByUserAndType(userId, type) {
         try {
-            const commissions = await Commission_1.Commission.find({ userId, type });
+            const commissions = await commission_model_1.Commission.find({ userId, type });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
@@ -175,7 +173,7 @@ class CommissionService {
     }
     async getCommissionsByUserAndDateRangeAndStatus(userId, startDate, endDate, status) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 userId,
                 status,
                 createdAt: {
@@ -186,13 +184,13 @@ class CommissionService {
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by user, date range and status:', error);
+            logger_1.logger.error('Error getting commissions by user and date range and status:', error);
             throw error;
         }
     }
     async getCommissionsByUserAndDateRangeAndType(userId, startDate, endDate, type) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 userId,
                 type,
                 createdAt: {
@@ -203,13 +201,13 @@ class CommissionService {
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by user, date range and type:', error);
+            logger_1.logger.error('Error getting commissions by user and date range and type:', error);
             throw error;
         }
     }
     async getCommissionsByUserAndDateRangeAndStatusAndType(userId, startDate, endDate, status, type) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 userId,
                 status,
                 type,
@@ -221,13 +219,13 @@ class CommissionService {
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by user, date range, status and type:', error);
+            logger_1.logger.error('Error getting commissions by user and date range and status and type:', error);
             throw error;
         }
     }
     async getCommissionsByDateRangeAndStatus(startDate, endDate, status) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 status,
                 createdAt: {
                     $gte: startDate,
@@ -243,7 +241,7 @@ class CommissionService {
     }
     async getCommissionsByDateRangeAndType(startDate, endDate, type) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 type,
                 createdAt: {
                     $gte: startDate,
@@ -259,7 +257,7 @@ class CommissionService {
     }
     async getCommissionsByDateRangeAndStatusAndType(startDate, endDate, status, type) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 status,
                 type,
                 createdAt: {
@@ -270,13 +268,13 @@ class CommissionService {
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by date range, status and type:', error);
+            logger_1.logger.error('Error getting commissions by date range and status and type:', error);
             throw error;
         }
     }
     async getCommissionsByStatusAndType(status, type) {
         try {
-            const commissions = await Commission_1.Commission.find({ status, type });
+            const commissions = await commission_model_1.Commission.find({ status, type });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
@@ -286,17 +284,17 @@ class CommissionService {
     }
     async getCommissionsByUserAndStatusAndType(userId, status, type) {
         try {
-            const commissions = await Commission_1.Commission.find({ userId, status, type });
+            const commissions = await commission_model_1.Commission.find({ userId, status, type });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by user, status and type:', error);
+            logger_1.logger.error('Error getting commissions by user and status and type:', error);
             throw error;
         }
     }
     async getCommissionsByUserAndDateRangeAndStatusAndTypeAndAmount(userId, startDate, endDate, status, type, amount) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 userId,
                 status,
                 type,
@@ -309,13 +307,13 @@ class CommissionService {
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by user, date range, status, type and amount:', error);
+            logger_1.logger.error('Error getting commissions by user and date range and status and type and amount:', error);
             throw error;
         }
     }
     async getCommissionsByDateRangeAndStatusAndTypeAndAmount(startDate, endDate, status, type, amount) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 status,
                 type,
                 amount,
@@ -327,33 +325,33 @@ class CommissionService {
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by date range, status, type and amount:', error);
+            logger_1.logger.error('Error getting commissions by date range and status and type and amount:', error);
             throw error;
         }
     }
     async getCommissionsByStatusAndTypeAndAmount(status, type, amount) {
         try {
-            const commissions = await Commission_1.Commission.find({ status, type, amount });
+            const commissions = await commission_model_1.Commission.find({ status, type, amount });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by status, type and amount:', error);
+            logger_1.logger.error('Error getting commissions by status and type and amount:', error);
             throw error;
         }
     }
     async getCommissionsByUserAndStatusAndTypeAndAmount(userId, status, type, amount) {
         try {
-            const commissions = await Commission_1.Commission.find({ userId, status, type, amount });
+            const commissions = await commission_model_1.Commission.find({ userId, status, type, amount });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by user, status, type and amount:', error);
+            logger_1.logger.error('Error getting commissions by user and status and type and amount:', error);
             throw error;
         }
     }
     async getCommissionsByUserAndDateRangeAndStatusAndTypeAndAmountAndCurrency(userId, startDate, endDate, status, type, amount, currency) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 userId,
                 status,
                 type,
@@ -367,13 +365,13 @@ class CommissionService {
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by user, date range, status, type, amount and currency:', error);
+            logger_1.logger.error('Error getting commissions by user and date range and status and type and amount and currency:', error);
             throw error;
         }
     }
     async getCommissionsByDateRangeAndStatusAndTypeAndAmountAndCurrency(startDate, endDate, status, type, amount, currency) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 status,
                 type,
                 amount,
@@ -386,33 +384,33 @@ class CommissionService {
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by date range, status, type, amount and currency:', error);
+            logger_1.logger.error('Error getting commissions by date range and status and type and amount and currency:', error);
             throw error;
         }
     }
     async getCommissionsByStatusAndTypeAndAmountAndCurrency(status, type, amount, currency) {
         try {
-            const commissions = await Commission_1.Commission.find({ status, type, amount, currency });
+            const commissions = await commission_model_1.Commission.find({ status, type, amount, currency });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by status, type, amount and currency:', error);
+            logger_1.logger.error('Error getting commissions by status and type and amount and currency:', error);
             throw error;
         }
     }
     async getCommissionsByUserAndStatusAndTypeAndAmountAndCurrency(userId, status, type, amount, currency) {
         try {
-            const commissions = await Commission_1.Commission.find({ userId, status, type, amount, currency });
+            const commissions = await commission_model_1.Commission.find({ userId, status, type, amount, currency });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by user, status, type, amount and currency:', error);
+            logger_1.logger.error('Error getting commissions by user and status and type and amount and currency:', error);
             throw error;
         }
     }
     async getCommissionsByUserAndDateRangeAndStatusAndTypeAndAmountAndCurrencyAndDescription(userId, startDate, endDate, status, type, amount, currency, description) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 userId,
                 status,
                 type,
@@ -427,13 +425,13 @@ class CommissionService {
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by user, date range, status, type, amount, currency and description:', error);
+            logger_1.logger.error('Error getting commissions by user and date range and status and type and amount and currency and description:', error);
             throw error;
         }
     }
     async getCommissionsByDateRangeAndStatusAndTypeAndAmountAndCurrencyAndDescription(startDate, endDate, status, type, amount, currency, description) {
         try {
-            const commissions = await Commission_1.Commission.find({
+            const commissions = await commission_model_1.Commission.find({
                 status,
                 type,
                 amount,
@@ -447,33 +445,33 @@ class CommissionService {
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by date range, status, type, amount, currency and description:', error);
+            logger_1.logger.error('Error getting commissions by date range and status and type and amount and currency and description:', error);
             throw error;
         }
     }
     async getCommissionsByStatusAndTypeAndAmountAndCurrencyAndDescription(status, type, amount, currency, description) {
         try {
-            const commissions = await Commission_1.Commission.find({ status, type, amount, currency, description });
+            const commissions = await commission_model_1.Commission.find({ status, type, amount, currency, description });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by status, type, amount, currency and description:', error);
+            logger_1.logger.error('Error getting commissions by status and type and amount and currency and description:', error);
             throw error;
         }
     }
     async getCommissionsByUserAndStatusAndTypeAndAmountAndCurrencyAndDescription(userId, status, type, amount, currency, description) {
         try {
-            const commissions = await Commission_1.Commission.find({ userId, status, type, amount, currency, description });
+            const commissions = await commission_model_1.Commission.find({ userId, status, type, amount, currency, description });
             return commissions.map(commission => this.convertToICommission(commission));
         }
         catch (error) {
-            logger_1.logger.error('Error getting commissions by user, status, type, amount, currency and description:', error);
+            logger_1.logger.error('Error getting commissions by user and status and type and amount and currency and description:', error);
             throw error;
         }
     }
     async getCommissionRules() {
         try {
-            const rules = await CommissionRule_1.default.find().sort({ createdAt: -1 });
+            const rules = await commission_rule_model_1.CommissionRule.find();
             return rules.map(rule => this.convertToICommissionRule(rule));
         }
         catch (error) {
@@ -483,7 +481,7 @@ class CommissionService {
     }
     async createCommissionRule(data) {
         try {
-            const rule = new CommissionRule_1.default(data);
+            const rule = new commission_rule_model_1.CommissionRule(data);
             const savedRule = await rule.save();
             return this.convertToICommissionRule(savedRule);
         }
@@ -494,8 +492,8 @@ class CommissionService {
     }
     async updateCommissionRule(id, updateData) {
         try {
-            const updatedRule = await CommissionRule_1.default.findByIdAndUpdate(id, { $set: updateData }, { new: true });
-            return updatedRule ? this.convertToICommissionRule(updatedRule) : null;
+            const rule = await commission_rule_model_1.CommissionRule.findByIdAndUpdate(id, { $set: updateData }, { new: true });
+            return rule ? this.convertToICommissionRule(rule) : null;
         }
         catch (error) {
             logger_1.logger.error('Error updating commission rule:', error);
@@ -504,7 +502,7 @@ class CommissionService {
     }
     async deleteCommissionRule(id) {
         try {
-            const result = await CommissionRule_1.default.findByIdAndDelete(id);
+            const result = await commission_rule_model_1.CommissionRule.findByIdAndDelete(id);
             return !!result;
         }
         catch (error) {
@@ -514,4 +512,5 @@ class CommissionService {
     }
 }
 exports.CommissionService = CommissionService;
+exports.commissionService = CommissionService.getInstance();
 //# sourceMappingURL=CommissionService.js.map

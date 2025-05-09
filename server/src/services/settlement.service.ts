@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import Settlement from '../models/Settlement';
+import Settlement from '../models/settlement.model';
 import { logger } from '../utils/logger';
 import { SettlementStatus, ISettlementDocument } from '../types/Settlement';
 

@@ -1,7 +1,13 @@
 import { IStrategy } from '../types/Strategy';
-import { IOrder } from '../types/Trading';
+import { IOrder, IOrderBase } from '../types/Trading';
 import { logger } from '../utils/logger';
 import { Types } from 'mongoose';
+import { OrderStatus } from '../types/Enums';
+
+interface Order {
+  _id: Types.ObjectId;
+  // ... 其他属性
+}
 
 export class StrategyEngine {
   private strategies: Map<string, IStrategy>;
@@ -33,14 +39,13 @@ export class StrategyEngine {
     }
   }
 
-  createOrder(order: Omit<IOrder, '_id' | 'createdAt' | 'updatedAt'>): IOrder {
-    const newOrder: IOrder = {
-      _id: new Types.ObjectId(),
+  createOrder(order: Omit<IOrderBase, 'createdAt' | 'updatedAt'>): IOrder {
+    const newOrder: IOrderBase = {
       ...order,
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    this.orders.set(newOrder._id.toString(), newOrder);
-    return newOrder;
+    this.orders.set(newOrder.orderId, newOrder as IOrder);
+    return newOrder as IOrder;
   }
 }
