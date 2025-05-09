@@ -15,8 +15,7 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import axiosInstance from '../utils/axiosInstance'; // 复用 axios 实例
-import { formatDistanceToNow } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { formatDistanceToNow, zhCN } from 'date-fns';
 
 // 单个通知的详细类型
 interface Notification {
