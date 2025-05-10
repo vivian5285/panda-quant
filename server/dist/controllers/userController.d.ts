@@ -6,4 +6,4 @@ export declare class UserController {
     updateUser(req: Request, res: Response): Promise<void>;
     deleteUser(req: Request, res: Response): Promise<void>;
 }
-//# sourceMappingURL=UserController.d.ts.map
+//# sourceMappingURL=userController.d.ts.map

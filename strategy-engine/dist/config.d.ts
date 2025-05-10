@@ -15,8 +15,14 @@ export declare const config: {
         port: number;
         jwtSecret: string;
     };
+    server: {
+        port: number;
+    };
+    wsUrl: string;
     strategy: {
-        maxConcurrentBacktests: number;
-        defaultRiskLevel: string;
+        defaultLeverage: number;
+        maxLeverage: number;
+        defaultStopLoss: number;
+        defaultTakeProfit: number;
     };
 };
