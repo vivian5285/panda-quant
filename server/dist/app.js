@@ -8,7 +8,7 @@ const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
 const errorHandler_1 = require("./middleware/errorHandler");
-const Index_1 = __importDefault(require("./routes/Index"));
+const index_1 = __importDefault(require("./routes/index"));
 const security_1 = require("./middleware/security");
 const app = (0, express_1.default)();
 // Middleware
@@ -20,7 +20,7 @@ app.use(express_1.default.urlencoded({ extended: true }));
 // Security setup
 (0, security_1.setupSecurity)(app);
 // Routes
-app.use('/api', Index_1.default);
+app.use('/api', index_1.default);
 // Error handling
 app.use(errorHandler_1.errorHandler);
 exports.default = app;

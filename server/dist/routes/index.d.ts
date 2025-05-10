@@ -1,4 +1,3 @@
-import { Router } from 'express';
 declare const router: Router;
 export default router;
-//# sourceMappingURL=Index.d.ts.map
+//# sourceMappingURL=index.d.ts.map

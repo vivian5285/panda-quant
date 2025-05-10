@@ -1,4 +1,4 @@
-export declare const redis: import("@redis/client/dist").RedisClientType<{
+export declare const redis: import("@redis/client").RedisClientType<{
     graph: {
         CONFIG_GET: typeof import("@redis/graph/dist/commands/CONFIG_GET");
         configGet: typeof import("@redis/graph/dist/commands/CONFIG_GET");
