@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { errorHandler } from './middleware/errorHandler';
-import routes from './routes/Index';
+import routes from './routes/index';
 import { setupSecurity } from './middleware/security';
 
 const app: Application = express();
