@@ -4,7 +4,7 @@ import type { Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
 import type { AuthenticatedRequest } from '../types/express';
-import { UserController } from '../controllers/userController';
+import { UserController } from '../controllers/UserController';
 import { validateRequest, validateParams } from '../validations/common';
 import { createUserSchema, updateUserSchema, userIdSchema } from '../validations/schemas/user';
 
