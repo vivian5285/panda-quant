@@ -17,38 +17,51 @@ export class AppError extends Error {
   }
 }
 
-export function errorHandler(
-    error: any,
-    req: Request,
-    res: Response,
-    next: NextFunction
-) {
-    console.error('Error:', error);
+export const errorHandler = (
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  logger.error('Error:', err);
 
-    // 处理智能合约错误
-    if (error.code === -32000 && error.data) {
-        const decodedError = handleContractError(error);
-        return res.status(400).json({
-            success: false,
-            error: {
-                code: error.code,
-                message: decodedError
-            }
-        });
-    }
-
-    // 处理其他类型的错误
-    const statusCode = error.statusCode || 500;
-    const message = error.message || 'Internal Server Error';
-
-    res.status(statusCode).json({
-        success: false,
-        error: {
-            code: error.code || statusCode,
-            message
-        }
+  if (err.name === 'ValidationError') {
+    res.status(400).json({
+      error: 'Validation Error',
+      details: err.message
     });
-}
+    return;
+  }
+
+  if (err.name === 'UnauthorizedError') {
+    res.status(401).json({
+      error: 'Unauthorized',
+      details: err.message
+    });
+    return;
+  }
+
+  if (err.name === 'ForbiddenError') {
+    res.status(403).json({
+      error: 'Forbidden',
+      details: err.message
+    });
+    return;
+  }
+
+  if (err.name === 'NotFoundError') {
+    res.status(404).json({
+      error: 'Not Found',
+      details: err.message
+    });
+    return;
+  }
+
+  res.status(500).json({
+    error: 'Internal Server Error',
+    details: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred'
+  });
+};
 
 export const handleRequest = (fn: Function) => {
   return async (req: Request, res: Response, next: NextFunction) => {

@@ -96,6 +96,6 @@ export interface IResetPasswordData {
   confirmPassword: string;
 }
 
-export interface AuthenticatedRequest extends Omit<Request, 'user'> {
+export interface AuthenticatedRequest extends Request {
   user?: IUserDocument;
 } 

@@ -1,22 +1,21 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
-import type { AuthenticatedRequest } from '../types/express';
-import { isAuthenticatedRequest } from './typeGuards';
+import { AuthenticatedRequest } from '../types/express';
+import { logger } from './logger';
 
-type RequestHandlerFunction = (
+export type RequestHandlerFunction<T = any> = (
   req: AuthenticatedRequest,
   res: Response,
-  next?: NextFunction
-) => Promise<void>;
+  next: NextFunction
+) => Promise<T>;
 
-export const handleRequest = (
-  handler: RequestHandlerFunction
-): RequestHandler => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+export const handleRequest = <T = any>(handler: RequestHandlerFunction<T>): RequestHandler => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      if (!isAuthenticatedRequest(req)) {
-        throw new Error('Invalid request type');
+      if (!req.user) {
+        throw new Error('User not authenticated');
       }
-      await handler(req as AuthenticatedRequest, res, next);
+      const result = await handler(req as AuthenticatedRequest, res, next);
+      res.json(result);
     } catch (error) {
       next(error);
     }

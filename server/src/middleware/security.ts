@@ -69,16 +69,11 @@ export const securityMiddleware = [
 ];
 
 // 请求大小限制中间件
-export const requestSizeLimit = (req: Request, res: Response, next: NextFunction) => {
-  const contentLength = parseInt(req.headers['content-length'] || '0');
-  if (contentLength > 1024 * 1024) { // 1MB
-    return res.status(413).json({
-      success: false,
-      error: {
-        name: 'PayloadTooLargeError',
-        message: 'Request entity too large'
-      }
-    });
+export const requestSizeLimit = (req: Request, res: Response, next: NextFunction): void => {
+  const contentLength = req.headers['content-length'];
+  if (contentLength && Number(contentLength) > 1024 * 1024) {
+    res.status(413).json({ error: 'Request entity too large' });
+    return;
   }
   next();
 };

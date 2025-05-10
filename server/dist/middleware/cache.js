@@ -38,32 +38,27 @@ const disableCache = (_req, res, next) => {
 };
 exports.disableCache = disableCache;
 // Redis 缓存中间件
-const cacheMiddleware = async (req, res, next) => {
-    // 只缓存 GET 请求
-    if (req.method !== 'GET') {
-        return next();
-    }
-    const key = `cache:${req.originalUrl}`;
-    try {
-        const cachedData = await redis.get(key);
-        if (cachedData) {
-            logger_1.logger.debug(`Cache hit for key: ${key}`);
-            return res.json(JSON.parse(cachedData));
+const cacheMiddleware = (duration) => {
+    return async (req, res, next) => {
+        const key = `__express__${req.originalUrl || req.url}`;
+        try {
+            const cachedData = await redis.get(key);
+            if (cachedData) {
+                res.json(JSON.parse(cachedData));
+                return;
+            }
+            const originalJson = res.json;
+            res.json = (body) => {
+                redis.set(key, JSON.stringify(body), 'EX', duration);
+                return originalJson.call(res, body);
+            };
+            next();
         }
-        res.sendResponse = res.json;
-        res.json = (body) => {
-            redis.set(key, JSON.stringify(body), 'EX', config_1.config.cache.ttl);
-            res.sendResponse(body);
-        };
-        next();
-    }
-    catch (error) {
-        logger_1.logger.error('Cache middleware error:', error);
-        if (error instanceof Error) {
-            throw new ServerError(`Cache error: ${error.message}`, 500);
+        catch (error) {
+            logger_1.logger.error('Cache middleware error:', error);
+            next(error);
         }
-        throw new ServerError('Unknown cache error', 500);
-    }
+    };
 };
 exports.cacheMiddleware = cacheMiddleware;
 // 清除缓存的方法

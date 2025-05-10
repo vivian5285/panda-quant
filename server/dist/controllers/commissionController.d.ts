@@ -1,5 +1,6 @@
 import { Response, Request } from 'express';
 import { AuthenticatedRequest } from '../types/Auth';
+import { AuthRequest } from '../middleware/authMiddleware';
 export declare class CommissionController {
     private commissionService;
     constructor();
@@ -12,7 +13,7 @@ export declare class CommissionController {
     createCommissionRule: (req: AuthenticatedRequest, res: Response) => Promise<void>;
     updateCommissionRule: (req: AuthenticatedRequest, res: Response) => Promise<void>;
     deleteCommissionRule: (req: AuthenticatedRequest, res: Response) => Promise<void>;
-    getCommissionsByType: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+    getCommissionsByType: (req: AuthRequest, res: Response) => Promise<void>;
     getCommissionsByStatusAndTypeAndAmount: (req: AuthenticatedRequest, res: Response) => Promise<void>;
     getCommissionsByStatusAndTypeAndAmountAndCurrency: (req: AuthenticatedRequest, res: Response) => Promise<void>;
     getCommissionsByUserAndStatusAndTypeAndAmountAndCurrency: (req: AuthenticatedRequest, res: Response) => Promise<void>;

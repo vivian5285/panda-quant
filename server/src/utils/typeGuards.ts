@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import { IUserDocument } from '../models/user.model';
 import { AuthenticatedRequest } from '../types/express';
+import { AuthRequest } from '../middleware/authMiddleware';
 
 export function isUser(obj: any): obj is IUserDocument {
   return (
@@ -28,12 +29,6 @@ export function isUser(obj: any): obj is IUserDocument {
   );
 }
 
-export function isAuthenticatedRequest(req: Request): req is AuthenticatedRequest {
-  return (
-    req &&
-    typeof req === 'object' &&
-    'user' in req &&
-    req.user !== undefined &&
-    isUser(req.user)
-  );
+export function isAuthenticatedRequest(req: Request): req is AuthRequest {
+  return 'user' in req;
 } 

@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../types/Auth';
 import { logger } from '../utils/logger';
 import { AuthService } from '../services/auth/AuthService';
@@ -12,7 +12,7 @@ export class AuthController {
     this.authService = AuthService.getInstance();
   }
 
-  public login = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  public login = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, password } = req.body;
       if (!email || !password) {
@@ -27,7 +27,7 @@ export class AuthController {
     }
   };
 
-  public register = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  public register = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, password, name } = req.body;
       if (!email || !password) {
@@ -48,45 +48,48 @@ export class AuthController {
     }
   };
 
-  public getCurrentUser = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  public getCurrentUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      if (!isAuthenticatedRequest(req) || !req.user) {
+      const user = (req as AuthenticatedRequest).user;
+      if (!user) {
         res.status(401).json({ message: 'User not authenticated' });
         return;
       }
-      const user = await this.authService.getCurrentUser(req.user._id.toString());
-      if (!isUser(user)) {
+      const userData = await this.authService.getCurrentUser(user._id.toString());
+      if (!isUser(userData)) {
         res.status(500).json({ message: 'Invalid user data' });
         return;
       }
-      res.json(user);
+      res.json(userData);
     } catch (error) {
       logger.error('Error getting current user:', error);
       res.status(500).json({ message: 'Error getting user data', error: (error as Error).message });
     }
   };
 
-  public updateUser = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  public updateUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      if (!isAuthenticatedRequest(req) || !req.user) {
+      const user = (req as AuthenticatedRequest).user;
+      if (!user) {
         res.status(401).json({ message: 'User not authenticated' });
         return;
       }
-      const user = await this.authService.updateUser(req.user._id.toString(), req.body);
-      if (!isUser(user)) {
+      const userData = await this.authService.updateUser(user._id.toString(), req.body);
+      if (!isUser(userData)) {
         res.status(500).json({ message: 'Invalid user data' });
         return;
       }
-      res.json(user);
+      res.json(userData);
     } catch (error) {
       logger.error('Error updating user:', error);
       res.status(500).json({ message: 'Error updating user data', error: (error as Error).message });
     }
   };
 
-  public changePassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  public changePassword = async (req: Request, res: Response): Promise<void> => {
     try {
-      if (!isAuthenticatedRequest(req) || !req.user) {
+      const user = (req as AuthenticatedRequest).user;
+      if (!user) {
         res.status(401).json({ message: 'User not authenticated' });
         return;
       }
@@ -95,7 +98,7 @@ export class AuthController {
         res.status(400).json({ message: 'Current password and new password are required' });
         return;
       }
-      await this.authService.changePassword(req.user._id.toString(), currentPassword, newPassword);
+      await this.authService.changePassword(user._id.toString(), currentPassword, newPassword);
       res.json({ message: 'Password changed successfully' });
     } catch (error) {
       logger.error('Error changing password:', error);
@@ -103,13 +106,14 @@ export class AuthController {
     }
   };
 
-  public logout = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  public logout = async (req: Request, res: Response): Promise<void> => {
     try {
-      if (!isAuthenticatedRequest(req) || !req.user) {
+      const user = (req as AuthenticatedRequest).user;
+      if (!user) {
         res.status(401).json({ message: 'User not authenticated' });
         return;
       }
-      await this.authService.logout(req.user._id.toString());
+      await this.authService.logout(user._id.toString());
       res.status(200).json({ message: 'Logged out successfully' });
     } catch (error) {
       logger.error('Error during logout:', error);

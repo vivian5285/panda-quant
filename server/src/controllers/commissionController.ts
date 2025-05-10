@@ -6,6 +6,7 @@ import { Types } from 'mongoose';
 import { CommissionStatus, CommissionType } from '../types/Enums';
 import { CommissionCreateInput, CommissionUpdateInput } from '../types/Commission';
 import { AppError } from '../utils/AppError';
+import { AuthRequest } from '../middleware/authMiddleware';
 
 export class CommissionController {
   private commissionService: CommissionService;
@@ -145,10 +146,10 @@ export class CommissionController {
     }
   };
 
-  public getCommissionsByType = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  public getCommissionsByType = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { type } = req.params;
-      const commissions = await this.commissionService.getCommissionsByType(type);
+      const commissions = await this.commissionService.getCommissionsByType(type as CommissionType);
       res.json(commissions);
     } catch (error) {
       logger.error('Error getting commissions by type:', error);

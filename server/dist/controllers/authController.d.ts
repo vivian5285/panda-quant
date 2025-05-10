@@ -1,14 +1,13 @@
-import { Response } from 'express';
-import { AuthenticatedRequest } from '../types/Auth';
+import { Request, Response } from 'express';
 export declare class AuthController {
     private authService;
     constructor();
-    login: (req: AuthenticatedRequest, res: Response) => Promise<void>;
-    register: (req: AuthenticatedRequest, res: Response) => Promise<void>;
-    getCurrentUser: (req: AuthenticatedRequest, res: Response) => Promise<void>;
-    updateUser: (req: AuthenticatedRequest, res: Response) => Promise<void>;
-    changePassword: (req: AuthenticatedRequest, res: Response) => Promise<void>;
-    logout: (req: AuthenticatedRequest, res: Response) => Promise<void>;
+    login: (req: Request, res: Response) => Promise<void>;
+    register: (req: Request, res: Response) => Promise<void>;
+    getCurrentUser: (req: Request, res: Response) => Promise<void>;
+    updateUser: (req: Request, res: Response) => Promise<void>;
+    changePassword: (req: Request, res: Response) => Promise<void>;
+    logout: (req: Request, res: Response) => Promise<void>;
 }
 declare const _default: AuthController;
 export default _default;

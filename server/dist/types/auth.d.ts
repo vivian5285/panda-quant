@@ -78,7 +78,7 @@ export interface IResetPasswordData {
     newPassword: string;
     confirmPassword: string;
 }
-export interface AuthenticatedRequest extends Omit<Request, 'user'> {
+export interface AuthenticatedRequest extends Request {
     user?: IUserDocument;
 }
 //# sourceMappingURL=Auth.d.ts.map

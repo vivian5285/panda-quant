@@ -1,4 +1,4 @@
-import { RequestHandler } from '../types/express';
+import { RequestHandler } from 'express';
 import type { Schema } from 'joi';
 export declare const validate: (schema: Schema) => RequestHandler;
 export declare const validateParams: (schema: Schema) => RequestHandler;

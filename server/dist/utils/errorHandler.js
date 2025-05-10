@@ -40,53 +40,14 @@ function handleError(res, error) {
     }
 }
 const errorHandlerMiddleware = (err, req, res, next) => {
-    console.error(err);
-    // Mongoose validation error
-    if (err instanceof mongoose_1.Error.ValidationError) {
-        return res.status(400).json({
-            success: false,
-            error: {
-                name: 'ValidationError',
-                message: 'Validation Error',
-                details: Object.values(err.errors).map(error => ({
-                    field: error.path,
-                    message: error.message
-                }))
-            }
-        });
+    if (res.headersSent) {
+        return next(err);
     }
-    // Express validator error
-    if (err.errors && Array.isArray(err.errors)) {
-        return res.status(400).json({
-            success: false,
-            error: {
-                name: 'ValidationError',
-                message: 'Validation Error',
-                details: err.errors
-            }
-        });
-    }
-    // JWT error
-    if (err.name === 'JsonWebTokenError') {
-        return res.status(401).json({
-            success: false,
-            error: {
-                name: 'AuthenticationError',
-                message: 'Invalid token'
-            }
-        });
-    }
-    // Default error
-    const statusCode = err.statusCode || 500;
-    const message = err.message || 'Internal Server Error';
-    res.status(statusCode).json({
-        success: false,
-        error: {
-            name: err.name || 'Error',
-            message,
-            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-        }
+    const status = err.status || 500;
+    res.status(status).json({
+        error: err.message || 'Internal Server Error',
     });
+    return;
 };
 exports.errorHandlerMiddleware = errorHandlerMiddleware;
 //# sourceMappingURL=errorHandler.js.map

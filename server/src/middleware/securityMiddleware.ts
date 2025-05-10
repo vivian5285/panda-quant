@@ -1,6 +1,6 @@
-import { MiddlewareHandler } from '../types/express';
+import { Request, Response, NextFunction } from 'express';
 
-export const securityMiddleware: MiddlewareHandler = (req, res, next) => {
+export const securityMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   // Set security headers
   res.header('X-Content-Type-Options', 'nosniff');
   res.header('X-Frame-Options', 'DENY');

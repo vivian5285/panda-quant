@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, RequestHandler } from '../types/express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { ValidationError } from '../utils/AppError';
 import { logger } from '../utils/logger';
 import type { Schema } from 'joi';

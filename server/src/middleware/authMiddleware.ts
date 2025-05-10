@@ -7,7 +7,6 @@ import { logger } from '../utils/logger';
 
 export interface AuthRequest extends Request {
   user?: IUserDocument;
-  header(name: string): string | undefined;
 }
 
 export const authenticate = async (

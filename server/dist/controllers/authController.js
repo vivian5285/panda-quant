@@ -44,16 +44,17 @@ class AuthController {
         };
         this.getCurrentUser = async (req, res) => {
             try {
-                if (!(0, typeGuards_1.isAuthenticatedRequest)(req) || !req.user) {
+                const user = req.user;
+                if (!user) {
                     res.status(401).json({ message: 'User not authenticated' });
                     return;
                 }
-                const user = await this.authService.getCurrentUser(req.user._id.toString());
-                if (!(0, typeGuards_1.isUser)(user)) {
+                const userData = await this.authService.getCurrentUser(user._id.toString());
+                if (!(0, typeGuards_1.isUser)(userData)) {
                     res.status(500).json({ message: 'Invalid user data' });
                     return;
                 }
-                res.json(user);
+                res.json(userData);
             }
             catch (error) {
                 logger_1.logger.error('Error getting current user:', error);
@@ -62,16 +63,17 @@ class AuthController {
         };
         this.updateUser = async (req, res) => {
             try {
-                if (!(0, typeGuards_1.isAuthenticatedRequest)(req) || !req.user) {
+                const user = req.user;
+                if (!user) {
                     res.status(401).json({ message: 'User not authenticated' });
                     return;
                 }
-                const user = await this.authService.updateUser(req.user._id.toString(), req.body);
-                if (!(0, typeGuards_1.isUser)(user)) {
+                const userData = await this.authService.updateUser(user._id.toString(), req.body);
+                if (!(0, typeGuards_1.isUser)(userData)) {
                     res.status(500).json({ message: 'Invalid user data' });
                     return;
                 }
-                res.json(user);
+                res.json(userData);
             }
             catch (error) {
                 logger_1.logger.error('Error updating user:', error);
@@ -80,7 +82,8 @@ class AuthController {
         };
         this.changePassword = async (req, res) => {
             try {
-                if (!(0, typeGuards_1.isAuthenticatedRequest)(req) || !req.user) {
+                const user = req.user;
+                if (!user) {
                     res.status(401).json({ message: 'User not authenticated' });
                     return;
                 }
@@ -89,7 +92,7 @@ class AuthController {
                     res.status(400).json({ message: 'Current password and new password are required' });
                     return;
                 }
-                await this.authService.changePassword(req.user._id.toString(), currentPassword, newPassword);
+                await this.authService.changePassword(user._id.toString(), currentPassword, newPassword);
                 res.json({ message: 'Password changed successfully' });
             }
             catch (error) {
@@ -99,11 +102,12 @@ class AuthController {
         };
         this.logout = async (req, res) => {
             try {
-                if (!(0, typeGuards_1.isAuthenticatedRequest)(req) || !req.user) {
+                const user = req.user;
+                if (!user) {
                     res.status(401).json({ message: 'User not authenticated' });
                     return;
                 }
-                await this.authService.logout(req.user._id.toString());
+                await this.authService.logout(user._id.toString());
                 res.status(200).json({ message: 'Logged out successfully' });
             }
             catch (error) {

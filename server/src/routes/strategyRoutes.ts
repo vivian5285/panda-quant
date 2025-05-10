@@ -1,11 +1,11 @@
-import express from 'express';
+import express, { Router, Request, Response } from 'express';
 import { StrategyController } from '../controllers/StrategyController';
 import { authenticateToken } from '../middleware/auth';
 import { validateRequest, validateParams } from '../validations/common';
 import { createStrategySchema, updateStrategySchema, strategyIdSchema } from '../validations/schemas/strategy';
 import Joi from 'joi';
 
-const router = express.Router();
+const router = Router();
 const strategyController = new StrategyController();
 
 // 创建策略

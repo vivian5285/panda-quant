@@ -3,33 +3,62 @@ import type { Router } from 'express';
 import type { Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
-import type { AuthenticatedRequest } from '../types/Auth';
+import type { AuthenticatedRequest } from '../types/express';
 import { CommissionController } from '../controllers/CommissionController';
+import { AuthRequest } from '../middleware/authMiddleware';
+import { CommissionService } from '../services/CommissionService';
+import { validateRequest, validateQuery } from '../validations/common';
+import { ICommission } from '../types/Commission';
+import Joi from 'joi';
 
 const router: Router = express.Router();
 const commissionController = new CommissionController();
+const commissionService = CommissionService.getInstance();
 
 // Protected routes
 router.use(ensureAuthenticated);
 
 // Get all user commissions
-router.get('/all', handleRequest((req: AuthenticatedRequest, res: Response) => 
-  commissionController.getCommissionByUserId(req, res)
-));
+router.get('/all', handleRequest(async (req: AuthRequest, res: Response) => {
+  await commissionController.getCommissionByUserId(req, res);
+}));
 
 // Get current user's commissions
-router.get('/my', handleRequest((req: AuthenticatedRequest, res: Response) => 
-  commissionController.getCommissionByUserId(req, res)
-));
+router.get('/my', handleRequest(async (req: AuthRequest, res: Response) => {
+  await commissionController.getCommissionByUserId(req, res);
+}));
+
+// 定义验证 schema
+const commissionListSchema = Joi.object({
+  page: Joi.number().min(1).default(1),
+  limit: Joi.number().min(1).max(100).default(10),
+  startDate: Joi.date().iso(),
+  endDate: Joi.date().iso().min(Joi.ref('startDate'))
+});
+
+const commissionIdSchema = Joi.object({
+  id: Joi.string().required()
+});
+
+const commissionStatsSchema = Joi.object({
+  startDate: Joi.date().iso(),
+  endDate: Joi.date().iso().min(Joi.ref('startDate'))
+});
 
 // Get commission list
-router.get('/', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
-  await commissionController.getCommissionById(req, res);
+router.get('/', validateQuery(commissionListSchema), handleRequest<ICommission[]>(async (req: AuthenticatedRequest, res, next) => {
+  const { page = 1, limit = 10, startDate, endDate } = req.query;
+  return await commissionService.getCommissionsByUserAndDateRange(
+    req.user._id.toString(),
+    new Date(startDate as string),
+    new Date(endDate as string)
+  );
 }));
 
 // Get commission record
-router.get('/:id', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
-  await commissionController.getCommissionById(req, res);
+router.get('/:id', validateQuery(commissionIdSchema), handleRequest<ICommission | null>(async (req: AuthenticatedRequest, res, next) => {
+  const { id } = req.params;
+  return await commissionService.getCommissionById(id);
 }));
 
 // Create commission record
@@ -91,5 +120,15 @@ router.get('/filter/user-status-type-amount-currency', handleRequest((req: Authe
 router.get('/filter/status-type-amount-currency-description', handleRequest((req: AuthenticatedRequest, res: Response) => 
   commissionController.getCommissionsByStatusAndTypeAndAmountAndCurrencyAndDescription(req, res)
 ));
+
+// Get commission stats
+router.get('/stats/summary', validateQuery(commissionStatsSchema), handleRequest<ICommission[]>(async (req: AuthenticatedRequest, res, next) => {
+  const { startDate, endDate } = req.query;
+  return await commissionService.getCommissionsByUserAndDateRange(
+    req.user._id.toString(),
+    new Date(startDate as string),
+    new Date(endDate as string)
+  );
+}));
 
 export default router; 

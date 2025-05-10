@@ -1,6 +1,5 @@
 import { Response, NextFunction, RequestHandler } from 'express';
-import type { AuthenticatedRequest } from '../types/express';
-type RequestHandlerFunction = (req: AuthenticatedRequest, res: Response, next?: NextFunction) => Promise<void>;
-export declare const handleRequest: (handler: RequestHandlerFunction) => RequestHandler;
-export {};
+import { AuthenticatedRequest } from '../types/express';
+export type RequestHandlerFunction<T = any> = (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<T>;
+export declare const handleRequest: <T = any>(handler: RequestHandlerFunction<T>) => RequestHandler;
 //# sourceMappingURL=requestHandler.d.ts.map
