@@ -6,11 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const requestHandler_1 = require("../utils/requestHandler");
 const ensureAuthenticated_1 = require("../middleware/ensureAuthenticated");
-const userController_1 = require("../controllers/userController");
+const UserController_1 = require("../controllers/UserController");
 const common_1 = require("../validations/common");
 const user_1 = require("../validations/schemas/user");
 const router = express_1.default.Router();
-const userController = new userController_1.UserController();
+const userController = new UserController_1.UserController();
 // Protected routes
 router.use(ensureAuthenticated_1.ensureAuthenticated);
 // Get all users
