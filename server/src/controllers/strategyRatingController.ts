@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { StrategyRatingService } from '../services/StrategyRatingService';
+import { StrategyRatingService } from '../types/../services/StrategyRatingService';
 import { AuthenticatedRequest } from '../types/express';
 import { logger } from '../utils/logger';
 import { AppError } from '../utils/AppError';

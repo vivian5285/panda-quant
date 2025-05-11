@@ -1,5 +1,5 @@
 import express, { Router, Request, Response } from 'express';
-import { StrategyController } from '../controllers/StrategyController';
+import { StrategyController } from '../types/../controllers/StrategyController';
 import { authenticateToken } from '../middleware/auth';
 import { validateRequest, validateParams } from '../validations/common';
 import { createStrategySchema, updateStrategySchema, strategyIdSchema } from '../validations/schemas/strategy';

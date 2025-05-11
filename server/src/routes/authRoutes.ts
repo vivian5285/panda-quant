@@ -1,5 +1,5 @@
 import express, { Router, Request, Response } from 'express';
-import authController from '../controllers/AuthController';
+import authController from '../types/../controllers/AuthController';
 import { authenticate } from '../middleware/authMiddleware';
 import { AuthenticatedRequest } from '../types/Auth';
 import { validateRequest } from '../validations/common';

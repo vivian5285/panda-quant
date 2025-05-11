@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
 import { adminMiddleware } from '../middleware/adminMiddleware';
-import { blacklistController } from '../controllers/BlacklistController';
+import { blacklistController } from '../types/../controllers/BlacklistController';
 import type { AuthenticatedRequest } from '../types/express';
 
 const router: Router = express.Router();

@@ -1,5 +1,5 @@
 import { Response, Request } from 'express';
-import { CommissionService } from '../services/CommissionService';
+import { CommissionService } from '../types/../services/CommissionService';
 import { AuthenticatedRequest } from '../types/Auth';
 import { logger } from '../utils/logger';
 import { Types } from 'mongoose';

@@ -129,6 +129,11 @@ function collectFilesToRename() {
 
 // 修复导入路径
 function fixImports(filePath: string) {
+    if (!fs.existsSync(filePath)) {
+        console.log(`Skipping non-existent file: ${filePath}`);
+        return;
+    }
+
     let content = fs.readFileSync(filePath, 'utf8');
     let modified = false;
 
@@ -208,6 +213,10 @@ for (const { oldPath, newPath } of filesToRename) {
 }
 
 console.log('Fixing imports...');
-files.forEach(fixImports);
+// 重新获取文件列表，因为文件名已经改变
+const updatedFiles = glob.sync('src/**/*.{ts,tsx}', {
+    ignore: ['src/scripts/**', 'node_modules/**', 'dist/**']
+});
+updatedFiles.forEach(fixImports);
 
 console.log('All fixes completed.'); 

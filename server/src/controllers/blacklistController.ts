@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { BlacklistService } from '../services/BlacklistService';
+import { BlacklistService } from '../types/../services/BlacklistService';
 import { handleError } from '../utils/errorHandler';
 import BlacklistEntryModel from '../models/blacklist.model';
 import { logger } from '../utils/logger';

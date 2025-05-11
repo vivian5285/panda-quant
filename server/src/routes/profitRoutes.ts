@@ -4,7 +4,7 @@ import type { Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/auth';
 import type { AuthenticatedRequest } from '../types/express';
-import { ProfitController } from '../controllers/ProfitController';
+import { ProfitController } from '../types/../controllers/ProfitController';
 
 const router: Router = express.Router();
 const profitController = new ProfitController();
