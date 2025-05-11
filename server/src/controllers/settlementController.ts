@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { SettlementService } from '../services/SettlementService';
-import { AuthenticatedRequest } from '../types/Express';
+import { AuthenticatedRequest } from '../types/Auth';
 import { SettlementStatus } from '../types/Enums';
 import SettlementModel from '../models/settlement.model';
 import { logger } from '../utils/logger';

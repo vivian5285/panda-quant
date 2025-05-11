@@ -1,53 +1,73 @@
-import { User } from '../models/user.model';
+import { IUser } from '../types/User';
+import UserModel from '../models/user.model';
 import { logger } from '../utils/logger';
 
 export class AdminService {
-  public async getDashboardData() {
+  private static instance: AdminService;
+
+  private constructor() {}
+
+  public static getInstance(): AdminService {
+    if (!AdminService.instance) {
+      AdminService.instance = new AdminService();
+    }
+    return AdminService.instance;
+  }
+
+  async getAdminDashboard() {
     try {
-      const totalUsers = await User.countDocuments();
-      const activeUsers = await User.countDocuments({ status: 'active' });
-      const inactiveUsers = await User.countDocuments({ status: 'inactive' });
+      const totalUsers = await UserModel.countDocuments();
+      const activeUsers = await UserModel.countDocuments({ status: 'active' });
+      const inactiveUsers = await UserModel.countDocuments({ status: 'inactive' });
 
       return {
         totalUsers,
         activeUsers,
         inactiveUsers,
-        // Add more dashboard data as needed
+        // Add more dashboard statistics as needed
       };
     } catch (error) {
-      logger.error('Error in getDashboardData:', error);
+      logger.error('Error in getAdminDashboard:', error);
       throw error;
     }
   }
 
-  public async getUserStats() {
+  async getAllUsers() {
     try {
-      const stats = await User.aggregate([
-        {
-          $group: {
-            _id: '$role',
-            count: { $sum: 1 }
-          }
-        }
-      ]);
-
-      return stats;
+      return await UserModel.find().select('-password');
     } catch (error) {
-      logger.error('Error in getUserStats:', error);
+      logger.error('Error in getAllUsers:', error);
       throw error;
     }
   }
 
-  public async getSystemStats() {
+  async getUserById(id: string) {
     try {
-      // Implement system statistics collection
-      return {
-        uptime: process.uptime(),
-        memoryUsage: process.memoryUsage(),
-        cpuUsage: process.cpuUsage()
-      };
+      return await UserModel.findById(id).select('-password');
     } catch (error) {
-      logger.error('Error in getSystemStats:', error);
+      logger.error('Error in getUserById:', error);
+      throw error;
+    }
+  }
+
+  async updateUser(id: string, userData: Partial<IUser>) {
+    try {
+      return await UserModel.findByIdAndUpdate(
+        id,
+        { $set: userData },
+        { new: true }
+      ).select('-password');
+    } catch (error) {
+      logger.error('Error in updateUser:', error);
+      throw error;
+    }
+  }
+
+  async deleteUser(id: string) {
+    try {
+      return await UserModel.findByIdAndDelete(id);
+    } catch (error) {
+      logger.error('Error in deleteUser:', error);
       throw error;
     }
   }

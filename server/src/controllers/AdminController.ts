@@ -7,7 +7,7 @@ export class AdminController {
   private adminService: AdminService;
 
   constructor() {
-    this.adminService = new AdminService();
+    this.adminService = AdminService.getInstance();
   }
 
   public getAllUsers = async (req: Request, res: Response): Promise<void> => {
@@ -105,7 +105,7 @@ export class AdminController {
 
   public async getAdminDashboard(req: Request, res: Response): Promise<void> {
     try {
-      const dashboardData = await this.adminService.getDashboardData();
+      const dashboardData = await this.adminService.getAdminDashboard();
       res.json(dashboardData);
     } catch (error) {
       logger.error('Error in getAdminDashboard:', error);

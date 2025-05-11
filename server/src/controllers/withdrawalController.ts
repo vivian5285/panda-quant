@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import { WithdrawalService } from '../services/WithdrawalService';
 import { handleError } from '../utils/errorHandler';
-import { AuthenticatedRequest } from '../types/Express';
+import { AuthenticatedRequest } from '../types/Auth';
 import { IWithdrawal } from '../types/Withdrawal';
 
 export class WithdrawalController {

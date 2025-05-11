@@ -60,7 +60,43 @@ export interface IStrategyBase {
 
 export type StrategyBase = IStrategyBase;
 
-export interface IStrategy extends Document, IStrategyBase {}
+export interface IStrategy extends Document {
+  userId: Types.ObjectId;
+  name: string;
+  description: string;
+  type: StrategyType;
+  status: StrategyStatus;
+  config: {
+    exchange: string;
+    symbol: string;
+    timeframe: string;
+    parameters: Record<string, any>;
+    riskManagement: {
+      maxPositionSize: number;
+      stopLoss: number;
+      takeProfit: number;
+      trailingStop: number;
+      maxDrawdown: number;
+      maxOpenTrades: number;
+    };
+    filters: {
+      minVolume: number;
+      minVolatility: number;
+      maxSpread: number;
+      allowedSymbols: string[];
+      excludedSymbols: string[];
+    };
+    notifications: {
+      email: boolean;
+      telegram: boolean;
+      webhook: boolean;
+    };
+  };
+  performance?: PerformanceMetrics;
+  metadata?: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export type Strategy = IStrategy;
 

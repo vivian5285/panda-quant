@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../types/Express';
+import { AuthenticatedRequest } from '../types/Auth';
 import { logger } from '../utils/logger';
 import { AuthService } from '../services/AuthService';
 import { IUserDocument } from '../types/User';
