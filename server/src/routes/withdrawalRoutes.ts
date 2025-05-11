@@ -4,7 +4,7 @@ import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
 import { adminMiddleware } from '../middleware/adminMiddleware';
 import { AuthenticatedRequest } from '../types/Express';
-import { WithdrawalController } from '../types/../controllers/WithdrawalController';
+import { WithdrawalController } from '../controllers/WithdrawalController';
 
 const router: Router = express.Router();
 const withdrawalController = new WithdrawalController();

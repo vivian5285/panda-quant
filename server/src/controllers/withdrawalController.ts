@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
-import { WithdrawalService } from '../types/../services/WithdrawalService';
+import { WithdrawalService } from '../services/WithdrawalService';
 import { handleError } from '../utils/errorHandler';
 import { AuthenticatedRequest } from '../types/Express';
 import { IWithdrawal } from '../types/Withdrawal';

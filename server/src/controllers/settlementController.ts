@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { SettlementService } from '../types/../services/SettlementService';
+import { SettlementService } from '../services/SettlementService';
 import { AuthenticatedRequest } from '../types/Express';
 import { SettlementStatus } from '../types/Enums';
 import SettlementModel from '../models/settlement.model';
