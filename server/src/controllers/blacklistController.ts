@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { BlacklistService } from '../services/BlacklistService';
-import { handleError } from '../utils/errorHandler';
-import BlacklistEntryModel from '../models/blacklist.model';
-import { logger } from '../utils/logger';
+import { handleError } from '../utils/ErrorHandler';
+import BlacklistEntryModel from '../models/Blacklist.model';
+import { logger } from '../utils/Logger';
 
 const blacklistService = BlacklistService.getInstance();
 

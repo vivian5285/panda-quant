@@ -1,11 +1,11 @@
 import { IUser } from '../types/User';
 import { AuthToken, IAuthResponse, ILoginCredentials, IRegisterData, IResetPasswordData } from '../types/Auth';
-import { User, IUserDocument } from '../models/user.model';
+import { User, IUserDocument } from '../models/User.model';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { logger } from '../utils/logger';
-import { config } from '../config';
-import { UnauthorizedError, BadRequestError } from '../utils/errors';
+import { logger } from '../utils/Logger';
+import { config } from '../Config';
+import { UnauthorizedError, BadRequestError } from '../utils/Errors';
 
 export class AuthService {
   private static instance: AuthService;

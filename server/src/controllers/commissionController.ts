@@ -1,12 +1,12 @@
 import { Response, Request } from 'express';
 import { CommissionService } from '../services/CommissionService';
 import { AuthenticatedRequest } from '../types/Auth';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 import { Types } from 'mongoose';
 import { CommissionStatus, CommissionType } from '../types/Enums';
 import { CommissionCreateInput, CommissionUpdateInput } from '../types/Commission';
 import { AppError } from '../utils/AppError';
-import { AuthRequest } from '../middleware/authMiddleware';
+import { AuthRequest } from '../middleware/AuthMiddleware';
 
 export class CommissionController {
   private commissionService: CommissionService;

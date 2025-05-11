@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 import { createClient } from 'redis';
 import axios from 'axios';
-import { config } from '../config';
+import { config } from '../Config';
 import { INetworkStatus, NetworkStatusCreateInput } from '../types/Network';
-import { NetworkStatus } from '../models/network-status.model';
-import { logger } from '../utils/logger';
+import { NetworkStatus } from '../models/Network-status.model';
+import { logger } from '../utils/Logger';
 import { EventEmitter } from 'events';
-import { Health, IHealthDocument } from '../models/health.model';
+import { Health, IHealthDocument } from '../models/Health.model';
 import { IHealth } from '../types/Health';
 import { Types } from 'mongoose';
 

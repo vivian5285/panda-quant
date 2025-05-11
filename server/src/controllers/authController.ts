@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../types/Auth';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 import { AuthService } from '../services/AuthService';
 import { IUserDocument } from '../types/User';
-import { isUser, isAuthenticatedRequest } from '../utils/typeGuards';
+import { isUser, isAuthenticatedRequest } from '../utils/TypeGuards';
 
 export class AuthController {
   private authService: AuthService;

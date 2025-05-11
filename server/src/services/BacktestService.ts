@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import { IBacktest, IBacktestDocument, BacktestCreateInput } from '../types/Backtest';
-import { Backtest } from '../models/backtest.model';
-import { logger } from '../utils/logger';
+import { Backtest } from '../models/Backtest.model';
+import { logger } from '../utils/Logger';
 import { AppError } from '../utils/AppError';
 
 export class BacktestService {

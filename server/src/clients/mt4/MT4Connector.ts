@@ -1,7 +1,7 @@
 import { IMT4Account, IMT4Position, IMT4Order, IMT4Balance, IMT4MarketData } from '../../types/Mt4';
 import net from 'net';
 import { EventEmitter } from 'events';
-import { createLogger } from '../../utils/logger';
+import { createLogger } from '../../utils/Logger';
 
 export class MT4Connector extends EventEmitter {
   private socket: net.Socket;

@@ -1,6 +1,6 @@
 import { ISettlement } from '../types/Settlement';
-import Settlement from '../models/settlement.model';
-import { logger } from '../utils/logger';
+import Settlement from '../models/Settlement.model';
+import { logger } from '../utils/Logger';
 import { SettlementStatus } from '../types/Enums';
 
 export class SettlementService {

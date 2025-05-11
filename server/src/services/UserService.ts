@@ -1,8 +1,8 @@
 import { Types } from 'mongoose';
-import { User } from '../models/user.model';
+import { User } from '../models/User.model';
 import { IUser, IUserBase } from '../types/User';
 import bcrypt from 'bcrypt';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 
 export class UserService {
   private static instance: UserService;

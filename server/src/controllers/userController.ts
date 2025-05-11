@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { User } from '../models/user.model';
-import { logger } from '../utils/logger';
+import { User } from '../models/User.model';
+import { logger } from '../utils/Logger';
 
 export class UserController {
   async getAllUsers(_req: Request, res: Response): Promise<void> {

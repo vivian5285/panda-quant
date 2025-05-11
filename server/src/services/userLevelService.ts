@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
-import { UserLevel } from '../models/user-level.model';
+import { UserLevel } from '../models/User-level.model';
 import { IUserLevel, IUserLevelDocument } from '../types/UserLevel';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 
 export class UserLevelService {
   private static instance: UserLevelService;

@@ -1,5 +1,5 @@
 import { createClient } from 'redis';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 
 export class RedisService {
   private client: ReturnType<typeof createClient>;

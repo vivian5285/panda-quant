@@ -1,6 +1,6 @@
 import { IStrategy } from '../types/Strategy';
 import { IOrder, IOrderBase } from '../types/Trading';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 import { Types } from 'mongoose';
 import { OrderStatus } from '../types/Enums';
 

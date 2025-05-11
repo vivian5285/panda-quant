@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { config } from '../config';
-import { UnauthorizedError, ForbiddenError } from '../utils/errors';
-import { User, IUserDocument } from '../models/user.model';
-import { logger } from '../utils/logger';
+import { config } from '../Config';
+import { UnauthorizedError, ForbiddenError } from '../utils/Errors';
+import { User, IUserDocument } from '../models/User.model';
+import { logger } from '../utils/Logger';
 import { IUser } from '../types/User';
 
 export interface AuthenticatedRequest extends Request {

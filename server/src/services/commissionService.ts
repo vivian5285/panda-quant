@@ -1,9 +1,9 @@
 import { Types } from 'mongoose';
-import { Commission } from '../models/commission.model';
-import { CommissionRule } from '../models/commission-rule.model';
+import { Commission } from '../models/Commission.model';
+import { CommissionRule } from '../models/Commission-rule.model';
 import { ICommission, ICommissionRule, ICommissionDocument, CommissionCreateInput, CommissionUpdateInput } from '../types/Commission';
 import { CommissionType, CommissionStatus } from '../types/Enums';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 
 export class CommissionService {
   private static instance: CommissionService;

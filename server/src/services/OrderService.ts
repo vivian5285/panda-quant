@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
-import Order from '../models/order.model';
+import Order from '../models/Order.model';
 import { IOrder, IOrderDocument, IOrderCreateInput, IOrderUpdateInput } from '../types/Trading';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 import { OrderStatus } from '../types/Enums';
 import { AppError } from '../utils/AppError';
 

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 
 export const healthController = {
   async checkHealth(_req: Request, res: Response): Promise<void> {

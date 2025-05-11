@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { UserLevelService } from '../services/UserLevelService';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 import { AuthenticatedRequest } from '../types/Auth';
 import { AppError } from '../utils/AppError';
 

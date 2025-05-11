@@ -1,16 +1,16 @@
 import express from 'express';
 import type { Router } from 'express';
-import userRoutes from './userRoutes';
-import strategyRoutes from './strategyRoutes';
-import authRoutes from './authRoutes';
-import settlementRoutes from './settlement.routes';
-import commissionRoutes from './commissionRoutes';
-import withdrawalRoutes from './withdrawalRoutes';
-import userLevelRoutes from './userLevelRoutes';
-import blacklistRoutes from './blacklistRoutes';
-import adminRoutes from './admin';
-import profitRoutes from './profitRoutes';
-import healthRoutes from './health';
+import userRoutes from './UserRoutes';
+import strategyRoutes from './StrategyRoutes';
+import authRoutes from './AuthRoutes';
+import settlementRoutes from './Settlement.routes';
+import commissionRoutes from './CommissionRoutes';
+import withdrawalRoutes from './WithdrawalRoutes';
+import userLevelRoutes from './UserLevelRoutes';
+import blacklistRoutes from './BlacklistRoutes';
+import adminRoutes from './Admin';
+import profitRoutes from './ProfitRoutes';
+import healthRoutes from './Health';
 
 const router: Router = express.Router();
 

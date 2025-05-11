@@ -2,7 +2,7 @@ import { BaseExchangeClient } from './BaseExchangeClient';
 import { IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData } from '../../types/Exchange';
 import axios from 'axios';
 import crypto from 'crypto';
-import { logger } from '../../utils/logger';
+import { logger } from '../../utils/Logger';
 
 export class BinanceClient extends BaseExchangeClient {
   private baseUrl: string;

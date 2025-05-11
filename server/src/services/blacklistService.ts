@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import { IBlacklistEntry, IBlacklistEntryDocument, BlacklistType, BlacklistStatus } from '../types/Blacklist';
-import Blacklist from '../models/blacklist.model';
-import { logger } from '../utils/logger';
+import Blacklist from '../models/Blacklist.model';
+import { logger } from '../utils/Logger';
 import { AppError } from '../utils/AppError';
 
 export class BlacklistService {

@@ -2,8 +2,8 @@ import { Response } from 'express';
 import { SettlementService } from '../services/SettlementService';
 import { AuthenticatedRequest } from '../types/Auth';
 import { SettlementStatus } from '../types/Enums';
-import SettlementModel from '../models/settlement.model';
-import { logger } from '../utils/logger';
+import SettlementModel from '../models/Settlement.model';
+import { logger } from '../utils/Logger';
 import { Types } from 'mongoose';
 
 export class SettlementController {

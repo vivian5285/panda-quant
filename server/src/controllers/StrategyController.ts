@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { StrategyService } from '../services/StrategyService';
 import { IStrategy, IStrategyCreateInput } from '../types/Strategy';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 
 export class StrategyController {
   private strategyService: StrategyService;

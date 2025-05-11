@@ -1,8 +1,8 @@
 import { Types } from 'mongoose';
-import StrategyRating from '../models/strategy-rating.model';
+import StrategyRating from '../models/Strategy-rating.model';
 import { IStrategyRating, IStrategyRatingDocument } from '../types/StrategyRating';
 import { AppError } from '../utils/AppError';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 
 export class StrategyRatingService {
   private static instance: StrategyRatingService;

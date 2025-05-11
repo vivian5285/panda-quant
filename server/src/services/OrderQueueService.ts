@@ -1,6 +1,6 @@
 import { IOrder } from '../types/Trading';
 import { AppError } from '../utils/AppError';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 
 export class OrderQueueService {
   private queue: IOrder[] = [];

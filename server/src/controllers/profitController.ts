@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import ProfitModel from '../models/profit.model';
-import { logger } from '../utils/logger';
+import ProfitModel from '../models/Profit.model';
+import { logger } from '../utils/Logger';
 
 export class ProfitController {
   public async getProfits(req: Request, res: Response): Promise<void> {

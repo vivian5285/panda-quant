@@ -1,6 +1,6 @@
 import { IUser } from '../types/User';
-import UserModel from '../models/user.model';
-import { logger } from '../utils/logger';
+import UserModel from '../models/User.model';
+import { logger } from '../utils/Logger';
 
 export class AdminService {
   private static instance: AdminService;

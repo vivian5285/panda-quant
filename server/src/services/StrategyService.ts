@@ -1,6 +1,6 @@
 import { IStrategy, IStrategyCreateInput, IStrategyDocument } from '../types/Strategy';
-import { logger } from '../utils/logger';
-import Strategy from '../models/strategy.model';
+import { logger } from '../utils/Logger';
+import Strategy from '../models/Strategy.model';
 import { Document } from 'mongoose';
 
 export class StrategyService {

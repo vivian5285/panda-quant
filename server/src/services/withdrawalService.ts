@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
-import { Withdrawal } from '../models/withdrawal.model';
+import { Withdrawal } from '../models/Withdrawal.model';
 import { IWithdrawal, IWithdrawalDocument } from '../types/Withdrawal';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/Logger';
 
 export class WithdrawalService {
   private static instance: WithdrawalService;
