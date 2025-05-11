@@ -119,32 +119,23 @@ cd types
 find . -type f -name "*.ts" -exec sed -i 's/from "\.\/\([a-z]\)/from ".\/\U\1/g' {} +
 find . -type f -name "*.ts" -exec sed -i 's/from "\.\/\([a-z][a-z]*\)/from ".\/\U\1/g' {} +
 
-# 修复 express 相关的导入
-cd ..
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/express"/from "..\/types\/Express"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/auth"/from "..\/types\/Auth"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/enums"/from "..\/types\/Enums"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/user"/from "..\/types\/User"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/strategy"/from "..\/types\/Strategy"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/commission"/from "..\/types\/Commission"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/trading"/from "..\/types\/Trading"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/performance"/from "..\/types\/Performance"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/exchange"/from "..\/types\/Exchange"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/mt4"/from "..\/types\/Mt4"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/network"/from "..\/types\/Network"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/health"/from "..\/types\/Health"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/position"/from "..\/types\/Position"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/risk"/from "..\/types\/Risk"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/strategyRating"/from "..\/types\/StrategyRating"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/strategyReview"/from "..\/types\/StrategyReview"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/blacklist"/from "..\/types\/Blacklist"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/userLevel"/from "..\/types\/UserLevel"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/withdrawal"/from "..\/types\/Withdrawal"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/wallet"/from "..\/types\/Wallet"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/transaction"/from "..\/types\/Transaction"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/alert"/from "..\/types\/Alert"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/deposit"/from "..\/types\/Deposit"/g' {} +
-find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/commissionWithdrawal"/from "..\/types\/CommissionWithdrawal"/g' {} +
+# 修复 EXPRESS.D.ts 文件
+echo "正在修复 EXPRESS.D.ts 文件..."
+cat > EXPRESS.D.ts << 'EOL'
+import { Request } from 'express';
+import { IUserDocument } from './User';
+
+declare global {
+  namespace Express {
+    interface AuthenticatedRequest extends Request {
+      user?: IUserDocument;
+    }
+  }
+}
+
+export type { Response, NextFunction, RequestHandler, Router, Application };
+export type { AuthenticatedRequest } from 'express';
+EOL
 
 # 5. 修复 tsconfig.json
 cd ..
