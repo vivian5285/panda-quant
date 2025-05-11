@@ -110,8 +110,17 @@ find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/services\/\([a-z][a-z]*\
 find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/\.\.\/controllers\//from "..\/controllers\//g' {} +
 find . -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/\.\.\/services\//from "..\/services\//g' {} +
 
+# 修复相对路径导入
+find . -type f -name "*.ts" -exec sed -i 's/from "\.\/\([a-z]\)/from ".\/\U\1/g' {} +
+find . -type f -name "*.ts" -exec sed -i 's/from "\.\/\([a-z][a-z]*\)/from ".\/\U\1/g' {} +
+
+# 修复 types 目录内的相互导入
+cd types
+find . -type f -name "*.ts" -exec sed -i 's/from "\.\/\([a-z]\)/from ".\/\U\1/g' {} +
+find . -type f -name "*.ts" -exec sed -i 's/from "\.\/\([a-z][a-z]*\)/from ".\/\U\1/g' {} +
+
 # 5. 修复 tsconfig.json
-cd ..
+cd ../..
 echo "正在修复 tsconfig.json..."
 
 # 修改 tsconfig.json 中的配置
