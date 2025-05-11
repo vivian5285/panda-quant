@@ -90,4 +90,58 @@ function fixAllImportPaths(dir) {
 
 fixAllImportPaths(srcDir);
 
-console.log('Case sensitivity fix completed!'); 
+console.log('Case sensitivity fix completed!');
+
+const modelsDir = path.join(__dirname, '..', 'src', 'models');
+
+// 要重命名的文件列表
+const files = [
+  'user.model.ts',
+  'strategy.model.ts',
+  'order.model.ts',
+  'trade.model.ts',
+  'position.model.ts',
+  'commission.model.ts',
+  'commission-rule.model.ts',
+  'commission-withdrawal.model.ts',
+  'commission-record.model.ts',
+  'withdrawal.model.ts',
+  'deposit.model.ts',
+  'deposit-notification.model.ts',
+  'health.model.ts',
+  'network-status.model.ts',
+  'notification.model.ts',
+  'performance.model.ts',
+  'platform-earning.model.ts',
+  'risk-event.model.ts',
+  'settings.model.ts',
+  'strategy-performance.model.ts',
+  'strategy-rating.model.ts',
+  'strategy-review.model.ts',
+  'transaction.model.ts',
+  'user-earning.model.ts',
+  'user-level.model.ts'
+];
+
+// 重命名函数
+function renameFile(filename) {
+  const oldPath = path.join(modelsDir, filename);
+  const newFilename = filename.charAt(0).toUpperCase() + filename.slice(1);
+  const newPath = path.join(modelsDir, newFilename);
+  const tempPath = path.join(modelsDir, newFilename + '.tmp');
+
+  try {
+    if (fs.existsSync(oldPath)) {
+      fs.renameSync(oldPath, tempPath);
+      fs.renameSync(tempPath, newPath);
+      console.log(`Renamed ${filename} to ${newFilename}`);
+    }
+  } catch (error) {
+    console.error(`Error renaming ${filename}:`, error);
+  }
+}
+
+// 执行重命名
+console.log('Starting file renaming...');
+files.forEach(renameFile);
+console.log('File renaming completed.'); 
