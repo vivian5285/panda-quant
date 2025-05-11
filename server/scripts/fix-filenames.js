@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 // 定义文件名映射
 const fileMappings = {
@@ -72,7 +73,14 @@ const fileMappings = {
     'trading.ts': 'Trading.ts',
     'transaction.ts': 'Transaction.ts',
     'user.ts': 'User.ts',
-    'withdrawal.ts': 'Withdrawal.ts'
+    'withdrawal.ts': 'Withdrawal.ts',
+
+    // Clients
+    'api.ts': 'Api.ts',
+    
+    // Validations
+    'common/index.ts': 'common/Index.ts',
+    'schemas/index.ts': 'schemas/Index.ts'
 };
 
 function fixFilenames(directory) {
@@ -85,42 +93,25 @@ function fixFilenames(directory) {
         if (stat.isDirectory()) {
             fixFilenames(fullPath);
         } else if (file.endsWith('.ts')) {
-            const newName = fileMappings[file.toLowerCase()] || file;
+            const relativePath = path.relative(path.join(__dirname, '..'), fullPath);
+            const newName = fileMappings[relativePath.toLowerCase()] || file;
             
             if (newName !== file) {
-                const newPath = path.join(directory, newName);
+                const newPath = path.join(path.dirname(fullPath), newName);
                 console.log(`Renaming ${fullPath} to ${newPath}`);
-                fs.renameSync(fullPath, newPath);
+                
+                // 在 Linux 中，我们需要先删除旧文件，然后重命名
+                try {
+                    // 先复制文件内容
+                    const content = fs.readFileSync(fullPath, 'utf8');
+                    // 删除旧文件
+                    fs.unlinkSync(fullPath);
+                    // 创建新文件
+                    fs.writeFileSync(newPath, content);
+                } catch (error) {
+                    console.error(`Error renaming ${fullPath}:`, error);
+                }
             }
-        }
-    });
-}
-
-// 修复导入路径
-function fixImports(directory) {
-    const files = fs.readdirSync(directory);
-    
-    files.forEach(file => {
-        const fullPath = path.join(directory, file);
-        const stat = fs.statSync(fullPath);
-        
-        if (stat.isDirectory()) {
-            fixImports(fullPath);
-        } else if (file.endsWith('.ts')) {
-            let content = fs.readFileSync(fullPath, 'utf8');
-            
-            // 修复相对路径导入
-            content = content.replace(/from ['"]\.\.\/types\/\.\.\/([^'"]+)['"]/g, 'from \'../$1\'');
-            
-            // 修复文件名大小写
-            Object.entries(fileMappings).forEach(([oldName, newName]) => {
-                const oldNameWithoutExt = oldName.replace('.ts', '');
-                const newNameWithoutExt = newName.replace('.ts', '');
-                const regex = new RegExp(`from ['"]([^'"]*?)${oldNameWithoutExt}['"]`, 'g');
-                content = content.replace(regex, `from '$1${newNameWithoutExt}'`);
-            });
-            
-            fs.writeFileSync(fullPath, content);
         }
     });
 }
@@ -147,7 +138,4 @@ directories.forEach(dir => {
     }
 });
 
-// 修复所有目录中的导入路径
-fixImports(path.join(__dirname, '../src'));
-
-console.log('\nFile name and import path fixing completed!'); 
+console.log('\nFile name fixing completed!'); 
