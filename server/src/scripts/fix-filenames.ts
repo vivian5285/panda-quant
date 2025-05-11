@@ -66,7 +66,9 @@ const serviceFiles = {
     'CommissionService': 'CommissionService',
     'StrategyRatingService': 'StrategyRatingService',
     'UserLevelService': 'UserLevelService',
-    'WithdrawalService': 'WithdrawalService'
+    'WithdrawalService': 'WithdrawalService',
+    'SettlementService': 'SettlementService',
+    'OrderQueueService': 'OrderQueueService'
 };
 
 // 收集需要重命名的文件
@@ -113,7 +115,8 @@ function collectFilesToRename() {
         const possibleFiles = [
             path.join(serviceDir, `${serviceName}.ts`),
             path.join(serviceDir, `${serviceName.toLowerCase()}.ts`),
-            path.join(serviceDir, `${serviceName.toUpperCase()}.ts`)
+            path.join(serviceDir, `${serviceName.toUpperCase()}.ts`),
+            path.join(serviceDir, `${serviceName.toLowerCase()}.service.ts`)
         ];
 
         for (const file of possibleFiles) {
