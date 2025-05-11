@@ -5,7 +5,8 @@ module.exports = {
       cwd: './admin-api',
       script: 'dist/index.js',
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        PORT: 3001
       },
       watch: false,
       max_memory_restart: '1G',
@@ -18,7 +19,8 @@ module.exports = {
       cwd: './user-api',
       script: 'dist/index.js',
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        PORT: 3002
       },
       watch: false,
       max_memory_restart: '1G',
@@ -31,7 +33,8 @@ module.exports = {
       cwd: './strategy-engine',
       script: 'dist/index.js',
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        PORT: 4000
       },
       watch: false,
       max_memory_restart: '1G',
@@ -45,7 +48,8 @@ module.exports = {
       script: 'npm',
       args: 'start',
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        PORT: 8080
       },
       watch: false,
       max_memory_restart: '1G',
@@ -57,7 +61,7 @@ module.exports = {
       name: 'user-ui',
       cwd: './user-ui',
       script: 'npx',
-      args: 'serve dist -s -l 3004',
+      args: 'serve dist -s -l 3000',
       env: {
         NODE_ENV: 'production'
       },
@@ -72,7 +76,8 @@ module.exports = {
       cwd: './server',
       script: 'dist/index.js',
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        PORT: 3000
       },
       watch: false,
       max_memory_restart: '1G',
