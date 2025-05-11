@@ -3,7 +3,8 @@ import authController from '../types/../controllers/AuthController';
 import { authenticate } from '../middleware/authMiddleware';
 import { AuthenticatedRequest } from '../types/Auth';
 import { validateRequest } from '../validations/common';
-import { loginSchema, registerSchema } from '../validations/common/auth';
+import { loginSchema, registerSchema } from '../validations/common/Auth';
+import { IRegisterData, ILoginData, IAuthResponse } from '../types/Auth';
 
 const router: Router = express.Router();
 

@@ -2,7 +2,7 @@ import express from 'express';
 import type { Router } from 'express';
 import type { Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
-import { ensureAuthenticated } from '../middleware/auth';
+import { ensureAuthenticated } from '../middleware/Auth';
 import type { AuthenticatedRequest } from '../types/express';
 import { ProfitController } from '../types/../controllers/ProfitController';
 

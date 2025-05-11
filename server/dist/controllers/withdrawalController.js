@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WithdrawalController = void 0;
 const mongoose_1 = require("mongoose");
-const WithdrawalService_1 = require("../services/WithdrawalService");
+const WithdrawalService_1 = require("../types/../services/WithdrawalService");
 const errorHandler_1 = require("../utils/errorHandler");
 class WithdrawalController {
     constructor() {

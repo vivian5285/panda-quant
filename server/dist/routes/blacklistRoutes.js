@@ -7,7 +7,7 @@ const express_1 = __importDefault(require("express"));
 const requestHandler_1 = require("../utils/requestHandler");
 const ensureAuthenticated_1 = require("../middleware/ensureAuthenticated");
 const adminMiddleware_1 = require("../middleware/adminMiddleware");
-const BlacklistController_1 = require("../controllers/BlacklistController");
+const BlacklistController_1 = require("../types/../controllers/BlacklistController");
 const router = express_1.default.Router();
 // All blacklist routes require authentication and admin privileges
 router.use(ensureAuthenticated_1.ensureAuthenticated);

@@ -6,7 +6,7 @@ import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
 import type { AuthenticatedRequest } from '../types/express';
 import { UserController } from '../types/../controllers/UserController';
 import { validateRequest, validateParams } from '../validations/common';
-import { createUserSchema, updateUserSchema, userIdSchema } from '../validations/schemas/user';
+import { createUserSchema, updateUserSchema, userIdSchema } from '../validations/schemas/User';
 
 const router: Router = express.Router();
 const userController = new UserController();

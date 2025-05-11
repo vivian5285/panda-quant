@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const requestHandler_1 = require("../utils/requestHandler");
 const ensureAuthenticated_1 = require("../middleware/ensureAuthenticated");
-const UserLevelController_1 = require("../controllers/UserLevelController");
+const UserLevelController_1 = require("../types/../controllers/UserLevelController");
 const router = express_1.default.Router();
 const userLevelController = new UserLevelController_1.UserLevelController();
 // Protected routes

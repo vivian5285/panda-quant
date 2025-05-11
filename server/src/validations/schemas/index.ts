@@ -1,3 +1,3 @@
-export * from './strategy';
-export * from './user';
+export * from './Strategy';
+export * from './User';
 export * from './order'; 

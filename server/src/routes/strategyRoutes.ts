@@ -1,8 +1,8 @@
 import express, { Router, Request, Response } from 'express';
 import { StrategyController } from '../types/../controllers/StrategyController';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken } from '../middleware/Auth';
 import { validateRequest, validateParams } from '../validations/common';
-import { createStrategySchema, updateStrategySchema, strategyIdSchema } from '../validations/schemas/strategy';
+import { createStrategySchema, updateStrategySchema, strategyIdSchema } from '../validations/schemas/Strategy';
 import Joi from 'joi';
 
 const router = Router();

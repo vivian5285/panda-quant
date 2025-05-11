@@ -1,5 +1,5 @@
 import { Strategy } from '../../models/strategy.model';
-import { IStrategy, IStrategyCreateInput, IStrategyUpdateInput } from '../../types/Strategy';
+import { IStrategy, IStrategyCreateInput, IStrategyUpdateInput } from '../types/Strategy';
 import { Types } from 'mongoose';
 import { logger } from '../../utils/logger';
 

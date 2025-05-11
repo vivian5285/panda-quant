@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettlementController = void 0;
-const SettlementService_1 = require("../services/SettlementService");
+const SettlementService_1 = require("../types/../services/SettlementService");
 const Enums_1 = require("../types/Enums");
 const settlement_model_1 = __importDefault(require("../models/settlement.model"));
 const logger_1 = require("../utils/logger");

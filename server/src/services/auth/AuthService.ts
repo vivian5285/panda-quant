@@ -1,5 +1,5 @@
 import { IUser } from '../../models/user.model';
-import { IRegisterData, ILoginData, IAuthResponse } from '../../types/Auth';
+import { IRegisterData, ILoginData, IAuthResponse } from '../types/Auth';
 import { User } from '../../models/user.model';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';

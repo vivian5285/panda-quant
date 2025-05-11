@@ -61,4 +61,4 @@ export interface IPaginatedResponse<T> {
     totalPages: number;
 }
 export type { StrategyPerformance, PerformanceMetrics, PerformanceTrade, PerformancePeriod, PerformanceReport, PerformanceChart, PerformanceComparison } from './Performance';
-//# sourceMappingURL=index.d.ts.map
+//# sourceMappingURL=Index.d.ts.map

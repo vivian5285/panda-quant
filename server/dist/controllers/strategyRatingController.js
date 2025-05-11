@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StrategyRatingController = void 0;
-const StrategyRatingService_1 = require("../services/StrategyRatingService");
+const StrategyRatingService_1 = require("../types/../services/StrategyRatingService");
 const logger_1 = require("../utils/logger");
 class StrategyRatingController {
     constructor() {

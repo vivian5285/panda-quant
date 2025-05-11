@@ -1,4 +1,5 @@
 import express from 'express';
+import type { Router } from 'express';
 import userRoutes from './userRoutes';
 import strategyRoutes from './strategyRoutes';
 import authRoutes from './authRoutes';
@@ -11,7 +12,7 @@ import adminRoutes from './admin';
 import profitRoutes from './profitRoutes';
 import healthRoutes from './health';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Health check route
 router.use('/health', healthRoutes);

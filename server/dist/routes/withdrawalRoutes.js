@@ -7,7 +7,7 @@ const express_1 = __importDefault(require("express"));
 const requestHandler_1 = require("../utils/requestHandler");
 const ensureAuthenticated_1 = require("../middleware/ensureAuthenticated");
 const adminMiddleware_1 = require("../middleware/adminMiddleware");
-const WithdrawalController_1 = require("../controllers/WithdrawalController");
+const WithdrawalController_1 = require("../types/../controllers/WithdrawalController");
 const router = express_1.default.Router();
 const withdrawalController = new WithdrawalController_1.WithdrawalController();
 // Admin routes

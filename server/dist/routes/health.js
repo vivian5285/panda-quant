@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const requestHandler_1 = require("../utils/requestHandler");
-const HealthController_1 = require("../controllers/HealthController");
+const HealthController_1 = require("../types/../controllers/HealthController");
 const router = express_1.default.Router();
 // Health check endpoint
 router.get('/', (0, requestHandler_1.handleRequest)(async (req, res) => {

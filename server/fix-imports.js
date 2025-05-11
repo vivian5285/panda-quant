@@ -3,6 +3,7 @@ const path = require('path');
 const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
 const writeFileAsync = promisify(fs.writeFile);
+const glob = require('glob');
 
 const rootDir = path.join(__dirname, 'src');
 const typesDir = path.join(rootDir, 'types');
@@ -109,6 +110,46 @@ async function renameFiles() {
   }
 }
 
+// 获取所有类型定义文件的实际名称
+const typeFiles = glob.sync('src/types/*.ts').reduce((acc, file) => {
+    const basename = path.basename(file, '.ts');
+    acc[basename.toLowerCase()] = basename;
+    return acc;
+}, {});
+
+// schema 文件名首字母大写
+const schemaFiles = glob.sync('src/validations/schemas/*.ts').reduce((acc, file) => {
+    const basename = path.basename(file, '.ts');
+    acc[basename.toLowerCase()] = basename;
+    return acc;
+}, {});
+
+function fixImports(content, filePath) {
+    // 修复 types 路径
+    content = content.replace(
+        /from ['"](\.\.\/)*types\/([^'"/]+)['"]/g,
+        (match, dots, typeName) => {
+            const lowerTypeName = typeName.toLowerCase();
+            if (typeFiles[lowerTypeName]) {
+                return `from '${dots || ''}types/${typeFiles[lowerTypeName]}'`;
+            }
+            return match;
+        }
+    );
+    // 修复 schema 路径
+    content = content.replace(
+        /from ['"](\.\.\/)*validations\/schemas\/([^'"/]+)['"]/g,
+        (match, dots, schemaName) => {
+            const lowerSchemaName = schemaName.toLowerCase();
+            if (schemaFiles[lowerSchemaName]) {
+                return `from '${dots || ''}validations/schemas/${schemaFiles[lowerSchemaName]}'`;
+            }
+            return match;
+        }
+    );
+    return content;
+}
+
 // 更新导入语句
 async function updateImports(filePath) {
   const content = await readFileAsync(filePath, 'utf8');
@@ -186,4 +227,17 @@ fs.readdirSync(routesDir).forEach(file => {
   if (file.endsWith('.ts')) {
     fixExpressImports(path.join(routesDir, file));
   }
-}); 
+});
+
+// 处理所有 TypeScript 文件
+const typeScriptFiles = glob.sync('src/**/*.ts');
+typeScriptFiles.forEach(file => {
+    const content = fs.readFileSync(file, 'utf8');
+    const fixedContent = fixImports(content, file);
+    if (content !== fixedContent) {
+        fs.writeFileSync(file, fixedContent);
+        console.log(`Fixed imports in ${file}`);
+    }
+});
+
+console.log('Import path fixes completed!'); 

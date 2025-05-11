@@ -112,4 +112,4 @@ const authenticateToken = async (req, res, next) => {
     }
 };
 exports.authenticateToken = authenticateToken;
-//# sourceMappingURL=auth.js.map
+//# sourceMappingURL=Auth.js.map

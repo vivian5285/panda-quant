@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.blacklistController = void 0;
-const BlacklistService_1 = require("../services/BlacklistService");
+const BlacklistService_1 = require("../types/../services/BlacklistService");
 const errorHandler_1 = require("../utils/errorHandler");
 const blacklist_model_1 = __importDefault(require("../models/blacklist.model"));
 const logger_1 = require("../utils/logger");

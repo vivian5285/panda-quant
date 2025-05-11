@@ -39,4 +39,4 @@ router.use('/admin', admin_1.default);
 // Profit routes
 router.use('/profits', profitRoutes_1.default);
 exports.default = router;
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=Index.js.map

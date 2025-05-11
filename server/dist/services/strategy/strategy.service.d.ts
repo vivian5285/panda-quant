@@ -1,4 +1,4 @@
-import { IStrategy, IStrategyCreateInput, IStrategyUpdateInput } from '../../types/Strategy';
+import { IStrategy, IStrategyCreateInput, IStrategyUpdateInput } from '../types/Strategy';
 export declare class StrategyService {
     private static instance;
     private constructor();

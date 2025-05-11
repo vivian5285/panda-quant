@@ -1,5 +1,5 @@
 import { BaseExchangeClient } from './BaseExchangeClient';
-import { IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData } from '../../types/Exchange';
+import { IExchangeCredentials, IExchangeBalance, IExchangeOrder, IExchangePosition, IExchangeTrade, IExchangeMarketData } from '../types/Exchange';
 export declare class BinanceClient extends BaseExchangeClient {
     private baseUrl;
     constructor(credentials: IExchangeCredentials, isTestnet?: boolean);

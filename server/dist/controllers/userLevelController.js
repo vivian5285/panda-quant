@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserLevelController = void 0;
-const UserLevelService_1 = require("../services/UserLevelService");
+const UserLevelService_1 = require("../types/../services/UserLevelService");
 const logger_1 = require("../utils/logger");
 class UserLevelController {
     constructor() {

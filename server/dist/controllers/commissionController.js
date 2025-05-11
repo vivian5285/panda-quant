@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommissionController = void 0;
-const CommissionService_1 = require("../services/CommissionService");
+const CommissionService_1 = require("../types/../services/CommissionService");
 const logger_1 = require("../utils/logger");
 const Enums_1 = require("../types/Enums");
 const AppError_1 = require("../utils/AppError");

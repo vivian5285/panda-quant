@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const requestHandler_1 = require("../utils/requestHandler");
 const ensureAuthenticated_1 = require("../middleware/ensureAuthenticated");
-const SettlementController_1 = require("../controllers/SettlementController");
+const SettlementController_1 = require("../types/../controllers/SettlementController");
 const router = express_1.default.Router();
 const settlementController = new SettlementController_1.SettlementController();
 // Protected routes

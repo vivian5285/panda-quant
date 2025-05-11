@@ -44,4 +44,4 @@ class OrderQueueService {
     }
 }
 exports.OrderQueueService = OrderQueueService;
-//# sourceMappingURL=orderQueueService.js.map
+//# sourceMappingURL=OrderQueueService.js.map
