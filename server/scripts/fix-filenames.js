@@ -89,6 +89,21 @@ if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
 
+// 先删除所有目标文件
+Object.entries(fileMappings).forEach(([oldName, newName]) => {
+    const oldPath = path.join(__dirname, '..', 'src', oldName);
+    const newPath = path.join(__dirname, '..', 'src', newName);
+    
+    if (fs.existsSync(oldPath)) {
+        console.log(`Deleting ${oldPath}`);
+        fs.unlinkSync(oldPath);
+    }
+    if (fs.existsSync(newPath)) {
+        console.log(`Deleting ${newPath}`);
+        fs.unlinkSync(newPath);
+    }
+});
+
 function fixFilenames(directory) {
     const files = fs.readdirSync(directory);
     
@@ -110,8 +125,6 @@ function fixFilenames(directory) {
                     // 复制到临时目录
                     const tempPath = path.join(tempDir, newName);
                     fs.copyFileSync(fullPath, tempPath);
-                    // 删除原文件
-                    fs.unlinkSync(fullPath);
                     // 从临时目录复制回来
                     fs.copyFileSync(tempPath, newPath);
                     // 删除临时文件
