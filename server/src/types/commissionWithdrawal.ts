@@ -1,13 +1,10 @@
 import { Document } from 'mongoose';
 
-export interface ICommissionWithdrawal extends Document {
+export interface ICommissionWithdrawal {
+  id: string;
   userId: string;
   amount: number;
-  status: 'pending' | 'completed' | 'failed';
-  paymentMethod: string;
-  paymentDetails: Map<string, any>;
-  description?: string;
-  metadata?: Map<string, any>;
-  createdAt?: Date;
-  updatedAt?: Date;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: Date;
+  updatedAt: Date;
 } 
