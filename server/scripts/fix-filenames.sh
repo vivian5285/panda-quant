@@ -1,74 +1,74 @@
 #!/bin/bash
 
 # 修复 types 目录下的文件名
-mv src/types/Api.ts src/types/api.ts
-mv src/types/Exchange.ts src/types/exchange.ts
-mv src/types/Mt4.ts src/types/mt4.ts
-mv src/types/Network.ts src/types/network.ts
-mv src/types/Position.ts src/types/position.ts
-mv src/types/Risk.ts src/types/risk.ts
-mv src/types/StrategyReview.ts src/types/strategyReview.ts
-mv src/types/Trade.ts src/types/trade.ts
-mv src/types/Alert.ts src/types/alert.ts
-mv src/types/Deposit.ts src/types/deposit.ts
-mv src/types/Transaction.ts src/types/transaction.ts
-mv src/types/CommissionWithdrawal.ts src/types/commissionWithdrawal.ts
-mv src/types/Enums.ts src/types/enums.ts
-mv src/types/User.ts src/types/user.ts
-mv src/types/Performance.ts src/types/performance.ts
-mv src/types/Express.ts src/types/express.ts
-mv src/types/Strategy.ts src/types/strategy.ts
-mv src/types/Auth.ts src/types/auth.ts
-mv src/types/Commission.ts src/types/commission.ts
-mv src/types/Withdrawal.ts src/types/withdrawal.ts
-mv src/types/Health.ts src/types/health.ts
-mv src/types/Backtest.ts src/types/backtest.ts
-mv src/types/WALLET.ts src/types/wallet.ts
+mv src/types/Api.ts src/types/api.ts 2>/dev/null
+mv src/types/Exchange.ts src/types/exchange.ts 2>/dev/null
+mv src/types/Mt4.ts src/types/mt4.ts 2>/dev/null
+mv src/types/Network.ts src/types/network.ts 2>/dev/null
+mv src/types/Position.ts src/types/position.ts 2>/dev/null
+mv src/types/Risk.ts src/types/risk.ts 2>/dev/null
+mv src/types/StrategyReview.ts src/types/strategyReview.ts 2>/dev/null
+mv src/types/Trade.ts src/types/trade.ts 2>/dev/null
+mv src/types/Alert.ts src/types/alert.ts 2>/dev/null
+mv src/types/Deposit.ts src/types/deposit.ts 2>/dev/null
+mv src/types/Transaction.ts src/types/transaction.ts 2>/dev/null
+mv src/types/CommissionWithdrawal.ts src/types/commissionWithdrawal.ts 2>/dev/null
+mv src/types/Enums.ts src/types/enums.ts 2>/dev/null
+mv src/types/User.ts src/types/user.ts 2>/dev/null
+mv src/types/Performance.ts src/types/performance.ts 2>/dev/null
+mv src/types/Express.ts src/types/express.ts 2>/dev/null
+mv src/types/Strategy.ts src/types/strategy.ts 2>/dev/null
+mv src/types/Auth.ts src/types/auth.ts 2>/dev/null
+mv src/types/Commission.ts src/types/commission.ts 2>/dev/null
+mv src/types/Withdrawal.ts src/types/withdrawal.ts 2>/dev/null
+mv src/types/Health.ts src/types/health.ts 2>/dev/null
+mv src/types/Backtest.ts src/types/backtest.ts 2>/dev/null
+mv src/types/WALLET.ts src/types/wallet.ts 2>/dev/null
 
 # 修复 controllers 目录下的文件名
-mv src/controllers/AdminController.ts src/controllers/adminController.ts
-mv src/controllers/AuthController.ts src/controllers/authController.ts
-mv src/controllers/BlacklistController.ts src/controllers/blacklistController.ts
-mv src/controllers/CommissionController.ts src/controllers/commissionController.ts
-mv src/controllers/SettlementController.ts src/controllers/settlementController.ts
-mv src/controllers/StrategyController.ts src/controllers/strategyController.ts
-mv src/controllers/StrategyRatingController.ts src/controllers/strategyRatingController.ts
-mv src/controllers/UserLevelController.ts src/controllers/userLevelController.ts
-mv src/controllers/WithdrawalController.ts src/controllers/withdrawalController.ts
-mv src/controllers/HealthController.ts src/controllers/healthController.ts
-mv src/controllers/ProfitController.ts src/controllers/profitController.ts
-mv src/controllers/UserController.ts src/controllers/userController.ts
+mv src/controllers/AdminController.ts src/controllers/adminController.ts 2>/dev/null
+mv src/controllers/AuthController.ts src/controllers/authController.ts 2>/dev/null
+mv src/controllers/BlacklistController.ts src/controllers/blacklistController.ts 2>/dev/null
+mv src/controllers/CommissionController.ts src/controllers/commissionController.ts 2>/dev/null
+mv src/controllers/SettlementController.ts src/controllers/settlementController.ts 2>/dev/null
+mv src/controllers/StrategyController.ts src/controllers/strategyController.ts 2>/dev/null
+mv src/controllers/StrategyRatingController.ts src/controllers/strategyRatingController.ts 2>/dev/null
+mv src/controllers/UserLevelController.ts src/controllers/userLevelController.ts 2>/dev/null
+mv src/controllers/WithdrawalController.ts src/controllers/withdrawalController.ts 2>/dev/null
+mv src/controllers/HealthController.ts src/controllers/healthController.ts 2>/dev/null
+mv src/controllers/ProfitController.ts src/controllers/profitController.ts 2>/dev/null
+mv src/controllers/UserController.ts src/controllers/userController.ts 2>/dev/null
 
 # 修复 services 目录下的文件名
-mv src/services/AdminService.ts src/services/adminService.ts
-mv src/services/AuthService.ts src/services/authService.ts
-mv src/services/BlacklistService.ts src/services/blacklistService.ts
-mv src/services/CommissionService.ts src/services/commissionService.ts
-mv src/services/SettlementService.ts src/services/settlementService.ts
-mv src/services/StrategyService.ts src/services/strategyService.ts
-mv src/services/StrategyRatingService.ts src/services/strategyRatingService.ts
-mv src/services/UserLevelService.ts src/services/userLevelService.ts
-mv src/services/WithdrawalService.ts src/services/withdrawalService.ts
-mv src/services/HealthService.ts src/services/healthService.ts
-mv src/services/BacktestService.ts src/services/backtestService.ts
-mv src/services/STRATEGYSERVICE.ts src/services/strategyService.ts
-mv src/services/SETTLEMENTSERVICE.ts src/services/settlementService.ts
+mv src/services/AdminService.ts src/services/adminService.ts 2>/dev/null
+mv src/services/AuthService.ts src/services/authService.ts 2>/dev/null
+mv src/services/BlacklistService.ts src/services/blacklistService.ts 2>/dev/null
+mv src/services/CommissionService.ts src/services/commissionService.ts 2>/dev/null
+mv src/services/SettlementService.ts src/services/settlementService.ts 2>/dev/null
+mv src/services/StrategyService.ts src/services/strategyService.ts 2>/dev/null
+mv src/services/StrategyRatingService.ts src/services/strategyRatingService.ts 2>/dev/null
+mv src/services/UserLevelService.ts src/services/userLevelService.ts 2>/dev/null
+mv src/services/WithdrawalService.ts src/services/withdrawalService.ts 2>/dev/null
+mv src/services/HealthService.ts src/services/healthService.ts 2>/dev/null
+mv src/services/BacktestService.ts src/services/backtestService.ts 2>/dev/null
+mv src/services/STRATEGYSERVICE.ts src/services/strategyService.ts 2>/dev/null
+mv src/services/SETTLEMENTSERVICE.ts src/services/settlementService.ts 2>/dev/null
 
 # 修复 routes 目录下的文件名
-mv src/routes/Index.ts src/routes/index.ts
-mv src/routes/Health.ts src/routes/health.ts
-mv src/routes/Admin.ts src/routes/admin.ts
+mv src/routes/Index.ts src/routes/index.ts 2>/dev/null
+mv src/routes/Health.ts src/routes/health.ts 2>/dev/null
+mv src/routes/Admin.ts src/routes/admin.ts 2>/dev/null
 
 # 修复 middleware 目录下的文件名
-mv src/middleware/Auth.ts src/middleware/auth.ts
-mv src/middleware/Admin.ts src/middleware/admin.ts
+mv src/middleware/Auth.ts src/middleware/auth.ts 2>/dev/null
+mv src/middleware/Admin.ts src/middleware/admin.ts 2>/dev/null
 
 # 修复 validations 目录下的文件名
-mv src/validations/schemas/Index.ts src/validations/schemas/index.ts
-mv src/validations/schemas/Order.ts src/validations/schemas/order.ts
-mv src/validations/schemas/Strategy.ts src/validations/schemas/strategy.ts
-mv src/validations/schemas/User.ts src/validations/schemas/user.ts
-mv src/validations/common/Auth.ts src/validations/common/auth.ts
+mv src/validations/schemas/Index.ts src/validations/schemas/index.ts 2>/dev/null
+mv src/validations/schemas/Order.ts src/validations/schemas/order.ts 2>/dev/null
+mv src/validations/schemas/Strategy.ts src/validations/schemas/strategy.ts 2>/dev/null
+mv src/validations/schemas/User.ts src/validations/schemas/user.ts 2>/dev/null
+mv src/validations/common/Auth.ts src/validations/common/auth.ts 2>/dev/null
 
 # 更新所有导入语句
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/Api"/from "..\/types\/api"/g' {} +
@@ -132,4 +132,6 @@ find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/validations\/schemas\/
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/validations\/schemas\/Order"/from "..\/validations\/schemas\/order"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/validations\/schemas\/Strategy"/from "..\/validations\/schemas\/strategy"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/validations\/schemas\/User"/from "..\/validations\/schemas\/user"/g' {} +
-find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/validations\/common\/Auth"/from "..\/validations\/common\/auth"/g' {} + 
+find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/validations\/common\/Auth"/from "..\/validations\/common\/auth"/g' {} +
+
+echo "文件名大小写修复完成！" 
