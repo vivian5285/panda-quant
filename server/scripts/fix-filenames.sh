@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# 首先处理 Index.ts 文件
+mv src/types/Index.ts src/types/index.ts 2>/dev/null
+mv src/validations/schemas/Index.ts src/validations/schemas/index.ts 2>/dev/null
+mv src/routes/Index.ts src/routes/index.ts 2>/dev/null
+
 # 修复 types 目录下的文件名
 mv src/types/Api.ts src/types/api.ts 2>/dev/null
 mv src/types/Exchange.ts src/types/exchange.ts 2>/dev/null
@@ -24,6 +29,9 @@ mv src/types/Withdrawal.ts src/types/withdrawal.ts 2>/dev/null
 mv src/types/Health.ts src/types/health.ts 2>/dev/null
 mv src/types/Backtest.ts src/types/backtest.ts 2>/dev/null
 mv src/types/WALLET.ts src/types/wallet.ts 2>/dev/null
+mv src/types/Order.ts src/types/order.ts 2>/dev/null
+mv src/types/Settlement.ts src/types/settlement.ts 2>/dev/null
+mv src/types/Trading.ts src/types/trading.ts 2>/dev/null
 
 # 修复 controllers 目录下的文件名
 mv src/controllers/AdminController.ts src/controllers/adminController.ts 2>/dev/null
@@ -54,24 +62,36 @@ mv src/services/HealthService.ts src/services/healthService.ts 2>/dev/null
 mv src/services/BacktestService.ts src/services/backtestService.ts 2>/dev/null
 mv src/services/STRATEGYSERVICE.ts src/services/strategyService.ts 2>/dev/null
 mv src/services/SETTLEMENTSERVICE.ts src/services/settlementService.ts 2>/dev/null
+mv src/services/OrderService.ts src/services/orderService.ts 2>/dev/null
+mv src/services/UserService.ts src/services/userService.ts 2>/dev/null
 
 # 修复 routes 目录下的文件名
-mv src/routes/Index.ts src/routes/index.ts 2>/dev/null
 mv src/routes/Health.ts src/routes/health.ts 2>/dev/null
 mv src/routes/Admin.ts src/routes/admin.ts 2>/dev/null
+mv src/routes/authRoutes.ts src/routes/authRoutes.ts 2>/dev/null
+mv src/routes/blacklistRoutes.ts src/routes/blacklistRoutes.ts 2>/dev/null
+mv src/routes/commissionRoutes.ts src/routes/commissionRoutes.ts 2>/dev/null
+mv src/routes/profitRoutes.ts src/routes/profitRoutes.ts 2>/dev/null
+mv src/routes/settlement.routes.ts src/routes/settlement.routes.ts 2>/dev/null
+mv src/routes/strategyRoutes.ts src/routes/strategyRoutes.ts 2>/dev/null
+mv src/routes/userLevelRoutes.ts src/routes/userLevelRoutes.ts 2>/dev/null
+mv src/routes/userRoutes.ts src/routes/userRoutes.ts 2>/dev/null
+mv src/routes/withdrawalRoutes.ts src/routes/withdrawalRoutes.ts 2>/dev/null
 
 # 修复 middleware 目录下的文件名
 mv src/middleware/Auth.ts src/middleware/auth.ts 2>/dev/null
 mv src/middleware/Admin.ts src/middleware/admin.ts 2>/dev/null
+mv src/middleware/adminMiddleware.ts src/middleware/adminMiddleware.ts 2>/dev/null
+mv src/middleware/ensureAuthenticated.ts src/middleware/ensureAuthenticated.ts 2>/dev/null
 
 # 修复 validations 目录下的文件名
-mv src/validations/schemas/Index.ts src/validations/schemas/index.ts 2>/dev/null
 mv src/validations/schemas/Order.ts src/validations/schemas/order.ts 2>/dev/null
 mv src/validations/schemas/Strategy.ts src/validations/schemas/strategy.ts 2>/dev/null
 mv src/validations/schemas/User.ts src/validations/schemas/user.ts 2>/dev/null
 mv src/validations/common/Auth.ts src/validations/common/auth.ts 2>/dev/null
 
 # 更新所有导入语句
+find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/Index"/from "..\/types\/index"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/Api"/from "..\/types\/api"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/Exchange"/from "..\/types\/exchange"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/Mt4"/from "..\/types\/mt4"/g' {} +
@@ -95,6 +115,9 @@ find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/Withdrawal"/fro
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/Health"/from "..\/types\/health"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/Backtest"/from "..\/types\/backtest"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/WALLET"/from "..\/types\/wallet"/g' {} +
+find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/Order"/from "..\/types\/order"/g' {} +
+find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/Settlement"/from "..\/types\/settlement"/g' {} +
+find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/types\/Trading"/from "..\/types\/trading"/g' {} +
 
 # 更新其他导入路径
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/controllers\/AdminController"/from "..\/controllers\/adminController"/g' {} +
@@ -122,6 +145,8 @@ find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/services\/UserLevelSer
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/services\/WithdrawalService"/from "..\/services\/withdrawalService"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/services\/HealthService"/from "..\/services\/healthService"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/services\/BacktestService"/from "..\/services\/backtestService"/g' {} +
+find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/services\/OrderService"/from "..\/services\/orderService"/g' {} +
+find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/services\/UserService"/from "..\/services\/userService"/g' {} +
 
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/routes\/Index"/from "..\/routes\/index"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/routes\/Health"/from "..\/routes\/health"/g' {} +
