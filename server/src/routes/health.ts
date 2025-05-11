@@ -2,7 +2,7 @@ import express, { Router } from 'express';
 import type { Request, Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { healthController } from '../types/../controllers/HealthController';
-import type { AuthenticatedRequest } from '../types/express';
+import { AuthenticatedRequest } from '../types/Auth';
 
 const router: Router = express.Router();
 

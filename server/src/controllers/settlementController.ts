@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { SettlementService } from '../types/../services/SettlementService';
-import { AuthenticatedRequest } from '../types/Auth';
+import { AuthenticatedRequest } from '../types/Express';
 import { SettlementStatus } from '../types/Enums';
 import SettlementModel from '../models/settlement.model';
 import { logger } from '../utils/logger';
@@ -19,7 +19,7 @@ export class SettlementController {
         res.status(401).json({ message: 'Unauthorized' });
         return;
       }
-      const settlements = await SettlementModel.find({ userId: new Types.ObjectId(req.user['id']) });
+      const settlements = await SettlementModel.find({ userId: new Types.ObjectId(req.user._id) });
       res.json(settlements);
     } catch (error) {
       logger.error('Error getting settlements:', error);
@@ -52,7 +52,7 @@ export class SettlementController {
       }
       const settlement = new SettlementModel({
         ...req.body,
-        userId: new Types.ObjectId(req.user['id'])
+        userId: new Types.ObjectId(req.user._id)
       });
       await settlement.save();
       res.status(201).json(settlement);
@@ -121,7 +121,7 @@ export class SettlementController {
         res.status(401).json({ message: 'Unauthorized' });
         return;
       }
-      const settlements = await SettlementModel.find({ userId: new Types.ObjectId(req.user['id']) });
+      const settlements = await SettlementModel.find({ userId: new Types.ObjectId(req.user._id) });
       res.json(settlements);
     } catch (error) {
       logger.error('Error exporting settlements:', error);

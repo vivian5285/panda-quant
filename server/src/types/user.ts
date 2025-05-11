@@ -79,25 +79,42 @@ export interface UpdateUserByIdRequest {
 }
 
 export interface IUser {
+  _id: Types.ObjectId;
   username: string;
   email: string;
   password: string;
   name: string;
-  role: 'user' | 'admin';
-  status: 'active' | 'inactive' | 'suspended';
+  role: UserRole;
+  status: UserStatus;
   level: UserLevel;
-  permissions: string[];
-  referrerId?: Types.ObjectId;
-  referrer?: string;
   isAdmin: boolean;
-  balance: number;
-  accountBalance: number;
-  subscriptionFee: number;
+  permissions: string[];
+  resetToken?: string;
+  balance: {
+    available: number;
+    locked: number;
+    currency: string;
+  };
+  settings: {
+    twoFactorEnabled: boolean;
+    notificationPreferences: {
+      email: boolean;
+      telegram: boolean;
+      push: boolean;
+    };
+    tradingPreferences: {
+      defaultLeverage: number;
+      defaultMarginType: string;
+      defaultTimeInForce: string;
+    };
+  };
+  metadata: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface IUserDocument extends IUser, Document {
+export interface IUserDocument extends Document, Omit<IUser, '_id'> {
+  _id: Types.ObjectId;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 

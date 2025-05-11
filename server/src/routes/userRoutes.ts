@@ -3,7 +3,7 @@ import type { Router } from 'express';
 import type { Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
-import type { AuthenticatedRequest } from '../types/express';
+import { AuthenticatedRequest } from '../types/Auth';
 import { UserController } from '../types/../controllers/UserController';
 import { validateRequest, validateParams } from '../validations/common';
 import { createUserSchema, updateUserSchema, userIdSchema } from '../validations/schemas/User';

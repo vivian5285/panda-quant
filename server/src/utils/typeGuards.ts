@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { IUserDocument } from '../models/user.model';
-import { AuthenticatedRequest } from '../types/express';
+import { AuthenticatedRequest } from '../types/Auth';
 import { AuthRequest } from '../middleware/authMiddleware';
 
 export function isUser(obj: any): obj is IUserDocument {

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
-import { AuthenticatedRequest } from '../types/express';
+import { AuthenticatedRequest } from '../types/Auth';
 import { logger } from './logger';
 
 export type RequestHandlerFunction<T = any> = (

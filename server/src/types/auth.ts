@@ -1,14 +1,11 @@
 import { Request } from 'express';
 import type { UserRole } from './Enums';
-import type { User } from './User';
-import { IUserDocument } from '../models/user.model';
+import { IUserDocument } from './User';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import type { ParsedQs } from 'qs';
 
 export interface AuthRequest extends Request {
-  user?: User & {
-    role: 'user' | 'admin' | 'manager' | 'support';
-  };
+  user?: IUserDocument;
 }
 
 export interface AuthToken {
@@ -98,4 +95,8 @@ export interface IResetPasswordData {
 
 export interface AuthenticatedRequest extends Request {
   user?: IUserDocument;
-} 
+}
+
+// export interface AuthenticatedRequest extends Request {
+//   user?: IUser;
+// } 

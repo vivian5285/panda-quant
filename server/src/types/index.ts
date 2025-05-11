@@ -12,7 +12,7 @@ import type {
   OrderStatus,
   TradeStatus
 } from './Enums';
-import type { IUser } from './User';
+import type { IUser, IUserDocument } from './User';
 import type { IStrategy } from './Strategy';
 import type { ICommission } from './Commission';
 import type { ICommissionWithdrawal } from './CommissionWithdrawal';
@@ -61,6 +61,7 @@ import type {
 // Export all types
 export type {
   IUser,
+  IUserDocument,
   IStrategy,
   ICommission,
   ICommissionWithdrawal,
@@ -111,10 +112,6 @@ export type {
 };
 
 // Export interfaces
-export interface IUserDocument extends Document {
-  // ... user document fields
-}
-
 export interface IStrategyDocument extends Document {
   // ... strategy document fields
 }

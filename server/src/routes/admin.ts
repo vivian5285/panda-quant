@@ -4,7 +4,7 @@ import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
 import { adminMiddleware } from '../middleware/adminMiddleware';
 import { AdminController } from '../controllers/AdminController';
-import type { AuthenticatedRequest } from '../types/express';
+import type { AuthenticatedRequest } from '../types/Auth';
 
 const router: Router = express.Router();
 const adminController = new AdminController();

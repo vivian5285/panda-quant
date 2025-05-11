@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { AuthenticatedRequest } from '../types/express';
+import { AuthenticatedRequest } from '../types/Auth';
 import { AppError } from '../utils/AppError';
 
 export const isAdmin = (req: AuthenticatedRequest, _res: Response, next: NextFunction): void => {

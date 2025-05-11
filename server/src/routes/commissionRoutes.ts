@@ -3,7 +3,7 @@ import type { Router } from 'express';
 import type { Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
-import type { AuthenticatedRequest } from '../types/express';
+import { AuthenticatedRequest } from '../types/Auth';
 import { CommissionController } from '../types/../controllers/CommissionController';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { CommissionService } from '../types/../services/CommissionService';
@@ -19,12 +19,12 @@ const commissionService = CommissionService.getInstance();
 router.use(ensureAuthenticated);
 
 // Get all user commissions
-router.get('/all', handleRequest(async (req: AuthRequest, res: Response) => {
+router.get('/all', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
   await commissionController.getCommissionByUserId(req, res);
 }));
 
 // Get current user's commissions
-router.get('/my', handleRequest(async (req: AuthRequest, res: Response) => {
+router.get('/my', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
   await commissionController.getCommissionByUserId(req, res);
 }));
 
@@ -47,6 +47,10 @@ const commissionStatsSchema = Joi.object({
 
 // Get commission list
 router.get('/', validateQuery(commissionListSchema), handleRequest<ICommission[]>(async (req: AuthenticatedRequest, res, next) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return [];
+  }
   const { page = 1, limit = 10, startDate, endDate } = req.query;
   return await commissionService.getCommissionsByUserAndDateRange(
     req.user._id.toString(),
@@ -97,9 +101,13 @@ router.delete('/rules/:id', handleRequest((req: AuthenticatedRequest, res: Respo
 ));
 
 // Get commissions by type
-router.get('/type/:type', handleRequest((req: AuthenticatedRequest, res: Response) => 
-  commissionController.getCommissionsByType(req, res)
-));
+router.get('/type/:type', handleRequest(async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+  commissionController.getCommissionsByType(req, res);
+}));
 
 // Get commissions by status, type and amount
 router.get('/filter/status-type-amount', handleRequest((req: AuthenticatedRequest, res: Response) => 
@@ -123,6 +131,10 @@ router.get('/filter/status-type-amount-currency-description', handleRequest((req
 
 // Get commission stats
 router.get('/stats/summary', validateQuery(commissionStatsSchema), handleRequest<ICommission[]>(async (req: AuthenticatedRequest, res, next) => {
+  if (!req.user) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return [];
+  }
   const { startDate, endDate } = req.query;
   return await commissionService.getCommissionsByUserAndDateRange(
     req.user._id.toString(),

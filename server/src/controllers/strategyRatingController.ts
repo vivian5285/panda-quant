@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { StrategyRatingService } from '../types/../services/StrategyRatingService';
-import { AuthenticatedRequest } from '../types/express';
+import { AuthenticatedRequest } from '../types/Express';
 import { logger } from '../utils/logger';
 import { AppError } from '../utils/AppError';
 

@@ -21,9 +21,11 @@ export enum StrategyStatus {
 }
 
 export enum UserLevel {
-  BASIC = 'basic',
-  PREMIUM = 'premium',
-  PRO = 'pro'
+  BRONZE = 'BRONZE',
+  SILVER = 'SILVER',
+  GOLD = 'GOLD',
+  PLATINUM = 'PLATINUM',
+  DIAMOND = 'DIAMOND'
 }
 
 export enum NotificationType {

@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../types/Auth';
+import { AuthenticatedRequest } from '../types/Express';
 import { logger } from '../utils/logger';
 import { AuthService } from '../services/AuthService';
-import { IUser } from '../models/user.model';
+import { IUserDocument } from '../types/User';
 import { isUser, isAuthenticatedRequest } from '../utils/typeGuards';
 
 export class AuthController {

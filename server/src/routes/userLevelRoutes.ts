@@ -2,8 +2,8 @@ import express, { Router } from 'express';
 import { Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
-import { AuthenticatedRequest } from '../types/express';
-import { UserLevelController } from '../types/../controllers/UserLevelController';
+import { AuthenticatedRequest } from '../types/Auth';
+import { UserLevelController } from '../controllers/UserLevelController';
 
 const router: Router = express.Router();
 const userLevelController = new UserLevelController();

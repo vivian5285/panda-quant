@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { handleRequest } from '../utils/requestHandler';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
 import { adminMiddleware } from '../middleware/adminMiddleware';
-import { AuthenticatedRequest } from '../types/express';
+import { AuthenticatedRequest } from '../types/Express';
 import { WithdrawalController } from '../types/../controllers/WithdrawalController';
 
 const router: Router = express.Router();
