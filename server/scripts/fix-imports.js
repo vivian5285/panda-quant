@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 // 获取所有 TypeScript 文件
 function getAllTsFiles(dir) {
@@ -22,52 +21,64 @@ function getAllTsFiles(dir) {
 }
 
 // 修复导入路径
-function fixImports(filePath) {
+function fixImportPaths(filePath) {
     let content = fs.readFileSync(filePath, 'utf8');
     let modified = false;
-
+    
     // 修复相对路径导入
-    content = content.replace(
-        /from ['"](\.\.\/)+types\/([^'"]+)['"]/g,
-        (match, dots, typeName) => {
-            const correctTypeName = typeName.charAt(0).toUpperCase() + typeName.slice(1);
-            return `from '${dots}types/${correctTypeName}'`;
-        }
-    );
-
-    // 修复本地类型导入
-    content = content.replace(
-        /from ['"]\.\/([^'"]+)['"]/g,
-        (match, typeName) => {
-            const correctTypeName = typeName.charAt(0).toUpperCase() + typeName.slice(1);
-            return `from './${correctTypeName}'`;
-        }
-    );
-
-    if (content !== fs.readFileSync(filePath, 'utf8')) {
-        fs.writeFileSync(filePath, content, 'utf8');
+    const relativePathRegex = /from ['"](\.\.\/)+([^'"]+)['"]/g;
+    content = content.replace(relativePathRegex, (match, dots, importPath) => {
+        const parts = importPath.split('/');
+        const fixedParts = parts.map(part => {
+            // 保持 index.ts 为小写
+            if (part === 'index.ts') return part;
+            // 将文件名首字母大写
+            return part.charAt(0).toUpperCase() + part.slice(1);
+        });
+        const fixedPath = dots + fixedParts.join('/');
         modified = true;
+        return `from '${fixedPath}'`;
+    });
+    
+    // 修复本地导入
+    const localImportRegex = /from ['"]\.\/([^'"]+)['"]/g;
+    content = content.replace(localImportRegex, (match, importPath) => {
+        const parts = importPath.split('/');
+        const fixedParts = parts.map(part => {
+            // 保持 index.ts 为小写
+            if (part === 'index.ts') return part;
+            // 将文件名首字母大写
+            return part.charAt(0).toUpperCase() + part.slice(1);
+        });
+        const fixedPath = './' + fixedParts.join('/');
+        modified = true;
+        return `from '${fixedPath}'`;
+    });
+    
+    if (modified) {
+        fs.writeFileSync(filePath, content, 'utf8');
+        console.log(`修复导入路径: ${filePath}`);
     }
-
-    return modified;
 }
 
 // 主函数
 function main() {
     const srcDir = path.join(__dirname, '..', 'src');
     const files = getAllTsFiles(srcDir);
+    
+    console.log(`找到 ${files.length} 个 TypeScript 文件`);
+    
     let modifiedCount = 0;
-
-    console.log('开始修复导入路径...');
-
     files.forEach(file => {
-        if (fixImports(file)) {
+        try {
+            fixImportPaths(file);
             modifiedCount++;
-            console.log(`已修复: ${path.relative(srcDir, file)}`);
+        } catch (error) {
+            console.error(`处理文件 ${file} 时出错:`, error);
         }
     });
-
-    console.log(`\n完成! 共修复了 ${modifiedCount} 个文件`);
+    
+    console.log(`修复了 ${modifiedCount} 个文件的导入路径`);
 }
 
 main(); 
