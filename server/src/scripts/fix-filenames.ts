@@ -84,7 +84,11 @@ function fixFilenames() {
             if (fs.existsSync(file) && path.basename(file, '.ts') !== correctName) {
                 const newPath = path.join(typeDir, `${correctName}.ts`);
                 console.log(`Renaming ${file} to ${newPath}`);
-                fs.renameSync(file, newPath);
+                try {
+                    fs.renameSync(file, newPath);
+                } catch (error) {
+                    console.error(`Error renaming ${file}:`, error);
+                }
             }
         }
     }
@@ -102,7 +106,11 @@ function fixFilenames() {
             if (fs.existsSync(file) && path.basename(file, '.ts') !== correctName) {
                 const newPath = path.join(controllerDir, `${correctName}.ts`);
                 console.log(`Renaming ${file} to ${newPath}`);
-                fs.renameSync(file, newPath);
+                try {
+                    fs.renameSync(file, newPath);
+                } catch (error) {
+                    console.error(`Error renaming ${file}:`, error);
+                }
             }
         }
     }
@@ -120,7 +128,11 @@ function fixFilenames() {
             if (fs.existsSync(file) && path.basename(file, '.ts') !== correctName) {
                 const newPath = path.join(serviceDir, `${correctName}.ts`);
                 console.log(`Renaming ${file} to ${newPath}`);
-                fs.renameSync(file, newPath);
+                try {
+                    fs.renameSync(file, newPath);
+                } catch (error) {
+                    console.error(`Error renaming ${file}:`, error);
+                }
             }
         }
     }
@@ -131,6 +143,10 @@ function fixImports(filePath: string) {
     let content = fs.readFileSync(filePath, 'utf8');
     let modified = false;
 
+    // 计算相对路径
+    const fileDir = path.dirname(filePath);
+    const relativePath = path.relative(fileDir, path.join('src', 'types')).replace(/\\/g, '/');
+
     // 修复类型导入
     for (const [typeName, correctName] of Object.entries(typeFiles)) {
         const patterns = [
@@ -140,7 +156,7 @@ function fixImports(filePath: string) {
         ];
 
         for (const pattern of patterns) {
-            const newContent = content.replace(pattern, `from '../types/${correctName}'`);
+            const newContent = content.replace(pattern, `from '${relativePath}/${correctName}'`);
             if (newContent !== content) {
                 content = newContent;
                 modified = true;
@@ -157,7 +173,7 @@ function fixImports(filePath: string) {
         ];
 
         for (const pattern of patterns) {
-            const newContent = content.replace(pattern, `from '../controllers/${correctName}'`);
+            const newContent = content.replace(pattern, `from '${relativePath}/../controllers/${correctName}'`);
             if (newContent !== content) {
                 content = newContent;
                 modified = true;
@@ -174,7 +190,7 @@ function fixImports(filePath: string) {
         ];
 
         for (const pattern of patterns) {
-            const newContent = content.replace(pattern, `from '../services/${correctName}'`);
+            const newContent = content.replace(pattern, `from '${relativePath}/../services/${correctName}'`);
             if (newContent !== content) {
                 content = newContent;
                 modified = true;
