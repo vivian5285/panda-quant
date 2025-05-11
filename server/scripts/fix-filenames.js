@@ -83,6 +83,12 @@ const fileMappings = {
     'schemas/index.ts': 'schemas/Index.ts'
 };
 
+// 创建一个临时目录
+const tempDir = path.join(__dirname, '..', 'temp_rename');
+if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir);
+}
+
 function fixFilenames(directory) {
     const files = fs.readdirSync(directory);
     
@@ -100,14 +106,16 @@ function fixFilenames(directory) {
                 const newPath = path.join(path.dirname(fullPath), newName);
                 console.log(`Renaming ${fullPath} to ${newPath}`);
                 
-                // 在 Linux 中，我们需要先删除旧文件，然后重命名
                 try {
-                    // 先复制文件内容
-                    const content = fs.readFileSync(fullPath, 'utf8');
-                    // 删除旧文件
+                    // 复制到临时目录
+                    const tempPath = path.join(tempDir, newName);
+                    fs.copyFileSync(fullPath, tempPath);
+                    // 删除原文件
                     fs.unlinkSync(fullPath);
-                    // 创建新文件
-                    fs.writeFileSync(newPath, content);
+                    // 从临时目录复制回来
+                    fs.copyFileSync(tempPath, newPath);
+                    // 删除临时文件
+                    fs.unlinkSync(tempPath);
                 } catch (error) {
                     console.error(`Error renaming ${fullPath}:`, error);
                 }
@@ -137,5 +145,10 @@ directories.forEach(dir => {
         fixFilenames(fullPath);
     }
 });
+
+// 清理临时目录
+if (fs.existsSync(tempDir)) {
+    fs.rmdirSync(tempDir);
+}
 
 console.log('\nFile name fixing completed!'); 
