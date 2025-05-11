@@ -69,9 +69,11 @@ const serviceFiles = {
     'WithdrawalService': 'WithdrawalService'
 };
 
-// 修复文件名
-function fixFilenames() {
-    // 修复类型文件
+// 收集需要重命名的文件
+function collectFilesToRename() {
+    const filesToRename = [];
+
+    // 收集类型文件
     for (const [typeName, correctName] of Object.entries(typeFiles)) {
         const typeDir = path.join('src', 'types');
         const possibleFiles = [
@@ -83,17 +85,12 @@ function fixFilenames() {
         for (const file of possibleFiles) {
             if (fs.existsSync(file) && path.basename(file, '.ts') !== correctName) {
                 const newPath = path.join(typeDir, `${correctName}.ts`);
-                console.log(`Renaming ${file} to ${newPath}`);
-                try {
-                    fs.renameSync(file, newPath);
-                } catch (error) {
-                    console.error(`Error renaming ${file}:`, error);
-                }
+                filesToRename.push({ oldPath: file, newPath });
             }
         }
     }
 
-    // 修复控制器文件
+    // 收集控制器文件
     for (const [controllerName, correctName] of Object.entries(controllerFiles)) {
         const controllerDir = path.join('src', 'controllers');
         const possibleFiles = [
@@ -105,17 +102,12 @@ function fixFilenames() {
         for (const file of possibleFiles) {
             if (fs.existsSync(file) && path.basename(file, '.ts') !== correctName) {
                 const newPath = path.join(controllerDir, `${correctName}.ts`);
-                console.log(`Renaming ${file} to ${newPath}`);
-                try {
-                    fs.renameSync(file, newPath);
-                } catch (error) {
-                    console.error(`Error renaming ${file}:`, error);
-                }
+                filesToRename.push({ oldPath: file, newPath });
             }
         }
     }
 
-    // 修复服务文件
+    // 收集服务文件
     for (const [serviceName, correctName] of Object.entries(serviceFiles)) {
         const serviceDir = path.join('src', 'services');
         const possibleFiles = [
@@ -127,15 +119,12 @@ function fixFilenames() {
         for (const file of possibleFiles) {
             if (fs.existsSync(file) && path.basename(file, '.ts') !== correctName) {
                 const newPath = path.join(serviceDir, `${correctName}.ts`);
-                console.log(`Renaming ${file} to ${newPath}`);
-                try {
-                    fs.renameSync(file, newPath);
-                } catch (error) {
-                    console.error(`Error renaming ${file}:`, error);
-                }
+                filesToRename.push({ oldPath: file, newPath });
             }
         }
     }
+
+    return filesToRename;
 }
 
 // 修复导入路径
@@ -205,8 +194,18 @@ function fixImports(filePath: string) {
 }
 
 // 执行修复
-console.log('Fixing filenames...');
-fixFilenames();
+console.log('Collecting files to rename...');
+const filesToRename = collectFilesToRename();
+
+console.log('Renaming files...');
+for (const { oldPath, newPath } of filesToRename) {
+    console.log(`Renaming ${oldPath} to ${newPath}`);
+    try {
+        fs.renameSync(oldPath, newPath);
+    } catch (error) {
+        console.error(`Error renaming ${oldPath}:`, error);
+    }
+}
 
 console.log('Fixing imports...');
 files.forEach(fixImports);
