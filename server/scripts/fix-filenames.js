@@ -43,7 +43,36 @@ const fileMappings = {
     'settings.ts': 'Settings.ts',
     'strategyrating.ts': 'StrategyRating.ts',
     'strategyreview.ts': 'StrategyReview.ts',
-    'userlevel.ts': 'UserLevel.ts'
+    'userlevel.ts': 'UserLevel.ts',
+    'commissionwithdrawal.ts': 'CommissionWithdrawal.ts',
+    'commissionrecord.ts': 'CommissionRecord.ts',
+    'strategyperformance.ts': 'StrategyPerformance.ts',
+    'router.d.ts': 'Router.d.ts',
+    'express.d.ts': 'Express.d.ts',
+    'express.ts': 'Express.ts',
+    'auth.ts': 'Auth.ts',
+    'api.ts': 'Api.ts',
+    'alert.ts': 'Alert.ts',
+    'backtest.ts': 'Backtest.ts',
+    'blacklist.ts': 'Blacklist.ts',
+    'commission.ts': 'Commission.ts',
+    'deposit.ts': 'Deposit.ts',
+    'enums.ts': 'Enums.ts',
+    'exchange.ts': 'Exchange.ts',
+    'health.ts': 'Health.ts',
+    'index.ts': 'Index.ts',
+    'mt4.ts': 'Mt4.ts',
+    'network.ts': 'Network.ts',
+    'performance.ts': 'Performance.ts',
+    'position.ts': 'Position.ts',
+    'risk.ts': 'Risk.ts',
+    'settlement.ts': 'Settlement.ts',
+    'strategy.ts': 'Strategy.ts',
+    'trade.ts': 'Trade.ts',
+    'trading.ts': 'Trading.ts',
+    'transaction.ts': 'Transaction.ts',
+    'user.ts': 'User.ts',
+    'withdrawal.ts': 'Withdrawal.ts'
 };
 
 function fixFilenames(directory) {
@@ -96,14 +125,29 @@ function fixImports(directory) {
     });
 }
 
-// 修复 controllers 目录
-fixFilenames(path.join(__dirname, '../src/controllers'));
-// 修复 services 目录
-fixFilenames(path.join(__dirname, '../src/services'));
-// 修复 types 目录
-fixFilenames(path.join(__dirname, '../src/types'));
+// 修复所有目录
+const directories = [
+    'src/controllers',
+    'src/services',
+    'src/types',
+    'src/models',
+    'src/routes',
+    'src/middleware',
+    'src/validations',
+    'src/utils',
+    'src/clients',
+    'src/engine'
+];
+
+directories.forEach(dir => {
+    const fullPath = path.join(__dirname, '..', dir);
+    if (fs.existsSync(fullPath)) {
+        console.log(`\nProcessing directory: ${dir}`);
+        fixFilenames(fullPath);
+    }
+});
 
 // 修复所有目录中的导入路径
 fixImports(path.join(__dirname, '../src'));
 
-console.log('File name and import path fixing completed!'); 
+console.log('\nFile name and import path fixing completed!'); 
