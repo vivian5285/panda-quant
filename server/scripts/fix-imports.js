@@ -32,6 +32,22 @@ function fixImportPaths(filePath) {
         const fixedParts = parts.map(part => {
             // 保持 index.ts 为小写
             if (part === 'index.ts') return part;
+            // 将目录名首字母大写
+            if (part === 'middleware') return 'Middleware';
+            if (part === 'models') return 'Models';
+            if (part === 'routes') return 'Routes';
+            if (part === 'services') return 'Services';
+            if (part === 'types') return 'Types';
+            if (part === 'utils') return 'Utils';
+            if (part === 'validations') return 'Validations';
+            if (part === 'validators') return 'Validators';
+            if (part === 'controllers') return 'Controllers';
+            if (part === 'config') return 'Config';
+            if (part === 'database') return 'Database';
+            if (part === 'engine') return 'Engine';
+            if (part === 'exchanges') return 'Exchanges';
+            if (part === 'clients') return 'Clients';
+            if (part === 'scripts') return 'Scripts';
             // 将文件名首字母大写
             return part.charAt(0).toUpperCase() + part.slice(1);
         });
@@ -47,6 +63,22 @@ function fixImportPaths(filePath) {
         const fixedParts = parts.map(part => {
             // 保持 index.ts 为小写
             if (part === 'index.ts') return part;
+            // 将目录名首字母大写
+            if (part === 'middleware') return 'Middleware';
+            if (part === 'models') return 'Models';
+            if (part === 'routes') return 'Routes';
+            if (part === 'services') return 'Services';
+            if (part === 'types') return 'Types';
+            if (part === 'utils') return 'Utils';
+            if (part === 'validations') return 'Validations';
+            if (part === 'validators') return 'Validators';
+            if (part === 'controllers') return 'Controllers';
+            if (part === 'config') return 'Config';
+            if (part === 'database') return 'Database';
+            if (part === 'engine') return 'Engine';
+            if (part === 'exchanges') return 'Exchanges';
+            if (part === 'clients') return 'Clients';
+            if (part === 'scripts') return 'Scripts';
             // 将文件名首字母大写
             return part.charAt(0).toUpperCase() + part.slice(1);
         });
