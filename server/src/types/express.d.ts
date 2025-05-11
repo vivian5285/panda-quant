@@ -1,16 +1,18 @@
-import { Request } from 'express';
-import { IUserDocument } from './User';
+import { IUserDocument } from '../models/User.model';
 
-declare global {
-  namespace Express {
-    interface Request {
+declare module 'express' {
+  export interface Request {
+    user?: IUserDocument;
+    token?: string;
+  }
+
+  export interface Response {
+    locals: {
       user?: IUserDocument;
-    }
+      token?: string;
+    };
   }
 }
 
-export interface AuthenticatedRequest extends Request {
-  user: IUserDocument;
-}
-
+// 确保这个文件被视为模块
 export {}; 

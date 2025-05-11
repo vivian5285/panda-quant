@@ -1,6 +1,6 @@
-import type { Document, Types } from 'mongoose';
-import type { StrategyType, StrategyStatus } from './Enums';
-import type { PerformanceMetrics } from './Performance';
+import { Document, Types } from 'mongoose';
+import { StrategyType, StrategyStatus } from './Enums';
+import { PerformanceMetrics } from './Performance';
 
 export interface IStrategyPerformanceMetrics {
   totalTrades: number;
@@ -18,7 +18,32 @@ export interface IStrategyPerformanceMetrics {
   dailyReturns: number[];
 }
 
-export type StrategyPerformanceMetrics = IStrategyPerformanceMetrics;
+export interface IStrategyConfig {
+  exchange: string;
+  symbol: string;
+  timeframe: string;
+  parameters: Record<string, any>;
+  riskManagement: {
+    maxPositionSize: number;
+    stopLoss: number;
+    takeProfit: number;
+    trailingStop: number;
+    maxDrawdown: number;
+    maxOpenTrades: number;
+  };
+  filters: {
+    minVolume: number;
+    minVolatility: number;
+    maxSpread: number;
+    allowedSymbols: string[];
+    excludedSymbols: string[];
+  };
+  notifications: {
+    email: boolean;
+    telegram: boolean;
+    webhook: boolean;
+  };
+}
 
 export interface IStrategyBase {
   userId: Types.ObjectId;
@@ -26,88 +51,45 @@ export interface IStrategyBase {
   description: string;
   type: StrategyType;
   status: StrategyStatus;
-  config: {
-    exchange: string;
-    symbol: string;
-    timeframe: string;
-    parameters: Record<string, any>;
-    riskManagement: {
-      maxPositionSize: number;
-      stopLoss: number;
-      takeProfit: number;
-      trailingStop: number;
-      maxDrawdown: number;
-      maxOpenTrades: number;
-    };
-    filters: {
-      minVolume: number;
-      minVolatility: number;
-      maxSpread: number;
-      allowedSymbols: string[];
-      excludedSymbols: string[];
-    };
-    notifications: {
-      email: boolean;
-      telegram: boolean;
-      webhook: boolean;
-    };
+  config: IStrategyConfig;
+  performance?: IStrategyPerformanceMetrics;
+  metadata?: {
+    history?: {
+      timestamp: Date;
+      action: string;
+      details: Record<string, any>;
+    }[];
+    tags?: string[];
+    category?: string;
+    version?: string;
+    lastUpdated?: Date;
   };
-  performance?: PerformanceMetrics;
-  metadata?: Record<string, any>;
+}
+
+export interface IStrategy extends IStrategyBase {
+  _id: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export type StrategyBase = IStrategyBase;
+export interface IStrategyDocument extends Omit<Document, '_id'>, IStrategy {}
 
-export interface IStrategy extends Document {
+export type StrategyCreateInput = Omit<IStrategyBase, 'performance'>;
+export type StrategyUpdateInput = Partial<StrategyCreateInput>;
+
+export interface IStrategyRating {
+  _id: Types.ObjectId;
+  strategyId: Types.ObjectId;
   userId: Types.ObjectId;
-  name: string;
-  description: string;
-  type: StrategyType;
-  status: StrategyStatus;
-  config: {
-    exchange: string;
-    symbol: string;
-    timeframe: string;
-    parameters: Record<string, any>;
-    riskManagement: {
-      maxPositionSize: number;
-      stopLoss: number;
-      takeProfit: number;
-      trailingStop: number;
-      maxDrawdown: number;
-      maxOpenTrades: number;
-    };
-    filters: {
-      minVolume: number;
-      minVolatility: number;
-      maxSpread: number;
-      allowedSymbols: string[];
-      excludedSymbols: string[];
-    };
-    notifications: {
-      email: boolean;
-      telegram: boolean;
-      webhook: boolean;
-    };
-  };
-  performance?: PerformanceMetrics;
-  metadata?: Record<string, any>;
+  rating: number;
+  comment?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export type Strategy = IStrategy;
-
-export type IStrategyDocument = IStrategy;
-export type StrategyDocument = Strategy;
-
-export interface IStrategyCreateInput extends Omit<IStrategyBase, 'createdAt' | 'updatedAt'> {}
-export type StrategyCreateInput = IStrategyCreateInput;
-
-export interface IStrategyUpdateInput extends Partial<IStrategyCreateInput> {}
-export type StrategyUpdateInput = IStrategyUpdateInput;
+export interface IStrategyRatingDocument extends Document, Omit<IStrategyRating, '_id'> {
+  _id: Types.ObjectId;
+}
 
 export interface StrategyPerformanceBase {
   strategyId: Types.ObjectId;
@@ -137,22 +119,9 @@ export interface StrategyPerformanceBase {
   updatedAt: Date;
 }
 
-export interface StrategyPerformance extends Document, StrategyPerformanceBase {}
-
-export type StrategyPerformanceDocument = StrategyPerformance;
-
-export interface StrategyRatingBase {
-  strategyId: Types.ObjectId;
-  userId: Types.ObjectId;
-  rating: number;
-  comment?: string;
-  createdAt: Date;
-  updatedAt: Date;
+export interface StrategyPerformance extends Document, Omit<StrategyPerformanceBase, '_id'> {
+  _id: Types.ObjectId;
 }
-
-export interface StrategyRating extends Document, StrategyRatingBase {}
-
-export type StrategyRatingDocument = StrategyRating;
 
 export interface StrategyBacktest {
   strategyId: Types.ObjectId;
@@ -207,7 +176,6 @@ export interface StrategyMonitor {
   lastTrade: Date;
   currentPositions: {
     symbol: string;
-    side: 'long' | 'short';
     entryPrice: number;
     quantity: number;
     currentPrice: number;
@@ -223,7 +191,5 @@ export interface StrategyMonitor {
   createdAt: Date;
   updatedAt: Date;
 }
-
-export type StrategyBacktestDocument = StrategyBacktest;
 
 export { StrategyType, StrategyStatus }; 

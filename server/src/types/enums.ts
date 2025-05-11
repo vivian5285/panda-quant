@@ -54,7 +54,10 @@ export enum RiskLevel {
 export enum CommissionType {
   FIXED = 'fixed',
   PERCENTAGE = 'percentage',
-  TIERED = 'tiered'
+  TIERED = 'tiered',
+  REFERRAL = 'referral',
+  TRADING = 'trading',
+  WITHDRAWAL = 'withdrawal'
 }
 
 export enum CommissionStatus {
@@ -71,6 +74,12 @@ export enum WithdrawalStatus {
   COMPLETED = 'completed',
   FAILED = 'failed',
   CANCELLED = 'cancelled'
+}
+
+export enum WithdrawalType {
+  BANK = 'bank',
+  CRYPTO = 'crypto',
+  INTERNAL = 'internal'
 }
 
 export enum SettlementStatus {
@@ -130,7 +139,66 @@ export enum OrderStatus {
   FAILED = 'failed'
 }
 
+export enum OrderSide {
+  BUY = 'buy',
+  SELL = 'sell'
+}
+
 export enum TradeStatus {
-  OPEN = 'OPEN',
-  CLOSED = 'CLOSED'
+  OPEN = 'open',
+  CLOSED = 'closed'
+}
+
+export enum NetworkStatus {
+  ONLINE = 'online',
+  OFFLINE = 'offline',
+  ERROR = 'error',
+  CHECKING = 'checking'
+}
+
+export enum NetworkType {
+  MAINNET = 'mainnet',
+  TESTNET = 'testnet'
+}
+
+export enum LogLevel {
+  INFO = 'info',
+  WARN = 'warn',
+  ERROR = 'error',
+  DEBUG = 'debug'
+}
+
+export enum LogType {
+  SYSTEM = 'system',
+  USER = 'user',
+  SECURITY = 'security',
+  TRADING = 'trading'
+}
+
+export enum NotificationStatus {
+  SENT = 'sent',
+  FAILED = 'failed',
+  PENDING = 'pending'
+}
+
+export enum TimeInForce {
+  GTC = 'GTC',
+  IOC = 'IOC',
+  FOK = 'FOK'
+}
+
+export enum MarginType {
+  ISOLATED = 'isolated',
+  CROSS = 'cross'
+}
+
+export enum ProfitType {
+  REALIZED = 'realized',
+  UNREALIZED = 'unrealized'
+}
+
+export enum ProfitStatus {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  FAILED = 'failed'
 } 

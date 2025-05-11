@@ -1,4 +1,5 @@
 import { Types } from 'mongoose';
+import { StrategyType, StrategyStatus } from './enums';
 
 export interface IOrder {
   _id: Types.ObjectId;
@@ -23,11 +24,53 @@ export enum OrderStatus {
 
 export interface IStrategy {
   _id: Types.ObjectId;
+  userId: Types.ObjectId;
   name: string;
   description: string;
-  userId: Types.ObjectId;
-  parameters: Record<string, any>;
-  status: 'active' | 'inactive';
+  type: StrategyType;
+  status: StrategyStatus;
+  config: {
+    exchange: string;
+    symbol: string;
+    timeframe: string;
+    parameters: Record<string, any>;
+    riskManagement: {
+      maxPositionSize: number;
+      stopLoss: number;
+      takeProfit: number;
+      trailingStop: number;
+      maxDrawdown: number;
+      maxOpenTrades: number;
+    };
+    filters: {
+      minVolume: number;
+      minVolatility: number;
+      maxSpread: number;
+      allowedSymbols: string[];
+      excludedSymbols: string[];
+    };
+    notifications: {
+      email: boolean;
+      telegram: boolean;
+      webhook: boolean;
+    };
+  };
+  performance?: {
+    totalTrades: number;
+    winningTrades: number;
+    losingTrades: number;
+    winRate: number;
+    profitFactor: number;
+    averageWin: number;
+    averageLoss: number;
+    maxDrawdown: number;
+    sharpeRatio: number;
+    sortinoRatio: number;
+    totalProfit: number;
+    monthlyReturns: number[];
+    dailyReturns: number[];
+  };
+  metadata?: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -5,40 +5,21 @@ export interface IOrderBase {
   userId: Types.ObjectId;
   strategyId: Types.ObjectId;
   symbol: string;
-  type: OrderType;
-  side: TradeType;
-  quantity: number;
+  type: string;
+  side: string;
+  amount: number;
   price: number;
   status: OrderStatus;
-  filledQuantity: number;
-  averagePrice: number;
-  commission: number;
-  metadata: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface IOrder {
+export interface IOrder extends IOrderBase {
   _id: Types.ObjectId;
-  userId: Types.ObjectId;
-  strategyId: Types.ObjectId;
-  symbol: string;
-  type: OrderType;
-  side: TradeType;
-  quantity: number;
-  price: number;
-  status: OrderStatus;
-  filledQuantity: number;
-  averagePrice: number;
-  commission: number;
-  metadata: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
+  orderId: string;
 }
 
-export interface IOrderDocument extends IOrderBase, Document {
-  _id: Types.ObjectId;
-}
+export interface IOrderDocument extends Omit<Document, '_id'>, IOrder {}
 
-export interface OrderCreateInput extends Omit<IOrderBase, 'createdAt' | 'updatedAt'> {}
-export interface OrderUpdateInput extends Partial<OrderCreateInput> {} 
+export type OrderCreateInput = Omit<IOrderBase, 'createdAt' | 'updatedAt'>;
+export type OrderUpdateInput = Partial<Omit<IOrderBase, 'createdAt' | 'updatedAt'>>; 

@@ -1,6 +1,6 @@
-import { IUser } from '../models/user.model';
-import User from '../models/user.model';
-import { Payment } from '../models/asset.model';
+import { IUser } from '../models/User.model';
+import User from '../models/User.model';
+import { Payment } from '../models/Asset.model';
 
 const WEEKLY_FEE = 10; // 每周固定费用
 

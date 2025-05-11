@@ -1,23 +1,18 @@
 import { Document, Types } from 'mongoose';
 
-export interface IAlert extends Document {
+export interface IAlert {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
-  type: 'price' | 'volume' | 'technical' | 'strategy_loss' | 'news' | 'system';
-  condition: string;
-  value: number;
-  status: 'active' | 'triggered' | 'disabled';
-  exchange: string;
-  symbol: string;
-  timeframe?: string;
-  triggeredAt?: Date;
+  strategyId: Types.ObjectId;
+  type: string;
+  message: string;
+  status: string;
   createdAt: Date;
   updatedAt: Date;
-  error?: string;
-  metadata?: Record<string, any>;
-  message: string;
-  data?: Record<string, any>;
-  isRead: boolean;
+}
+
+export interface IAlertDocument extends IAlert {
+  save(): Promise<IAlertDocument>;
 }
 
 export interface IAlertNotification extends Document {

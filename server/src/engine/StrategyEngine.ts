@@ -1,24 +1,45 @@
 import { IStrategy } from '../types/Strategy';
-import { IOrder, IOrderBase } from '../types/Trading';
+import { IOrder, OrderCreateInput } from '../types/Order';
 import { logger } from '../utils/Logger';
 import { Types } from 'mongoose';
 import { OrderStatus } from '../types/Enums';
 
-interface Order {
-  _id: Types.ObjectId;
-  // ... 其他属性
-}
-
 export class StrategyEngine {
-  private strategies: Map<string, IStrategy>;
   private orders: Map<string, IOrder>;
+  private strategy: IStrategy;
 
-  constructor() {
-    this.strategies = new Map();
+  constructor(strategy: IStrategy) {
     this.orders = new Map();
+    this.strategy = strategy;
   }
 
-  async executeStrategy(strategy: IStrategy & { _id: Types.ObjectId }): Promise<void> {
+  async executeOrder(orderData: OrderCreateInput): Promise<IOrder> {
+    try {
+      const orderId = this.generateOrderId();
+      const newOrder: IOrder = {
+        ...orderData,
+        _id: new Types.ObjectId(),
+        orderId,
+        status: OrderStatus.PENDING,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      this.orders.set(orderId, newOrder);
+      logger.info(`Order created: ${orderId}`);
+      
+      return newOrder;
+    } catch (error) {
+      logger.error('Error executing order:', error);
+      throw error;
+    }
+  }
+
+  private generateOrderId(): string {
+    return `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  async executeStrategy(strategy: IStrategy): Promise<void> {
     try {
       // 执行策略的逻辑
       logger.info(`Strategy ${strategy._id} executed successfully`);
@@ -28,10 +49,10 @@ export class StrategyEngine {
     }
   }
 
-  async stopStrategy(strategy: IStrategy & { _id: Types.ObjectId }): Promise<void> {
+  async stopStrategy(strategy: IStrategy): Promise<void> {
     try {
       // 停止策略执行的逻辑
-      this.strategies.delete(strategy._id.toString());
+      this.orders.delete(strategy._id.toString());
       logger.info(`Strategy ${strategy._id} stopped`);
     } catch (error) {
       logger.error(`Error stopping strategy ${strategy._id}:`, error);
@@ -39,13 +60,17 @@ export class StrategyEngine {
     }
   }
 
-  createOrder(order: Omit<IOrderBase, 'createdAt' | 'updatedAt'>): IOrder {
-    const newOrder: IOrderBase = {
+  createOrder(order: OrderCreateInput): IOrder {
+    const orderId = this.generateOrderId();
+    const newOrder: IOrder = {
       ...order,
+      _id: new Types.ObjectId(),
+      orderId,
+      status: OrderStatus.PENDING,
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    this.orders.set(newOrder.orderId, newOrder as IOrder);
-    return newOrder as IOrder;
+    this.orders.set(orderId, newOrder);
+    return newOrder;
   }
 }

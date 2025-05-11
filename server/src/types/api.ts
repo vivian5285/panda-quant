@@ -11,12 +11,52 @@ export interface IApiError {
   details?: any;
 }
 
-export interface IApiRequest {
-  method: string;
-  url: string;
+export interface IApiRequest<T> {
+  data: T;
+  timestamp: number;
+  signature?: string;
+}
+
+export interface IApiPagination {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
+export interface IApiPaginationResponse<T> extends IApiResponse<T> {
+  pagination: IApiPagination;
+}
+
+export interface IApiValidationError {
+  field: string;
+  message: string;
+  code: string;
+}
+
+export interface IApiValidationResponse {
+  success: boolean;
+  errors: IApiValidationError[];
+  message?: string;
+}
+
+export interface IApiConfig {
+  baseUrl: string;
+  timeout: number;
   headers?: Record<string, string>;
-  body?: any;
-  params?: Record<string, any>;
+  auth?: {
+    type: 'basic' | 'bearer' | 'apiKey';
+    credentials?: string;
+    key?: string;
+    value?: string;
+  };
+}
+
+export interface IApiClient {
+  get<T>(url: string, config?: IApiConfig): Promise<IApiResponse<T>>;
+  post<T>(url: string, data: any, config?: IApiConfig): Promise<IApiResponse<T>>;
+  put<T>(url: string, data: any, config?: IApiConfig): Promise<IApiResponse<T>>;
+  delete<T>(url: string, config?: IApiConfig): Promise<IApiResponse<T>>;
 }
 
 export interface UserApiResponse {

@@ -1,36 +1,54 @@
-import type { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { config } from '../Config';
-import { UnauthorizedError } from '../utils/Errors';
-import { User, IUserDocument } from '../models/User.model';
+import { User } from '../models/User.model';
+import { AppError } from '../utils/AppError';
 import { logger } from '../utils/Logger';
+import { IUser } from '../types/User';
 
 export interface AuthRequest extends Request {
-  user?: IUserDocument;
+  user?: IUser;
+  token?: string;
 }
 
-export const authenticate = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+export const authenticate = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
+
     if (!token) {
-      throw new UnauthorizedError('No token provided');
+      throw new AppError('Authentication required', 401);
     }
 
-    const decoded = jwt.verify(token, config.jwtSecret) as { id: string };
-    const user = await User.findById(decoded.id);
+    const decoded = jwt.verify(token, JWT_SECRET) as { _id: string };
+    const user = await User.findById(decoded._id);
 
     if (!user) {
-      throw new UnauthorizedError('User not found');
+      throw new AppError('User not found', 404);
     }
 
     req.user = user;
+    req.token = token;
     next();
   } catch (error) {
     logger.error('Authentication error:', error);
-    next(error);
+    res.status(401).json({ message: 'Authentication failed' });
+  }
+};
+
+export const requireAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user) {
+      throw new AppError('Authentication required', 401);
+    }
+
+    if (!req.user.isAdmin) {
+      throw new AppError('Admin access required', 403);
+    }
+
+    next();
+  } catch (error) {
+    logger.error('Admin authentication error:', error);
+    res.status(403).json({ message: 'Admin access required' });
   }
 }; 

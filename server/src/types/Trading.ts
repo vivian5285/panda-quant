@@ -1,39 +1,38 @@
-import type { Document, Types } from 'mongoose';
-import { OrderType, OrderStatus, TradeStatus } from './Enums';
+import { Document, Types } from 'mongoose';
+import { OrderStatus, OrderType, OrderSide, TimeInForce } from './Enums';
 
 export interface IOrderBase {
   userId: Types.ObjectId;
   strategyId: Types.ObjectId;
-  positionId?: Types.ObjectId;
-  exchange: string;
   symbol: string;
-  orderId: string;
-  clientOrderId: string;
   type: OrderType;
-  side: 'BUY' | 'SELL';
-  amount: number;
-  price?: number;
-  stopPrice?: number;
+  side: OrderSide;
   status: OrderStatus;
-  filledAmount: number;
-  averageFillPrice?: number;
-  fee: number;
-  feeCurrency: string;
-  createdAt: Date;
-  updatedAt: Date;
-  closedAt?: Date;
-  error?: string;
+  price: number;
+  quantity: number;
+  filledQuantity?: number;
+  remainingQuantity?: number;
+  timeInForce: TimeInForce;
   metadata?: Record<string, any>;
 }
 
-export type OrderBase = IOrderBase;
+export interface IOrder extends IOrderBase {
+  _id: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export interface IOrder extends Document, IOrderBase {}
+export interface IOrderDocument extends IOrder, Document {
+  _id: Types.ObjectId;
+}
 
-export type Order = IOrder;
+export type OrderCreateInput = Omit<IOrderBase, 'status' | 'filledQuantity' | 'remainingQuantity'> & {
+  status?: OrderStatus;
+  filledQuantity?: number;
+  remainingQuantity?: number;
+};
 
-export type IOrderDocument = IOrder;
-export type OrderDocument = Order;
+export type OrderUpdateInput = Partial<Omit<IOrderBase, 'userId' | 'strategyId' | 'symbol' | 'type' | 'side'>>;
 
 export interface ITradeBase {
   strategyId: Types.ObjectId;
@@ -122,12 +121,6 @@ export type OrderHistory = IOrderHistory;
 
 export type IOrderHistoryDocument = IOrderHistory;
 export type OrderHistoryDocument = OrderHistory;
-
-export type IOrderCreateInput = Omit<IOrderBase, 'createdAt' | 'updatedAt'>;
-export type OrderCreateInput = IOrderCreateInput;
-
-export type IOrderUpdateInput = Partial<IOrderCreateInput>;
-export type OrderUpdateInput = IOrderUpdateInput;
 
 export type ITradeCreateInput = Omit<ITradeBase, 'createdAt' | 'updatedAt'>;
 export type TradeCreateInput = ITradeCreateInput;

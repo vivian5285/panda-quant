@@ -1,13 +1,13 @@
-import type { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../Config';
 import { UnauthorizedError, ForbiddenError } from '../utils/Errors';
-import { User, IUserDocument } from '../models/User.model';
+import { User } from '../models/User.model';
 import { logger } from '../utils/Logger';
 import { IUser } from '../types/User';
 
 export interface AuthenticatedRequest extends Request {
-  user?: IUserDocument;
+  user?: IUser;
   headers: {
     authorization?: string;
     [key: string]: string | string[] | undefined;
@@ -24,7 +24,7 @@ interface JwtPayload {
 declare global {
   namespace Express {
     interface Request {
-      user?: IUserDocument;
+      user?: IUser;
     }
   }
 }
@@ -144,4 +144,49 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
   } catch (error) {
     handleAuthError(error as Error, res);
   }
+};
+
+export const auth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      throw new Error();
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as { _id: string };
+    const user = await User.findById(decoded._id);
+
+    if (!user) {
+      throw new Error();
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    logger.error('Authentication error:', error);
+    res.status(401).json({ message: 'Please authenticate' });
+  }
+};
+
+export const checkPermission = (permission: string) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new Error('User not authenticated');
+      }
+
+      if (req.user.isAdmin) {
+        return next();
+      }
+
+      if (!req.user.permissions?.includes(permission)) {
+        throw new Error('Permission denied');
+      }
+
+      next();
+    } catch (error) {
+      res.status(403).json({ error: 'Permission denied' });
+    }
+  };
 }; 

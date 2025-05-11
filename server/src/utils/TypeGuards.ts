@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { IUserDocument } from '../models/User.model';
+import { IUserDocument } from '../types/User';
 import { AuthenticatedRequest } from '../types/Auth';
 import { AuthRequest } from '../middleware/AuthMiddleware';
 

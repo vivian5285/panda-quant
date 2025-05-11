@@ -1,25 +1,24 @@
 import { Document, Types } from 'mongoose';
+import { TradeStatus, TradeType } from './Enums';
 
 export interface ITrade {
+  _id: Types.ObjectId;
   userId: Types.ObjectId;
   strategyId: Types.ObjectId;
   symbol: string;
-  type: 'long' | 'short';
+  type: TradeType;
   side: 'buy' | 'sell';
-  quantity: number;
+  amount: number;
   price: number;
-  status: 'pending' | 'executed' | 'cancelled' | 'failed';
-  executedAt?: Date;
-  metadata?: Record<string, any>;
+  status: TradeStatus;
+  profit?: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface ITradeDocument extends Omit<ITrade, '_id'>, Document {
+export interface ITradeDocument extends Omit<Document, '_id'>, ITrade {
   _id: Types.ObjectId;
 }
 
-export type Trade = ITrade;
-
-export interface TradeCreateInput extends Omit<ITrade, '_id' | 'createdAt' | 'updatedAt'> {}
-export interface TradeUpdateInput extends Partial<TradeCreateInput> {} 
+export type TradeCreateInput = Omit<ITrade, '_id' | 'createdAt' | 'updatedAt'>;
+export type TradeUpdateInput = Partial<Omit<ITrade, '_id' | 'createdAt' | 'updatedAt'>>; 

@@ -3,29 +3,36 @@ import { createClient } from 'redis';
 import axios from 'axios';
 import { config } from '../Config';
 import { INetworkStatus, NetworkStatusCreateInput } from '../types/Network';
-import { NetworkStatus } from '../models/Network-status.model';
+import NetworkStatusModel from '../models/NetworkStatus.model';
 import { logger } from '../utils/Logger';
 import { EventEmitter } from 'events';
-import { Health, IHealthDocument } from '../models/Health.model';
-import { IHealth } from '../types/Health';
+import { Health, IHealth, IHealthDocument } from '../models/Health.model';
 import { Types } from 'mongoose';
+import { AppError } from '../utils/AppError';
+import { NetworkStatus as NetworkStatusEnum, NetworkType as NetworkTypeEnum } from '../types/Enums';
 
-export interface HealthCheckResult {
-  status: 'healthy' | 'unhealthy';
+interface HealthCheckResult {
+  status: NetworkStatusEnum;
+  latency?: number;
+  responseTime?: number;
   error?: string;
 }
 
 type NetworkComponent = 'database' | 'api' | 'redis' | 'websocket' | 'userApi' | 'adminApi' | 'strategyEngine';
-type NetworkType = 'database' | 'api' | 'redis' | 'websocket';
+type NetworkComponentType = 'database' | 'api' | 'redis' | 'websocket';
 
 export class HealthService extends EventEmitter {
-  private networkStatusModel = NetworkStatus;
+  private networkStatusModel = NetworkStatusModel;
   private static instance: HealthService;
   private status: Map<string, boolean> = new Map();
+  private redisClient: ReturnType<typeof createClient>;
 
   private constructor() {
     super();
     this.initializeStatus();
+    this.redisClient = createClient({
+      url: process.env.REDIS_URL || 'redis://localhost:6379'
+    });
   }
 
   static getInstance(): HealthService {
@@ -81,30 +88,24 @@ export class HealthService extends EventEmitter {
   }
 
   public async checkHealth(): Promise<{
-    status: 'healthy' | 'degraded' | 'unhealthy';
-    components: Record<NetworkComponent, {
-      status: 'online' | 'offline';
-      message?: string;
-    }>;
+    status: NetworkStatusEnum;
+    components: Record<NetworkComponent, HealthCheckResult>;
   }> {
-    const components: Record<NetworkComponent, {
-      status: 'online' | 'offline';
-      message?: string;
-    }> = {
+    const components: Record<NetworkComponent, HealthCheckResult> = {
       database: await this.checkDatabase(),
       api: await this.checkApi(),
       redis: await this.checkRedis(),
       websocket: await this.checkWebSocket(),
-      userApi: { status: 'online' },
-      adminApi: { status: 'online' },
-      strategyEngine: { status: 'online' }
+      userApi: { status: NetworkStatusEnum.ONLINE },
+      adminApi: { status: NetworkStatusEnum.ONLINE },
+      strategyEngine: { status: NetworkStatusEnum.ONLINE }
     };
 
     const status = this.determineOverallStatus(components);
     return { status, components };
   }
 
-  private async checkDatabase(): Promise<{ status: 'online' | 'offline'; message?: string }> {
+  private async checkDatabase(): Promise<HealthCheckResult> {
     try {
       const startTime = Date.now();
       if (!mongoose.connection.readyState) {
@@ -116,82 +117,100 @@ export class HealthService extends EventEmitter {
       await mongoose.connection.db.admin().ping();
       const endTime = Date.now();
       const responseTime = endTime - startTime;
-      await this.updateNetworkComponentStatus('database', 'online', undefined, responseTime);
-      return { status: 'online', message: `Response time: ${responseTime}ms` };
+      await this.updateNetworkComponentStatus('database', NetworkStatusEnum.ONLINE, undefined, responseTime);
+      return {
+        status: NetworkStatusEnum.ONLINE,
+        responseTime
+      };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      await this.updateNetworkComponentStatus('database', 'offline', errorMessage);
-      return { status: 'offline', message: errorMessage };
+      await this.updateNetworkComponentStatus('database', NetworkStatusEnum.ERROR, errorMessage);
+      return {
+        status: NetworkStatusEnum.ERROR,
+        error: errorMessage
+      };
     }
   }
 
-  private async checkApi(): Promise<{ status: 'online' | 'offline'; message?: string }> {
+  private async checkApi(): Promise<HealthCheckResult> {
     try {
       const startTime = Date.now();
       await axios.get(`${config.server.port}/health`);
       const endTime = Date.now();
       const responseTime = endTime - startTime;
-      await this.updateNetworkComponentStatus('api', 'online', undefined, responseTime);
-      return { status: 'online', message: `Response time: ${responseTime}ms` };
+      await this.updateNetworkComponentStatus('api', NetworkStatusEnum.ONLINE, undefined, responseTime);
+      return {
+        status: NetworkStatusEnum.ONLINE,
+        responseTime
+      };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      await this.updateNetworkComponentStatus('api', 'offline', errorMessage);
-      return { status: 'offline', message: errorMessage };
+      await this.updateNetworkComponentStatus('api', NetworkStatusEnum.ERROR, errorMessage);
+      return {
+        status: NetworkStatusEnum.ERROR,
+        error: errorMessage
+      };
     }
   }
 
-  private async checkRedis(): Promise<{ status: 'online' | 'offline'; message?: string }> {
+  private async checkRedis(): Promise<HealthCheckResult> {
     try {
       const startTime = Date.now();
-      const client = createClient({ 
-        url: config.redis.url,
-        password: config.redis.password
-      });
-      await client.connect();
-      await client.ping();
-      await client.quit();
+      await this.redisClient.ping();
       const endTime = Date.now();
       const responseTime = endTime - startTime;
-      await this.updateNetworkComponentStatus('redis', 'online', undefined, responseTime);
-      return { status: 'online', message: `Response time: ${responseTime}ms` };
+      await this.updateNetworkComponentStatus('redis', NetworkStatusEnum.ONLINE, undefined, responseTime);
+      return {
+        status: NetworkStatusEnum.ONLINE,
+        responseTime
+      };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      await this.updateNetworkComponentStatus('redis', 'offline', errorMessage);
-      return { status: 'offline', message: errorMessage };
+      await this.updateNetworkComponentStatus('redis', NetworkStatusEnum.ERROR, errorMessage);
+      return {
+        status: NetworkStatusEnum.ERROR,
+        error: errorMessage
+      };
     }
   }
 
-  private async checkWebSocket(): Promise<{ status: 'online' | 'offline'; message?: string }> {
+  private async checkWebSocket(): Promise<HealthCheckResult> {
     try {
       const startTime = Date.now();
       // Add WebSocket health check logic here
       const endTime = Date.now();
       const responseTime = endTime - startTime;
-      await this.updateNetworkComponentStatus('websocket', 'online', undefined, responseTime);
-      return { status: 'online', message: `Response time: ${responseTime}ms` };
+      await this.updateNetworkComponentStatus('websocket', NetworkStatusEnum.ONLINE, undefined, responseTime);
+      return {
+        status: NetworkStatusEnum.ONLINE,
+        responseTime
+      };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      await this.updateNetworkComponentStatus('websocket', 'offline', errorMessage);
-      return { status: 'offline', message: errorMessage };
+      await this.updateNetworkComponentStatus('websocket', NetworkStatusEnum.ERROR, errorMessage);
+      return {
+        status: NetworkStatusEnum.ERROR,
+        error: errorMessage
+      };
     }
   }
 
-  private determineOverallStatus(components: Record<NetworkComponent, { status: 'online' | 'offline' }>): 'healthy' | 'degraded' | 'unhealthy' {
-    const onlineCount = Object.values(components).filter(c => c.status === 'online').length;
+  private determineOverallStatus(components: Record<NetworkComponent, HealthCheckResult>): NetworkStatusEnum {
+    const onlineCount = Object.values(components).filter(c => c.status === NetworkStatusEnum.ONLINE).length;
     const totalCount = Object.keys(components).length;
-    if (onlineCount === totalCount) return 'healthy';
-    if (onlineCount >= totalCount / 2) return 'degraded';
-    return 'unhealthy';
+    if (onlineCount === totalCount) return NetworkStatusEnum.ONLINE;
+    if (onlineCount >= totalCount / 2) return NetworkStatusEnum.CHECKING;
+    return NetworkStatusEnum.ERROR;
   }
 
-  async updateNetworkComponentStatus(type: NetworkComponent, status: 'online' | 'offline', error?: string, responseTime?: number): Promise<void> {
+  async updateNetworkComponentStatus(type: NetworkComponent, status: NetworkStatusEnum, error?: string, responseTime?: number): Promise<void> {
     try {
-      const networkStatusData: Omit<INetworkStatus, '_id' | 'createdAt' | 'updatedAt'> = {
+      const networkStatusData: NetworkStatusCreateInput = {
         network: type,
-        status: status === 'online' ? 'online' : 'offline',
-        lastChecked: new Date(),
+        status,
+        lastCheck: new Date(),
         latency: responseTime || 0,
-        type: type as NetworkType,
+        type: NetworkTypeEnum.MAINNET,
         responseTime: responseTime || 0,
         error
       };
@@ -203,14 +222,14 @@ export class HealthService extends EventEmitter {
 
   async getNetworkStatus(): Promise<INetworkStatus[]> {
     try {
-      const statuses = await this.networkStatusModel.find().sort({ lastChecked: -1 });
+      const statuses = await this.networkStatusModel.find().sort({ lastCheck: -1 });
       return statuses.map(status => ({
-        _id: status._id,
+        _id: status._id as Types.ObjectId,
         network: status.network,
-        status: status.status as 'online' | 'offline' | 'error' | 'checking',
-        lastChecked: status.lastChecked,
+        status: status.status,
+        lastCheck: status.lastCheck,
         latency: status.latency,
-        type: status.type,
+        type: NetworkTypeEnum.MAINNET,
         responseTime: status.responseTime,
         error: status.error,
         createdAt: status.createdAt,
@@ -222,168 +241,95 @@ export class HealthService extends EventEmitter {
     }
   }
 
-  async createHealth(data: Omit<IHealth, '_id' | 'createdAt' | 'updatedAt'>): Promise<IHealth> {
+  async createHealthCheck(healthData: Omit<IHealth, '_id'>): Promise<IHealthDocument> {
     try {
-      const health = new Health({
-        ...data,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-      const savedHealth = await health.save();
-      return this.mapToIHealth(savedHealth);
+      const health = new Health(healthData);
+      await health.save();
+      return health;
     } catch (error) {
-      logger.error('Error creating health record:', error);
-      throw error;
+      logger.error('Error creating health check:', error);
+      throw new AppError('Failed to create health check', 500);
     }
   }
 
-  async getHealthById(id: string): Promise<IHealth | null> {
+  async getHealthCheckById(id: string): Promise<IHealthDocument | null> {
     try {
-      const health = await Health.findById(id);
-      if (!health) return null;
-      return this.mapToIHealth(health);
+      return await Health.findById(id);
     } catch (error) {
-      logger.error('Error getting health record:', error);
-      throw error;
+      logger.error('Error getting health check:', error);
+      throw new AppError('Failed to get health check', 500);
     }
   }
 
-  async updateHealth(id: string, data: Partial<IHealth>): Promise<IHealth | null> {
+  async getHealthChecksByUser(userId: string): Promise<IHealthDocument[]> {
     try {
-      const health = await Health.findByIdAndUpdate(
+      return await Health.find({ userId: new Types.ObjectId(userId) });
+    } catch (error) {
+      logger.error('Error getting user health checks:', error);
+      throw new AppError('Failed to get user health checks', 500);
+    }
+  }
+
+  async updateHealthStatus(id: string, status: NetworkStatusEnum): Promise<IHealthDocument | null> {
+    try {
+      return await Health.findByIdAndUpdate(
         id,
-        { ...data, updatedAt: new Date() },
-        { new: true }
-      );
-      if (!health) return null;
-      return this.mapToIHealth(health);
-    } catch (error) {
-      logger.error('Error updating health record:', error);
-      throw error;
-    }
-  }
-
-  async deleteHealth(id: string): Promise<boolean> {
-    try {
-      const result = await Health.findByIdAndDelete(id);
-      return !!result;
-    } catch (error) {
-      logger.error('Error deleting health record:', error);
-      throw error;
-    }
-  }
-
-  async checkDatabaseConnection(): Promise<boolean> {
-    try {
-      if (!mongoose.connection.readyState) {
-        return false;
-      }
-      if (!mongoose.connection.db) {
-        return false;
-      }
-      await mongoose.connection.db.admin().ping();
-      return true;
-    } catch (error) {
-      logger.error('Database connection check failed:', error);
-      return false;
-    }
-  }
-
-  public async getHealth(): Promise<IHealth> {
-    try {
-      const health = await Health.findOne().sort({ createdAt: -1 });
-      if (!health) {
-        return this.createHealth({
-          networkStatus: {
-            _id: new Types.ObjectId(),
-            network: 'system',
-            status: 'online',
-            lastChecked: new Date(),
-            latency: 0,
-            type: 'database',
-            responseTime: 0,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          },
-          lastChecked: new Date()
-        });
-      }
-      return this.mapToIHealth(health);
-    } catch (error) {
-      logger.error('Error getting health status:', error);
-      throw error;
-    }
-  }
-
-  public async updateHealthStatus(data: Partial<IHealth>): Promise<IHealth> {
-    try {
-      const health = await Health.findOneAndUpdate(
-        {},
-        { ...data, updatedAt: new Date() },
-        { new: true, upsert: true }
-      );
-      return this.mapToIHealth(health);
-    } catch (error) {
-      logger.error('Error updating health status:', error);
-      throw error;
-    }
-  }
-
-  public async updateHealthWithNetworkStatus(networkStatus: INetworkStatus): Promise<IHealth> {
-    try {
-      const health = await Health.findOneAndUpdate(
-        {},
-        {
-          networkStatus,
-          lastChecked: new Date(),
+        { 
+          status,
           updatedAt: new Date()
         },
-        { new: true, upsert: true }
+        { new: true }
       );
-      return this.mapToIHealth(health);
     } catch (error) {
-      logger.error('Error updating health with network status:', error);
-      throw error;
+      logger.error('Error updating health status:', error);
+      throw new AppError('Failed to update health status', 500);
     }
   }
 
-  private mapToIHealth(doc: IHealthDocument): IHealth {
-    const networkStatus: INetworkStatus = {
-      _id: doc.networkStatus._id,
-      network: doc.networkStatus.network,
-      status: doc.networkStatus.status,
-      lastChecked: doc.networkStatus.lastChecked,
-      latency: doc.networkStatus.latency,
-      type: doc.networkStatus.type,
-      responseTime: doc.networkStatus.responseTime,
-      error: doc.networkStatus.error,
-      createdAt: doc.networkStatus.createdAt,
-      updatedAt: doc.networkStatus.updatedAt
+  async getSystemHealth(): Promise<{
+    status: NetworkStatusEnum;
+    components: {
+      database: boolean;
+      redis: boolean;
+      api: boolean;
     };
-
-    return {
-      _id: doc._id.toString(),
-      networkStatus,
-      lastChecked: doc.lastChecked,
-      createdAt: doc.createdAt,
-      updatedAt: doc.updatedAt
-    };
+    lastCheck: Date;
+  }> {
+    try {
+      // TODO: Implement actual system health checks
+      return {
+        status: NetworkStatusEnum.ONLINE,
+        components: {
+          database: true,
+          redis: true,
+          api: true
+        },
+        lastCheck: new Date()
+      };
+    } catch (error) {
+      logger.error('Error getting system health:', error);
+      throw new AppError('Failed to get system health', 500);
+    }
   }
 
-  private convertNetworkStatus(status: INetworkStatus) {
-    return {
-      _id: status._id,
-      network: status.network,
-      status: status.status,
-      lastChecked: status.lastChecked,
-      blockHeight: status.blockHeight,
-      latency: status.latency,
-      type: status.type,
-      responseTime: status.responseTime,
-      error: status.error,
-      createdAt: status.createdAt,
-      updatedAt: status.updatedAt
-    };
+  async getHealthMetrics(): Promise<{
+    cpu: number;
+    memory: number;
+    disk: number;
+    uptime: number;
+  }> {
+    try {
+      // TODO: Implement actual metrics collection
+      return {
+        cpu: 0,
+        memory: 0,
+        disk: 0,
+        uptime: 0
+      };
+    } catch (error) {
+      logger.error('Error getting health metrics:', error);
+      throw new AppError('Failed to get health metrics', 500);
+    }
   }
 }
 

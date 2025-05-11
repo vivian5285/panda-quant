@@ -1,17 +1,53 @@
-import { IOrder } from '../types/Trading';
+import { IOrder } from '../types/Order';
 import { AppError } from '../utils/AppError';
 import { logger } from '../utils/Logger';
 
 export class OrderQueueService {
-  private queue: IOrder[] = [];
+  private static instance: OrderQueueService;
+  private queue: IOrder[];
+  
+  private constructor() {
+    this.queue = [];
+  }
+  
+  public static getInstance(): OrderQueueService {
+    if (!OrderQueueService.instance) {
+      OrderQueueService.instance = new OrderQueueService();
+    }
+    return OrderQueueService.instance;
+  }
 
   async addOrder(order: IOrder): Promise<void> {
     try {
       this.queue.push(order);
-      logger.info(`Order added to queue: ${order.id}`);
+      logger.info(`Order added to queue: ${order._id}`);
     } catch (error) {
       logger.error('Error adding order to queue:', error);
-      throw new AppError('Failed to add order to queue', 500);
+      throw error;
+    }
+  }
+
+  async processQueue(): Promise<void> {
+    try {
+      while (this.queue.length > 0) {
+        const order = this.queue.shift();
+        if (order) {
+          await this.processOrder(order);
+        }
+      }
+    } catch (error) {
+      logger.error('Error processing order queue:', error);
+      throw error;
+    }
+  }
+
+  private async processOrder(order: IOrder): Promise<void> {
+    try {
+      // 处理订单逻辑
+      logger.info(`Processing order: ${order._id}`);
+    } catch (error) {
+      logger.error('Error processing order:', error);
+      throw error;
     }
   }
 

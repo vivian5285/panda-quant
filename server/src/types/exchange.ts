@@ -1,3 +1,5 @@
+import { Document, Types } from 'mongoose';
+
 export interface IExchangeCredentials {
   apiKey: string;
   apiSecret: string;
@@ -81,4 +83,18 @@ export interface IExchangeMarketData {
   bid: number;
   ask: number;
   last: number;
+}
+
+export interface IExchange {
+  _id: Types.ObjectId;
+  name: string;
+  apiKey: string;
+  apiSecret: string;
+  status: 'active' | 'inactive';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IExchangeDocument extends IExchange, Document {
+  _id: Types.ObjectId;
 } 

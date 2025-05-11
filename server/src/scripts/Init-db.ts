@@ -1,33 +1,35 @@
 import mongoose from 'mongoose';
 import { config } from '../Config';
 import { logger } from '../utils/Logger';
+import { DatabaseError } from '../utils/Errors';
 
-// 导入所有模型
-import '../models/user.model';
-import '../models/strategy.model';
-import '../models/order.model';
-import '../models/trade.model';
-import '../models/position.model';
-import '../models/commission.model';
-import '../models/commission-rule.model';
-import '../models/commission-withdrawal.model';
-import '../models/commission-record.model';
-import '../models/withdrawal.model';
-import '../models/deposit.model';
-import '../models/deposit-notification.model';
-import '../models/health.model';
-import '../models/network-status.model';
-import '../models/notification.model';
-import '../models/performance.model';
-import '../models/platform-earning.model';
-import '../models/risk-event.model';
-import '../models/settings.model';
-import '../models/strategy-performance.model';
-import '../models/strategy-rating.model';
-import '../models/strategy-review.model';
-import '../models/transaction.model';
-import '../models/user-earning.model';
-import '../models/user-level.model';
+// Import models with correct casing
+import '../models/User.model';
+import '../models/Strategy.model';
+import '../models/Order.model';
+import '../models/Trade.model';
+import '../models/Position.model';
+import '../models/Commission.model';
+import '../models/CommissionRule.model';
+import '../models/CommissionWithdrawal.model';
+import '../models/CommissionRecord.model';
+import '../models/Withdrawal.model';
+import '../models/Deposit.model';
+import '../models/DepositNotification.model';
+import '../models/Health.model';
+import '../models/NetworkStatus.model';
+import '../models/Notification.model';
+import '../models/Performance.model';
+import '../models/PlatformEarning.model';
+import '../models/RiskEvent.model';
+import '../models/Settings.model';
+import '../models/StrategyPerformance.model';
+import '../models/StrategyRating.model';
+import '../models/StrategyReview.model';
+import '../models/Transaction.model';
+import '../models/UserEarning.model';
+import '../models/UserLevel.model';
+import '../models/Profit.model';
 
 async function initDatabase() {
   try {

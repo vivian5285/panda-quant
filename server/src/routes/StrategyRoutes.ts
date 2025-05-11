@@ -1,6 +1,6 @@
 import express, { Router, Request, Response } from 'express';
 import { StrategyController } from '../controllers/StrategyController';
-import { authenticateToken } from '../middleware/Auth';
+import { authenticate } from '../middleware/AuthMiddleware';
 import { validateRequest, validateParams } from '../validations/Common';
 import { createStrategySchema, updateStrategySchema, strategyIdSchema } from '../validations/schemas/Strategy';
 import Joi from 'joi';
@@ -10,21 +10,21 @@ const strategyController = new StrategyController();
 
 // 创建策略
 router.post('/', 
-  authenticateToken, 
+  authenticate, 
   validateRequest(createStrategySchema), 
   strategyController.createStrategy.bind(strategyController)
 );
 
 // 获取单个策略
 router.get('/:id', 
-  authenticateToken, 
+  authenticate, 
   validateParams(strategyIdSchema), 
   strategyController.getStrategy.bind(strategyController)
 );
 
 // 更新策略
 router.put('/:id', 
-  authenticateToken, 
+  authenticate, 
   validateParams(strategyIdSchema),
   validateRequest(updateStrategySchema), 
   strategyController.updateStrategy.bind(strategyController)
@@ -32,48 +32,48 @@ router.put('/:id',
 
 // 删除策略
 router.delete('/:id', 
-  authenticateToken, 
+  authenticate, 
   validateParams(strategyIdSchema), 
   strategyController.deleteStrategy.bind(strategyController)
 );
 
 // 获取所有策略
 router.get('/', 
-  authenticateToken, 
+  authenticate, 
   strategyController.getAllStrategies.bind(strategyController)
 );
 
 // 启动策略
 router.post('/:id/start', 
-  authenticateToken, 
+  authenticate, 
   validateParams(strategyIdSchema), 
   strategyController.startStrategy.bind(strategyController)
 );
 
 // 停止策略
 router.post('/:id/stop', 
-  authenticateToken, 
+  authenticate, 
   validateParams(strategyIdSchema), 
   strategyController.stopStrategy.bind(strategyController)
 );
 
 // 暂停策略
 router.post('/:id/pause', 
-  authenticateToken, 
+  authenticate, 
   validateParams(strategyIdSchema), 
   strategyController.pauseStrategy.bind(strategyController)
 );
 
 // 恢复策略
 router.post('/:id/resume', 
-  authenticateToken, 
+  authenticate, 
   validateParams(strategyIdSchema), 
   strategyController.resumeStrategy.bind(strategyController)
 );
 
 // 获取用户的策略
 router.get('/user/:userId', 
-  authenticateToken, 
+  authenticate, 
   validateParams(Joi.object({
     userId: Joi.string().required().pattern(/^[0-9a-fA-F]{24}$/)
   })), 
@@ -82,13 +82,13 @@ router.get('/user/:userId',
 
 // 获取活跃策略
 router.get('/active/all', 
-  authenticateToken, 
+  authenticate, 
   strategyController.getActiveStrategies.bind(strategyController)
 );
 
 // 获取热门策略
 router.get('/popular', 
-  authenticateToken, 
+  authenticate, 
   strategyController.getPopularStrategies.bind(strategyController)
 );
 

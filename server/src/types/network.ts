@@ -1,23 +1,23 @@
-import { Document, Types } from 'mongoose';
+import { Types } from 'mongoose';
+import { NetworkStatus, NetworkType } from './Enums';
 
 export interface INetworkStatusBase {
   network: string;
-  status: 'online' | 'offline' | 'error' | 'checking';
-  lastChecked: Date;
-  blockHeight?: number;
-  latency: number;
-  type: 'database' | 'api' | 'redis' | 'websocket';
-  responseTime: number;
+  status: NetworkStatus;
+  lastCheck: Date;
+  latency?: number;
+  type: NetworkType;
+  responseTime?: number;
   error?: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface INetworkStatus extends INetworkStatusBase {
   _id: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface INetworkStatusDocument extends INetworkStatusBase, Document {
+export interface INetworkStatusDocument extends INetworkStatus {
   _id: Types.ObjectId;
 }
 
@@ -30,7 +30,8 @@ export interface NetworkConfig {
   retryDelay: number;
 }
 
-export type NetworkStatus = INetworkStatus;
+export type NetworkStatusCreateInput = Omit<INetworkStatusBase, 'lastCheck'> & {
+  lastCheck?: Date;
+};
 
-export interface NetworkStatusCreateInput extends Omit<INetworkStatus, '_id' | 'createdAt' | 'updatedAt'> {}
-export interface NetworkStatusUpdateInput extends Partial<NetworkStatusCreateInput> {} 
+export type NetworkStatusUpdateInput = Partial<Omit<INetworkStatusBase, 'network' | 'type'>>; 

@@ -37,7 +37,7 @@ export class AuthController {
       const userData = {
         email,
         password,
-        confirmPassword: password,
+        name: email.split('@')[0],
         username: email.split('@')[0]
       };
       const user = await this.authService.register(userData);

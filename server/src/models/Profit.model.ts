@@ -1,53 +1,42 @@
-import mongoose, { Schema, Document, Types } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
+import { ProfitType, ProfitStatus } from '../types/Enums';
 
-export interface IProfit {
-  _id: Types.ObjectId;
+interface IProfitBase {
   userId: Types.ObjectId;
   strategyId: Types.ObjectId;
   amount: number;
-  currency: string;
-  type: 'realized' | 'unrealized';
-  status: 'pending' | 'completed' | 'failed';
-  description: string;
-  metadata: Record<string, any>;
+  type: ProfitType;
+  status: ProfitStatus;
+  metadata?: Record<string, any>;
+}
+
+interface IProfit extends IProfitBase {
+  _id: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface IProfitDocument extends Document {
+interface IProfitDocument extends IProfit {
   _id: Types.ObjectId;
-  userId: Types.ObjectId;
-  strategyId: Types.ObjectId;
-  amount: number;
-  currency: string;
-  type: 'realized' | 'unrealized';
-  status: 'pending' | 'completed' | 'failed';
-  description: string;
-  metadata: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 const profitSchema = new Schema<IProfitDocument>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   strategyId: { type: Schema.Types.ObjectId, ref: 'Strategy', required: true },
   amount: { type: Number, required: true },
-  currency: { type: String, required: true },
-  type: { type: String, enum: ['realized', 'unrealized'], required: true },
-  status: { type: String, enum: ['pending', 'completed', 'failed'], required: true },
-  description: { type: String, required: true },
-  metadata: { type: Schema.Types.Mixed, default: {} },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  type: { type: String, enum: Object.values(ProfitType), required: true },
+  status: { type: String, enum: Object.values(ProfitStatus), required: true },
+  metadata: { type: Schema.Types.Mixed, default: {} }
+}, {
+  timestamps: true
 });
 
-// 添加索引
+// 添加复合索引
 profitSchema.index({ userId: 1 });
 profitSchema.index({ strategyId: 1 });
-profitSchema.index({ type: 1 });
 profitSchema.index({ status: 1 });
-profitSchema.index({ currency: 1 });
-profitSchema.index({ createdAt: -1 });
+profitSchema.index({ createdAt: 1 });
 
-export const Profit = mongoose.model<IProfitDocument>('Profit', profitSchema);
+const Profit = model<IProfitDocument>('Profit', profitSchema);
+export type { IProfit, IProfitDocument };
 export default Profit; 

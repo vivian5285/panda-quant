@@ -66,7 +66,9 @@ export interface StrategyPerformanceBase {
   updatedAt: Date;
 }
 
-export interface StrategyPerformance extends Document, StrategyPerformanceBase {}
+export interface StrategyPerformance extends Document, StrategyPerformanceBase {
+  _id: Types.ObjectId;
+}
 
 export type StrategyPerformanceDocument = StrategyPerformance;
 
@@ -124,6 +126,14 @@ export interface PerformanceComparison {
   updatedAt: Date;
 }
 
-export type PerformanceReportDocument = PerformanceReport;
-export type PerformanceChartDocument = PerformanceChart;
-export type PerformanceComparisonDocument = PerformanceComparison; 
+export interface PerformanceReportDocument extends Document, PerformanceReport {
+  _id: Types.ObjectId;
+}
+
+export interface PerformanceChartDocument extends Document, PerformanceChart {
+  _id: Types.ObjectId;
+}
+
+export interface PerformanceComparisonDocument extends Document, PerformanceComparison {
+  _id: Types.ObjectId;
+} 
