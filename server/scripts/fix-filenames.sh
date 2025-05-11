@@ -40,6 +40,7 @@ mv src/controllers/ProfitController.ts src/controllers/profitController.ts 2>/de
 mv src/controllers/UserController.ts src/controllers/userController.ts 2>/dev/null
 
 # 修复 services 目录下的文件名
+mv src/services/ADMINSERVICE.ts src/services/adminService.ts 2>/dev/null
 mv src/services/AdminService.ts src/services/adminService.ts 2>/dev/null
 mv src/services/AuthService.ts src/services/authService.ts 2>/dev/null
 mv src/services/BlacklistService.ts src/services/blacklistService.ts 2>/dev/null
@@ -109,6 +110,7 @@ find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/controllers\/HealthCon
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/controllers\/ProfitController"/from "..\/controllers\/profitController"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/controllers\/UserController"/from "..\/controllers\/userController"/g' {} +
 
+find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/services\/ADMINSERVICE"/from "..\/services\/adminService"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/services\/AdminService"/from "..\/services\/adminService"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/services\/AuthService"/from "..\/services\/authService"/g' {} +
 find src -type f -name "*.ts" -exec sed -i 's/from "\.\.\/services\/BlacklistService"/from "..\/services\/blacklistService"/g' {} +
