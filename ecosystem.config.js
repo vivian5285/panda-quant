@@ -6,7 +6,8 @@ module.exports = {
       script: 'dist/index.js',
       env: {
         NODE_ENV: 'production',
-        PORT: 3001
+        PORT: 3001,
+        HOST: '0.0.0.0'
       },
       watch: false,
       max_memory_restart: '1G',
@@ -20,7 +21,8 @@ module.exports = {
       script: 'dist/index.js',
       env: {
         NODE_ENV: 'production',
-        PORT: 3002
+        PORT: 3002,
+        HOST: '0.0.0.0'
       },
       watch: false,
       max_memory_restart: '1G',
@@ -34,7 +36,8 @@ module.exports = {
       script: 'dist/index.js',
       env: {
         NODE_ENV: 'production',
-        PORT: 4000
+        PORT: 4000,
+        HOST: '0.0.0.0'
       },
       watch: false,
       max_memory_restart: '1G',
@@ -49,7 +52,8 @@ module.exports = {
       args: 'start',
       env: {
         NODE_ENV: 'production',
-        PORT: 8080
+        PORT: 8080,
+        HOST: '0.0.0.0'
       },
       watch: false,
       max_memory_restart: '1G',
@@ -61,7 +65,7 @@ module.exports = {
       name: 'user-ui',
       cwd: './user-ui',
       script: 'npx',
-      args: 'serve dist -s -l 3000',
+      args: 'serve dist -s -l 3000 -H 0.0.0.0',
       env: {
         NODE_ENV: 'production'
       },
@@ -77,7 +81,8 @@ module.exports = {
       script: 'dist/index.js',
       env: {
         NODE_ENV: 'production',
-        PORT: 3000
+        PORT: 3000,
+        HOST: '0.0.0.0'
       },
       watch: false,
       max_memory_restart: '1G',
