@@ -24,7 +24,10 @@ COPY server/package*.json server/tsconfig*.json ./
 RUN npm install --legacy-peer-deps && \
     npm cache clean --force
 
-# 复制所有源代码和配置文件
+# 首先复制类型定义文件
+COPY server/src/types ./src/types
+
+# 复制其他源代码和配置文件
 COPY server/src ./src
 COPY server/locales ./locales
 COPY server/mt4 ./mt4
@@ -38,7 +41,8 @@ RUN ls -la src/types/ && \
     find src/types -type f -name "*.ts" | sort
 
 # 构建应用
-RUN npm run build
+RUN npm run build:skip-type-check && \
+    npm run build
 
 # 生产阶段
 FROM node:20-alpine

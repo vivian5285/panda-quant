@@ -44,7 +44,9 @@
     "declarationMap": true,
     "composite": true,
     "incremental": true,
-    "tsBuildInfoFile": "./tsconfig.tsbuildinfo"
+    "tsBuildInfoFile": "./tsconfig.tsbuildinfo",
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true
   },
   "include": [
     "src/**/*"

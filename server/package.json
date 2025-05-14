@@ -8,7 +8,7 @@
     "dev": "nodemon src/index.ts",
     "clean": "rimraf dist tsconfig.tsbuildinfo",
     "prebuild": "npm run clean",
-    "build": "tsc --skipLibCheck",
+    "build": "tsc --skipLibCheck --incremental",
     "build:skip-type-check": "tsc --skipLibCheck --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
