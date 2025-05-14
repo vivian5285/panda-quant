@@ -1,13 +1,14 @@
 import { Schema, model } from 'mongoose';
 import { ICommission } from '../types';
 
-const commissionSchema = new Schema<ICommission>({
-  userId: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-  amount: { type: Number, required: true },
-  type: { type: String, required: true },
-  status: { type: String, required: true, enum: ['pending', 'paid'], default: 'pending' },
-}, {
-  timestamps: true
+const CommissionSchema = new Schema<ICommission>({
+  id: { type: String, required: true },
+  symbol: { type: String, required: true },
+  rate: { type: Number, required: true },
+  minAmount: { type: Number, required: true },
+  createdAt: { type: Date, required: true },
+  updatedAt: { type: Date, required: true },
+  userId: { type: String, required: true }
 });
 
-export default model<ICommission>('Commission', commissionSchema); 
+export default model<ICommission>('Commission', CommissionSchema); 

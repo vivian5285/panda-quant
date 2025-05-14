@@ -7,6 +7,7 @@ export interface IAlert {
   message: string;
   level: 'info' | 'warning' | 'error';
   createdAt: Date;
+  userId: string;
 }
 
 export interface IBlacklistEntry {
@@ -15,6 +16,7 @@ export interface IBlacklistEntry {
   reason: string;
   createdAt: Date;
   updatedAt: Date;
+  type: string;
 }
 
 export interface ICommission {
@@ -24,6 +26,7 @@ export interface ICommission {
   minAmount: number;
   createdAt: Date;
   updatedAt: Date;
+  userId: string;
 }
 
 export interface INetworkStatus {
@@ -31,6 +34,7 @@ export interface INetworkStatus {
   status: 'online' | 'offline';
   latency: number;
   lastChecked: Date;
+  network: string;
 }
 
 export interface IStrategyPerformance {
@@ -56,6 +60,7 @@ export interface IUser {
   level: string;
   createdAt: Date;
   updatedAt: Date;
+  password: string;
 }
 
 export interface IUserLevel {

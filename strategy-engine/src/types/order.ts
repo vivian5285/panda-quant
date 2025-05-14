@@ -17,7 +17,10 @@ export enum OrderStatus {
   PARTIALLY_FILLED = 'PARTIALLY_FILLED',
   CANCELED = 'CANCELED',
   REJECTED = 'REJECTED',
-  EXPIRED = 'EXPIRED'
+  EXPIRED = 'EXPIRED',
+  RETRYING = 'RETRYING',
+  FAILED = 'FAILED',
+  COMPLETED = 'COMPLETED'
 }
 
 export interface Order {
@@ -35,4 +38,5 @@ export interface Order {
   updatedAt: Date;
   strategyId?: string;
   metadata?: Record<string, any>;
+  retryCount?: number;
 } 

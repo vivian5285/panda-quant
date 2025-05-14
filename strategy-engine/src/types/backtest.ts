@@ -6,6 +6,7 @@ export interface BacktestParams {
   endDate: Date;
   initialCapital: number;
   parameters: Record<string, any>;
+  exchange: string;
 }
 
 export interface BacktestResult {
@@ -19,6 +20,7 @@ export interface BacktestResult {
   totalProfit: number;
   maxDrawdown: number;
   sharpeRatio: number;
+  monthlyReturn: number;
   trades: Array<{
     entryDate: Date;
     exitDate: Date;

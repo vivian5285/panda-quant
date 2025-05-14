@@ -11,7 +11,8 @@ export enum StrategyStatus {
   ACTIVE = 'ACTIVE',
   PAUSED = 'PAUSED',
   STOPPED = 'STOPPED',
-  ERROR = 'ERROR'
+  ERROR = 'ERROR',
+  RUNNING = 'RUNNING'
 }
 
 export interface Strategy {

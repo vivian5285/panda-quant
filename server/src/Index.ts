@@ -1,7 +1,7 @@
 import express, { Application } from 'express';
-import app from './App';
+import app from './app';
 import { logger } from './utils/Logger';
-import { connectDB } from './Db';
+import { connectDB } from './db';
 
 const port = process.env.PORT || 3005;
 
