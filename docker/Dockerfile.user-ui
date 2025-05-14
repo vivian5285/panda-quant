@@ -21,9 +21,8 @@ RUN npm config set registry https://registry.npmmirror.com/ && \
 # 复制 package.json 文件
 COPY user-ui/package*.json ./
 
-# 安装依赖
-RUN npm install --legacy-peer-deps && \
-    npm install vite@5.0.0 --legacy-peer-deps && \
+# 优先用 npm ci，如果没有 lock 文件就用 npm install
+RUN if [ -f package-lock.json ]; then npm ci --legacy-peer-deps; else npm install --legacy-peer-deps; fi && \
     npm cache clean --force
 
 # 复制源代码
