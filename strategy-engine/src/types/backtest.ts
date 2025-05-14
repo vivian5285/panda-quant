@@ -1,41 +1,25 @@
 export interface BacktestParams {
-  strategyId: string;
+  exchange: string;
   symbol: string;
   timeframe: string;
   startDate: Date;
   endDate: Date;
   initialCapital: number;
-  parameters: Record<string, any>;
-  exchange: string;
+  commission: number;
+  slippage: number;
 }
 
 export interface BacktestResult {
-  id: string;
-  strategyId: string;
-  totalTrades: number;
-  winningTrades: number;
-  losingTrades: number;
-  winRate: number;
-  profitFactor: number;
-  totalProfit: number;
+  monthlyReturn: number;
+  totalReturn: number;
   maxDrawdown: number;
   sharpeRatio: number;
-  monthlyReturn: number;
   trades: Array<{
-    entryDate: Date;
-    exitDate: Date;
+    entryTime: Date;
+    exitTime: Date;
     entryPrice: number;
     exitPrice: number;
+    position: 'long' | 'short';
     profit: number;
-    type: 'long' | 'short';
   }>;
-  equity: Array<{
-    date: Date;
-    value: number;
-  }>;
-  parameters: Record<string, any>;
-  period: {
-    start: Date;
-    end: Date;
-  };
 } 

@@ -6,10 +6,12 @@ export class OrderQueueService {
   private static instance: OrderQueueService;
   private queue: Map<string, Order> = new Map();
   private processing: Set<string> = new Set();
-  private maxRetries: number = 3;
+  private maxRetries: number;
   private retryDelay: number = 5000;
 
-  private constructor() {}
+  private constructor(maxRetries = 3) {
+    this.maxRetries = maxRetries;
+  }
 
   static getInstance(): OrderQueueService {
     if (!OrderQueueService.instance) {
@@ -18,14 +20,15 @@ export class OrderQueueService {
     return OrderQueueService.instance;
   }
 
-  async addOrder(order: Omit<Order, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  async addOrder(order: Omit<Order, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'retryCount'>): Promise<string> {
     const orderId = uuidv4();
     const newOrder: Order = {
       ...order,
       id: orderId,
       status: OrderStatus.PENDING,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
+      retryCount: 0
     };
     this.queue.set(orderId, newOrder);
     logger.info(`Order ${orderId} added to queue`);
@@ -53,8 +56,9 @@ export class OrderQueueService {
     } catch (error) {
       logger.error(`Error processing order ${orderId}:`, error);
       
-      if (order.retryCount < this.maxRetries) {
-        order.retryCount++;
+      const retryCount = order.retryCount ?? 0;
+      if (retryCount < this.maxRetries) {
+        order.retryCount = retryCount + 1;
         order.status = OrderStatus.RETRYING;
         logger.info(`Retrying order ${orderId} (attempt ${order.retryCount}/${this.maxRetries})`);
         
@@ -86,7 +90,7 @@ export class OrderQueueService {
       return false;
     }
 
-    order.status = OrderStatus.CANCELLED;
+    order.status = OrderStatus.CANCELED;
     order.updatedAt = new Date();
     this.queue.set(orderId, order);
     logger.info(`Order ${orderId} cancelled successfully`);

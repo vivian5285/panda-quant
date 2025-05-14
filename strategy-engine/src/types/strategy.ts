@@ -26,10 +26,14 @@ export interface Strategy {
 }
 
 export interface StrategyParameters {
+  userId: string;
   symbol: string;
+  amount: number;
+  leverage: number;
+  maxDrawdown: number;
   timeframe: string;
-  entryRules: any[];
-  exitRules: any[];
+  entryRules: string[];
+  exitRules: string[];
   riskManagement: {
     stopLoss: number;
     takeProfit: number;
@@ -39,5 +43,4 @@ export interface StrategyParameters {
     type: 'fixed' | 'percentage';
     value: number;
   };
-  [key: string]: any;
 } 

@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import { HealthCheckResponse } from '../interfaces/api';
-import { checkDatabaseHealth } from '../services/database';
+import { checkDatabaseConnection } from '../services/database';
 import { checkRedisHealth } from '../services/redis';
 import { checkServerHealth } from '../services/server';
 
 export const healthCheck = async (req: Request, res: Response) => {
   try {
     const [database, redis, server] = await Promise.all([
-      checkDatabaseHealth(),
+      checkDatabaseConnection(),
       checkRedisHealth(),
       checkServerHealth(),
     ]);

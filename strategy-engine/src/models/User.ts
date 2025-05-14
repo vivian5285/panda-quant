@@ -1,18 +1,20 @@
-import { Schema, model } from 'mongoose';
-import { IUser } from '../types';
+import mongoose, { Schema } from 'mongoose';
+import { IUser } from '../types/User';
 
-const UserSchema = new Schema<IUser>({
-  id: { type: String, required: true },
-  username: { type: String, required: true },
-  email: { type: String, required: true },
-  level: { type: String, required: true },
-  createdAt: { type: Date, required: true },
-  updatedAt: { type: Date, required: true },
+const userSchema = new Schema<IUser>({
+  email: { type: String, required: true, unique: true },
+  username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, required: true, enum: ['user', 'admin'], default: 'user' },
-  referrerId: { type: Schema.Types.ObjectId, ref: 'User' },
-}, {
-  timestamps: true
+  role: { type: String, required: true, enum: ['admin', 'user'] },
+  status: { type: String, required: true, enum: ['active', 'inactive', 'suspended'] },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+  lastLogin: { type: Date },
+  preferences: {
+    theme: { type: String },
+    notifications: { type: Boolean },
+    language: { type: String }
+  }
 });
 
-export default model<IUser>('User', UserSchema); 
+export const User = mongoose.model<IUser>('User', userSchema); 

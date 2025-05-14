@@ -26,7 +26,8 @@ export class StrategyEngine {
     // 更新监控
     this.monitorService.startMonitoring(strategyId, parameters.userId);
     this.monitorService.updatePerformance(strategyId, parameters.userId, {
-      status,
+      status: status === StrategyStatus.RUNNING ? 'running' : 
+              status === StrategyStatus.PAUSED ? 'paused' : 'stopped',
       currentReturn: 0,
       maxDrawdown: 0,
       dailyReturn: 0,

@@ -15,7 +15,19 @@ export const executeStrategy = async (
       symbol: request.parameters.symbol,
       amount: request.parameters.amount,
       leverage: request.parameters.leverage,
-      maxDrawdown: request.parameters.maxDrawdown
+      maxDrawdown: request.parameters.maxDrawdown,
+      timeframe: '1h',
+      entryRules: ['MA', 'RSI'],
+      exitRules: ['MA', 'RSI'],
+      riskManagement: {
+        stopLoss: 0.02,
+        takeProfit: 0.04,
+        maxDrawdown: request.parameters.maxDrawdown
+      },
+      positionSize: {
+        type: 'fixed',
+        value: request.parameters.amount
+      }
     };
     const result = await engine.executeStrategy(request.strategyId, strategyParams);
 
@@ -32,4 +44,34 @@ export const executeStrategy = async (
       error: error instanceof Error ? error.message : '未知错误'
     };
   }
-}; 
+};
+
+export async function createStrategy(params: {
+  userId: string;
+  symbol: string;
+  amount: number;
+  leverage: number;
+  maxDrawdown: number;
+}): Promise<void> {
+  const strategyParams: StrategyParameters = {
+    userId: params.userId,
+    symbol: params.symbol,
+    amount: params.amount,
+    leverage: params.leverage,
+    maxDrawdown: params.maxDrawdown,
+    timeframe: '1h',
+    entryRules: ['MA', 'RSI'],
+    exitRules: ['MA', 'RSI'],
+    riskManagement: {
+      stopLoss: 0.02,
+      takeProfit: 0.04,
+      maxDrawdown: params.maxDrawdown
+    },
+    positionSize: {
+      type: 'fixed',
+      value: params.amount
+    }
+  };
+
+  // 创建策略逻辑
+} 

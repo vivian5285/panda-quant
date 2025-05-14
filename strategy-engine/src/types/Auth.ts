@@ -1,15 +1,12 @@
+import { IUser } from './User';
+
 export interface IAuthToken {
+  type: string;
   token: string;
   expiresIn: number;
-  type: string;
 }
 
 export interface IAuthResponse {
-  user: {
-    id: string;
-    username: string;
-    email: string;
-    level: string;
-  };
+  user: IUser;
   token: IAuthToken;
 } 
